@@ -1,0 +1,7 @@
+{
+  "name": "universe-dar-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "groq-sdk": "^0.9.1"
+  }
+}

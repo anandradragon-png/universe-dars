@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Вселенная Даров</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{--bg:#0d0221;--bg2:#1a0533;--bg3:#0a1628;--text:#e8d5ff;--text-dim:#9b7ec8;--text-muted:#5a3d8a;--border:rgba(180,120,255,0.2);--card:rgba(255,255,255,0.05)}
+    html,body{height:100%;overflow:hidden;background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 40%,var(--bg3) 100%);font-family:Georgia,serif;color:var(--text)}
+    body{display:flex;flex-direction:column}
+    .stars{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 60% 10%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,rgba(255,255,255,.4) 0%,transparent 100%)}
+    #btn-close{position:fixed;top:14px;right:14px;z-index:9999;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid var(--border);color:var(--text-dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    header{position:relative;z-index:1;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2)}
+    header h1{font-size:14px;letter-spacing:3px;color:var(--text);font-weight:normal}
+    #app{position:relative;z-index:1;flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:90px}
+    .tab{display:none}.tab.active{display:block}
+    #tab-calc{padding:16px}
+    .main-container{max-width:650px;margin:0 auto;width:100%}
+    .input-screen{text-align:center;padding-top:20px}
+    .input-screen .logo{font-size:44px;margin-bottom:14px}
+    .input-screen h2{font-size:20px;color:var(--text);letter-spacing:2px;margin-bottom:8px;font-weight:normal}
+    .input-screen p{font-size:13px;color:var(--text-dim);margin-bottom:24px;line-height:1.6}
+    .date-input{width:100%;padding:14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:22px;letter-spacing:4px;text-align:center;outline:none;font-family:Georgia,serif;transition:border-color .3s}
+    .date-input:focus{border-color:rgba(124,58,237,0.7)}
+    .date-input::placeholder{color:var(--text-muted);letter-spacing:2px}
+    .error-msg{color:#f87171;font-size:13px;min-height:18px;margin-top:8px;text-align:center}
+    .btn{width:100%;padding:15px;border-radius:14px;border:none;cursor:pointer;font-family:Georgia,serif;font-size:15px;letter-spacing:1px;transition:all .25s;margin-top:14px}
+    .btn-primary{background:linear-gradient(135deg,#6b21a8,#3b0764);color:var(--text);border:1px solid rgba(180,120,255,0.3)}
+    .btn-primary:hover{background:linear-gradient(135deg,#7c3aed,#4c1d95)}
+    .btn-secondary{background:linear-gradient(135deg,#6b21a8,#b8860b);color:#fff;border:none;font-weight:bold;box-shadow:0 0 18px rgba(212,175,55,0.3);transition:all .25s}
+    .btn-secondary:hover{background:linear-gradient(135deg,#7c3aed,#D4AF37);box-shadow:0 0 28px rgba(212,175,55,0.55);transform:translateY(-2px) scale(1.02)}
+    .btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);font-size:13px;padding:10px;margin-top:8px}
+    .btn-ghost:hover{border-color:rgba(124,58,237,0.6);color:var(--text)}
+    .btn:disabled{opacity:0.6;cursor:not-allowed}
+    .btn-back{display:none;background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:0 0 12px;font-family:Georgia,serif;text-align:left}
+    .btn-back:hover{color:var(--text)}
+    .result-card{text-align:center;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px 20px;backdrop-filter:blur(10px)}
+    .dar-image-wrap{width:110px;height:110px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center}
+    .dar-image-wrap img{width:100%;height:100%;object-fit:contain}
+    .dar-placeholder{width:110px;height:110px;border-radius:50%;border:2px solid var(--border);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);letter-spacing:1px;text-align:center;padding:8px}
+    .dar-name{font-size:32px;letter-spacing:4px;color:var(--text);text-shadow:0 0 20px rgba(180,120,255,0.4);margin-bottom:6px}
+    .dar-code{font-size:13px;color:var(--text-dim);letter-spacing:3px;margin-bottom:8px}
+    .dar-archetype{font-size:14px;color:#c4a0f0;font-style:italic;letter-spacing:1px;margin-bottom:20px}
+    #full-description-block{margin-top:16px}
+    .accordion-item{margin-bottom:8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)}
+    .accordion-header{width:100%;padding:14px 16px;background:rgba(255,255,255,0.05);border:none;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left;transition:background .2s;font-family:Georgia,serif}
+    .accordion-header:hover{background:rgba(107,33,168,0.2)}
+    .accordion-header.open{background:rgba(107,33,168,0.25)}
+    .accordion-icon{font-size:20px;flex-shrink:0}
+    .accordion-title{flex:1;font-size:14px;letter-spacing:1px;color:var(--text)}
+    .accordion-arrow{font-size:12px;color:var(--text-dim);transition:transform .3s;flex-shrink:0}
+    .accordion-header.open .accordion-arrow{transform:rotate(180deg)}
+    .accordion-body{display:none;padding:16px;background:rgba(0,0,0,0.2);border-top:1px solid var(--border)}
+    .accordion-body.open{display:block;animation:fadeUp .3s ease}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    .accordion-body p{font-size:15px;line-height:1.8;color:#e0e0e0;margin-bottom:12px}
+    .accordion-body p:last-child{margin-bottom:0}
+    .accordion-body strong{color:#e8d5ff;font-weight:bold}
+    .accordion-body em{color:#c4a0f0;font-style:italic}
+    .accordion-body ul{padding-left:18px;margin-bottom:12px}
+    .accordion-body ul li{font-size:15px;line-height:1.7;color:#e0e0e0;margin-bottom:5px}
+    .accordion-body ul li::marker{color:#D4AF37}
+    #tab-profile,#tab-base{padding:40px 24px;text-align:center}
+    .stub-title{font-size:20px;letter-spacing:2px;color:var(--text);font-weight:normal;margin-bottom:12px}
+    .stub-text{font-size:14px;color:var(--text-dim);line-height:1.7;max-width:300px;margin:0 auto}
+    .user-name{font-size:15px;color:var(--text);margin-bottom:14px}
+    .nav-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;padding:8px 10px 12px;background:rgba(10,5,25,0.97);border-top:1px solid var(--border);display:flex;gap:8px}
+    .nav-btn{flex:1;padding:12px 6px 10px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s}
+    .nav-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6)}
+    .nav-btn .nav-icon{font-size:22px;line-height:1}
+    .nav-btn .nav-label{font-size:11px;letter-spacing:1px;color:var(--text);font-family:Georgia,serif}
+    .nav-btn .nav-desc{font-size:9px;color:var(--text-dim)}
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  <button id="btn-close"></button>
+  <header><h1> ВСЕЛЕННАЯ ДАРОВ</h1></header>
+  <div id="app">
+    <div class="tab active" id="tab-calc">
+      <div class="main-container">
+      <div id="screen-input" class="input-screen">
+        <div class="logo"></div>
+        <h2>УЗНАЙ СВОЙ ДАР</h2>
+        <p>Введи дату рождения  и получи послание о своей природе, силе и пути</p>
+        <input class="date-input" id="dateInput" type="text" placeholder="ДД.ММ.ГГГГ" maxlength="10" inputmode="numeric"/>
+        <div class="error-msg" id="errorMsg"></div>
+        <button class="btn btn-primary" onclick="calculate()"> Рассчитать мой дар</button>
+      </div>
+      <div id="screen-result" style="display:none">
+        <button class="btn-back" id="btn-back" onclick="resetDate()">← В главное меню</button>
+        <div class="result-card">
+          <div class="dar-image-wrap" id="darImageWrap"></div>
+          <div class="dar-name" id="darName"></div>
+          <div class="dar-code" id="darCode"></div>
+          <div class="dar-archetype" id="darArchetype"></div>
+          <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()"> Получить полное послание</button>
+          <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()"> Изменить дату</button>
+        </div>
+        <div id="full-description-block" style="display:none">
+          <div id="full-description-content"></div>
+          <button class="btn btn-ghost" onclick="hideDescription()" style="margin-top:12px"> Скрыть описание</button>
+        </div>
+      </div>
+      </div><!-- /main-container -->
+    </div>
+    <div class="tab" id="tab-profile">
+      <div style="padding-top:40px">
+        <div style="font-size:48px;text-align:center;margin-bottom:16px"></div>
+        <div class="user-name" id="userName" style="text-align:center"></div>
+        <div class="stub-title">Профиль пользователя</div>
+        <div class="stub-text">Раздел в разработке. Здесь будет история ваших расчётов и настройки профиля.</div>
+      </div>
+    </div>
+    <div class="tab" id="tab-base">
+      <div style="padding-top:40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:16px"></div>
+        <div class="stub-title">База Знаний</div>
+        <div class="stub-text">Раздел в разработке. Здесь скоро появится полная карта всех 64 даров и описания полей из книги.</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">✨</span><span class="nav-label">Мой Дар</span><span class="nav-desc">Описание</span></button>
+    <button class="nav-btn" id="nav-profile" onclick="switchNav('profile')"><span class="nav-icon">👤</span><span class="nav-label">Профиль</span><span class="nav-desc">Ваши данные</span></button>
+    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon">📚</span><span class="nav-label">База знаний</span><span class="nav-desc">О системе</span></button>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.expand(); tg.ready(); }
+
+    function getUserId() {
+      if (tg?.initDataUnsafe?.user?.id) return 'tg_' + tg.initDataUnsafe.user.id;
+      let id = localStorage.getItem('_anon_id');
+      if (!id) { id = 'anon_' + Math.random().toString(36).slice(2); localStorage.setItem('_anon_id', id); }
+      return id;
+    }
+    const USER_ID = getUserId();
+    const STORAGE_KEY = 'dar_data_' + USER_ID;
+
+    const tgUser = tg?.initDataUnsafe?.user;
+    if (tgUser) {
+      const name = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
+      const el = document.getElementById('userName');
+      if (el && name) el.textContent = name;
+    }
+
+    document.getElementById('btn-close').addEventListener('click', () => {
+      if (tg?.close) tg.close();
+      else alert('Закройте вкладку браузера.');
+    });
+
+    function switchNav(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      document.getElementById('nav-' + name).classList.add('active');
+      document.getElementById('app').scrollTop = 0;
+    }
+
+    const FIELDS = {1:{name:"ЛОГОС"},2:{name:"НИМА"},3:{name:"АНДРА"},4:{name:"ЗИНГРА"},5:{name:"ЛУБА"},6:{name:"ТУМА"},7:{name:"АСТРА"},8:{name:"БИТРА"},9:{name:"ОМА"}};
+    const DARS = {"4-6-1":"ЖАР","3-7-1":"И-СТОК","2-8-1":"ЛА-ДА","8-2-1":"ЛЕ-ЛИ","7-3-1":"ПРИ-ТОК","6-4-1":"СВЕ-ТО","5-5-1":"ТЕ-ЛО","1-1-2":"БРА-МА","3-8-2":"ГО-РА","4-7-2":"ГУ-НА","8-3-2":"МЕ-РУ","7-4-2":"РО-ДА","5-6-2":"СО-НА","6-5-2":"У-МА","8-4-3":"АНАН-Д-РА","2-1-3":"ВИ-РА","1-2-3":"ЛИ-РА","7-5-3":"МА-ТА","5-7-3":"МАТ-КА","6-6-3":"ПА-РА","4-8-3":"СИ-ЛА","1-3-4":"АР-КА","6-7-4":"ВОС-ХА","2-2-4":"ЗИ-МА","3-1-4":"ЛА-НА","7-6-4":"МА-АТ","5-8-4":"РО-СА","8-5-4":"СЕ-МА","8-6-5":"А-МА","2-3-5":"АР-МА","7-7-5":"ЖИ-ВА","1-4-5":"ЖИ-МА","3-2-5":"РА-МА","4-1-5":"РИ-МА","6-8-5":"ТРО-НА","1-5-6":"КУ-НА","5-1-6":"ЛУ-НА","8-7-6":"СО-ХА","7-8-6":"ТА-РА","2-4-6":"ТО-ТА","3-3-6":"ТУ-РА","4-2-6":"Э-МА","4-3-7":"АР-ХЕЙ","2-5-7":"БРА-Х-МА","3-4-7":"ГРАД","1-6-7":"З-МАН","6-1-7":"МА-НА","5-2-7":"НИ-РА","8-8-7":"ПРА-НА","6-2-8":"БИ-МА","1-7-8":"БИ-РА","5-3-8":"ЗЛА-ТО","3-5-8":"КО-ДА","4-4-8":"ЛИ-КО","7-1-8":"МИ-ДА","2-6-8":"СО-ЛАР","3-6-9":"ИРИЙ","5-4-9":"МИ-РА","1-8-9":"РАЙ","8-1-9":"РОЙ","7-2-9":"ТО-РА","6-3-9":"ТОТ","2-7-9":"ФА-НА","4-5-9":"ШИ-ВА"};
+    const INTEGRATORS = {"1-9-1":"Архитектор Реальности","2-9-2":"Хранитель Бесконечного Пространства","3-9-3":"Сердце Вселенной","4-9-4":"Феникс Вечного Обновления","5-9-5":"Император Света","6-9-6":"Повелитель Времени","7-9-7":"Проводник Мирового Разума","8-9-8":"Творец Совершенной Формы","9-1-1":"Архитектор Вечного Порядка","9-2-2":"Творец Пространства Возможностей","9-3-3":"Сердце Мирового Единства","9-4-4":"Феникс Глобальной Эволюции","9-5-5":"Император Внутреннего Солнца","9-6-6":"Повелитель Судьбоносного Потока","9-7-7":"Голос Космического Разума","9-8-8":"Создатель Живых Границ","9-9-9":"Живое Зеркало Вселенной"};
+    const DAR_ARCHETYPES = {"8-6-5":"Первородное солнце","8-4-3":"Купол любви","1-3-4":"Портал между мирами","2-3-5":"Усилитель реальности","4-3-7":"Архитектор реальности","6-2-8":"Танец красоты","1-7-8":"Путеводная звезда","1-1-2":"Абсолютное внимание","2-5-7":"Дыхание жизни","2-1-3":"Внутренняя вера","6-7-4":"Крылья ангела","3-8-2":"Вершина власти","3-4-7":"Архитектор единства","4-7-2":"Нить времени","4-6-1":"Внутренний вулкан","7-7-5":"Квинтэссенция жизни","1-4-5":"Алхимическая лаборатория","2-2-4":"Белый огонь","5-3-8":"Золотая спираль","1-6-7":"Змей времени","3-6-9":"Река жизни","3-7-1":"Родник силы","3-5-8":"Программист реальности","1-5-6":"Рог изобилия","2-8-1":"Гармонизатор границ","3-1-4":"Огненный щит","8-2-1":"Голос природы","4-4-8":"Театральная маска","1-2-3":"Ось мира","5-1-6":"Магнит событий","7-6-4":"Цунами вдохновения","6-1-7":"Манна небесная","7-5-3":"Хирург реальности","5-7-3":"Инкубатор реальностей","8-3-2":"Вершина мира","7-1-8":"Туннель реальности","5-4-9":"Древо миров","5-2-7":"Картограф сновидений","6-6-3":"Портал любви","8-8-7":"Выдох вселенной","7-3-1":"Место силы","1-8-9":"Осознанный выбор","3-2-5":"Ядерная радость","4-1-5":"Целительный удар","7-4-2":"Живая нить рода","8-1-9":"Живой алгоритм","5-8-4":"Духовное рождение","6-4-1":"Внутреннее солнце","8-5-4":"Семя","4-8-3":"Атланты","2-6-8":"Расширенное сознание","5-6-2":"Шут","8-7-6":"Сфера покоя","7-8-6":"Конструктор аватара","5-5-1":"Храм души","7-2-9":"Ветер перемен","6-3-9":"Фрактальное зеркало","2-4-6":"Первооткрыватель","6-8-5":"Трон воли","3-3-6":"Колесо сансары","6-5-2":"Дракон порядка","2-7-9":"Священный момент","4-5-9":"Танец жизни","4-2-6":"Фантазия"};
+
+    function reduce(n){while(n>9)n=n.toString().split('').reduce((s,d)=>s+parseInt(d),0);return n}
+    function calcGift(d,m,y){const ma=reduce(d+m),zhi=reduce(y.toString().split('').reduce((s,c)=>s+parseInt(c),0)),kun=reduce(ma+zhi);return{ma,zhi,kun,code:`${ma}-${zhi}-${kun}`}}
+
+    document.getElementById('dateInput').addEventListener('input',function(){
+      let v=this.value.replace(/\D/g,'');
+      if(v.length>2)v=v.slice(0,2)+'.'+v.slice(2);
+      if(v.length>5)v=v.slice(0,5)+'.'+v.slice(5);
+      this.value=v.slice(0,10);
+      document.getElementById('errorMsg').textContent='';
+    });
+
+    function showResult(gift){
+      const isInt=!!INTEGRATORS[gift.code];
+      const darName=isInt?INTEGRATORS[gift.code]:(DARS[gift.code]||'✦');
+      const darArchetype=isInt?INTEGRATORS[gift.code]:(DAR_ARCHETYPES[gift.code]||'');
+      const intPhrase=isInt?(gift.code==='9-9-9'?'Существование как акт целостного творения':gift.zhi===9?'Действие как акт целостного творения':'Состояние как акт целостного творения'):'';
+      document.getElementById('darName').textContent=darName;
+      document.getElementById('darCode').textContent=`Код дара: ${gift.code}`;
+      document.getElementById('darArchetype').textContent=isInt?intPhrase:darArchetype;
+      const wrap=document.getElementById('darImageWrap');
+      wrap.innerHTML='';
+      const img=new Image();
+      img.src=`images/dars/${gift.code}.svg`;
+      img.onload=()=>wrap.appendChild(img);
+      img.onerror=()=>{wrap.innerHTML=`<div class="dar-placeholder">${gift.code}</div>`};
+      document.getElementById('screen-input').style.display='none';
+      document.getElementById('screen-result').style.display='block';
+      document.getElementById('btn-back').style.display='block';
+      // Сброс блока описания
+      document.getElementById('full-description-block').style.display='none';
+      const btn=document.getElementById('btn-get-message');
+      btn.textContent='📩 Получить полное послание';
+      btn.disabled=false;
+      btn.style.display='';
+      document.getElementById('btn-change-date').style.display='';
+    }
+
+    function init(){
+      try {
+        const saved=localStorage.getItem(STORAGE_KEY);
+        if(saved){
+          const data=JSON.parse(saved);
+          if(data && data.gift && data.gift.code) { showResult(data.gift); return; }
+        }
+      } catch(e) { localStorage.removeItem(STORAGE_KEY); }
+      document.getElementById('screen-input').style.display='block';
+      document.getElementById('screen-result').style.display='none';
+    }
+    init();
+
+    function calculate(){
+      const raw=document.getElementById('dateInput').value.trim();
+      const err=document.getElementById('errorMsg');
+      const parts=raw.split('.');
+      if(parts.length!==3||raw.length!==10){err.textContent='Введите дату в формате ДД.ММ.ГГГГ';return}
+      const day=parseInt(parts[0]),month=parseInt(parts[1]),year=parseInt(parts[2]);
+      if(day<1||day>31||month<1||month>12||year<1){err.textContent='Проверьте правильность даты';return}
+      err.textContent='';
+      const gift=calcGift(day,month,year);
+      localStorage.setItem(STORAGE_KEY,JSON.stringify({gift,date:raw}));
+      showResult(gift);
+    }
+
+    function resetDate(){
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('dateInput').value='';
+      document.getElementById('screen-result').style.display='none';
+      document.getElementById('screen-input').style.display='block';
+      document.getElementById('btn-back').style.display='none';
+      document.getElementById('full-description-block').style.display='none';
+    }
+
+    const API_URL='https://public-yup-land1.vercel.app';
+
+    async function requestMessage(){
+      const saved=localStorage.getItem(STORAGE_KEY);
+      if(!saved){ alert('Сначала рассчитайте дар'); return; }
+      const{gift}=JSON.parse(saved);
+      const btn=document.getElementById('btn-get-message');
+      btn.textContent='⏳ Загрузка мудрости...';
+      btn.disabled=true;
+      try{
+        const resp=await fetch(`${API_URL}/api/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({giftCode:gift.code})});
+        if(!resp.ok) throw new Error('HTTP ' + resp.status);
+        const result=await resp.json();
+
+        // Поддержка JSON-структуры и fallback на текст
+        if(result.data) {
+          buildAccordionFromJSON(result.data);
+        } else if(result.text) {
+          buildAccordion(result.text);
+        } else {
+          throw new Error('No data in response');
+        }
+
+        btn.style.display='none';
+        document.getElementById('btn-change-date').style.display='none';
+        const block=document.getElementById('full-description-block');
+        block.style.display='block';
+        setTimeout(()=>block.scrollIntoView({behavior:'smooth',block:'start'}),100);
+      }catch(e){
+        btn.textContent='📩 Получить полное послание';
+        btn.disabled=false;
+        // Показываем ошибку внутри блока, не алертом
+        document.getElementById('full-description-content').innerHTML=
+          `<p style="color:#f87171;text-align:center;padding:20px">⚠️ ${e.message}<br><br>Попробуйте ещё раз.</p>`;
+        document.getElementById('full-description-block').style.display='block';
+      }
+    }
+
+    // Аккордеон из JSON-структуры
+    const JSON_SECTIONS = [
+      {key:'sacred_energy', icon:'🌟', title:'Сакральная энергия', getText: d => d.sacred_energy},
+      {key:'light_part',    icon:'✨', title:'Световая часть',     getText: d => {
+        const l=d.light_part||{};
+        return [l.ma_resource&&`**Внутренний ресурс:** ${l.ma_resource}`,
+                l.zhi_action&&`**Внешнее действие:** ${l.zhi_action}`,
+                l.kun_effect&&`**Итоговый эффект:** ${l.kun_effect}`].filter(Boolean).join('\n\n');
+      }},
+      {key:'growth_points', icon:'🌑', title:'Точки роста',        getText: d => {
+        const g=d.growth_points||{};
+        return [g.ma_shadow&&`**Искажение потенциала:** ${g.ma_shadow}`,
+                g.zhi_shadow&&`**Искажение действия:** ${g.zhi_shadow}`,
+                g.kun_shadow&&`**Разрыв связи:** ${g.kun_shadow}`].filter(Boolean).join('\n\n');
+      }},
+      {key:'transition_keys',icon:'🗝', title:'Ключи к гармонии',  getText: d => d.transition_keys},
+      {key:'ecology',        icon:'🌿', title:'Сферы расцвета',     getText: d => {
+        const e=d.ecology||{};
+        const bloom=(e.bloom_zones||[]).map(z=>`- ${z}`).join('\n');
+        const risk=(e.risk_zones||[]).map(z=>`- ${z}`).join('\n');
+        return `**Где расцветает сила:**\n${bloom}\n\n**Где сила угасает:**\n${risk}`;
+      }},
+      {key:'mission',        icon:'🕊', title:'Миссия дара',        getText: d => d.mission}
+    ];
+
+    function buildAccordionFromJSON(data){
+      const container=document.getElementById('full-description-content');
+      container.innerHTML='';
+      let firstOpened=false;
+      JSON_SECTIONS.forEach(s=>{
+        const text=s.getText(data);
+        if(!text||!text.trim()) return;
+        const isFirst=!firstOpened; firstOpened=true;
+        const item=document.createElement('div');
+        item.className='accordion-item';
+        item.innerHTML=`
+          <button class="accordion-header${isFirst?' open':''}" onclick="toggleAccordion(this)">
+            <span class="accordion-icon">${s.icon}</span>
+            <span class="accordion-title">${s.title}</span>
+            <span class="accordion-arrow">▼</span>
+          </button>
+          <div class="accordion-body${isFirst?' open':''}">${formatText(text)}</div>`;
+        container.appendChild(item);
+      });
+    }
+
+    // Секции аккордеона (fallback для текстового формата)
+    const SECTIONS = [
+      {key:'САКРАЛЬНАЯ', icon:'🌟', title:'Сакральная энергия'},
+      {key:'СВЕТОВАЯ',   icon:'✨', title:'Световая часть'},
+      {key:'ТОЧКИ',      icon:'🌑', title:'Точки роста'},
+      {key:'КЛЮЧИ',      icon:'🗝', title:'Ключи к гармонии'},
+      {key:'СФЕРЫ',      icon:'🌿', title:'Сферы расцвета'},
+      {key:'МИССИЯ',     icon:'🕊', title:'Миссия дара'}
+    ];
+
+    function buildAccordion(rawText){
+      // Разбиваем по заголовкам ## ...
+      const parts = rawText.split(/(?=## )/);
+      const sectionMap = {};
+      parts.forEach(part => {
+        const m = part.match(/^## (.+)\n([\s\S]*)/);
+        if(!m) return;
+        const heading = m[1].trim().toUpperCase();
+        const body = m[2].trim();
+        SECTIONS.forEach(s => {
+          if(heading.includes(s.key)) sectionMap[s.key] = body;
+        });
+      });
+
+      const container = document.getElementById('full-description-content');
+      container.innerHTML = '';
+
+      let firstOpened = false;
+      SECTIONS.forEach((s, idx) => {
+        const content = sectionMap[s.key];
+        if(!content) return;
+
+        const html = formatText(content);
+        const isFirst = !firstOpened;
+        if(isFirst) firstOpened = true;
+
+        const item = document.createElement('div');
+        item.className = 'accordion-item';
+        item.innerHTML = `
+          <button class="accordion-header${isFirst?' open':''}" onclick="toggleAccordion(this)">
+            <span class="accordion-icon">${s.icon}</span>
+            <span class="accordion-title">${s.title}</span>
+            <span class="accordion-arrow">▼</span>
+          </button>
+          <div class="accordion-body${isFirst?' open':''}">${html}</div>`;
+        container.appendChild(item);
+      });
+
+      // Если разделы не распознались — показываем весь текст одним блоком
+      if(!firstOpened){
+        container.innerHTML = `<div class="accordion-body open" style="display:block;padding:16px">${formatText(rawText)}</div>`;
+      }
+    }
+
+    function toggleAccordion(btn){
+      const body=btn.nextElementSibling;
+      const isOpen=body.classList.contains('open');
+      // Закрываем все открытые
+      document.querySelectorAll('.accordion-header.open').forEach(h=>{
+        h.classList.remove('open');
+        h.nextElementSibling.classList.remove('open');
+      });
+      // Открываем текущий если был закрыт
+      if(!isOpen){
+        btn.classList.add('open');
+        body.classList.add('open');
+      }
+    }
+
+    function formatText(text){
+      let h = text
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g,'<em>$1</em>');
+      h = h.replace(/((?:^|\n)[•\-–]\s*.+)+/gm, m => {
+        const items = m.trim().split('\n').filter(Boolean)
+          .map(l=>`<li>${l.replace(/^[•\-–]\s*/,'')}</li>`).join('');
+        return `<ul>${items}</ul>`;
+      });
+      h = h.split(/\n\n+/).map(p => {
+        p = p.trim(); if(!p) return '';
+        if(p.startsWith('<ul>')) return p;
+        return `<p>${p.replace(/\n/g,'<br>')}</p>`;
+      }).join('');
+      return h;
+    }
+
+    function hideDescription(){
+      document.getElementById('full-description-block').style.display='none';
+      const btn=document.getElementById('btn-get-message');
+      btn.textContent='📩 Получить полное послание';
+      btn.disabled=false;
+      btn.style.display='';
+      document.getElementById('btn-change-date').style.display='';
+      document.getElementById('screen-result').scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  </script>
+</body>
+</html>

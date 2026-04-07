@@ -1,0 +1,9 @@
+{
+  "trustedCommands": [
+    "taskkill *",
+    "node *",
+    "npm *",
+    "netlify *",
+    "echo *"
+  ]
+}

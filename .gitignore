@@ -1,1 +1,7 @@
 .env
+node_modules/
+public/node_modules/
+.vercel/
+public/.vercel/
+public/.env.local
+*.zip

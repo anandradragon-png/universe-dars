@@ -52,16 +52,19 @@
     .accordion-title{flex:1;font-size:14px;letter-spacing:1px;color:var(--text)}
     .accordion-arrow{font-size:12px;color:var(--text-dim);transition:transform .3s;flex-shrink:0}
     .accordion-header.open .accordion-arrow{transform:rotate(180deg)}
-    .accordion-body{display:none;padding:16px;background:rgba(0,0,0,0.2);border-top:1px solid var(--border)}
+    .accordion-body{display:none;padding:16px;background:rgba(0,0,0,0.2);border-top:1px solid var(--border);text-align:left}
     .accordion-body.open{display:block;animation:fadeUp .3s ease}
     @keyframes fadeUp{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-    .accordion-body p{font-size:15px;line-height:1.8;color:#e0e0e0;margin-bottom:12px}
+    .accordion-body p{font-size:14px;line-height:1.8;color:#e0e0e0;margin-bottom:14px;text-align:left}
     .accordion-body p:last-child{margin-bottom:0}
     .accordion-body strong{color:#e8d5ff;font-weight:bold}
     .accordion-body em{color:#c4a0f0;font-style:italic}
     .accordion-body ul{padding-left:18px;margin-bottom:12px}
-    .accordion-body ul li{font-size:15px;line-height:1.7;color:#e0e0e0;margin-bottom:5px}
+    .accordion-body ul li{font-size:14px;line-height:1.8;color:#e0e0e0;margin-bottom:8px;text-align:left}
     .accordion-body ul li::marker{color:#D4AF37}
+    .accordion-body ol{padding-left:20px;margin-bottom:12px}
+    .accordion-body ol li{font-size:14px;line-height:1.8;color:#e0e0e0;margin-bottom:10px;text-align:left}
+    .accordion-body ol li::marker{color:#D4AF37;font-weight:bold}
     #tab-profile{padding:40px 24px;text-align:center}
     #tab-base{padding:0}
     .base-lock{text-align:center;padding:40px 24px}
@@ -502,6 +505,13 @@
       let h = text
         .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
         .replace(/\*(.+?)\*/g,'<em>$1</em>');
+      // Numbered lists (1. **Step**)
+      h = h.replace(/((?:^|\n)\d+\.\s*.+)+/gm, m => {
+        const items = m.trim().split('\n').filter(Boolean)
+          .map(l=>`<li>${l.replace(/^\d+\.\s*/,'')}</li>`).join('');
+        return `<ol>${items}</ol>`;
+      });
+      // Bullet lists
       h = h.replace(/((?:^|\n)[•\-–]\s*.+)+/gm, m => {
         const items = m.trim().split('\n').filter(Boolean)
           .map(l=>`<li>${l.replace(/^[•\-–]\s*/,'')}</li>`).join('');
@@ -509,7 +519,7 @@
       });
       h = h.split(/\n\n+/).map(p => {
         p = p.trim(); if(!p) return '';
-        if(p.startsWith('<ul>')) return p;
+        if(p.startsWith('<ul>')||p.startsWith('<ol>')) return p;
         return `<p>${p.replace(/\n/g,'<br>')}</p>`;
       }).join('');
       return h;

@@ -688,11 +688,33 @@
     }
 
     // ---- Уровень 3: Детальная страница дара ----
-    const DAR_INNER_TABS = [
-      {id:'characteristics',label:'Характеристики',icon:'📋'},
-      {id:'practices',label:'Практики',icon:'🧘'},
-      {id:'meditations',label:'Медитации',icon:'🕯'}
+    // 9 секций аккордеона для дара
+    const DAR_SECTIONS = [
+      {id:'essence',icon:'🔮',title:'Суть Дара'},
+      {id:'energy_pattern',icon:'⚙️',title:'Энергетический Рисунок'},
+      {id:'light_power',icon:'☀️',title:'Световая Сила Дара'},
+      {id:'shadow',icon:'🌑',title:'Тень Дара'},
+      {id:'activation',icon:'🛠',title:'Активация Дара'},
+      {id:'meditation',icon:'🧘',title:'Медитация'},
+      {id:'application',icon:'💡',title:'Сфера Применения'},
+      {id:'safety',icon:'⚠️',title:'Техника Безопасности'},
+      {id:'attributes',icon:'✨',title:'Атрибуты и Якоря'}
     ];
+
+    // Контент даров (заполняется по мере добавления данных)
+    const DAR_CONTENT = {
+      "6-3-9": {
+        essence: "Вселенная Дара ТОТ — это замкнутая система зеркал, где внешнее пространство является точным голографическим проекцией внутреннего состояния наблюдателя. Здесь не существует понятия «случайность» или «внешний враг». Любое событие, человек или ситуация во внешнем мире — это сигнал-отражение, исходящий из глубин сознания практика.\n\nЗаконы этой Вселенной работают по принципу фрактала: малое содержит в себе большое. Изменив микроскопический узор внутри (мысль, эмоцию, убеждение), практик автоматически перестраивает макрокосм вокруг себя. Это мир тотальной алхимии, где сознание является единственным творцом материи.",
+        energy_pattern: "**Поля:** МА (Тума — Время/Поток) + ЖИ (Андра — Связь/Объединение) + КУН (Ома — Всеединство/Абсолют).\n\n**Расположение:** Замкнутый круг (сфера) внутри энергетического кокона практикующего. Граница между «внутри» и «снаружи» стирается; всё внешнее проецируется из центра.\n\n**Рисунок потока:** Фрактальная спираль, уходящая в бесконечность внутрь и наружу одновременно. Эффект бумеранга: любой импульс, посланный вовне, возвращается к источнику в усиленном виде.",
+        light_power: "- **Мгновенная Манифестация:** Способность менять внешние обстоятельства силой мысли и смены внутреннего фокуса.\n- **Абсолютная Ясность:** Понимание причинно-следственных связей любого события. Видение скрытых узоров мироздания.\n- **Суверенность:** Полная независимость от внешних обстоятельств, так как источник силы найден внутри.\n- **Целостность:** Ощущение единства со всем сущим, где нет разделения на «я» и «мир».",
+        shadow: "- **Ловушка Самообвинения:** Искажение принципа ответственности в чувство вины («Я сам создал эту болезнь/беду, значит, я плохой»). *Коррекция:* Тот — это про силу творить, а не про вину жертвы.\n- **Иллюзия Контроля:** Попытка насильственно «приказать» зеркалу измениться, не меняясь внутренне.\n- **Зацикленность на Рефлексии:** Уход в бесконечный самоанализ без действия. Паралич воли из-за страха создать «неправильное» отражение.\n- **Отрицание Внешнего Опыта:** Полное игнорирование сигналов внешнего мира как «иллюзий», что ведет к потере связи с реальностью.",
+        activation: "1. **Установка Позиции Наблюдателя-Творца:** Принять аксиому: «Всё, что я вижу снаружи — есть прямое отражение моего внутреннего состояния. Мир — это мое зеркало».\n\n2. **Диагностика Отражений:** При возникновении конфликта или препятствия — остановить реакцию на внешнее. Сканировать: «Какой блок, страх или убеждение внутри меня создало это отражение?».\n\n3. **Трансформация Узора:** Не пытаться исправить ситуацию снаружи. Работать только с внутренней причиной. Изменить внутреннее отношение на гармоничное. Наблюдать, как реальность перестраивается.\n\n4. **Медитация «Тишина Тота»:** Войти в состояние абсолютного внутреннего покоя. Смотреть на узор жизни как на картину, понимая: ты одновременно и зритель, и художник, и сам холст.",
+        meditation: "**Медитация «Тишина Тота»**\n\nВойти в состояние абсолютного внутреннего покоя. Закрыть глаза. Представить себя в центре сферы зеркал.\n\nСмотреть на узор жизни как на картину, понимая: ты одновременно и зритель, и художник, и сам холст.\n\nКаждое отражение — это послание. Принять его без оценки. Позволить внутреннему камертону настроиться на частоту гармонии.",
+        application: "- **Глубинное Исцеление:** Работа с кармическими корнями заболеваний. Устранение причины болезни в поле сознания приводит к исчезновению симптома в теле.\n- **Управление Событиями:** Создание желаемой реальности не через усилия и борьбу, а через резонансную настройку внутреннего состояния.\n- **Разрешение Конфликтов:** Мгновенная гармонизация отношений путем изменения своего внутреннего образа оппонента.",
+        safety: "- **Разделение Ответственности и Вины:** Ответственность = способность ответить (сила), вина = тяжесть прошлого. Работать только из состояния силы.\n- **Экологичность Трансформации:** Не требовать мгновенных чудес без внутренней готовности. Дать узору время перестроиться.\n- **Заземление:** После глубоких медитаций обязательно выполнять практики заземления (контакт с землей, телом), чтобы не потерять связь с физическим планом.",
+        attributes: "**Символы:** Зеркало (гладкое и фасеточное), фрактальные узоры (снежинка, папоротник), перо Тота (символ истины и баланса), весы, глаз Гора.\n\n**Стихии:** Эфир (пространство), Свет.\n\n**Состояние:** Тишина, наблюдательность, кристальная ясность.\n\n**Практики-помощники:** Работа с зеркалами, ведение дневника самонаблюдения, медитации на фракталы, хоопонопоно."
+      }
+    };
 
     function openDarDetail(code){
       const name = DARS[code]||code;
@@ -700,9 +722,7 @@
       const imgPath = getDarImagePath(code);
       const container = document.getElementById('dars-detail-view');
 
-      let tabsHtml = DAR_INNER_TABS.map((t,i)=>`<button class="dar-inner-tab${i===0?' active':''}" onclick="switchDarInnerTab('${t.id}',this)">${t.icon} ${t.label}</button>`).join('');
-
-      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><div class="dar-inner-tabs">${tabsHtml}</div><div id="dar-inner-content-area"></div></div>`;
+      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><div id="dar-accordion-area"></div></div>`;
 
       // Load image
       const wrap = document.getElementById('dar-detail-img-wrap');
@@ -717,7 +737,7 @@
         };
       }
 
-      renderDarInnerTab('characteristics',code);
+      renderDarAccordion(code);
 
       document.getElementById('dars-field-view').style.display='none';
       document.getElementById('dars-list-view').style.display='none';
@@ -725,36 +745,47 @@
       document.getElementById('app').scrollTop=0;
     }
 
-    function switchDarInnerTab(tabId,btn){
-      document.querySelectorAll('.dar-inner-tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      // Get current dar code from the detail view
-      const codeEl = document.querySelector('.dar-detail-code');
-      const code = codeEl?codeEl.textContent.replace('Код: ',''):'';
-      renderDarInnerTab(tabId,code);
+    function getDarSectionContent(sectionId, code){
+      // Приоритет: DAR_CONTENT > dars_extended (fallback)
+      const content = DAR_CONTENT[code];
+      if(content && content[sectionId]) return content[sectionId];
+
+      // Fallback из dars_extended
+      const ext = DARS_EXTENDED ? DARS_EXTENDED[code] : null;
+      if(!ext) return null;
+
+      if(sectionId==='essence') return ext.essence_short || ext.metaphor || null;
+      if(sectionId==='energy_pattern') return ext.energy_flow || null;
+      if(sectionId==='safety') return ext.warning || null;
+      return null;
     }
 
-    function renderDarInnerTab(tabId,code){
-      const area = document.getElementById('dar-inner-content-area');
-      if(tabId==='characteristics'){
-        // Fetch extended data from fields.json embedded or show basic
-        const ext = typeof DARS_EXTENDED!=='undefined' ? DARS_EXTENDED[code] : null;
-        let html='<div class="dar-inner-content">';
-        if(ext){
-          if(ext.metaphor) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Метафора</div><div class="dar-meta-value">${ext.metaphor}</div></div>`;
-          if(ext.essence_short) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Суть</div><div class="dar-meta-value">${ext.essence_short}</div></div>`;
-          if(ext.energy_flow) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Течение энергии</div><div class="dar-meta-value">${ext.energy_flow}</div></div>`;
-          if(ext.warning) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Предостережение</div><div class="dar-meta-value">${ext.warning}</div></div>`;
-        } else {
-          html+='<p style="color:var(--text-dim);text-align:center;padding:20px">Подробные характеристики будут добавлены позже</p>';
-        }
-        html+='</div>';
-        area.innerHTML=html;
-      } else if(tabId==='practices'){
-        area.innerHTML='<div class="dar-inner-content"><p style="color:var(--text-dim);text-align:center;padding:20px">🧘 Раздел «Практики» в разработке</p></div>';
-      } else if(tabId==='meditations'){
-        area.innerHTML='<div class="dar-inner-content"><p style="color:var(--text-dim);text-align:center;padding:20px">🕯 Раздел «Медитации» в разработке</p></div>';
+    function renderDarAccordion(code){
+      const area = document.getElementById('dar-accordion-area');
+      area.innerHTML='';
+      let firstOpened = false;
+      DAR_SECTIONS.forEach(s=>{
+        const text = getDarSectionContent(s.id, code);
+        const hasContent = !!text;
+        const isFirst = hasContent && !firstOpened;
+        if(isFirst) firstOpened = true;
+        const bodyHtml = hasContent ? formatText(text) : '<p style="color:var(--text-dim);text-align:center;padding:16px">Раздел заполняется</p>';
+        const item = document.createElement('div');
+        item.className='accordion-item';
+        item.innerHTML=`<button class="accordion-header${isFirst?' open':''}" onclick="toggleDarAccordion(this)"><span class="accordion-icon">${s.icon}</span><span class="accordion-title">${s.title}</span><span class="accordion-arrow">▼</span></button><div class="accordion-body${isFirst?' open':''}">${bodyHtml}</div>`;
+        area.appendChild(item);
+      });
+    }
+
+    function toggleDarAccordion(btn){
+      const body=btn.nextElementSibling;
+      const isOpen=body.classList.contains('open');
+      // Закрываем все в этом аккордеоне
+      const parent=btn.closest('#dar-accordion-area');
+      if(parent){
+        parent.querySelectorAll('.accordion-header.open').forEach(h=>{h.classList.remove('open');h.nextElementSibling.classList.remove('open');});
       }
+      if(!isOpen){btn.classList.add('open');body.classList.add('open');}
     }
 
     function backToDarsList(){

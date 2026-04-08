@@ -62,7 +62,50 @@
     .accordion-body ul{padding-left:18px;margin-bottom:12px}
     .accordion-body ul li{font-size:15px;line-height:1.7;color:#e0e0e0;margin-bottom:5px}
     .accordion-body ul li::marker{color:#D4AF37}
-    #tab-profile,#tab-base{padding:40px 24px;text-align:center}
+    #tab-profile{padding:40px 24px;text-align:center}
+    #tab-base{padding:0}
+    .base-lock{text-align:center;padding:40px 24px}
+    .promo-input{width:100%;max-width:320px;padding:14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:18px;letter-spacing:3px;text-align:center;outline:none;font-family:Georgia,serif;text-transform:uppercase}
+    .promo-input:focus{border-color:rgba(124,58,237,0.7)}
+    .promo-input::placeholder{color:var(--text-muted);letter-spacing:2px;text-transform:none;font-size:14px}
+    .base-sub-nav{display:flex;gap:8px;padding:12px 16px;position:sticky;top:0;z-index:10;background:rgba(10,5,25,0.95);border-bottom:1px solid var(--border)}
+    .base-sub-btn{flex:1;padding:10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;font-family:Georgia,serif;font-size:13px;letter-spacing:1px;color:var(--text-dim);text-align:center;transition:all .2s}
+    .base-sub-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .base-content{padding:16px}
+    .field-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+    .field-folder{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
+    .field-folder:hover{border-color:rgba(180,120,255,0.5);background:rgba(107,33,168,0.15)}
+    .field-folder-num{font-size:28px;margin-bottom:6px}
+    .field-folder-name{font-size:14px;color:var(--text);letter-spacing:1px;margin-bottom:4px}
+    .field-folder-arch{font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:6px}
+    .field-folder-count{font-size:11px;color:var(--text-muted)}
+    .dar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+    .dar-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s}
+    .dar-card:hover{border-color:rgba(180,120,255,0.5);background:rgba(107,33,168,0.15)}
+    .dar-card-img{width:60px;height:60px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center}
+    .dar-card-img img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 6px #D4AF37)}
+    .dar-card-placeholder{width:50px;height:50px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-dim)}
+    .dar-card-name{font-size:15px;color:var(--text);letter-spacing:1px;margin-bottom:2px}
+    .dar-card-arch{font-size:11px;color:var(--text-dim);font-style:italic}
+    .dar-detail{text-align:center}
+    .dar-detail-img{width:100px;height:100px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center}
+    .dar-detail-img img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 10px #D4AF37)}
+    .dar-detail-name{font-size:28px;letter-spacing:3px;color:var(--text);margin-bottom:4px}
+    .dar-detail-code{font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px}
+    .dar-detail-arch{font-size:14px;color:#c4a0f0;font-style:italic;margin-bottom:16px}
+    .dar-inner-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+    .dar-inner-tab{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;font-family:Georgia,serif;font-size:12px;color:var(--text-dim);transition:all .2s}
+    .dar-inner-tab.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .dar-inner-content{text-align:left;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+    .dar-meta-row{margin-bottom:12px}
+    .dar-meta-label{font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+    .dar-meta-value{font-size:14px;color:#e0e0e0;line-height:1.7}
+    .field-enc-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;text-align:left}
+    .field-enc-name{font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:2px}
+    .field-enc-arch{font-size:13px;color:#c4a0f0;font-style:italic;margin-bottom:10px}
+    .field-enc-row{margin-bottom:10px}
+    .field-enc-label{font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+    .field-enc-val{font-size:13px;color:#e0e0e0;line-height:1.6}
     .stub-title{font-size:20px;letter-spacing:2px;color:var(--text);font-weight:normal;margin-bottom:12px}
     .stub-text{font-size:14px;color:var(--text-dim);line-height:1.7;max-width:300px;margin:0 auto}
     .user-name{font-size:15px;color:var(--text);margin-bottom:14px}
@@ -115,10 +158,31 @@
       </div>
     </div>
     <div class="tab" id="tab-base">
-      <div style="padding-top:40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:16px"></div>
-        <div class="stub-title">База Знаний</div>
-        <div class="stub-text">Раздел в разработке. Здесь скоро появится полная карта всех 64 даров и описания полей из книги.</div>
+      <!-- Экран промо-кода -->
+      <div id="base-screen-lock" class="base-lock">
+        <div style="font-size:48px;margin-bottom:16px">🔐</div>
+        <div class="stub-title">Доступ к Базе Знаний</div>
+        <div class="stub-text" style="margin-bottom:20px">Введите промо-код, чтобы открыть энциклопедию всех 64 даров и 9 полей</div>
+        <input class="promo-input" id="promoInput" type="text" placeholder="Промо-код" maxlength="30"/>
+        <div class="error-msg" id="promoError"></div>
+        <button class="btn btn-primary" style="max-width:320px" onclick="submitPromoCode()">Открыть доступ</button>
+      </div>
+      <!-- Основной экран энциклопедии -->
+      <div id="base-screen-main" style="display:none">
+        <div class="base-sub-nav">
+          <button class="base-sub-btn active" id="base-btn-dars" onclick="switchBaseSubTab('dars')">Дары</button>
+          <button class="base-sub-btn" id="base-btn-fields" onclick="switchBaseSubTab('fields')">Поля</button>
+        </div>
+        <!-- Вкладка Дары -->
+        <div id="base-subtab-dars" class="base-content">
+          <div id="dars-list-view"></div>
+          <div id="dars-field-view" style="display:none"></div>
+          <div id="dars-detail-view" style="display:none"></div>
+        </div>
+        <!-- Вкладка Поля -->
+        <div id="base-subtab-fields" class="base-content" style="display:none">
+          <div id="fields-list-view"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -460,6 +524,270 @@
       document.getElementById('btn-change-date').style.display='';
       document.getElementById('screen-result').scrollIntoView({behavior:'smooth',block:'start'});
     }
+
+    // ================= ЭНЦИКЛОПЕДИЯ =================
+    const ENC_ACCESS_KEY = 'dar_enc_access_' + USER_ID;
+
+    const FIELDS_FULL = {
+      1:{name:"ЛОГОС",archetype:"Архитектор Реальности",essence:"Мир как структура слова. Чистая системность, иерархия, фундамент.",element:"Земля внутренняя",body:"Ноги, копчик, основание позвоночника",pattern:"Треугольник",flow:"Сверху вниз по иерархии, выстраивая прочный фундамент",shadow_ma:"Окостенение. Когда внутренний каркас становится слишком жестким.",shadow_zhi:"Тирания порядка. Попытка выстроить весь мир по своим лекалам.",shadow_kun:"Мертвая структура. Механизм, работающий впустую.",risk_zones:["Хаос без логики","Спонтанность без плана","Разрушенная иерархия","Размытые цели"],harmony_key:"Возвращение к истоку, проверка внутренних истин, осознанное упрощение."},
+      2:{name:"НИМА",archetype:"Хранитель Пространства",essence:"Пространство пустоты и возможностей. Все векторы судьбы в одном моменте.",element:"Воздух внутренний",body:"Таз, нижний живот",pattern:"Расширяющийся круг",flow:"Из центра вовне, охватывая всё пространство возможностей",shadow_ma:"Пустота. Ступор от обилия вариантов.",shadow_zhi:"Хаос. Пространство взрывается, теряя опору.",shadow_kun:"Бесконечность без точки приложения сил.",risk_zones:["Жесткие догмы","Замкнутое пространство","Необходимость мгновенного выбора","Сухие факты без контекста"],harmony_key:"Выбор одного пути, заземление идей, создание безопасного пространства."},
+      3:{name:"АНДРА",archetype:"Алхимик Отношений",essence:"Процесс объединения. Любовь как действие. Постоянная молодость и обновление связей.",element:"Вода внутренняя",body:"Живот, поясница",pattern:"Спираль внутрь",flow:"Закручивание к центру, притягивание и объединение",shadow_ma:"Слияние. Потеря себя в другом.",shadow_zhi:"Разрыв. Страх близости, разрывание связей.",shadow_kun:"Цикл боли. Вечное сближение и отдаление.",risk_zones:["Изоляция","Токсичная конкуренция","Холодный расчет","Запрет на эмоции"],harmony_key:"Сохранение своего центра в единстве, честный диалог, бережное соединение."},
+      4:{name:"ЗИНГРА",archetype:"Феникс Трансформации",essence:"Эволюция и духовный рост. Огонь желания жить и меняться. Алхимическое превращение.",element:"Огонь внутренний",body:"Солнечное сплетение, живот",pattern:"Восходящая спираль",flow:"Снизу вверх по спирали, трансформируя и возвышая",shadow_ma:"Застой. Иллюзия движения при реальном топтании на месте.",shadow_zhi:"Гиперрост. Судорожные перемены, сжигание мостов.",shadow_kun:"Рост в никуда. Трансформации без глубинных изменений.",risk_zones:["Застойные системы","Жесткие инструкции","Страх нового","Поддержание статус-кво"],harmony_key:"Доверие естественному ритму роста, завершение циклов перед новым началом."},
+      5:{name:"ЛУБА",archetype:"Солнечный Центр",essence:"Централизация и воля. Божественное «Я». Точка сборки мира и источник внутреннего света.",element:"Огонь внешний",body:"Солнечное сплетение, центр груди",pattern:"Точка-звезда",flow:"Из единого центра лучами во все стороны",shadow_ma:"Потеря центра. Апатия, поиск опоры вовне.",shadow_zhi:"Эгоцентризм. Подавление других.",shadow_kun:"Пустой центр. «Я есть», за которым нет содержания.",risk_zones:["Подавление лидерства","Размытая ответственность","Зависть к успеху","Растворение в группе"],harmony_key:"Служение высшей цели, лидерство через любовь, сохранение внутреннего стержня."},
+      6:{name:"ТУМА",archetype:"Танцор Времени",essence:"Ровное время и движение судьбы. Быть в нужное время в нужном месте. Магия событий.",element:"Вода внешняя",body:"Сердце, грудная клетка",pattern:"Волна",flow:"Ритмичное нанизывание событий, пульсирующее движение",shadow_ma:"Застывание. Ощущение, что жизнь проходит мимо.",shadow_zhi:"Суета. Бег без цели, нарушение ритмов.",shadow_kun:"Время без судьбы. Много событий, но нет глубины.",risk_zones:["Хаотичные планы","Длительная статика","Культ скорости","Игнорирование настоящего"],harmony_key:"Доверие потоку, паузы для осознанности, действие в ритме сердца."},
+      7:{name:"АСТРА",archetype:"Посланник Миров",essence:"Мир как связь. Коммуникации, ментальное пространство, слово как творец реальности.",element:"Воздух внешний",body:"Горло, плечи, руки",pattern:"Насос-сеть",flow:"Пульсация вдох-выдох, обмен информацией через каналы",shadow_ma:"Изоляция. Зацикленность на внутренних сценариях.",shadow_zhi:"Информационный шум. Пустословие, манипуляции.",shadow_kun:"Пустые связи. Контакты без глубины понимания.",risk_zones:["Полная изоляция","Цензура","Культура сплетен","Действия без диалога"],harmony_key:"Осознанное молчание, говорение истины с любовью, слушание сердцем."},
+      8:{name:"БИТРА",archetype:"Страж Границ",essence:"Границы, форма и защита. Очерчивание священного пространства для творчества.",element:"Земля внешняя",body:"Голова, лоб, затылок",pattern:"Замкнутый круг",flow:"Очерчивание границ, защитное кольцо вокруг центра",shadow_ma:"Тюрьма. Самоограничение, страх выхода за пределы привычного.",shadow_zhi:"Размытие или агрессия. Нарушение границ других.",shadow_kun:"Форма без содержания. Красивая оболочка, внутри пусто.",risk_zones:["Размытые границы","Неуважение к личному пространству","Вечная незавершенность","Хаос"],harmony_key:"Бережная защита своего пространства, уважение границ других, завершенность."},
+      9:{name:"ОМА",archetype:"Хранитель Целостности",essence:"Всеединство и синтез. Познание Бога через соединение всех граней. Кундалини.",element:"Эфир",body:"Весь позвоночник, макушка",pattern:"Радуга-всеохват",flow:"Одновременное присутствие везде, растворение в целом",shadow_ma:"Растворение. Потеря себя в «всем», уход от реальности.",shadow_zhi:"Иллюзия целостности. Духовная гордыня, фанатизм.",shadow_kun:"Единство без частей. Абстракция, в которой теряется жизнь.",risk_zones:["Узкая специализация","Материалистическое отрицание","Фрагментарное мышление","Отсутствие смысла"],harmony_key:"Заземление духовности, проявление целого через простые шаги, служение миру."}
+    };
+
+    // Группировка даров по КУН (3-я цифра)
+    function getDarsByKun(){
+      const groups = {};
+      for(let i=1;i<=9;i++) groups[i]=[];
+      Object.entries(DARS).forEach(([code,name])=>{
+        const kun = parseInt(code.split('-')[2]);
+        if(groups[kun]) groups[kun].push({code,name});
+      });
+      return groups;
+    }
+
+    function getDarImagePath(code){
+      const name = DARS[code];
+      if(!name) return '';
+      const base = name.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'');
+      return base ? 'images/dars/'+base+'.svg' : '';
+    }
+
+    function checkBaseAccess(){
+      try{
+        const d = JSON.parse(localStorage.getItem(ENC_ACCESS_KEY)||'{}');
+        return !!d.unlocked;
+      }catch(e){return false;}
+    }
+
+    async function submitPromoCode(){
+      const input = document.getElementById('promoInput');
+      const err = document.getElementById('promoError');
+      const code = input.value.trim();
+      if(!code){err.textContent='Введите промо-код';return;}
+      err.textContent='';
+      try{
+        const resp = await fetch(API_URL+'/api/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+        const result = await resp.json();
+        if(result.valid){
+          localStorage.setItem(ENC_ACCESS_KEY,JSON.stringify({unlocked:true,at:new Date().toISOString()}));
+          showEncyclopedia();
+        } else {
+          err.textContent = result.error||'Неверный промо-код';
+        }
+      }catch(e){
+        err.textContent='Ошибка проверки. Попробуйте позже.';
+      }
+    }
+
+    function showEncyclopedia(){
+      document.getElementById('base-screen-lock').style.display='none';
+      document.getElementById('base-screen-main').style.display='block';
+      renderFieldFolders();
+      renderFieldCards();
+    }
+
+    // Модифицируем switchNav чтобы проверять доступ
+    const _origSwitchNav = switchNav;
+    switchNav = function(name){
+      _origSwitchNav(name);
+      if(name==='base'){
+        if(checkBaseAccess()) showEncyclopedia();
+        else {
+          document.getElementById('base-screen-lock').style.display='block';
+          document.getElementById('base-screen-main').style.display='none';
+        }
+      }
+    };
+
+    function switchBaseSubTab(name){
+      document.querySelectorAll('.base-sub-btn').forEach(b=>b.classList.remove('active'));
+      document.getElementById('base-btn-'+name).classList.add('active');
+      document.getElementById('base-subtab-dars').style.display = name==='dars'?'block':'none';
+      document.getElementById('base-subtab-fields').style.display = name==='fields'?'block':'none';
+      document.getElementById('app').scrollTop=0;
+    }
+
+    // ---- Уровень 1: Папки полей ----
+    function renderFieldFolders(){
+      const groups = getDarsByKun();
+      const container = document.getElementById('dars-list-view');
+      const nums = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨'];
+      container.innerHTML = '';
+      for(let i=1;i<=9;i++){
+        const f = FIELDS_FULL[i];
+        const count = groups[i].length;
+        const div = document.createElement('div');
+        div.className='field-folder';
+        div.onclick=()=>openFieldFolder(i);
+        div.innerHTML=`<div class="field-folder-num">${nums[i]}</div><div class="field-folder-name">${f.name}</div><div class="field-folder-arch">${f.archetype}</div><div class="field-folder-count">${count} ${count===8?'даров':'даров'}</div>`;
+        container.appendChild(div);
+      }
+      container.classList.add('field-grid');
+    }
+
+    // ---- Уровень 2: Дары поля ----
+    let currentFieldKun = null;
+    function openFieldFolder(kunId){
+      currentFieldKun = kunId;
+      const groups = getDarsByKun();
+      const dars = groups[kunId]||[];
+      const f = FIELDS_FULL[kunId];
+      const container = document.getElementById('dars-field-view');
+      container.innerHTML = `<button class="btn-back" style="display:block" onclick="backToFieldFolders()">← Все поля</button><div style="text-align:center;margin-bottom:14px"><div style="font-size:16px;color:var(--text);letter-spacing:2px">${f.name}</div><div style="font-size:12px;color:var(--text-dim);font-style:italic">${f.archetype}</div></div><div class="dar-grid" id="dar-cards-grid"></div>`;
+      const grid = document.getElementById('dar-cards-grid');
+      dars.forEach(d=>{
+        const arch = DAR_ARCHETYPES[d.code]||'';
+        const imgPath = getDarImagePath(d.code);
+        const card = document.createElement('div');
+        card.className='dar-card';
+        card.onclick=()=>openDarDetail(d.code);
+        card.innerHTML=`<div class="dar-card-img" id="enc-img-${d.code.replace(/-/g,'')}"></div><div class="dar-card-name">${d.name}</div><div class="dar-card-arch">${arch}</div>`;
+        grid.appendChild(card);
+        // Load image
+        if(imgPath){
+          const wrap = card.querySelector('.dar-card-img');
+          const img = new Image();
+          img.src=imgPath;
+          img.onload=()=>wrap.appendChild(img);
+          img.onerror=()=>{
+            const nfd=imgPath.replace('.svg','').normalize('NFD')+'.svg';
+            const img2=new Image();img2.src=nfd;
+            img2.onload=()=>wrap.appendChild(img2);
+            img2.onerror=()=>{wrap.innerHTML=`<div class="dar-card-placeholder">${d.code}</div>`;};
+          };
+        }
+      });
+      document.getElementById('dars-list-view').style.display='none';
+      document.getElementById('dars-detail-view').style.display='none';
+      container.style.display='block';
+      document.getElementById('app').scrollTop=0;
+    }
+
+    function backToFieldFolders(){
+      document.getElementById('dars-field-view').style.display='none';
+      document.getElementById('dars-list-view').style.display='block';
+      document.getElementById('app').scrollTop=0;
+    }
+
+    // ---- Уровень 3: Детальная страница дара ----
+    const DAR_INNER_TABS = [
+      {id:'characteristics',label:'Характеристики',icon:'📋'},
+      {id:'practices',label:'Практики',icon:'🧘'},
+      {id:'meditations',label:'Медитации',icon:'🕯'}
+    ];
+
+    function openDarDetail(code){
+      const name = DARS[code]||code;
+      const arch = DAR_ARCHETYPES[code]||'';
+      const imgPath = getDarImagePath(code);
+      const container = document.getElementById('dars-detail-view');
+
+      let tabsHtml = DAR_INNER_TABS.map((t,i)=>`<button class="dar-inner-tab${i===0?' active':''}" onclick="switchDarInnerTab('${t.id}',this)">${t.icon} ${t.label}</button>`).join('');
+
+      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><div class="dar-inner-tabs">${tabsHtml}</div><div id="dar-inner-content-area"></div></div>`;
+
+      // Load image
+      const wrap = document.getElementById('dar-detail-img-wrap');
+      if(imgPath){
+        const img=new Image();img.src=imgPath;
+        img.onload=()=>wrap.appendChild(img);
+        img.onerror=()=>{
+          const nfd=imgPath.replace('.svg','').normalize('NFD')+'.svg';
+          const img2=new Image();img2.src=nfd;
+          img2.onload=()=>wrap.appendChild(img2);
+          img2.onerror=()=>{wrap.innerHTML=`<div class="dar-placeholder">${code}</div>`;};
+        };
+      }
+
+      renderDarInnerTab('characteristics',code);
+
+      document.getElementById('dars-field-view').style.display='none';
+      document.getElementById('dars-list-view').style.display='none';
+      container.style.display='block';
+      document.getElementById('app').scrollTop=0;
+    }
+
+    function switchDarInnerTab(tabId,btn){
+      document.querySelectorAll('.dar-inner-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      // Get current dar code from the detail view
+      const codeEl = document.querySelector('.dar-detail-code');
+      const code = codeEl?codeEl.textContent.replace('Код: ',''):'';
+      renderDarInnerTab(tabId,code);
+    }
+
+    function renderDarInnerTab(tabId,code){
+      const area = document.getElementById('dar-inner-content-area');
+      if(tabId==='characteristics'){
+        // Fetch extended data from fields.json embedded or show basic
+        const ext = typeof DARS_EXTENDED!=='undefined' ? DARS_EXTENDED[code] : null;
+        let html='<div class="dar-inner-content">';
+        if(ext){
+          if(ext.metaphor) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Метафора</div><div class="dar-meta-value">${ext.metaphor}</div></div>`;
+          if(ext.essence_short) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Суть</div><div class="dar-meta-value">${ext.essence_short}</div></div>`;
+          if(ext.energy_flow) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Течение энергии</div><div class="dar-meta-value">${ext.energy_flow}</div></div>`;
+          if(ext.warning) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Предостережение</div><div class="dar-meta-value">${ext.warning}</div></div>`;
+        } else {
+          html+='<p style="color:var(--text-dim);text-align:center;padding:20px">Подробные характеристики будут добавлены позже</p>';
+        }
+        html+='</div>';
+        area.innerHTML=html;
+      } else if(tabId==='practices'){
+        area.innerHTML='<div class="dar-inner-content"><p style="color:var(--text-dim);text-align:center;padding:20px">🧘 Раздел «Практики» в разработке</p></div>';
+      } else if(tabId==='meditations'){
+        area.innerHTML='<div class="dar-inner-content"><p style="color:var(--text-dim);text-align:center;padding:20px">🕯 Раздел «Медитации» в разработке</p></div>';
+      }
+    }
+
+    function backToDarsList(){
+      document.getElementById('dars-detail-view').style.display='none';
+      if(currentFieldKun) openFieldFolder(currentFieldKun);
+      else {
+        document.getElementById('dars-list-view').style.display='block';
+      }
+    }
+
+    // ---- Поля: аккордеон ----
+    function renderFieldCards(){
+      const container = document.getElementById('fields-list-view');
+      container.innerHTML='';
+      for(let i=1;i<=9;i++){
+        const f = FIELDS_FULL[i];
+        const card = document.createElement('div');
+        card.className='field-enc-card';
+        let risksHtml = (f.risk_zones||[]).map(r=>`<span style="display:inline-block;padding:3px 8px;border-radius:8px;background:rgba(248,113,113,0.15);color:#f87171;font-size:11px;margin:2px">${r}</span>`).join(' ');
+        card.innerHTML=`
+          <div class="field-enc-name">${i}. ${f.name}</div>
+          <div class="field-enc-arch">${f.archetype}</div>
+          <div class="field-enc-row"><div class="field-enc-label">Суть</div><div class="field-enc-val">${f.essence}</div></div>
+          <div class="field-enc-row"><div class="field-enc-label">Стихия</div><div class="field-enc-val">${f.element}</div></div>
+          <div class="field-enc-row"><div class="field-enc-label">Тело</div><div class="field-enc-val">${f.body}</div></div>
+          <div class="field-enc-row"><div class="field-enc-label">Паттерн / Поток</div><div class="field-enc-val">${f.pattern} — ${f.flow}</div></div>
+          <div class="field-enc-row"><div class="field-enc-label">Тень (МА)</div><div class="field-enc-val">${f.shadow_ma}</div></div>
+          <div class="field-enc-row"><div class="field-enc-label">Тень (ЖИ)</div><div class="field-enc-val">${f.shadow_zhi}</div></div>
+          <div class="field-enc-row"><div class="field-enc-label">Тень (КУН)</div><div class="field-enc-val">${f.shadow_kun}</div></div>
+          <div class="field-enc-row"><div class="field-enc-label">Зоны риска</div><div class="field-enc-val">${risksHtml}</div></div>
+          <div class="field-enc-row"><div class="field-enc-label">Ключ гармонии</div><div class="field-enc-val" style="color:#a8e6a3">${f.harmony_key}</div></div>`;
+        container.appendChild(card);
+      }
+    }
+
+    // Загрузка dars_extended из fields.json
+    let DARS_EXTENDED = null;
+    fetch('fields.json').then(r=>r.json()).then(data=>{
+      DARS_EXTENDED = data.dars_extended||{};
+    }).catch(()=>{});
+
+    // Обработка Enter в поле промо-кода
+    document.getElementById('promoInput').addEventListener('keydown',function(e){
+      if(e.key==='Enter') submitPromoCode();
+    });
   </script>
 </body>
 </html>

@@ -3,6 +3,10 @@
     "api/message.js": {
       "memory": 512,
       "maxDuration": 60
+    },
+    "api/verify-code.js": {
+      "memory": 128,
+      "maxDuration": 5
     }
   }
 }

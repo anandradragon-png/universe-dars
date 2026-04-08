@@ -37,6 +37,11 @@ module.exports = async (req, res) => {
 
   const isIntegrator = !!INTEGRATORS[giftCode];
   const darName = isIntegrator ? INTEGRATORS[giftCode] : (DARS_DB[giftCode] || 'Дар');
+
+  // Нормализация имени для поиска SVG-файла (NFC для совместимости с macOS/Windows)
+  const rawName  = DARS_DB[giftCode] || '';
+  const fileName = rawName.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '');
+  const imageUrl = fileName ? `/images/dars/${fileName}.svg` : '';
   const darExt  = fieldsData.dars_extended?.[giftCode];
   const darMeta = darExt?.metaphor || darName;
   const darEss  = darExt?.essence_short || '';
@@ -151,7 +156,7 @@ ${intPhrase ? `Особое послание: "${intPhrase}"` : ''}
         ],
         model: 'llama-3.3-70b-versatile',
         temperature: 0.75,
-        max_tokens: 3500
+        max_tokens: 2000
       });
     } catch (modelErr) {
       console.log('70b failed, trying 8b:', modelErr.message);
@@ -162,7 +167,7 @@ ${intPhrase ? `Особое послание: "${intPhrase}"` : ''}
         ],
         model: 'llama-3.1-8b-instant',
         temperature: 0.75,
-        max_tokens: 3000
+        max_tokens: 2000
       });
     }
 
@@ -190,7 +195,7 @@ ${intPhrase ? `Особое послание: "${intPhrase}"` : ''}
       throw new Error('Ответ слишком короткий (' + totalLen + ' символов)');
     }
 
-    res.status(200).json({ data: parsed });
+    res.status(200).json({ data: parsed, imageUrl });
   } catch (e) {
     console.error('API error:', e.message);
     res.status(200).json({ error: 'Ошибка генерации, попробуйте ещё раз. ' + e.message });

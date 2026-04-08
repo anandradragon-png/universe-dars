@@ -38,7 +38,7 @@
     .btn-back:hover{color:var(--text)}
     .result-card{text-align:center;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px 20px;backdrop-filter:blur(10px)}
     .dar-image-wrap{width:110px;height:110px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center}
-    .dar-image-wrap img{width:100%;height:100%;object-fit:contain}
+    .dar-image-wrap img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 10px #D4AF37)}
     .dar-placeholder{width:110px;height:110px;border-radius:50%;border:2px solid var(--border);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);letter-spacing:1px;text-align:center;padding:8px}
     .dar-name{font-size:32px;letter-spacing:4px;color:var(--text);text-shadow:0 0 20px rgba(180,120,255,0.4);margin-bottom:6px}
     .dar-code{font-size:13px;color:var(--text-dim);letter-spacing:3px;margin-bottom:8px}
@@ -153,6 +153,20 @@
       else alert('Закройте вкладку браузера.');
     });
 
+    function updateDarImage(imageUrl){
+      const wrap = document.getElementById('darImageWrap');
+      if(!wrap) return;
+      wrap.innerHTML = '';
+      const img = new Image();
+      img.src = imageUrl;
+      img.onload = () => wrap.appendChild(img);
+      img.onerror = () => {
+        // Заглушка если файл не найден
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if(saved){ const {gift} = JSON.parse(saved); wrap.innerHTML = `<div class="dar-placeholder">${gift.code}</div>`; }
+      };
+    }
+
     function switchNav(name) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -185,12 +199,29 @@
       document.getElementById('darName').textContent=darName;
       document.getElementById('darCode').textContent=`Код дара: ${gift.code}`;
       document.getElementById('darArchetype').textContent=isInt?intPhrase:darArchetype;
+      // Картинка — пробуем NFC и NFD нормализацию
       const wrap=document.getElementById('darImageWrap');
       wrap.innerHTML='';
-      const img=new Image();
-      img.src=`images/dars/${gift.code}.svg`;
-      img.onload=()=>wrap.appendChild(img);
-      img.onerror=()=>{wrap.innerHTML=`<div class="dar-placeholder">${gift.code}</div>`};
+      const rawName = DARS[gift.code] || '';
+      if(rawName){
+        const base = rawName.toLowerCase().replace(/[^а-яёa-z]/g,'');
+        const tryUrls = [
+          `images/dars/${base.normalize('NFC')}.svg`,
+          `images/dars/${base.normalize('NFD')}.svg`,
+          `images/dars/${base}.svg`
+        ];
+        let tried = 0;
+        function tryNext(){
+          if(tried >= tryUrls.length){ wrap.innerHTML=`<div class="dar-placeholder">${gift.code}</div>`; return; }
+          const img=new Image();
+          img.src=tryUrls[tried++];
+          img.onload=()=>wrap.appendChild(img);
+          img.onerror=()=>tryNext();
+        }
+        tryNext();
+      } else {
+        wrap.innerHTML=`<div class="dar-placeholder">${gift.code}</div>`;
+      }
       document.getElementById('screen-input').style.display='none';
       document.getElementById('screen-result').style.display='block';
       document.getElementById('btn-back').style.display='block';
@@ -249,16 +280,28 @@
       btn.disabled=true;
       try{
         const resp=await fetch(`${API_URL}/api/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({giftCode:gift.code})});
+        console.log('API status:', resp.status, resp.statusText);
         if(!resp.ok) throw new Error('HTTP ' + resp.status);
-        const result=await resp.json();
 
-        // Поддержка JSON-структуры и fallback на текст
+        let result;
+        try {
+          result = await resp.json();
+        } catch(jsonErr) {
+          throw new Error('Сервер вернул не JSON: ' + jsonErr.message);
+        }
+
+        console.log('API response:', JSON.stringify(result).substring(0, 200));
+
+        if(result.error) throw new Error(result.error);
+
         if(result.data) {
           buildAccordionFromJSON(result.data);
+          if(result.imageUrl) updateDarImage(result.imageUrl);
         } else if(result.text) {
           buildAccordion(result.text);
         } else {
-          throw new Error('No data in response');
+          console.error('Unexpected response structure:', result);
+          throw new Error('Неожиданная структура ответа от сервера');
         }
 
         btn.style.display='none';
@@ -267,11 +310,11 @@
         block.style.display='block';
         setTimeout(()=>block.scrollIntoView({behavior:'smooth',block:'start'}),100);
       }catch(e){
-        btn.textContent='📩 Получить полное послание';
+        console.error('requestMessage error:', e.message);
+        btn.textContent=' Получить полное послание';
         btn.disabled=false;
-        // Показываем ошибку внутри блока, не алертом
         document.getElementById('full-description-content').innerHTML=
-          `<p style="color:#f87171;text-align:center;padding:20px">⚠️ ${e.message}<br><br>Попробуйте ещё раз.</p>`;
+          '<p style="color:#f87171;text-align:center;padding:20px;line-height:1.7"> Мудрый Наставник сейчас отдыхает.<br><br>Попробуйте через минуту.</p>';
         document.getElementById('full-description-block').style.display='block';
       }
     }

@@ -240,29 +240,35 @@
       <div id="daily-activities" style="display:none;padding-top:16px">
         <div style="font-size:14px;color:var(--text);letter-spacing:2px;text-align:center;margin-bottom:12px">ЕЖЕДНЕВНЫЕ АКТИВНОСТИ</div>
 
-        <!-- Дар дня -->
-        <div id="daily-dar-block" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="showDailyDar()">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-size:24px">&#127775;</div>
-            <div>
-              <div style="font-size:14px;color:var(--text)">Дар дня</div>
-              <div id="daily-dar-name" style="font-size:12px;color:#D4AF37">Загрузка...</div>
-            </div>
-            <div style="margin-left:auto;font-size:12px;color:var(--text-muted)">+3 &#128142;</div>
-          </div>
-        </div>
-
-        <!-- Игра на интуицию -->
-        <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="openIntuitionGame()">
+        <!-- Оракул -->
+        <div id="daily-dar-block" style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="DailyDar.open()">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="font-size:24px">&#128302;</div>
             <div>
-              <div style="font-size:14px;color:var(--text)">Угадай Дар</div>
-              <div style="font-size:12px;color:var(--text-dim)">Игра на развитие интуиции</div>
+              <div style="font-size:14px;color:var(--text)">Оракул</div>
+              <div id="daily-dar-name" style="font-size:12px;color:#D4AF37">Загрузка...</div>
             </div>
-            <div style="margin-left:auto;font-size:12px;color:#D4AF37">&#127183;</div>
+            <div style="margin-left:auto;font-size:16px;color:#D4AF37">&#10095;</div>
           </div>
         </div>
+
+        <!-- Тренажёр интуиции -->
+        <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="openIntuitionGame()">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:24px">&#127183;</div>
+            <div>
+              <div style="font-size:14px;color:var(--text)">Тренажёр интуиции</div>
+              <div style="font-size:12px;color:var(--text-dim)">Угадай дар и развивай чутьё</div>
+            </div>
+            <div style="margin-left:auto;font-size:16px;color:#D4AF37">&#10095;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Экран Дар Дня -->
+      <div id="daily-dar-screen" style="display:none">
+        <button class="btn-back" style="display:block" onclick="DailyDar.close()">&#8592; Назад</button>
+        <div id="daily-dar-content"></div>
       </div>
 
       <!-- Экран игры -->
@@ -334,6 +340,7 @@
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=4"></script>
   <script src="js/intuition-game.js?v=3"></script>
+  <script src="js/daily-dar.js?v=1"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.expand(); tg.ready(); }
@@ -346,6 +353,7 @@
     }
     const USER_ID = getUserId();
     const STORAGE_KEY = 'dar_data_' + USER_ID;
+    window.STORAGE_KEY = STORAGE_KEY;
 
     const tgUser = tg?.initDataUnsafe?.user;
     if (tgUser) {
@@ -1037,25 +1045,9 @@
       if(e.key==='Enter') submitPromoCode();
     });
 
-    // === Дар дня ===
+    // === Дар дня (делегируем модулю DailyDar) ===
     function loadDailyDar() {
-      const allCodes = Object.keys(DARS);
-      const today = new Date();
-      const daysSinceEpoch = Math.floor(today.getTime() / 86400000);
-      const index = daysSinceEpoch % allCodes.length;
-      const code = allCodes[index];
-      const name = DARS[code];
-      const arch = DAR_ARCHETYPES[code] || '';
-      const el = document.getElementById('daily-dar-name');
-      if (el) el.textContent = name + (arch ? ' — ' + arch : '');
-      window._dailyDarCode = code;
-    }
-
-    function showDailyDar() {
-      const code = window._dailyDarCode;
-      if (!code) return;
-      const name = DARS[code];
-      alert('Дар дня: ' + name + '\nКод: ' + code + '\n\nПочувствуй энергию этого дара сегодня!');
+      if (typeof DailyDar !== 'undefined') DailyDar.loadPreview();
     }
 
     // === Игра на интуицию ===

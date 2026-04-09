@@ -2,27 +2,36 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Все 64 дара
-  const ALL_DARS = [
-    "4-6-1","3-7-1","2-8-1","8-2-1","7-3-1","6-4-1","5-5-1",
-    "1-1-2","3-8-2","4-7-2","8-3-2","7-4-2","5-6-2","6-5-2",
-    "8-4-3","2-1-3","1-2-3","7-5-3","5-7-3","6-6-3","4-8-3",
-    "1-3-4","6-7-4","2-2-4","3-1-4","7-6-4","5-8-4","8-5-4",
-    "8-6-5","2-3-5","7-7-5","1-4-5","3-2-5","4-1-5","6-8-5",
-    "1-5-6","5-1-6","8-7-6","7-8-6","2-4-6","3-3-6","4-2-6",
-    "4-3-7","2-5-7","3-4-7","1-6-7","6-1-7","5-2-7","8-8-7",
-    "6-2-8","1-7-8","5-3-8","3-5-8","4-4-8","7-1-8","2-6-8",
-    "3-6-9","5-4-9","1-8-9","8-1-9","7-2-9","6-3-9","2-7-9","4-5-9"
-  ];
+  function reduce(n) {
+    while (n > 9) n = n.toString().split('').reduce((s,d) => s + parseInt(d), 0);
+    return n;
+  }
 
-  // Детерминированный выбор дара дня по дате
+  // Расчёт общего Дара Дня по формуле даты
   const today = new Date();
-  const daysSinceEpoch = Math.floor(today.getTime() / 86400000);
-  const index = daysSinceEpoch % ALL_DARS.length;
+  const day = today.getUTCDate();
+  const month = today.getUTCMonth() + 1;
+  const year = today.getUTCFullYear();
+
+  // МА = reduce(сумма цифр дня + сумма цифр месяца)
+  const dayDigits = day.toString().split('').reduce((s,c) => s + parseInt(c), 0);
+  const monthDigits = month.toString().split('').reduce((s,c) => s + parseInt(c), 0);
+  const ma = reduce(dayDigits + monthDigits);
+
+  // ЖИ = reduce(сумма цифр года)
+  const yearDigits = year.toString().split('').reduce((s,c) => s + parseInt(c), 0);
+  const zhi = reduce(yearDigits);
+
+  // КУН = reduce(МА + ЖИ)
+  const kun = reduce(ma + zhi);
+
+  const dar_code = `${ma}-${zhi}-${kun}`;
 
   return res.json({
     date: today.toISOString().slice(0, 10),
-    dar_code: ALL_DARS[index],
-    index
+    dar_code,
+    ma,
+    zhi,
+    kun
   });
 };

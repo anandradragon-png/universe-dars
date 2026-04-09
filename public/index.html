@@ -163,6 +163,10 @@
     /* === Streak === */
     .streak-badge{font-size:12px;color:#f39c12;margin-left:6px}
 
+    /* === Игра на интуицию === */
+    .game-card-back:hover{border-color:rgba(212,175,55,0.6)!important;transform:translateY(-3px);box-shadow:0 4px 15px rgba(212,175,55,0.2)}
+    .game-card-back:active{transform:scale(0.95)}
+
     /* === Книга: защита от копирования === */
     .book-page-wrap{user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-webkit-touch-callout:none}
     .book-page-wrap img{pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
@@ -232,6 +236,41 @@
           </div>
         </div>
       </div>
+      <!-- Ежедневные активности -->
+      <div id="daily-activities" style="display:none;padding-top:16px">
+        <div style="font-size:14px;color:var(--text);letter-spacing:2px;text-align:center;margin-bottom:12px">ЕЖЕДНЕВНЫЕ АКТИВНОСТИ</div>
+
+        <!-- Дар дня -->
+        <div id="daily-dar-block" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="showDailyDar()">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:24px">&#127775;</div>
+            <div>
+              <div style="font-size:14px;color:var(--text)">Дар дня</div>
+              <div id="daily-dar-name" style="font-size:12px;color:#D4AF37">Загрузка...</div>
+            </div>
+            <div style="margin-left:auto;font-size:12px;color:var(--text-muted)">+3 &#128142;</div>
+          </div>
+        </div>
+
+        <!-- Игра на интуицию -->
+        <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="openIntuitionGame()">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:24px">&#128302;</div>
+            <div>
+              <div style="font-size:14px;color:var(--text)">Угадай Дар</div>
+              <div style="font-size:12px;color:var(--text-dim)">Игра на развитие интуиции</div>
+            </div>
+            <div style="margin-left:auto;font-size:12px;color:#D4AF37">&#127183;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Экран игры -->
+      <div id="game-screen" style="display:none">
+        <button class="btn-back" style="display:block" onclick="closeIntuitionGame()">&#8592; Назад</button>
+        <div id="game-content"></div>
+      </div>
+
       </div><!-- /main-container -->
     </div>
     <div class="tab" id="tab-treasury">
@@ -294,6 +333,7 @@
   <script src="js/treasury.js?v=4"></script>
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=4"></script>
+  <script src="js/intuition-game.js?v=1"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.expand(); tg.ready(); }
@@ -412,6 +452,10 @@
       // Показать призыв к книге
       const bookCta = document.getElementById('book-cta');
       if (bookCta) bookCta.style.display = 'block';
+      // Показать ежедневные активности
+      const dailyBlock = document.getElementById('daily-activities');
+      if (dailyBlock) dailyBlock.style.display = 'block';
+      loadDailyDar();
     }
 
     function init(){
@@ -992,6 +1036,47 @@
     document.getElementById('promoInput').addEventListener('keydown',function(e){
       if(e.key==='Enter') submitPromoCode();
     });
+
+    // === Дар дня ===
+    function loadDailyDar() {
+      const allCodes = Object.keys(DARS);
+      const today = new Date();
+      const daysSinceEpoch = Math.floor(today.getTime() / 86400000);
+      const index = daysSinceEpoch % allCodes.length;
+      const code = allCodes[index];
+      const name = DARS[code];
+      const arch = DAR_ARCHETYPES[code] || '';
+      const el = document.getElementById('daily-dar-name');
+      if (el) el.textContent = name + (arch ? ' — ' + arch : '');
+      window._dailyDarCode = code;
+    }
+
+    function showDailyDar() {
+      const code = window._dailyDarCode;
+      if (!code) return;
+      const name = DARS[code];
+      alert('Дар дня: ' + name + '\nКод: ' + code + '\n\nПочувствуй энергию этого дара сегодня!');
+    }
+
+    // === Игра на интуицию ===
+    function openIntuitionGame() {
+      document.getElementById('screen-result').style.display = 'none';
+      document.getElementById('daily-activities').style.display = 'none';
+      document.getElementById('screen-input').style.display = 'none';
+      document.getElementById('game-screen').style.display = 'block';
+      if (typeof IntuitionGame !== 'undefined') IntuitionGame.render();
+    }
+
+    function closeIntuitionGame() {
+      document.getElementById('game-screen').style.display = 'none';
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        document.getElementById('screen-result').style.display = 'block';
+        document.getElementById('daily-activities').style.display = 'block';
+      } else {
+        document.getElementById('screen-input').style.display = 'block';
+      }
+    }
 
     // === Инициализация игровых модулей ===
     (function initGame() {

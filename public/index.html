@@ -966,11 +966,12 @@
       // Попробовать синхронизировать с сервером (если доступен)
       if (typeof DarAPI !== 'undefined') {
         DarAPI.getProfile().then(data => {
-          if (data.user) {
+          if (data.user && data.user.crystals > 0) {
             CrystalsUI.setBalance(data.user.crystals);
             localStorage.setItem('_crystals_' + USER_ID, data.user.crystals);
           }
-          if (data.dars) {
+          // Только обновлять если сервер вернул непустой список даров
+          if (data.dars && data.dars.length > 0) {
             Treasury.init(data.dars, data.user?.dar_code);
             localStorage.setItem('_treasury_dars_' + USER_ID, JSON.stringify(data.dars));
           }

@@ -263,6 +263,18 @@
             <div style="margin-left:auto;font-size:16px;color:#D4AF37">&#10095;</div>
           </div>
         </div>
+
+        <!-- Обратная связь -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="openFeedback()">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:24px">&#128172;</div>
+            <div>
+              <div style="font-size:14px;color:var(--text)">Обратная связь</div>
+              <div style="font-size:12px;color:var(--text-dim)">Нашёл баг? Есть идея? Напиши!</div>
+            </div>
+            <div style="margin-left:auto;font-size:16px;color:var(--text-dim)">&#10095;</div>
+          </div>
+        </div>
       </div>
 
       <!-- Экран Дар Дня -->
@@ -326,6 +338,36 @@
       </div>
     </div>
   </div>
+  <!-- Модалка обратной связи -->
+  <div id="feedback-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px">
+    <div style="background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);border:1px solid var(--border);border-radius:20px;padding:24px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;color:var(--text);letter-spacing:2px">ОБРАТНАЯ СВЯЗЬ</div>
+        <button onclick="closeFeedback()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;padding:4px">&#10005;</button>
+      </div>
+
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Категория:</div>
+      <div id="feedback-categories" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+        <button class="fb-cat active" data-cat="bug" onclick="selectFeedbackCat('bug')">&#128027; Баг</button>
+        <button class="fb-cat" data-cat="idea" onclick="selectFeedbackCat('idea')">&#128161; Идея</button>
+        <button class="fb-cat" data-cat="question" onclick="selectFeedbackCat('question')">&#10067; Вопрос</button>
+        <button class="fb-cat" data-cat="other" onclick="selectFeedbackCat('other')">&#128172; Другое</button>
+      </div>
+
+      <textarea id="feedback-text" placeholder="Опиши проблему или предложение..." style="width:100%;min-height:120px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Georgia,serif;resize:vertical;outline:none;line-height:1.5"></textarea>
+
+      <div id="feedback-status" style="min-height:20px;margin-top:8px;font-size:12px;text-align:center"></div>
+
+      <button id="feedback-send-btn" onclick="sendFeedback()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6b21a8,#3b0764);color:var(--text);font-size:15px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px;margin-top:12px;transition:all .25s">Отправить</button>
+    </div>
+  </div>
+
+  <style>
+    .fb-cat{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
+    .fb-cat.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .fb-cat:hover{border-color:rgba(180,120,255,0.4)}
+  </style>
+
   <div class="nav-bar">
     <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">&#10024;</span><span class="nav-label">Мой Дар</span></button>
     <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon">&#128142;</span><span class="nav-label">Сокровищница</span></button>
@@ -1069,6 +1111,70 @@
         document.getElementById('screen-input').style.display = 'block';
       }
     }
+
+    // === Обратная связь ===
+    let _fbCategory = 'bug';
+
+    function openFeedback() {
+      const modal = document.getElementById('feedback-modal');
+      modal.style.display = 'flex';
+      document.getElementById('feedback-text').value = '';
+      document.getElementById('feedback-status').textContent = '';
+      document.getElementById('feedback-send-btn').disabled = false;
+    }
+
+    function closeFeedback() {
+      document.getElementById('feedback-modal').style.display = 'none';
+    }
+
+    function selectFeedbackCat(cat) {
+      _fbCategory = cat;
+      document.querySelectorAll('.fb-cat').forEach(b => {
+        b.classList.toggle('active', b.dataset.cat === cat);
+      });
+    }
+
+    async function sendFeedback() {
+      const text = document.getElementById('feedback-text').value.trim();
+      const status = document.getElementById('feedback-status');
+      const btn = document.getElementById('feedback-send-btn');
+
+      if (!text) { status.innerHTML = '<span style="color:#f87171">Напиши сообщение</span>'; return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Отправка...';
+      status.textContent = '';
+
+      try {
+        const resp = await fetch(`${API_URL}/api/feedback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: _fbCategory,
+            message: text,
+            page: window._dailyDarCode || '',
+            user_agent: navigator.userAgent
+          })
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          status.innerHTML = '<span style="color:#2ecc71">Спасибо! Сообщение отправлено</span>';
+          document.getElementById('feedback-text').value = '';
+          setTimeout(closeFeedback, 1500);
+        } else {
+          throw new Error(data.error || 'Ошибка');
+        }
+      } catch(e) {
+        status.innerHTML = '<span style="color:#f87171">Ошибка: ' + e.message + '</span>';
+        btn.disabled = false;
+        btn.textContent = 'Отправить';
+      }
+    }
+
+    // Закрытие модалки по клику на фон
+    document.getElementById('feedback-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeFeedback();
+    });
 
     // === Инициализация игровых модулей ===
     (function initGame() {

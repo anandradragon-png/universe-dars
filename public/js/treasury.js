@@ -210,12 +210,29 @@ const Treasury = (function() {
         title = result.title;
         content = result.content;
         quest = result.quest;
-        sectionCache[cacheKey] = { title, content, quest };
       } catch(e) {
         title = `Секция ${sectionIndex}`;
         content = 'Не удалось загрузить контент. Попробуйте позже.';
         quest = null;
       }
+
+      // Fallback: если API не вернул задание — генерируем дефолтное
+      if (!quest) {
+        const defaultQuests = {
+          1: { question: 'Как суть этого дара проявляется в вашей повседневной жизни? Приведите конкретный пример.', hint: 'Вспомните ситуацию за последнюю неделю.', type: 'reflection', min_length: 30, crystals: 3 },
+          2: { question: 'Закройте глаза и почувствуйте своё тело. Где вы ощущаете энергию дара? Опишите ощущения.', hint: 'Обратите внимание на тепло, покалывание, пульсацию.', type: 'body_practice', min_length: 30, crystals: 5 },
+          3: { question: 'Вспомните момент, когда сила вашего дара проявилась ярче всего. Что вы чувствовали?', hint: 'Это мог быть момент вдохновения, ясности или глубокого покоя.', type: 'reflection', min_length: 50, crystals: 5 },
+          4: { question: 'Когда вы замечали, что ваш дар проявлялся через тень? Что происходило?', hint: 'Тень — это не плохо, это сигнал к осознанности.', type: 'shadow_work', min_length: 80, crystals: 7 },
+          5: { question: 'Выполните практику активации и опишите свои ощущения до и после.', hint: 'Будьте внимательны к малейшим изменениям состояния.', type: 'practice', min_length: 30, crystals: 5 },
+          6: { question: 'Проведите медитацию по описанию. Какие образы и чувства пришли к вам?', hint: 'Не оценивайте — просто наблюдайте и записывайте.', type: 'meditation', min_length: 50, crystals: 7 },
+          7: { question: 'В какой сфере жизни вы уже применяете свой дар? Как вы можете усилить это?', hint: 'Подумайте о работе, отношениях, творчестве.', type: 'life_application', min_length: 50, crystals: 5 },
+          8: { question: 'Какие из зон риска вы узнаёте в своей жизни? Что можно изменить?', hint: 'Честность с собой — первый шаг к безопасности.', type: 'awareness', min_length: 50, crystals: 5 },
+          9: { question: 'Напишите итоговую рефлексию: что вы узнали о себе, изучая этот дар? Какие инсайты получили?', hint: 'Это ваш личный путь — он уникален.', type: 'integration', min_length: 100, crystals: 10 }
+        };
+        quest = defaultQuests[sectionIndex] || defaultQuests[1];
+      }
+
+      sectionCache[cacheKey] = { title, content, quest };
     }
 
     let html = `

@@ -58,6 +58,14 @@ const Treasury = (function() {
       </div>
     `;
 
+    // Баннер книги
+    html += `
+      <div style="margin:0 0 16px;padding:14px;background:linear-gradient(135deg,rgba(107,33,168,0.15),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
+        <div style="font-size:14px;color:#D4AF37;margin-bottom:4px">&#128214; Книга Даров</div>
+        <div style="font-size:11px;color:var(--text-dim)">Полное описание каждого дара с практиками и медитациями</div>
+      </div>
+    `;
+
     // Группировка по полям
     const groups = {};
     for (let i = 1; i <= 9; i++) groups[i] = [];
@@ -263,6 +271,13 @@ const Treasury = (function() {
         </div>
       `;
     }
+
+    // Призыв к книге внизу секции
+    html += `
+      <div style="margin-top:16px;padding:12px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:12px;text-align:center;cursor:pointer" onclick="switchNav('book')">
+        <div style="font-size:12px;color:#D4AF37">&#128218; Углубить познание? Читай в Книге Даров</div>
+      </div>
+    `;
 
     container.innerHTML = html;
   }

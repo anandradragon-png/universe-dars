@@ -217,10 +217,19 @@
           <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()"> Получить полное послание</button>
           <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()"> Изменить дату</button>
         </div>
+        <!-- Призыв к книге -->
+        <div id="book-cta" style="display:none;margin-top:14px;padding:16px;background:linear-gradient(135deg,rgba(107,33,168,0.15),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:16px;text-align:center;cursor:pointer" onclick="switchNav('book')">
+          <div style="font-size:15px;color:#D4AF37;margin-bottom:6px">&#128214; Читай о своём даре в Книге Даров</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Полное описание, практики, медитации и техники безопасности для каждого дара</div>
+        </div>
         <div id="share-section" style="display:none"></div>
         <div id="full-description-block" style="display:none">
           <div id="full-description-content"></div>
           <button class="btn btn-ghost" onclick="hideDescription()" style="margin-top:12px"> Скрыть описание</button>
+          <!-- Призыв к книге после описания -->
+          <div style="margin-top:14px;padding:14px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
+            <div style="font-size:13px;color:#D4AF37">&#128218; Хочешь глубже? В Книге Даров — полное описание всех 64 даров</div>
+          </div>
         </div>
       </div>
       </div><!-- /main-container -->
@@ -282,7 +291,7 @@
   <!-- Игровые модули -->
   <script src="js/api-client.js?v=2"></script>
   <script src="js/crystals.js?v=2"></script>
-  <script src="js/treasury.js?v=3"></script>
+  <script src="js/treasury.js?v=4"></script>
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=4"></script>
   <script>
@@ -400,6 +409,9 @@
       if (typeof Referral !== 'undefined') {
         Referral.renderShareButton(gift.code, darName);
       }
+      // Показать призыв к книге
+      const bookCta = document.getElementById('book-cta');
+      if (bookCta) bookCta.style.display = 'block';
     }
 
     function init(){

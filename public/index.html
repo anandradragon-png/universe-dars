@@ -858,17 +858,114 @@
     }
 
     function getDarSectionContent(sectionId, code){
-      // Приоритет 1: dars_extended (подробные данные из fields.json)
       const ext = DARS_EXTENDED ? DARS_EXTENDED[code] : null;
-      if(ext) {
-        if(sectionId==='essence' && (ext.essence_short || ext.metaphor)) return ext.essence_short || ext.metaphor;
-        if(sectionId==='energy_pattern' && ext.energy_flow) return ext.energy_flow;
-        if(sectionId==='safety' && ext.warning) return ext.warning;
+      const parts = code.split('-').map(Number);
+      const maField = FIELDS_FULL[parts[0]];
+      const zhiField = FIELDS_FULL[parts[1]];
+      const kunField = FIELDS_FULL[parts[2]];
+
+      // 1. Суть Дара — метафора + суть + суть поля КУН
+      if(sectionId==='essence'){
+        let text = '';
+        if(ext?.metaphor) text += `<strong>${ext.metaphor}</strong><br><br>`;
+        if(ext?.essence_short) text += ext.essence_short;
+        if(kunField) text += `<br><br><strong>Поле ${kunField.name}:</strong> ${kunField.essence}`;
+        return text || null;
       }
 
-      // Приоритет 2: DAR_CONTENT (дополнительные секции)
-      const content = DAR_CONTENT[code];
-      if(content && content[sectionId]) return content[sectionId];
+      // 2. Энергетический Рисунок — flow дара + поле + тело
+      if(sectionId==='energy_pattern'){
+        let text = '';
+        if(ext?.energy_flow) text += ext.energy_flow + '<br><br>';
+        if(kunField){
+          text += `<strong>Область тела:</strong> ${kunField.location}<br><br>`;
+          text += `<strong>Течение энергии поля:</strong> ${kunField.energy_flow}<br><br>`;
+          text += `<strong>Паттерн:</strong> ${kunField.pattern}`;
+        }
+        return text || null;
+      }
+
+      // 3. Световая Сила — МА-ресурс + ЖИ-проявление + КУН-результат
+      if(sectionId==='light_power'){
+        let text = '';
+        if(maField) text += `<strong>Внутренний ресурс (${maField.name}):</strong> ${maField.essence}<br><br>`;
+        if(zhiField) text += `<strong>Проявление в мире (${zhiField.name}):</strong> ${zhiField.essence}<br><br>`;
+        if(kunField) text += `<strong>Результат (${kunField.name}):</strong> ${kunField.essence}`;
+        return text || null;
+      }
+
+      // 4. Тень Дара — три уровня тени + образы
+      if(sectionId==='shadow'){
+        let text = '';
+        if(maField){
+          text += `<strong>Тень потенциала (${maField.name}):</strong> ${maField.shadow_ma}`;
+          if(maField.shadow_ma_image) text += `<br><em>${maField.shadow_ma_image}</em>`;
+          text += '<br><br>';
+        }
+        if(zhiField){
+          text += `<strong>Тень проявления (${zhiField.name}):</strong> ${zhiField.shadow_zhi}`;
+          if(zhiField.shadow_zhi_image) text += `<br><em>${zhiField.shadow_zhi_image}</em>`;
+          text += '<br><br>';
+        }
+        if(kunField){
+          text += `<strong>Тень результата (${kunField.name}):</strong> ${kunField.shadow_kun}`;
+        }
+        return text || null;
+      }
+
+      // 5. Активация Дара — слои МА-ЖИ-КУН в теле
+      if(sectionId==='activation'){
+        let text = '';
+        if(kunField){
+          text += `<strong>Область практики:</strong> ${kunField.location}<br><br>`;
+        }
+        if(maField) text += `<strong>Слой МА (потенциал):</strong> ${maField.layers_ma || maField.body_sensation || ''}<br><br>`;
+        if(zhiField) text += `<strong>Слой ЖИ (проявление):</strong> ${zhiField.layers_zhi || ''}<br><br>`;
+        if(kunField) text += `<strong>Слой КУН (результат):</strong> ${kunField.layers_kun || ''}`;
+        // DAR_CONTENT fallback
+        const dc = DAR_CONTENT[code];
+        if(dc?.activation) text += '<br><br>' + dc.activation;
+        return text || null;
+      }
+
+      // 6. Медитация — DAR_CONTENT + гармонизация
+      if(sectionId==='meditation'){
+        let text = '';
+        const dc = DAR_CONTENT[code];
+        if(dc?.meditation) text += dc.meditation + '<br><br>';
+        if(kunField?.harmony_key) text += `<strong>Ключ гармонии:</strong> ${kunField.harmony_key}<br><br>`;
+        if(maField?.harmony_key && maField.harmony_key !== kunField?.harmony_key) text += `<strong>Гармонизация потенциала:</strong> ${maField.harmony_key}`;
+        return text || null;
+      }
+
+      // 7. Сфера Применения — DAR_CONTENT
+      if(sectionId==='application'){
+        const dc = DAR_CONTENT[code];
+        return dc?.application || null;
+      }
+
+      // 8. Техника Безопасности — warning + risk_zones
+      if(sectionId==='safety'){
+        let text = '';
+        if(ext?.warning) text += `<strong>Предостережение:</strong> ${ext.warning}<br><br>`;
+        if(kunField?.risk_zones) text += `<strong>Зоны риска:</strong><br>` + kunField.risk_zones.map(z=>`• ${z}`).join('<br>');
+        if(maField?.risk_zones && maField.id !== kunField?.id) text += `<br><br><strong>Дополнительные риски:</strong><br>` + maField.risk_zones.map(z=>`• ${z}`).join('<br>');
+        return text || null;
+      }
+
+      // 9. Атрибуты и Якоря — цвет, паттерн, элемент + DAR_CONTENT
+      if(sectionId==='attributes'){
+        let text = '';
+        if(kunField){
+          text += `<strong>Стихия:</strong> ${kunField.element}<br>`;
+          text += `<strong>Цвет:</strong> ${kunField.color}<br>`;
+          text += `<strong>Паттерн:</strong> ${kunField.pattern}<br>`;
+          text += `<strong>Тело:</strong> ${kunField.body || kunField.location}<br>`;
+        }
+        const dc = DAR_CONTENT[code];
+        if(dc?.attributes) text += '<br>' + dc.attributes;
+        return text || null;
+      }
 
       return null;
     }

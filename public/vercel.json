@@ -3,6 +3,34 @@
     "api/message.js": {
       "memory": 512,
       "maxDuration": 30
+    },
+    "api/user.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/treasury.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/referral.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/promo.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/daily.js": {
+      "memory": 128,
+      "maxDuration": 5
+    },
+    "api/quest.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/section.js": {
+      "memory": 512,
+      "maxDuration": 30
     }
   }
 }

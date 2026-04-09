@@ -1,7 +1,8 @@
 {
   "name": "universe-dar-app",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "dependencies": {
-    "groq-sdk": "^0.9.1"
+    "groq-sdk": "^0.9.1",
+    "@supabase/supabase-js": "^2.39.0"
   }
 }

@@ -1,0 +1,167 @@
+const { createClient } = require('@supabase/supabase-js');
+
+let supabase = null;
+
+function getSupabase() {
+  if (!supabase) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_KEY;
+    if (!url || !key) throw new Error('SUPABASE_URL and SUPABASE_SERVICE_KEY required');
+    supabase = createClient(url, key);
+  }
+  return supabase;
+}
+
+// ---- Пользователи ----
+
+async function getOrCreateUser(telegramUser) {
+  const db = getSupabase();
+  const { data: existing } = await db
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramUser.id)
+    .single();
+
+  if (existing) {
+    // Обновить last_active
+    await db.from('users').update({ last_active_at: new Date().toISOString() }).eq('id', existing.id);
+    return existing;
+  }
+
+  const { data: newUser, error } = await db
+    .from('users')
+    .insert({
+      telegram_id: telegramUser.id,
+      first_name: telegramUser.first_name,
+      last_name: telegramUser.last_name || '',
+      username: telegramUser.username || '',
+      crystals: 0,
+      access_level: 'basic'
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return newUser;
+}
+
+async function updateUser(userId, fields) {
+  const db = getSupabase();
+  const { data, error } = await db.from('users').update(fields).eq('id', userId).select().single();
+  if (error) throw error;
+  return data;
+}
+
+// ---- Сокровищница (открытые дары) ----
+
+async function getUserDars(userId) {
+  const db = getSupabase();
+  const { data, error } = await db.from('user_dars').select('*').eq('user_id', userId);
+  if (error) throw error;
+  return data || [];
+}
+
+async function unlockDar(userId, darCode, source) {
+  const db = getSupabase();
+  const { data: existing } = await db
+    .from('user_dars')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('dar_code', darCode)
+    .single();
+
+  if (existing) return existing;
+
+  const { data, error } = await db
+    .from('user_dars')
+    .insert({ user_id: userId, dar_code: darCode, unlock_source: source, unlocked_sections: 1 })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function unlockSection(userId, darCode, sectionIndex) {
+  const db = getSupabase();
+  const { data, error } = await db
+    .from('user_dars')
+    .update({ unlocked_sections: sectionIndex })
+    .eq('user_id', userId)
+    .eq('dar_code', darCode)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// ---- Кристаллы ----
+
+async function addCrystals(userId, amount, reason, metadata = null) {
+  const db = getSupabase();
+
+  // Записать в лог
+  await db.from('crystal_log').insert({
+    user_id: userId,
+    amount,
+    reason,
+    metadata: metadata ? JSON.stringify(metadata) : null
+  });
+
+  // Обновить баланс
+  const { data: user } = await db.from('users').select('crystals').eq('id', userId).single();
+  const newBalance = (user?.crystals || 0) + amount;
+  await db.from('users').update({ crystals: newBalance }).eq('id', userId);
+
+  return newBalance;
+}
+
+// ---- Рефералы ----
+
+async function createReferral(referrerId, referredId, referredDarCode, darUnlocked) {
+  const db = getSupabase();
+  const { data, error } = await db
+    .from('referrals')
+    .insert({ referrer_id: referrerId, referred_id: referredId, referred_dar_code: referredDarCode, dar_unlocked: darUnlocked })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function getReferralCount(userId) {
+  const db = getSupabase();
+  const { count } = await db.from('referrals').select('id', { count: 'exact' }).eq('referrer_id', userId);
+  return count || 0;
+}
+
+// ---- Задания ----
+
+async function completeQuest(userId, darCode, sectionIndex, questType, answerText) {
+  const db = getSupabase();
+  const { data, error } = await db
+    .from('user_quests')
+    .insert({ user_id: userId, dar_code: darCode, section_index: sectionIndex, quest_type: questType, answer_text: answerText })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function getUserQuests(userId, darCode) {
+  const db = getSupabase();
+  const { data } = await db.from('user_quests').select('*').eq('user_id', userId).eq('dar_code', darCode);
+  return data || [];
+}
+
+module.exports = {
+  getSupabase,
+  getOrCreateUser, updateUser,
+  getUserDars, unlockDar, unlockSection,
+  addCrystals,
+  createReferral, getReferralCount,
+  completeQuest, getUserQuests
+};

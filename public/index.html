@@ -38,7 +38,7 @@
     .btn-back:hover{color:var(--text)}
     .result-card{text-align:center;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px 20px;backdrop-filter:blur(10px)}
     .dar-image-wrap{width:110px;height:110px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center}
-    .dar-image-wrap img{width:100%;height:100%;object-fit:contain}
+    .dar-image-wrap img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 10px #D4AF37)}
     .dar-placeholder{width:110px;height:110px;border-radius:50%;border:2px solid var(--border);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);letter-spacing:1px;text-align:center;padding:8px}
     .dar-name{font-size:32px;letter-spacing:4px;color:var(--text);text-shadow:0 0 20px rgba(180,120,255,0.4);margin-bottom:6px}
     .dar-code{font-size:13px;color:var(--text-dim);letter-spacing:3px;margin-bottom:8px}
@@ -52,31 +52,122 @@
     .accordion-title{flex:1;font-size:14px;letter-spacing:1px;color:var(--text)}
     .accordion-arrow{font-size:12px;color:var(--text-dim);transition:transform .3s;flex-shrink:0}
     .accordion-header.open .accordion-arrow{transform:rotate(180deg)}
-    .accordion-body{display:none;padding:16px;background:rgba(0,0,0,0.2);border-top:1px solid var(--border)}
+    .accordion-body{display:none;padding:16px;background:rgba(0,0,0,0.2);border-top:1px solid var(--border);text-align:left}
     .accordion-body.open{display:block;animation:fadeUp .3s ease}
     @keyframes fadeUp{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-    .accordion-body p{font-size:15px;line-height:1.8;color:#e0e0e0;margin-bottom:12px}
+    .accordion-body p{font-size:14px;line-height:1.8;color:#e0e0e0;margin-bottom:14px;text-align:left}
     .accordion-body p:last-child{margin-bottom:0}
     .accordion-body strong{color:#e8d5ff;font-weight:bold}
     .accordion-body em{color:#c4a0f0;font-style:italic}
     .accordion-body ul{padding-left:18px;margin-bottom:12px}
-    .accordion-body ul li{font-size:15px;line-height:1.7;color:#e0e0e0;margin-bottom:5px}
+    .accordion-body ul li{font-size:14px;line-height:1.8;color:#e0e0e0;margin-bottom:8px;text-align:left}
     .accordion-body ul li::marker{color:#D4AF37}
-    #tab-profile,#tab-base{padding:40px 24px;text-align:center}
+    .accordion-body ol{padding-left:20px;margin-bottom:12px}
+    .accordion-body ol li{font-size:14px;line-height:1.8;color:#e0e0e0;margin-bottom:10px;text-align:left}
+    .accordion-body ol li::marker{color:#D4AF37;font-weight:bold}
+    #tab-profile{padding:40px 24px;text-align:center}
+    #tab-base{padding:0}
+    .base-lock{text-align:center;padding:40px 24px}
+    .promo-input{width:100%;max-width:320px;padding:14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:18px;letter-spacing:3px;text-align:center;outline:none;font-family:Georgia,serif;text-transform:uppercase}
+    .promo-input:focus{border-color:rgba(124,58,237,0.7)}
+    .promo-input::placeholder{color:var(--text-muted);letter-spacing:2px;text-transform:none;font-size:14px}
+    .base-sub-nav{display:flex;gap:10px;padding:10px 16px;position:sticky;top:0;z-index:10;background:rgba(10,5,25,0.95);border-bottom:1px solid var(--border);justify-content:center;max-width:700px;margin:0 auto}
+    .base-sub-btn{flex:1;padding:12px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;font-family:Georgia,serif;font-size:14px;letter-spacing:1px;color:var(--text-dim);text-align:center;transition:all .2s}
+    .base-sub-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .base-content{padding:16px;max-width:700px;margin:0 auto}
+    .field-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .field-folder{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
+    .field-folder:hover{border-color:rgba(180,120,255,0.5);background:rgba(107,33,168,0.15)}
+    .field-folder-num{font-size:28px;margin-bottom:6px}
+    .field-folder-name{font-size:14px;color:var(--text);letter-spacing:1px;margin-bottom:4px}
+    .field-folder-arch{font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:6px}
+    .field-folder-count{font-size:11px;color:var(--text-muted)}
+    .dar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;max-width:700px;margin:0 auto}
+    .dar-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s}
+    .dar-card:hover{border-color:rgba(180,120,255,0.5);background:rgba(107,33,168,0.15)}
+    .dar-card-img{width:60px;height:60px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center}
+    .dar-card-img img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 6px #D4AF37)}
+    .dar-card-placeholder{width:50px;height:50px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-dim)}
+    .dar-card-name{font-size:15px;color:var(--text);letter-spacing:1px;margin-bottom:2px}
+    .dar-card-arch{font-size:11px;color:var(--text-dim);font-style:italic}
+    .dar-detail{text-align:center}
+    .dar-detail-img{width:100px;height:100px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center}
+    .dar-detail-img img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 10px #D4AF37)}
+    .dar-detail-name{font-size:28px;letter-spacing:3px;color:var(--text);margin-bottom:4px}
+    .dar-detail-code{font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px}
+    .dar-detail-arch{font-size:14px;color:#c4a0f0;font-style:italic;margin-bottom:16px}
+    .dar-inner-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+    .dar-inner-tab{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;font-family:Georgia,serif;font-size:12px;color:var(--text-dim);transition:all .2s}
+    .dar-inner-tab.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .dar-inner-content{text-align:left;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+    .dar-meta-row{margin-bottom:12px}
+    .dar-meta-label{font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+    .dar-meta-value{font-size:14px;color:#e0e0e0;line-height:1.7}
+    .field-enc-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;text-align:left}
+    .field-enc-name{font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:2px}
+    .field-enc-arch{font-size:13px;color:#c4a0f0;font-style:italic;margin-bottom:10px}
+    .field-enc-row{margin-bottom:10px}
+    .field-enc-label{font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+    .field-enc-val{font-size:13px;color:#e0e0e0;line-height:1.6}
     .stub-title{font-size:20px;letter-spacing:2px;color:var(--text);font-weight:normal;margin-bottom:12px}
     .stub-text{font-size:14px;color:var(--text-dim);line-height:1.7;max-width:300px;margin:0 auto}
     .user-name{font-size:15px;color:var(--text);margin-bottom:14px}
-    .nav-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;padding:8px 10px 12px;background:rgba(10,5,25,0.97);border-top:1px solid var(--border);display:flex;gap:8px}
-    .nav-btn{flex:1;padding:12px 6px 10px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s}
+    .nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:200;padding:8px 16px 12px;background:rgba(10,5,25,0.97);border-top:1px solid var(--border);display:flex;gap:8px;justify-content:center;width:100%;max-width:700px}
+    .nav-btn{flex:1;padding:10px 6px 8px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s}
     .nav-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6)}
-    .nav-btn .nav-icon{font-size:22px;line-height:1}
+    .nav-btn .nav-icon{font-size:20px;line-height:1}
     .nav-btn .nav-label{font-size:11px;letter-spacing:1px;color:var(--text);font-family:Georgia,serif}
     .nav-btn .nav-desc{font-size:9px;color:var(--text-dim)}
+
+    /* === Кристаллы === */
+    #crystal-counter{position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:6px 14px;font-size:14px;color:#D4AF37;letter-spacing:1px}
+    .crystal-popup{position:absolute;top:-5px;right:-10px;font-size:14px;color:#D4AF37;font-weight:bold;transition:all .7s ease-out;pointer-events:none}
+    .crystal-popup-spend{color:#f87171}
+
+    /* === Сокровищница === */
+    #tab-treasury{padding:16px}
+    .treasury-header{text-align:center;margin-bottom:20px}
+    .treasury-progress-label{font-size:14px;color:var(--text);letter-spacing:1px;margin-bottom:8px}
+    .treasury-progress-bar{width:100%;max-width:400px;margin:0 auto;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden}
+    .treasury-progress-fill{height:100%;background:linear-gradient(90deg,#6b21a8,#D4AF37);border-radius:4px;transition:width .5s ease}
+    .treasury-field{margin-bottom:20px}
+    .treasury-field-header{display:flex;justify-content:space-between;align-items:center;padding:6px 4px;margin-bottom:8px}
+    .treasury-field-name{font-size:14px;color:var(--text);letter-spacing:2px}
+    .treasury-field-count{font-size:12px;color:var(--text-dim)}
+    .treasury-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:8px}
+    .treasury-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 6px;text-align:center;cursor:default;transition:all .2s;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .treasury-unlocked{cursor:pointer;border-color:rgba(212,175,55,0.3);background:rgba(212,175,55,0.05)}
+    .treasury-unlocked:hover{border-color:rgba(212,175,55,0.6);background:rgba(212,175,55,0.1);transform:translateY(-2px)}
+    .treasury-locked{opacity:0.4}
+    .treasury-own{border-color:rgba(212,175,55,0.6)!important;box-shadow:0 0 12px rgba(212,175,55,0.2)}
+    .treasury-card-icon{font-size:24px;margin-bottom:4px}
+    .treasury-card-name{font-size:11px;color:var(--text);letter-spacing:1px}
+    .treasury-card-sections{font-size:10px;color:#D4AF37;margin-top:2px}
+
+    /* === Секции дара в Сокровищнице === */
+    .dar-sections-list{max-width:500px;margin:0 auto}
+    .dar-section-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;margin-bottom:6px;background:var(--card);border:1px solid var(--border);border-radius:12px;font-size:14px;color:var(--text)}
+    .dar-section-unlocked{cursor:pointer;border-color:rgba(46,204,113,0.3)}
+    .dar-section-unlocked:hover{background:rgba(46,204,113,0.1)}
+    .dar-section-next{cursor:pointer;border-color:rgba(212,175,55,0.4);background:rgba(212,175,55,0.05)}
+    .dar-section-next:hover{background:rgba(212,175,55,0.1)}
+    .dar-section-locked{opacity:0.4;cursor:default}
+
+    /* === Шеринг === */
+    .share-block{text-align:center;margin-top:16px;padding:16px;background:rgba(107,33,168,0.15);border:1px solid rgba(180,120,255,0.3);border-radius:16px}
+    .share-title{font-size:16px;color:var(--text);margin-bottom:6px}
+    .share-text{font-size:13px;color:var(--text-dim);margin-bottom:12px;line-height:1.5}
+    .btn-share{background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;border:none;padding:12px 20px;border-radius:12px;font-size:14px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
+    .btn-share:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(34,158,217,0.3)}
+
+    /* === Streak === */
+    .streak-badge{font-size:12px;color:#f39c12;margin-left:6px}
   </style>
 </head>
 <body>
   <div class="stars"></div>
   <button id="btn-close"></button>
+  <div id="crystal-counter">&#128142; <span id="crystal-count">0</span></div>
   <header><h1> ВСЕЛЕННАЯ ДАРОВ</h1></header>
   <div id="app">
     <div class="tab active" id="tab-calc">
@@ -99,6 +190,7 @@
           <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()"> Получить полное послание</button>
           <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()"> Изменить дату</button>
         </div>
+        <div id="share-section" style="display:none"></div>
         <div id="full-description-block" style="display:none">
           <div id="full-description-content"></div>
           <button class="btn btn-ghost" onclick="hideDescription()" style="margin-top:12px"> Скрыть описание</button>
@@ -106,28 +198,55 @@
       </div>
       </div><!-- /main-container -->
     </div>
-    <div class="tab" id="tab-profile">
-      <div style="padding-top:40px">
-        <div style="font-size:48px;text-align:center;margin-bottom:16px"></div>
-        <div class="user-name" id="userName" style="text-align:center"></div>
-        <div class="stub-title">Профиль пользователя</div>
-        <div class="stub-text">Раздел в разработке. Здесь будет история ваших расчётов и настройки профиля.</div>
+    <div class="tab" id="tab-treasury">
+      <div id="treasury-content">
+        <div style="text-align:center;padding-top:40px">
+          <div style="font-size:48px;margin-bottom:16px">&#128142;</div>
+          <div class="stub-title">Сокровищница</div>
+          <div class="stub-text">Рассчитайте свой дар, чтобы начать коллекцию из 64 даров!</div>
+        </div>
       </div>
     </div>
     <div class="tab" id="tab-base">
-      <div style="padding-top:40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:16px"></div>
-        <div class="stub-title">База Знаний</div>
-        <div class="stub-text">Раздел в разработке. Здесь скоро появится полная карта всех 64 даров и описания полей из книги.</div>
+      <!-- Экран промо-кода -->
+      <div id="base-screen-lock" class="base-lock">
+        <div style="font-size:48px;margin-bottom:16px">🔐</div>
+        <div class="stub-title">Доступ к Базе Знаний</div>
+        <div class="stub-text" style="margin-bottom:20px">Введите промо-код, чтобы открыть энциклопедию всех 64 даров и 9 полей</div>
+        <input class="promo-input" id="promoInput" type="text" placeholder="Промо-код" maxlength="30"/>
+        <div class="error-msg" id="promoError"></div>
+        <button class="btn btn-primary" style="max-width:320px" onclick="submitPromoCode()">Открыть доступ</button>
+      </div>
+      <!-- Основной экран энциклопедии -->
+      <div id="base-screen-main" style="display:none">
+        <div class="base-sub-nav">
+          <button class="base-sub-btn active" id="base-btn-dars" onclick="switchBaseSubTab('dars')">Дары</button>
+          <button class="base-sub-btn" id="base-btn-fields" onclick="switchBaseSubTab('fields')">Поля</button>
+        </div>
+        <!-- Вкладка Дары -->
+        <div id="base-subtab-dars" class="base-content">
+          <div id="dars-list-view"></div>
+          <div id="dars-field-view" style="display:none"></div>
+          <div id="dars-detail-view" style="display:none"></div>
+        </div>
+        <!-- Вкладка Поля -->
+        <div id="base-subtab-fields" class="base-content" style="display:none">
+          <div id="fields-list-view"></div>
+        </div>
       </div>
     </div>
   </div>
   <div class="nav-bar">
-    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">✨</span><span class="nav-label">Мой Дар</span><span class="nav-desc">Описание</span></button>
-    <button class="nav-btn" id="nav-profile" onclick="switchNav('profile')"><span class="nav-icon">👤</span><span class="nav-label">Профиль</span><span class="nav-desc">Ваши данные</span></button>
-    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon">📚</span><span class="nav-label">База знаний</span><span class="nav-desc">О системе</span></button>
+    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">&#10024;</span><span class="nav-label">Мой Дар</span><span class="nav-desc">Рассчитать</span></button>
+    <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon">&#128142;</span><span class="nav-label">Сокровищница</span><span class="nav-desc">Коллекция</span></button>
+    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon">&#128218;</span><span class="nav-label">Энциклопедия</span><span class="nav-desc">64 дара</span></button>
   </div>
 
+  <!-- Игровые модули -->
+  <script src="js/api-client.js"></script>
+  <script src="js/crystals.js"></script>
+  <script src="js/treasury.js"></script>
+  <script src="js/referral.js"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.expand(); tg.ready(); }
@@ -153,18 +272,36 @@
       else alert('Закройте вкладку браузера.');
     });
 
+    function updateDarImage(imageUrl){
+      const wrap = document.getElementById('darImageWrap');
+      if(!wrap) return;
+      wrap.innerHTML = '';
+      const img = new Image();
+      img.src = imageUrl;
+      img.onload = () => wrap.appendChild(img);
+      img.onerror = () => {
+        // Заглушка если файл не найден
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if(saved){ const {gift} = JSON.parse(saved); wrap.innerHTML = `<div class="dar-placeholder">${gift.code}</div>`; }
+      };
+    }
+
     function switchNav(name) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-' + name).classList.add('active');
       document.getElementById('nav-' + name).classList.add('active');
       document.getElementById('app').scrollTop = 0;
+      // Рендер Сокровищницы при переключении
+      if (name === 'treasury' && typeof Treasury !== 'undefined') {
+        Treasury.render();
+      }
     }
 
     const FIELDS = {1:{name:"ЛОГОС"},2:{name:"НИМА"},3:{name:"АНДРА"},4:{name:"ЗИНГРА"},5:{name:"ЛУБА"},6:{name:"ТУМА"},7:{name:"АСТРА"},8:{name:"БИТРА"},9:{name:"ОМА"}};
-    const DARS = {"4-6-1":"ЖАР","3-7-1":"И-СТОК","2-8-1":"ЛА-ДА","8-2-1":"ЛЕ-ЛИ","7-3-1":"ПРИ-ТОК","6-4-1":"СВЕ-ТО","5-5-1":"ТЕ-ЛО","1-1-2":"БРА-МА","3-8-2":"ГО-РА","4-7-2":"ГУ-НА","8-3-2":"МЕ-РУ","7-4-2":"РО-ДА","5-6-2":"СО-НА","6-5-2":"У-МА","8-4-3":"АНАН-Д-РА","2-1-3":"ВИ-РА","1-2-3":"ЛИ-РА","7-5-3":"МА-ТА","5-7-3":"МАТ-КА","6-6-3":"ПА-РА","4-8-3":"СИ-ЛА","1-3-4":"АР-КА","6-7-4":"ВОС-ХА","2-2-4":"ЗИ-МА","3-1-4":"ЛА-НА","7-6-4":"МА-АТ","5-8-4":"РО-СА","8-5-4":"СЕ-МА","8-6-5":"А-МА","2-3-5":"АР-МА","7-7-5":"ЖИ-ВА","1-4-5":"ЖИ-МА","3-2-5":"РА-МА","4-1-5":"РИ-МА","6-8-5":"ТРО-НА","1-5-6":"КУ-НА","5-1-6":"ЛУ-НА","8-7-6":"СО-ХА","7-8-6":"ТА-РА","2-4-6":"ТО-ТА","3-3-6":"ТУ-РА","4-2-6":"Э-МА","4-3-7":"АР-ХЕЙ","2-5-7":"БРА-Х-МА","3-4-7":"ГРАД","1-6-7":"З-МАН","6-1-7":"МА-НА","5-2-7":"НИ-РА","8-8-7":"ПРА-НА","6-2-8":"БИ-МА","1-7-8":"БИ-РА","5-3-8":"ЗЛА-ТО","3-5-8":"КО-ДА","4-4-8":"ЛИ-КО","7-1-8":"МИ-ДА","2-6-8":"СО-ЛАР","3-6-9":"ИРИЙ","5-4-9":"МИ-РА","1-8-9":"РАЙ","8-1-9":"РОЙ","7-2-9":"ТО-РА","6-3-9":"ТОТ","2-7-9":"ФА-НА","4-5-9":"ШИ-ВА"};
+    window.DARS = {"4-6-1":"ЖАР","3-7-1":"И-СТОК","2-8-1":"ЛА-ДА","8-2-1":"ЛЕ-ЛИ","7-3-1":"ПРИ-ТОК","6-4-1":"СВЕ-ТО","5-5-1":"ТЕ-ЛО","1-1-2":"БРА-МА","3-8-2":"ГО-РА","4-7-2":"ГУ-НА","8-3-2":"МЕ-РУ","7-4-2":"РО-ДА","5-6-2":"СО-НА","6-5-2":"У-МА","8-4-3":"АНАН-Д-РА","2-1-3":"ВИ-РА","1-2-3":"ЛИ-РА","7-5-3":"МА-ТА","5-7-3":"МАТ-КА","6-6-3":"ПА-РА","4-8-3":"СИ-ЛА","1-3-4":"АР-КА","6-7-4":"ВОС-ХА","2-2-4":"ЗИ-МА","3-1-4":"ЛА-НА","7-6-4":"МА-АТ","5-8-4":"РО-СА","8-5-4":"СЕ-МА","8-6-5":"А-МА","2-3-5":"АР-МА","7-7-5":"ЖИ-ВА","1-4-5":"ЖИ-МА","3-2-5":"РА-МА","4-1-5":"РИ-МА","6-8-5":"ТРО-НА","1-5-6":"КУ-НА","5-1-6":"ЛУ-НА","8-7-6":"СО-ХА","7-8-6":"ТА-РА","2-4-6":"ТО-ТА","3-3-6":"ТУ-РА","4-2-6":"Э-МА","4-3-7":"АР-ХЕЙ","2-5-7":"БРА-Х-МА","3-4-7":"ГРАД","1-6-7":"З-МАН","6-1-7":"МА-НА","5-2-7":"НИ-РА","8-8-7":"ПРА-НА","6-2-8":"БИ-МА","1-7-8":"БИ-РА","5-3-8":"ЗЛА-ТО","3-5-8":"КО-ДА","4-4-8":"ЛИ-КО","7-1-8":"МИ-ДА","2-6-8":"СО-ЛАР","3-6-9":"ИРИЙ","5-4-9":"МИ-РА","1-8-9":"РАЙ","8-1-9":"РОЙ","7-2-9":"ТО-РА","6-3-9":"ТОТ","2-7-9":"ФА-НА","4-5-9":"ШИ-ВА"};
     const INTEGRATORS = {"1-9-1":"Архитектор Реальности","2-9-2":"Хранитель Бесконечного Пространства","3-9-3":"Сердце Вселенной","4-9-4":"Феникс Вечного Обновления","5-9-5":"Император Света","6-9-6":"Повелитель Времени","7-9-7":"Проводник Мирового Разума","8-9-8":"Творец Совершенной Формы","9-1-1":"Архитектор Вечного Порядка","9-2-2":"Творец Пространства Возможностей","9-3-3":"Сердце Мирового Единства","9-4-4":"Феникс Глобальной Эволюции","9-5-5":"Император Внутреннего Солнца","9-6-6":"Повелитель Судьбоносного Потока","9-7-7":"Голос Космического Разума","9-8-8":"Создатель Живых Границ","9-9-9":"Живое Зеркало Вселенной"};
-    const DAR_ARCHETYPES = {"8-6-5":"Первородное солнце","8-4-3":"Купол любви","1-3-4":"Портал между мирами","2-3-5":"Усилитель реальности","4-3-7":"Архитектор реальности","6-2-8":"Танец красоты","1-7-8":"Путеводная звезда","1-1-2":"Абсолютное внимание","2-5-7":"Дыхание жизни","2-1-3":"Внутренняя вера","6-7-4":"Крылья ангела","3-8-2":"Вершина власти","3-4-7":"Архитектор единства","4-7-2":"Нить времени","4-6-1":"Внутренний вулкан","7-7-5":"Квинтэссенция жизни","1-4-5":"Алхимическая лаборатория","2-2-4":"Белый огонь","5-3-8":"Золотая спираль","1-6-7":"Змей времени","3-6-9":"Река жизни","3-7-1":"Родник силы","3-5-8":"Программист реальности","1-5-6":"Рог изобилия","2-8-1":"Гармонизатор границ","3-1-4":"Огненный щит","8-2-1":"Голос природы","4-4-8":"Театральная маска","1-2-3":"Ось мира","5-1-6":"Магнит событий","7-6-4":"Цунами вдохновения","6-1-7":"Манна небесная","7-5-3":"Хирург реальности","5-7-3":"Инкубатор реальностей","8-3-2":"Вершина мира","7-1-8":"Туннель реальности","5-4-9":"Древо миров","5-2-7":"Картограф сновидений","6-6-3":"Портал любви","8-8-7":"Выдох вселенной","7-3-1":"Место силы","1-8-9":"Осознанный выбор","3-2-5":"Ядерная радость","4-1-5":"Целительный удар","7-4-2":"Живая нить рода","8-1-9":"Живой алгоритм","5-8-4":"Духовное рождение","6-4-1":"Внутреннее солнце","8-5-4":"Семя","4-8-3":"Атланты","2-6-8":"Расширенное сознание","5-6-2":"Шут","8-7-6":"Сфера покоя","7-8-6":"Конструктор аватара","5-5-1":"Храм души","7-2-9":"Ветер перемен","6-3-9":"Фрактальное зеркало","2-4-6":"Первооткрыватель","6-8-5":"Трон воли","3-3-6":"Колесо сансары","6-5-2":"Дракон порядка","2-7-9":"Священный момент","4-5-9":"Танец жизни","4-2-6":"Фантазия"};
+    window.DAR_ARCHETYPES = {"8-6-5":"Первородное солнце","8-4-3":"Купол любви","1-3-4":"Портал между мирами","2-3-5":"Усилитель реальности","4-3-7":"Архитектор реальности","6-2-8":"Танец красоты","1-7-8":"Путеводная звезда","1-1-2":"Абсолютное внимание","2-5-7":"Дыхание жизни","2-1-3":"Внутренняя вера","6-7-4":"Крылья ангела","3-8-2":"Вершина власти","3-4-7":"Архитектор единства","4-7-2":"Нить времени","4-6-1":"Внутренний вулкан","7-7-5":"Квинтэссенция жизни","1-4-5":"Алхимическая лаборатория","2-2-4":"Белый огонь","5-3-8":"Золотая спираль","1-6-7":"Змей времени","3-6-9":"Река жизни","3-7-1":"Родник силы","3-5-8":"Программист реальности","1-5-6":"Рог изобилия","2-8-1":"Гармонизатор границ","3-1-4":"Огненный щит","8-2-1":"Голос природы","4-4-8":"Театральная маска","1-2-3":"Ось мира","5-1-6":"Магнит событий","7-6-4":"Цунами вдохновения","6-1-7":"Манна небесная","7-5-3":"Хирург реальности","5-7-3":"Инкубатор реальностей","8-3-2":"Вершина мира","7-1-8":"Туннель реальности","5-4-9":"Древо миров","5-2-7":"Картограф сновидений","6-6-3":"Портал любви","8-8-7":"Выдох вселенной","7-3-1":"Место силы","1-8-9":"Осознанный выбор","3-2-5":"Ядерная радость","4-1-5":"Целительный удар","7-4-2":"Живая нить рода","8-1-9":"Живой алгоритм","5-8-4":"Духовное рождение","6-4-1":"Внутреннее солнце","8-5-4":"Семя","4-8-3":"Атланты","2-6-8":"Расширенное сознание","5-6-2":"Шут","8-7-6":"Сфера покоя","7-8-6":"Конструктор аватара","5-5-1":"Храм души","7-2-9":"Ветер перемен","6-3-9":"Фрактальное зеркало","2-4-6":"Первооткрыватель","6-8-5":"Трон воли","3-3-6":"Колесо сансары","6-5-2":"Дракон порядка","2-7-9":"Священный момент","4-5-9":"Танец жизни","4-2-6":"Фантазия"};
 
     function reduce(n){while(n>9)n=n.toString().split('').reduce((s,d)=>s+parseInt(d),0);return n}
     function calcGift(d,m,y){const ma=reduce(d+m),zhi=reduce(y.toString().split('').reduce((s,c)=>s+parseInt(c),0)),kun=reduce(ma+zhi);return{ma,zhi,kun,code:`${ma}-${zhi}-${kun}`}}
@@ -185,12 +322,29 @@
       document.getElementById('darName').textContent=darName;
       document.getElementById('darCode').textContent=`Код дара: ${gift.code}`;
       document.getElementById('darArchetype').textContent=isInt?intPhrase:darArchetype;
+      // Картинка — пробуем NFC и NFD нормализацию
       const wrap=document.getElementById('darImageWrap');
       wrap.innerHTML='';
-      const img=new Image();
-      img.src=`images/dars/${gift.code}.svg`;
-      img.onload=()=>wrap.appendChild(img);
-      img.onerror=()=>{wrap.innerHTML=`<div class="dar-placeholder">${gift.code}</div>`};
+      const rawName = DARS[gift.code] || '';
+      if(rawName){
+        const base = rawName.toLowerCase().replace(/[^а-яёa-z]/g,'');
+        const tryUrls = [
+          `images/dars/${base.normalize('NFC')}.svg`,
+          `images/dars/${base.normalize('NFD')}.svg`,
+          `images/dars/${base}.svg`
+        ];
+        let tried = 0;
+        function tryNext(){
+          if(tried >= tryUrls.length){ wrap.innerHTML=`<div class="dar-placeholder">${gift.code}</div>`; return; }
+          const img=new Image();
+          img.src=tryUrls[tried++];
+          img.onload=()=>wrap.appendChild(img);
+          img.onerror=()=>tryNext();
+        }
+        tryNext();
+      } else {
+        wrap.innerHTML=`<div class="dar-placeholder">${gift.code}</div>`;
+      }
       document.getElementById('screen-input').style.display='none';
       document.getElementById('screen-result').style.display='block';
       document.getElementById('btn-back').style.display='block';
@@ -201,6 +355,10 @@
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';
+      // Показать кнопку "Поделиться"
+      if (typeof Referral !== 'undefined') {
+        Referral.renderShareButton(gift.code, darName);
+      }
     }
 
     function init(){
@@ -249,16 +407,28 @@
       btn.disabled=true;
       try{
         const resp=await fetch(`${API_URL}/api/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({giftCode:gift.code})});
+        console.log('API status:', resp.status, resp.statusText);
         if(!resp.ok) throw new Error('HTTP ' + resp.status);
-        const result=await resp.json();
 
-        // Поддержка JSON-структуры и fallback на текст
+        let result;
+        try {
+          result = await resp.json();
+        } catch(jsonErr) {
+          throw new Error('Сервер вернул не JSON: ' + jsonErr.message);
+        }
+
+        console.log('API response:', JSON.stringify(result).substring(0, 200));
+
+        if(result.error) throw new Error(result.error);
+
         if(result.data) {
           buildAccordionFromJSON(result.data);
+          if(result.imageUrl) updateDarImage(result.imageUrl);
         } else if(result.text) {
           buildAccordion(result.text);
         } else {
-          throw new Error('No data in response');
+          console.error('Unexpected response structure:', result);
+          throw new Error('Неожиданная структура ответа от сервера');
         }
 
         btn.style.display='none';
@@ -267,11 +437,11 @@
         block.style.display='block';
         setTimeout(()=>block.scrollIntoView({behavior:'smooth',block:'start'}),100);
       }catch(e){
-        btn.textContent='📩 Получить полное послание';
+        console.error('requestMessage error:', e.message);
+        btn.textContent=' Получить полное послание';
         btn.disabled=false;
-        // Показываем ошибку внутри блока, не алертом
         document.getElementById('full-description-content').innerHTML=
-          `<p style="color:#f87171;text-align:center;padding:20px">⚠️ ${e.message}<br><br>Попробуйте ещё раз.</p>`;
+          '<p style="color:#f87171;text-align:center;padding:20px;line-height:1.7"> Мудрый Наставник сейчас отдыхает.<br><br>Попробуйте через минуту.</p>';
         document.getElementById('full-description-block').style.display='block';
       }
     }
@@ -395,6 +565,13 @@
       let h = text
         .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
         .replace(/\*(.+?)\*/g,'<em>$1</em>');
+      // Numbered lists (1. **Step**)
+      h = h.replace(/((?:^|\n)\d+\.\s*.+)+/gm, m => {
+        const items = m.trim().split('\n').filter(Boolean)
+          .map(l=>`<li>${l.replace(/^\d+\.\s*/,'')}</li>`).join('');
+        return `<ol>${items}</ol>`;
+      });
+      // Bullet lists
       h = h.replace(/((?:^|\n)[•\-–]\s*.+)+/gm, m => {
         const items = m.trim().split('\n').filter(Boolean)
           .map(l=>`<li>${l.replace(/^[•\-–]\s*/,'')}</li>`).join('');
@@ -402,7 +579,7 @@
       });
       h = h.split(/\n\n+/).map(p => {
         p = p.trim(); if(!p) return '';
-        if(p.startsWith('<ul>')) return p;
+        if(p.startsWith('<ul>')||p.startsWith('<ol>')) return p;
         return `<p>${p.replace(/\n/g,'<br>')}</p>`;
       }).join('');
       return h;
@@ -417,6 +594,407 @@
       document.getElementById('btn-change-date').style.display='';
       document.getElementById('screen-result').scrollIntoView({behavior:'smooth',block:'start'});
     }
+
+    // ================= ЭНЦИКЛОПЕДИЯ =================
+    const ENC_ACCESS_KEY = 'dar_enc_access_' + USER_ID;
+
+    const FIELDS_FULL = {
+      1:{name:"ЛОГОС",element:"Земля внутренняя",color:"Красный",pattern:"Треугольник",location:"Ноги, стопы. Начинается в копчике, красная струна тянется вниз.",essence:"Мир как структура слова. Это чистая системность, иерархия, база данных мироздания. Здесь живут причинно-следственные связи, геометрия, фундамент, на котором всё держится. Логос — это скелет реальности, ее несущая конструкция.",energy_flow:"Энергия течет сверху вниз по четкой иерархической лестнице. Каждый следующий уровень опирается на предыдущий. Движение строгое, структурное, без отклонений — как кровь по венам, как сигнал по нервным окончаниям. В стопах энергия заземляется, замыкая структуру.",layers_ma:"Крестец, копчик — потенциал структуры.",layers_zhi:"Передняя поверхность ног — проявленная опора.",layers_kun:"Точки соединения в суставах — момент, где структура становится подвижной.",shadow_ma:"Окостенение. Структура перестает быть живой. Иерархия превращается в жесткую клетку. Человек не может выйти за рамки. Правила ради правил.",shadow_ma_image:"Скелет, который забыл, что был частью живого тела.",shadow_zhi:"Тирания порядка. Навязывание своей структуры миру. Порядок любой ценой, даже ценой жизни. Иерархия как инструмент подавления.",shadow_zhi_image:"Архитектор, который строит идеальные тюрьмы и гордится их симметрией.",shadow_kun:"Структура, внутри которой нет жизни. Механизм, работающий впустую. Бюрократия, убивающая смысл."},
+      2:{name:"НИМА",element:"Воздух внутренний",color:"Голубой",pattern:"Расходящиеся лучи из центра",location:"Таз. Область бесконечности. Голубая струна, самое ровное пространство всего тела.",essence:"Пространство, в котором есть пустота. Здесь прошлое, настоящее и будущее существуют в одном моменте. Это поле векторов — через него мы меняем реальность. В Ниме заложена вся судьба, и каждая линия содержит в себе еще девять линий. Это стремление к единству, одномоментное восприятие мира.",energy_flow:"Энергия исходит из центра таза во все стороны равномерно, как лучи от солнца. Это не направленное движение, а расширение, заполнение пространства. Одновременно энергия может течь и внутрь, собирая бесконечность в точку. Движение ровное, спокойное — как дыхание самой пустоты.",layers_ma:"Крестец, область таза сзади — потенциал судьбы.",layers_zhi:"Низ живота спереди — проявленное пространство.",layers_kun:"Внутренние органы таза — точка соединения векторов.",shadow_ma:"Пустота. Пространство становится пустотой, в которой ничего не происходит. Бесконечность давит, а не расширяет. Человек теряется в возможностях.",shadow_ma_image:"Бесконечная равнина, по которой невозможно идти, потому что не к чему стремиться.",shadow_zhi:"Хаос. Пространство взрывается, теряя всякую структуру. Всё смешивается, человек мечется между векторами, не видя опоры.",shadow_zhi_image:"Ураган, который несется в никуда, уничтожая всё на пути, но ничего не создавая.",shadow_kun:"Бесконечность, в которой нельзя найти точку опоры. Пространство, где невозможно дышать, потому что нет границ."},
+      3:{name:"АНДРА",element:"Вода внутренняя",color:"Изумрудный",pattern:"Спираль внутрь",location:"Живот, желудок, кишечник, поясница. Изумрудная лучезарная струна.",essence:"Сам процесс объединения и разъединения. Любовь как действие. Когда работаем с линией Андры, она становится ровной, без поломок. Через это поле можно выстроить процесс постоянной молодости. Здесь живут все процессы тела.",energy_flow:"Энергия закручивается по спирали внутрь, втягивая, соединяя, объединяя. Это движение любви — притягивающее, обволакивающее, но при этом способное и к разъединению, когда спираль раскручивается в обратную сторону. Поток мягкий, но настойчивый, как вода, точащая камень.",layers_ma:"Поясница — потенциал соединения.",layers_zhi:"Область живота и желудка — проявленные процессы.",layers_kun:"Внутренние органы — точка, где происходит само объединение.",shadow_ma:"Слияние. Потеря себя в другом. Любовь превращается в зависимость, объединение — в растворение. Нет границ, нет своего.",shadow_ma_image:"Два дерева, которые срослись так сильно, что уже нельзя понять, где одно, а где другое.",shadow_zhi:"Разрыв. Страх соединения, доведенный до абсолюта. Человек разрывает связи прежде, чем они успевают возникнуть.",shadow_zhi_image:"Руки, которые тянутся к другому, но в последний момент отдергиваются, будто обжегшись.",shadow_kun:"Вечный цикл сближения и разрыва. Отношения, которые никогда не становятся устойчивыми. Любовь как боль."},
+      4:{name:"ЗИНГРА",element:"Огонь внутренний",color:"Золотой",pattern:"Спираль наружу",location:"Между пупком и солнечным сплетением. Золотая струна.",essence:"Эволюция в нашем теле. Духовный рост, ясность целей. Это поле рвения, желания жить, радоваться. Здесь желания обретают гладкую форму и ложатся ровно.",energy_flow:"Энергия раскручивается по спирали наружу, вынося внутреннее во внешнее. Это движение роста, прорастания, эволюции. Оно горячее, активное, устремленное — как огонь, который поднимается вверх. Каждый виток спирали выводит на новый уровень.",layers_ma:"Область позвоночника между пупком и солнечным сплетением — потенциал роста.",layers_zhi:"Та же область спереди — проявленное рвение.",layers_kun:"Внутренние органы этой зоны — точка трансформации.",shadow_ma:"Застой. Рост остановился, но иллюзия движения сохраняется. Желания есть, но они не реализуются. Эволюция замерла.",shadow_ma_image:"Дерево, которое перестало расти, но каждый год наращивает новые слои коры, скрывая пустоту внутри.",shadow_zhi:"Гиперрост. Рост любой ценой. Человек мечется от одной трансформации к другой, не успевая прожить ни одну.",shadow_zhi_image:"Бабочка, которая вылупилась, но сразу же бросилась искать новый кокон, не успев расправить крылья.",shadow_kun:"Рост, который ведет не вверх, а в никуда. Трансформации, которые ничего не меняют."},
+      5:{name:"ЛУБА",element:"Огонь внешний",color:"Белый",pattern:"Точка",location:"Солнечное сплетение и выше до сердца. Белая струна.",essence:"Централизация, единство. У всего есть центр, и, смещая его, мы можем видеть мир по-разному. Здесь божественное единство, самадхи, любовь, все социальные подключки.",energy_flow:"Энергия не течет, а собирается в точку. Это центр притяжения, фокус, куда сходится всё внимание. Из этой точки энергия может излучаться во все стороны равномерно. Как пламя свечи — неподвижное, но дающее свет.",layers_ma:"Область позвоночника за солнечным сплетением — потенциал центра.",layers_zhi:"Солнечное сплетение — проявленная воля.",layers_kun:"Внутренняя точка — момент чистого «я есть».",shadow_ma:"Потеря центра. Человек не может найти свою точку опоры. Нет фокуса, нет воли, нет «я есть». Внимание рассеяно, энергия утекает.",shadow_ma_image:"Костер, от которого разбросали угли — каждый тлеет по отдельности, но нет общего пламени.",shadow_zhi:"Эгоцентризм. Человек сам становится центром мира, но не в божественном смысле. Всё вращается вокруг него, но он не дает света, только требует.",shadow_zhi_image:"Солнце, которое не греет, а выжигает всё вокруг, требуя поклонения.",shadow_kun:"Центр, который есть, но пустой. «Я есть», за которым ничего не стоит. Самость без содержания."},
+      6:{name:"ТУМА",element:"Вода внешняя",color:"Черно-синий",pattern:"Волна с точками",location:"Область сердца, грудь, до ямочки. Черно-синяя струна.",essence:"Процесс движения. Ровное время. Судьба, событийный ряд. Способность быть в нужное время в нужном месте. Здесь живут силы и магические способности.",energy_flow:"Энергия движется волнообразно, ритмично, как пульс. Она нанизывает события одно на другое, прошивает время, создавая ровный поток судьбы. Это движение волновое — с подъемами и спадами, но всегда ровное в своей основе.",layers_ma:"Область позвоночника за сердцем — потенциал судьбы.",layers_zhi:"Грудь, область сердца — проявленное движение.",layers_kun:"Сердце — точка, где время становится ровным.",shadow_ma:"Застывание. Время остановилось. Человек застрял в прошлом или в будущем. События не случаются, судьба не движется.",shadow_ma_image:"Река, которая замерзла. Вода есть, но она не течет.",shadow_zhi:"Бег. Человек несется в потоке времени, не успевая ничего прожить. События сменяют друг друга, но не оставляют следа.",shadow_zhi_image:"Лист, который несет течение, — он движется, но не выбирает путь.",shadow_kun:"Время, которое есть, но не становится судьбой. Прожитая жизнь, которую нечего вспомнить."},
+      7:{name:"АСТРА",element:"Воздух внешний",color:"Фиолетово-голубой",pattern:"Вдох-выдох (насос)",location:"Горло. Фиолетово-голубая струна.",essence:"Весь мир — связь. Всё предопределено. Это поле коммуникаций, путешествий по мирам, ментального пространства. Астра — это каналы, через которые течет слово и связь.",energy_flow:"Энергия пульсирует ритмично: вдох — прием, выдох — отдача. Это движение насоса, которое создает постоянный обмен между внутренним и внешним. Связи протягиваются, слова вылетают, информация течет — все в ритме этого дыхания.",layers_ma:"Задняя поверхность шеи — потенциал связи.",layers_zhi:"Горло спереди — проявленное слово.",layers_kun:"Внутреннее пространство горла — точка, где рождается звук.",shadow_ma:"Изоляция. Связи оборваны. Человек один в ментальном пространстве, без коммуникации, без обмена.",shadow_ma_image:"Радио, которое работает, но никто не ловит сигнал.",shadow_zhi:"Информационный шум. Связей слишком много, они захламляют пространство. Слова теряют вес.",shadow_zhi_image:"Телефон, который разрывается от звонков, но ни один звонок не важен.",shadow_kun:"Связи, которые есть, но нет того, кто связывает. Пустые разговоры, бессмысленные контакты."},
+      8:{name:"БИТРА",element:"Земля внешняя",color:"Бело-сине-голубой",pattern:"Круг",location:"Голова.",essence:"Границы, форма, оболочка. Это поле ограничивает пространство практики, чтобы внимание не уходило за его пределы. Форма, внутри которой происходит действие.",energy_flow:"Энергия движется по кругу, замыкаясь сама на себя. Она создает границу, внутри которой всё происходит, и не дает вниманию утекать наружу. Это движение удержания, сохранения, оформления.",layers_ma:"Затылок — потенциал границ.",layers_zhi:"Лоб — проявленная форма.",layers_kun:"Центр головы — точка, где все границы сходятся в осознание.",shadow_ma:"Тюрьма. Границы стали непроницаемыми. Человек заперт в своей форме. Нет выхода, нет развития.",shadow_ma_image:"Яйцо с очень толстой скорлупой, которую невозможно разбить изнутри.",shadow_zhi:"Размытие. Границ нет совсем. Человек не может удержать форму. Внимание утекает, энергия рассеивается.",shadow_zhi_image:"Облако, которое пытается быть круглым, но ветер разносит его в разные стороны.",shadow_kun:"Границы, которые есть, но они не защищают, а только ограничивают. Форма без содержания."},
+      9:{name:"ОМА",element:"Эфир",color:"Все цвета сразу",pattern:"Ромб / квадрат",location:"Весь позвоночник. Здесь активируется Кундалини, прилив жизненных сил, счастья.",essence:"Описание всех полей сразу. Познание Бога, того, что мы не видели. Здесь есть всё. Ома — это всеединство, целостность, в которую входят все остальные поля как грани.",energy_flow:"Энергия течет одновременно во всех направлениях, содержа в себе все возможные движения. Когда Ома активируется, энергия Кундалини поднимается по позвоночнику, прошивая все поля сразу, соединяя их в единый поток.",layers_ma:"Задняя поверхность позвоночника — потенциал целого.",layers_zhi:"Передняя поверхность позвоночника — проявленная целостность.",layers_kun:"Сам спинномозговой канал — точка, где всё соединяется.",shadow_ma:"Растворение. Человек теряет себя в единстве со всем. Нет отдельности, нет личности. Познание Бога становится бегством от себя.",shadow_ma_image:"Капля, которая упала в океан и забыла, что была каплей.",shadow_zhi:"Иллюзия целостности. Человек считает, что уже достиг всего. Гордыня, одетая в духовность.",shadow_zhi_image:"Мыльный пузырь, который отражает весь мир, но лопается от первого прикосновения.",shadow_kun:"Целостность, внутри которой нет частей. Единство, в котором нельзя ничего различить."}
+    };
+
+    // Группировка даров по КУН (3-я цифра)
+    function getDarsByKun(){
+      const groups = {};
+      for(let i=1;i<=9;i++) groups[i]=[];
+      Object.entries(DARS).forEach(([code,name])=>{
+        const kun = parseInt(code.split('-')[2]);
+        if(groups[kun]) groups[kun].push({code,name});
+      });
+      return groups;
+    }
+
+    function getDarImagePath(code){
+      const name = DARS[code];
+      if(!name) return '';
+      const base = name.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'');
+      return base ? 'images/dars/'+base+'.svg' : '';
+    }
+
+    function checkBaseAccess(){
+      try{
+        const d = JSON.parse(localStorage.getItem(ENC_ACCESS_KEY)||'{}');
+        return !!d.unlocked;
+      }catch(e){return false;}
+    }
+
+    async function submitPromoCode(){
+      const input = document.getElementById('promoInput');
+      const err = document.getElementById('promoError');
+      const code = input.value.trim();
+      if(!code){err.textContent='Введите промо-код';return;}
+      err.textContent='';
+      try{
+        const resp = await fetch(API_URL+'/api/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+        const result = await resp.json();
+        if(result.valid){
+          localStorage.setItem(ENC_ACCESS_KEY,JSON.stringify({unlocked:true,at:new Date().toISOString()}));
+          showEncyclopedia();
+        } else {
+          err.textContent = result.error||'Неверный промо-код';
+        }
+      }catch(e){
+        err.textContent='Ошибка проверки. Попробуйте позже.';
+      }
+    }
+
+    function showEncyclopedia(){
+      document.getElementById('base-screen-lock').style.display='none';
+      document.getElementById('base-screen-main').style.display='block';
+      renderFieldFolders();
+      renderFieldCards();
+    }
+
+    // Модифицируем switchNav чтобы проверять доступ
+    const _origSwitchNav = switchNav;
+    switchNav = function(name){
+      _origSwitchNav(name);
+      if(name==='base'){
+        if(checkBaseAccess()) showEncyclopedia();
+        else {
+          document.getElementById('base-screen-lock').style.display='block';
+          document.getElementById('base-screen-main').style.display='none';
+        }
+      }
+    };
+
+    function switchBaseSubTab(name){
+      document.querySelectorAll('.base-sub-btn').forEach(b=>b.classList.remove('active'));
+      document.getElementById('base-btn-'+name).classList.add('active');
+      document.getElementById('base-subtab-dars').style.display = name==='dars'?'block':'none';
+      document.getElementById('base-subtab-fields').style.display = name==='fields'?'block':'none';
+      document.getElementById('app').scrollTop=0;
+    }
+
+    // ---- Уровень 1: Папки полей ----
+    // SVG-иконки рисунков энергии для каждого поля
+    const PATTERN_SVG = {
+      1:'<svg viewBox="0 0 40 40" width="36" height="36"><polygon points="20,6 34,34 6,34" fill="none" stroke="#D4AF37" stroke-width="1.5"/></svg>',
+      2:'<svg viewBox="0 0 40 40" width="36" height="36"><circle cx="20" cy="20" r="2" fill="#66bbff"/><line x1="20" y1="20" x2="20" y2="4" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="34" y2="12" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="34" y2="28" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="20" y2="36" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="6" y2="28" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="6" y2="12" stroke="#66bbff" stroke-width="1" opacity="0.7"/></svg>',
+      3:'<svg viewBox="0 0 40 40" width="36" height="36"><path d="M28,20 C28,14 24,10 20,10 C14,10 12,16 16,19 C19,21 22,18 20,16" fill="none" stroke="#50c878" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="16" r="1.5" fill="#50c878"/></svg>',
+      4:'<svg viewBox="0 0 40 40" width="36" height="36"><path d="M12,20 C12,26 16,30 20,30 C26,30 28,24 24,21 C21,19 18,22 20,24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="24" r="1.5" fill="#D4AF37"/></svg>',
+      5:'<svg viewBox="0 0 40 40" width="36" height="36"><circle cx="20" cy="20" r="4" fill="#eee"/><circle cx="20" cy="20" r="8" fill="none" stroke="#eee" stroke-width="0.5" opacity="0.4"/><circle cx="20" cy="20" r="13" fill="none" stroke="#eee" stroke-width="0.3" opacity="0.25"/></svg>',
+      6:'<svg viewBox="0 0 40 40" width="36" height="36"><path d="M4,20 Q10,10 16,20 Q22,30 28,20 Q34,10 40,20" fill="none" stroke="#5577cc" stroke-width="1.5"/><circle cx="10" cy="20" r="1.5" fill="#5577cc"/><circle cx="22" cy="20" r="1.5" fill="#5577cc"/><circle cx="34" cy="20" r="1.5" fill="#5577cc"/></svg>',
+      7:'<svg viewBox="0 0 40 40" width="36" height="36"><line x1="8" y1="20" x2="32" y2="20" stroke="#9966cc" stroke-width="1.5"/><circle cx="8" cy="20" r="3" fill="#9966cc"/><circle cx="32" cy="20" r="3" fill="#9966cc"/></svg>',
+      8:'<svg viewBox="0 0 40 40" width="36" height="36"><circle cx="20" cy="20" r="13" fill="none" stroke="#88bbdd" stroke-width="1.5"/></svg>',
+      9:'<svg viewBox="0 0 40 40" width="36" height="36"><polygon points="20,5 35,20 20,35 5,20" fill="none" stroke="#c4a0f0" stroke-width="1.5"/></svg>'
+    };
+
+    function renderFieldFolders(){
+      const groups = getDarsByKun();
+      const container = document.getElementById('dars-list-view');
+      container.innerHTML = '';
+      for(let i=1;i<=9;i++){
+        const f = FIELDS_FULL[i];
+        const count = groups[i].length;
+        const div = document.createElement('div');
+        div.className='field-folder';
+        div.onclick=()=>openFieldFolder(i);
+        div.innerHTML=`<div style="margin-bottom:6px">${PATTERN_SVG[i]||''}</div><div class="field-folder-name">${f.name}</div><div class="field-folder-arch">${f.element}</div>`;
+        container.appendChild(div);
+      }
+      container.classList.add('field-grid');
+    }
+
+    // ---- Уровень 2: Дары поля ----
+    let currentFieldKun = null;
+    function openFieldFolder(kunId){
+      currentFieldKun = kunId;
+      const groups = getDarsByKun();
+      const dars = groups[kunId]||[];
+      const f = FIELDS_FULL[kunId];
+      const container = document.getElementById('dars-field-view');
+      container.innerHTML = `<button class="btn-back" style="display:block" onclick="backToFieldFolders()">← Все поля</button><div style="text-align:center;margin-bottom:14px"><div style="font-size:16px;color:var(--text);letter-spacing:2px">${f.name}</div><div style="font-size:12px;color:var(--text-dim);font-style:italic">${f.element}</div></div><div class="dar-grid" id="dar-cards-grid"></div>`;
+      const grid = document.getElementById('dar-cards-grid');
+      dars.forEach(d=>{
+        const arch = DAR_ARCHETYPES[d.code]||'';
+        const imgPath = getDarImagePath(d.code);
+        const card = document.createElement('div');
+        card.className='dar-card';
+        card.onclick=()=>openDarDetail(d.code);
+        card.innerHTML=`<div class="dar-card-img" id="enc-img-${d.code.replace(/-/g,'')}"></div><div class="dar-card-name">${d.name}</div><div class="dar-card-arch">${arch}</div>`;
+        grid.appendChild(card);
+        // Load image
+        if(imgPath){
+          const wrap = card.querySelector('.dar-card-img');
+          const img = new Image();
+          img.src=imgPath;
+          img.onload=()=>wrap.appendChild(img);
+          img.onerror=()=>{
+            const nfd=imgPath.replace('.svg','').normalize('NFD')+'.svg';
+            const img2=new Image();img2.src=nfd;
+            img2.onload=()=>wrap.appendChild(img2);
+            img2.onerror=()=>{wrap.innerHTML=`<div class="dar-card-placeholder">${d.code}</div>`;};
+          };
+        }
+      });
+      document.getElementById('dars-list-view').style.display='none';
+      document.getElementById('dars-detail-view').style.display='none';
+      container.style.display='block';
+      document.getElementById('app').scrollTop=0;
+    }
+
+    function backToFieldFolders(){
+      document.getElementById('dars-field-view').style.display='none';
+      document.getElementById('dars-list-view').style.display='block';
+      document.getElementById('app').scrollTop=0;
+    }
+
+    // ---- Уровень 3: Детальная страница дара ----
+    // 9 секций аккордеона для дара
+    const DAR_SECTIONS = [
+      {id:'essence',icon:'🔮',title:'Суть Дара'},
+      {id:'energy_pattern',icon:'⚙️',title:'Энергетический Рисунок'},
+      {id:'light_power',icon:'☀️',title:'Световая Сила Дара'},
+      {id:'shadow',icon:'🌑',title:'Тень Дара'},
+      {id:'activation',icon:'🛠',title:'Активация Дара'},
+      {id:'meditation',icon:'🧘',title:'Медитация'},
+      {id:'application',icon:'💡',title:'Сфера Применения'},
+      {id:'safety',icon:'⚠️',title:'Техника Безопасности'},
+      {id:'attributes',icon:'✨',title:'Атрибуты и Якоря'}
+    ];
+
+    // Контент даров загружается из отдельного файла
+    let DAR_CONTENT = {};
+    fetch('dar-content.json').then(r=>r.json()).then(data=>{DAR_CONTENT=data;}).catch(()=>{});
+
+    function openDarDetail(code){
+      const name = DARS[code]||code;
+      const arch = DAR_ARCHETYPES[code]||'';
+      const imgPath = getDarImagePath(code);
+      const container = document.getElementById('dars-detail-view');
+
+      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><div id="dar-accordion-area"></div></div>`;
+
+      // Load image
+      const wrap = document.getElementById('dar-detail-img-wrap');
+      if(imgPath){
+        const img=new Image();img.src=imgPath;
+        img.onload=()=>wrap.appendChild(img);
+        img.onerror=()=>{
+          const nfd=imgPath.replace('.svg','').normalize('NFD')+'.svg';
+          const img2=new Image();img2.src=nfd;
+          img2.onload=()=>wrap.appendChild(img2);
+          img2.onerror=()=>{wrap.innerHTML=`<div class="dar-placeholder">${code}</div>`;};
+        };
+      }
+
+      renderDarAccordion(code);
+
+      document.getElementById('dars-field-view').style.display='none';
+      document.getElementById('dars-list-view').style.display='none';
+      container.style.display='block';
+      document.getElementById('app').scrollTop=0;
+    }
+
+    function getDarSectionContent(sectionId, code){
+      // Приоритет: DAR_CONTENT > dars_extended (fallback)
+      const content = DAR_CONTENT[code];
+      if(content && content[sectionId]) return content[sectionId];
+
+      // Fallback из dars_extended
+      const ext = DARS_EXTENDED ? DARS_EXTENDED[code] : null;
+      if(!ext) return null;
+
+      if(sectionId==='essence') return ext.essence_short || ext.metaphor || null;
+      if(sectionId==='energy_pattern') return ext.energy_flow || null;
+      if(sectionId==='safety') return ext.warning || null;
+      return null;
+    }
+
+    function renderDarAccordion(code){
+      const area = document.getElementById('dar-accordion-area');
+      area.innerHTML='';
+      let firstOpened = false;
+      DAR_SECTIONS.forEach(s=>{
+        const text = getDarSectionContent(s.id, code);
+        const hasContent = !!text;
+        const isFirst = hasContent && !firstOpened;
+        if(isFirst) firstOpened = true;
+        const bodyHtml = hasContent ? formatText(text) : '<p style="color:var(--text-dim);text-align:center;padding:16px">Раздел заполняется</p>';
+        const item = document.createElement('div');
+        item.className='accordion-item';
+        item.innerHTML=`<button class="accordion-header${isFirst?' open':''}" onclick="toggleDarAccordion(this)"><span class="accordion-icon">${s.icon}</span><span class="accordion-title">${s.title}</span><span class="accordion-arrow">▼</span></button><div class="accordion-body${isFirst?' open':''}">${bodyHtml}</div>`;
+        area.appendChild(item);
+      });
+    }
+
+    function toggleDarAccordion(btn){
+      const body=btn.nextElementSibling;
+      const isOpen=body.classList.contains('open');
+      // Закрываем все в этом аккордеоне
+      const parent=btn.closest('#dar-accordion-area');
+      if(parent){
+        parent.querySelectorAll('.accordion-header.open').forEach(h=>{h.classList.remove('open');h.nextElementSibling.classList.remove('open');});
+      }
+      if(!isOpen){btn.classList.add('open');body.classList.add('open');}
+    }
+
+    function backToDarsList(){
+      document.getElementById('dars-detail-view').style.display='none';
+      if(currentFieldKun) openFieldFolder(currentFieldKun);
+      else {
+        document.getElementById('dars-list-view').style.display='block';
+      }
+    }
+
+    // ---- Поля: список + детальная страница с вкладками ----
+    const FIELD_INNER_TABS = [
+      {id:'essence',label:'Суть поля',icon:''},
+      {id:'energy',label:'Течение энергии',icon:''},
+      {id:'body',label:'Расположение в теле',icon:''},
+      {id:'shadows',label:'Теневые аспекты',icon:''}
+    ];
+
+    let currentFieldId = null;
+    function renderFieldCards(){
+      const container = document.getElementById('fields-list-view');
+      container.innerHTML='';
+      const nums = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨'];
+      for(let i=1;i<=9;i++){
+        const f = FIELDS_FULL[i];
+        const card = document.createElement('div');
+        card.className='field-folder';
+        card.style.cursor='pointer';
+        card.onclick=()=>openFieldDetail(i);
+        card.innerHTML=`<div style="margin-bottom:6px">${PATTERN_SVG[i]||''}</div><div class="field-folder-name">${f.name}</div><div class="field-folder-arch">${f.element}</div>`;
+        container.appendChild(card);
+      }
+      container.classList.add('field-grid');
+    }
+
+    function openFieldDetail(fieldId){
+      currentFieldId = fieldId;
+      const f = FIELDS_FULL[fieldId];
+      const container = document.getElementById('fields-list-view');
+      const tabsHtml = FIELD_INNER_TABS.map((t,i)=>`<button class="dar-inner-tab${i===0?' active':''}" onclick="switchFieldInnerTab('${t.id}',this,${fieldId})">${t.icon} ${t.label}</button>`).join('');
+      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToFieldsList()">← Все поля</button><div style="text-align:center;margin-bottom:14px"><div style="font-size:28px;letter-spacing:3px;color:var(--text)">${f.name}</div><div style="font-size:13px;color:var(--text-dim);margin-top:4px">${f.element} | ${f.pattern} | ${f.color}</div></div><div class="dar-inner-tabs">${tabsHtml}</div><div id="field-inner-content-area"></div>`;
+      container.classList.remove('field-grid');
+      renderFieldInnerTab('essence',fieldId);
+      document.getElementById('app').scrollTop=0;
+    }
+
+    function switchFieldInnerTab(tabId,btn,fieldId){
+      document.querySelectorAll('#fields-list-view .dar-inner-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderFieldInnerTab(tabId,fieldId);
+    }
+
+    function renderFieldInnerTab(tabId,fieldId){
+      const f = FIELDS_FULL[fieldId];
+      const area = document.getElementById('field-inner-content-area');
+      let html='<div class="dar-inner-content">';
+      if(tabId==='essence'){
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Суть</div><div class="dar-meta-value">${f.essence}</div></div>`;
+      } else if(tabId==='energy'){
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Рисунок</div><div class="dar-meta-value">${f.pattern}</div></div>`;
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Как течет энергия</div><div class="dar-meta-value">${f.energy_flow}</div></div>`;
+      } else if(tabId==='body'){
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Расположение</div><div class="dar-meta-value">${f.location}</div></div>`;
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Цвет струны</div><div class="dar-meta-value">${f.color}</div></div>`;
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Сзади (МА)</div><div class="dar-meta-value">${f.layers_ma}</div></div>`;
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Спереди (ЖИ)</div><div class="dar-meta-value">${f.layers_zhi}</div></div>`;
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Посередине (КУН)</div><div class="dar-meta-value">${f.layers_kun}</div></div>`;
+      } else if(tabId==='shadows'){
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Пассивная тень (МА)</div><div class="dar-meta-value">${f.shadow_ma}</div></div>`;
+        if(f.shadow_ma_image) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#c4a0f0;font-style:italic">${f.shadow_ma_image}</div></div>`;
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Активная тень (ЖИ)</div><div class="dar-meta-value">${f.shadow_zhi}</div></div>`;
+        if(f.shadow_zhi_image) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#c4a0f0;font-style:italic">${f.shadow_zhi_image}</div></div>`;
+        html+=`<div class="dar-meta-row"><div class="dar-meta-label">Тень соединения (КУН)</div><div class="dar-meta-value">${f.shadow_kun}</div></div>`;
+      }
+      html+='</div>';
+      area.innerHTML=html;
+    }
+
+    function backToFieldsList(){
+      renderFieldCards();
+      document.getElementById('app').scrollTop=0;
+    }
+
+    // Загрузка dars_extended из fields.json
+    let DARS_EXTENDED = null;
+    fetch('fields.json').then(r=>r.json()).then(data=>{
+      DARS_EXTENDED = data.dars_extended||{};
+    }).catch(()=>{});
+
+    // Обработка Enter в поле промо-кода
+    document.getElementById('promoInput').addEventListener('keydown',function(e){
+      if(e.key==='Enter') submitPromoCode();
+    });
+
+    // === Инициализация игровых модулей ===
+    (function initGame() {
+      // Инициализация Сокровищницы из localStorage (offline-first)
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const { gift } = JSON.parse(saved);
+          if (gift && gift.code) {
+            // Инициализировать Сокровищницу с хотя бы своим даром
+            const localDars = JSON.parse(localStorage.getItem('_treasury_dars_' + USER_ID) || '[]');
+            const hasSelf = localDars.some(d => d.dar_code === gift.code);
+            if (!hasSelf) {
+              localDars.push({ dar_code: gift.code, unlock_source: 'own', unlocked_sections: 1 });
+              localStorage.setItem('_treasury_dars_' + USER_ID, JSON.stringify(localDars));
+            }
+            Treasury.init(localDars, gift.code);
+            CrystalsUI.init(parseInt(localStorage.getItem('_crystals_' + USER_ID) || '0'));
+
+            // Показать кнопку шеринга
+            Referral.renderShareButton(gift.code, DARS[gift.code] || gift.code);
+          }
+        } catch(e) { console.error('Game init error:', e); }
+      }
+
+      // Попробовать синхронизировать с сервером (если доступен)
+      if (typeof DarAPI !== 'undefined') {
+        DarAPI.getProfile().then(data => {
+          if (data.user) {
+            CrystalsUI.setBalance(data.user.crystals);
+            localStorage.setItem('_crystals_' + USER_ID, data.user.crystals);
+          }
+          if (data.dars) {
+            Treasury.init(data.dars, data.user?.dar_code);
+            localStorage.setItem('_treasury_dars_' + USER_ID, JSON.stringify(data.dars));
+          }
+        }).catch(() => { /* Offline - используем localStorage */ });
+
+        // Ежедневный вход
+        DarAPI.dailyLogin().then(result => {
+          if (result && !result.already_logged && result.crystals_earned) {
+            CrystalsUI.animateEarn(result.crystals_earned);
+            if (result.streak_bonus > 0) {
+              setTimeout(() => alert(`Серия ${result.streak} дней! Бонус: +${result.streak_bonus} кристаллов`), 1000);
+            }
+          }
+        }).catch(() => {});
+
+        // Обработка реферала (если пришёл по ссылке)
+        const referrerId = Referral.getReferrerFromStartParam();
+        if (referrerId && saved) {
+          const { gift } = JSON.parse(saved);
+          if (gift) Referral.processReferral(gift.code);
+        }
+      }
+    })();
   </script>
+  <!-- Игровые модули (загружаются до использования, но IIFE initGame вызывается inline) -->
 </body>
 </html>

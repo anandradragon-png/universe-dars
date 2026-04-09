@@ -832,6 +832,90 @@
       const dailyBlock = document.getElementById('daily-activities');
       if (dailyBlock) dailyBlock.style.display = 'block';
       loadDailyDar();
+      // Интегратор — поздравление + выбор дара поля
+      if (isInt) {
+        const shown = localStorage.getItem('_int_gift_shown_' + USER_ID);
+        if (!shown) showIntegratorGift(gift);
+      }
+    }
+
+    // === Поздравление интегратора ===
+    function getIntegratorField(code) {
+      const [a,b,c] = code.split('-').map(Number);
+      if (a === b) return a;
+      if (a === c) return a;
+      if (b === c) return b;
+      return a; // fallback
+    }
+
+    function getDarsOfField(fieldNum) {
+      // Дары поля — все DARS с КУН = fieldNum
+      const result = [];
+      Object.keys(DARS).forEach(code => {
+        const kun = parseInt(code.split('-')[2]);
+        if (kun === fieldNum) result.push({ code, name: DARS[code], arch: DAR_ARCHETYPES[code] || '' });
+      });
+      return result;
+    }
+
+    function showIntegratorGift(gift) {
+      const fieldNum = getIntegratorField(gift.code);
+      const fieldName = {1:'ЛОГОС',2:'НИМА',3:'АНДРА',4:'ЗИНГРА',5:'ЛУБА',6:'ТУМА',7:'АСТРА',8:'БИТРА',9:'ОМА'}[fieldNum] || '';
+      const darsInField = getDarsOfField(fieldNum);
+
+      let cardsHtml = '';
+      darsInField.forEach(d => {
+        const rawN = d.name.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'');
+        cardsHtml += `
+          <div onclick="selectIntegratorDar('${d.code}')" style="background:var(--card);border:2px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s;min-width:90px" onmouseover="this.style.borderColor='rgba(212,175,55,0.6)';this.style.background='rgba(212,175,55,0.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--card)'">
+            <img src="images/dars/${rawN}.svg" style="width:50px;height:50px;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px #D4AF37);display:block;margin:0 auto 6px" onerror="this.style.display='none'">
+            <div style="font-size:14px;color:var(--text);letter-spacing:1px">${d.name}</div>
+            <div style="font-size:10px;color:var(--text-dim)">${d.code}</div>
+            ${d.arch ? `<div style="font-size:9px;color:#c4a0f0;font-style:italic;margin-top:2px">${d.arch}</div>` : ''}
+          </div>`;
+      });
+
+      // Модалка поздравления
+      const modal = document.createElement('div');
+      modal.id = 'integrator-modal';
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:16px';
+      modal.innerHTML = `
+        <div style="background:linear-gradient(135deg,#0d0221,#1a0533);border:2px solid rgba(212,175,55,0.4);border-radius:20px;padding:24px 16px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;text-align:center">
+          <div style="font-size:40px;margin-bottom:12px">&#10024;</div>
+          <div style="font-size:18px;color:#D4AF37;letter-spacing:2px;margin-bottom:8px">ПОЗДРАВЛЯЕМ!</div>
+          <div style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:6px">Ты — <strong style="color:#D4AF37">${INTEGRATORS[gift.code]}</strong></div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:16px">
+            Ты обладаешь редким даром Интегратора поля <strong style="color:#c4a0f0">${fieldName}</strong>!<br>
+            Тебе доступна особая привилегия — выбери любой дар своего поля, который откроется в твоей Сокровищнице.
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);letter-spacing:1px;margin-bottom:12px">ВЫБЕРИ СВОЙ ПЕРВЫЙ ДАР</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px">
+            ${cardsHtml}
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)">Нажми на дар, который хочешь открыть</div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function selectIntegratorDar(darCode) {
+      const darName = DARS[darCode] || darCode;
+      // Открыть дар в сокровищнице
+      const localDars = JSON.parse(localStorage.getItem('_treasury_dars_' + USER_ID) || '[]');
+      const hasDar = localDars.some(d => d.dar_code === darCode);
+      if (!hasDar) {
+        localDars.push({ dar_code: darCode, unlock_source: 'integrator_gift', unlocked_sections: 1 });
+        localStorage.setItem('_treasury_dars_' + USER_ID, JSON.stringify(localDars));
+      }
+      // Начислить кристаллы за подарок
+      if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(10);
+      // Отметить что подарок получен
+      localStorage.setItem('_int_gift_shown_' + USER_ID, '1');
+      // Удалить модалку
+      const modal = document.getElementById('integrator-modal');
+      if (modal) modal.remove();
+      // Показать уведомление
+      alert('Дар ' + darName + ' открыт в твоей Сокровищнице! +10 кристаллов');
     }
 
     function init(){

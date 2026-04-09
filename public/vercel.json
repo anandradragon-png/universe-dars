@@ -28,6 +28,10 @@
       "memory": 256,
       "maxDuration": 10
     },
+    "api/oracle.js": {
+      "memory": 512,
+      "maxDuration": 30
+    },
     "api/section.js": {
       "memory": 512,
       "maxDuration": 30

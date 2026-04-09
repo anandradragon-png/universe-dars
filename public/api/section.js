@@ -1,8 +1,11 @@
 const Groq = require('groq-sdk');
-const { getUser } = require('./lib/auth');
-const { getOrCreateUser } = require('./lib/db');
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+let groq;
+try {
+  groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
+} catch(e) {
+  console.error('Groq init error:', e);
+}
 
 // Кэш сгенерированных секций (в памяти + Supabase)
 // Ключ: "dar_code:section_index"

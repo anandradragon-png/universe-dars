@@ -166,6 +166,29 @@
     /* === Книга: защита от копирования === */
     .book-page-wrap{user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-webkit-touch-callout:none}
     .book-page-wrap img{pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+
+    /* === Оглавление книги === */
+    .book-toc-panel{max-height:50vh;overflow-y:auto;margin:0 16px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:14px;padding:8px 0}
+    .toc-list{font-size:13px}
+    .toc-part{border-bottom:1px solid rgba(255,255,255,0.05)}
+    .toc-part:last-child{border-bottom:none}
+    .toc-part-title{padding:10px 14px;color:var(--text);font-weight:bold;letter-spacing:1px;cursor:pointer;font-size:12px}
+    .toc-part-title:hover{background:rgba(107,33,168,0.15)}
+    .toc-part-items{display:none;padding-left:8px}
+    .toc-part.open>.toc-part-items{display:block}
+    .toc-chapter-title{padding:8px 14px;color:var(--text);cursor:pointer;font-size:13px}
+    .toc-chapter-title:hover{background:rgba(107,33,168,0.1)}
+    .toc-chapter-items{display:none;padding-left:12px}
+    .toc-chapter.open>.toc-chapter-items{display:block}
+    .toc-dar,.toc-item{padding:7px 14px;color:var(--text-dim);cursor:pointer;font-size:12px;border-radius:6px;margin:2px 4px}
+    .toc-dar:hover,.toc-item:hover{background:rgba(212,175,55,0.1);color:var(--text)}
+    .toc-locked{opacity:0.4;cursor:default}
+    .toc-locked:hover{background:none;color:var(--text-dim)}
+
+    /* Десктоп: sidebar оглавления */
+    @media(min-width:768px){
+      .book-toc-panel{max-height:70vh}
+    }
   </style>
 </head>
 <body>
@@ -261,7 +284,7 @@
   <script src="js/crystals.js?v=2"></script>
   <script src="js/treasury.js?v=3"></script>
   <script src="js/referral.js?v=2"></script>
-  <script src="js/book-reader.js?v=1"></script>
+  <script src="js/book-reader.js?v=2"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.expand(); tg.ready(); }

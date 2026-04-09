@@ -858,17 +858,18 @@
     }
 
     function getDarSectionContent(sectionId, code){
-      // Приоритет: DAR_CONTENT > dars_extended (fallback)
+      // Приоритет 1: dars_extended (подробные данные из fields.json)
+      const ext = DARS_EXTENDED ? DARS_EXTENDED[code] : null;
+      if(ext) {
+        if(sectionId==='essence' && (ext.essence_short || ext.metaphor)) return ext.essence_short || ext.metaphor;
+        if(sectionId==='energy_pattern' && ext.energy_flow) return ext.energy_flow;
+        if(sectionId==='safety' && ext.warning) return ext.warning;
+      }
+
+      // Приоритет 2: DAR_CONTENT (дополнительные секции)
       const content = DAR_CONTENT[code];
       if(content && content[sectionId]) return content[sectionId];
 
-      // Fallback из dars_extended
-      const ext = DARS_EXTENDED ? DARS_EXTENDED[code] : null;
-      if(!ext) return null;
-
-      if(sectionId==='essence') return ext.essence_short || ext.metaphor || null;
-      if(sectionId==='energy_pattern') return ext.energy_flow || null;
-      if(sectionId==='safety') return ext.warning || null;
       return null;
     }
 

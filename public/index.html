@@ -490,6 +490,7 @@
   <script src="js/treasury.js?v=4"></script>
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=4"></script>
+  <script src="js/pdf-reader.js?v=1"></script>
   <script src="js/intuition-game.js?v=3"></script>
   <script src="js/daily-dar.js?v=1"></script>
   <script>
@@ -753,8 +754,13 @@
       if (name === 'treasury' && typeof Treasury !== 'undefined') {
         Treasury.render();
       }
-      if (name === 'book' && typeof BookReader !== 'undefined') {
-        BookReader.render();
+      if (name === 'book') {
+        const isMobile = window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        if (isMobile && typeof PdfReader !== 'undefined') {
+          PdfReader.render();
+        } else if (typeof BookReader !== 'undefined') {
+          BookReader.render();
+        }
       }
     }
 

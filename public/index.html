@@ -907,6 +907,10 @@
         localDars.push({ dar_code: darCode, unlock_source: 'integrator_gift', unlocked_sections: 1 });
         localStorage.setItem('_treasury_dars_' + USER_ID, JSON.stringify(localDars));
       }
+      // Обновить Сокровищницу
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const ownCode = saved ? JSON.parse(saved).gift?.code : null;
+      if (typeof Treasury !== 'undefined') Treasury.init(localDars, ownCode);
       // Начислить кристаллы за подарок
       if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(10);
       // Отметить что подарок получен

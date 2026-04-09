@@ -29,7 +29,10 @@
     .profile-friend-avatar img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px #D4AF37)}
     header{position:relative;z-index:1;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2)}
     header h1{font-size:14px;letter-spacing:3px;color:var(--text);font-weight:normal}
-    #app{position:relative;z-index:1;flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:90px}
+    #app{position:relative;z-index:1;flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:90px;user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-webkit-touch-callout:none}
+    #app input,#app textarea{user-select:text;-webkit-user-select:text;-moz-user-select:text}
+    #profile-panel{user-select:none;-webkit-user-select:none;-moz-user-select:none;-webkit-touch-callout:none}
+    #profile-panel input{user-select:text;-webkit-user-select:text;-moz-user-select:text}
     .tab{display:none}.tab.active{display:block}
     #tab-calc{padding:16px}
     .main-container{max-width:650px;margin:0 auto;width:100%}
@@ -516,6 +519,11 @@
       }
     }
     initProfileButton();
+
+    // Защита от копирования контента
+    document.getElementById('app').addEventListener('contextmenu', e => { if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') e.preventDefault(); });
+    document.getElementById('app').addEventListener('copy', e => e.preventDefault());
+    document.getElementById('app').addEventListener('dragstart', e => e.preventDefault());
 
     // === Личный кабинет ===
     const LEVELS = {

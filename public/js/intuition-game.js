@@ -23,11 +23,11 @@ const IntuitionGame = (function() {
     },
     multi: {
       name: 'Мультипоиск',
-      desc: 'Найди все загаданные + избегай ловушек',
+      desc: 'Найди загаданные дары, остерегайся Карты Тени',
       icon: '&#127183;',
       levels: {
-        hard:   { cards: 9,  crystals: 15, label: '9 карт',  opens: 4, targets: 3, hasBuff: true, hasDebuff: true },
-        expert: { cards: 12, crystals: 25, label: '12 карт', opens: 5, targets: 3, hasBuff: true, hasDebuff: true },
+        hard:   { cards: 9,  crystals: 15, label: '9 карт',  opens: 4, targets: 3, hasBonus: true, hasTrap: true },
+        expert: { cards: 12, crystals: 25, label: '12 карт', opens: 5, targets: 3, hasBonus: true, hasTrap: true },
       }
     }
   };
@@ -133,7 +133,7 @@ const IntuitionGame = (function() {
               style="width:auto;margin:0;padding:8px 14px;font-size:12px"
               onclick="IntuitionGame.setLevel('${key}')">
               ${lvl.label}
-              ${lvl.hasBuff ? '<span style="font-size:9px;color:#2ecc71"> +баф</span>' : ''}
+              ${lvl.hasBonus ? '<span style="font-size:9px;color:#2ecc71"> +бонус</span>' : ''}
             </button>
           `).join('')}
         </div>
@@ -145,8 +145,8 @@ const IntuitionGame = (function() {
             <div style="color:var(--text);margin-bottom:4px">&#127183; Правила Мультипоиска:</div>
             &#10024; Найди <strong>${MODES[currentMode].levels[currentLevel]?.targets || 3}</strong> одинаковых дара<br>
             &#128994; Можно открыть <strong>${MODES[currentMode].levels[currentLevel]?.opens || 4}</strong> карты<br>
-            &#11088; <span style="color:#2ecc71">Баф x2</span> — удваивает выигрыш<br>
-            &#128165; <span style="color:#e74c3c">Дебаф</span> — обнуляет результат раунда
+            &#11088; <span style="color:#2ecc71">Карта Света</span> — даст x2 к выигрышу<br>
+            &#128165; <span style="color:#e74c3c">Карта Тени</span> — обнулит результат раунда
           </div>
         </div>
       ` : ''}
@@ -209,7 +209,7 @@ const IntuitionGame = (function() {
     targetDar = target;
 
     // Заполняем карты: targets + buff + debuff + обычные
-    const totalNormal = lvl.cards - lvl.targets - (lvl.hasBuff ? 1 : 0) - (lvl.hasDebuff ? 1 : 0);
+    const totalNormal = lvl.cards - lvl.targets - (lvl.hasBonus ? 1 : 0) - (lvl.hasTrap ? 1 : 0);
     const normalDars = getRandomDars(totalNormal + 5).filter(d => d.code !== target.code).slice(0, totalNormal);
 
     let allCards = [];
@@ -220,13 +220,13 @@ const IntuitionGame = (function() {
     }
 
     // Баф
-    if (lvl.hasBuff) {
+    if (lvl.hasBonus) {
       const buffDar = getRandomDars(10).find(d => d.code !== target.code) || normalDars[0];
       allCards.push({ ...buffDar, type: 'buff' });
     }
 
     // Дебаф
-    if (lvl.hasDebuff) {
+    if (lvl.hasTrap) {
       const debuffDar = getRandomDars(10).find(d => d.code !== target.code && !allCards.some(c => c.code === d.code)) || normalDars[1];
       allCards.push({ ...debuffDar, type: 'debuff' });
     }
@@ -275,24 +275,39 @@ const IntuitionGame = (function() {
         let border = 'var(--border)';
         let extra = '';
 
-        if (card.type === 'target') { bg = 'rgba(46,204,113,0.15)'; border = '#2ecc71'; extra = '<div style="font-size:14px">&#10024;</div>'; }
-        else if (card.type === 'buff') { bg = 'rgba(46,204,113,0.2)'; border = '#2ecc71'; extra = '<div style="font-size:14px">&#11088; x2</div>'; }
-        else if (card.type === 'debuff') { bg = 'rgba(231,76,60,0.2)'; border = '#e74c3c'; extra = '<div style="font-size:14px">&#128165;</div>'; }
-        else if (revealed.includes(i)) { bg = 'rgba(255,255,255,0.05)'; border = 'rgba(255,255,255,0.1)'; }
+        if (card.type === 'target') { bg = 'rgba(46,204,113,0.15)'; border = '#2ecc71'; extra = '<div style="font-size:12px;margin-top:4px">&#10024;</div>'; }
+        else if (card.type === 'buff') { bg = 'rgba(46,204,113,0.2)'; border = '#2ecc71'; extra = '<div style="font-size:10px;color:#2ecc71;margin-top:4px">&#11088; Карта Света x2</div>'; }
+        else if (card.type === 'debuff') { bg = 'rgba(231,76,60,0.2)'; border = '#e74c3c'; extra = '<div style="font-size:10px;color:#e74c3c;margin-top:4px">&#128165; Карта Тени</div>'; }
+        else if (revealed.includes(i)) { bg = 'rgba(255,255,255,0.05)'; border = 'rgba(255,255,255,0.1)'; extra = ''; }
 
+        // Лицевая сторона: изображение + название + код
+        const imgBase = card.name.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'');
         html += `
-          <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:10px 6px;text-align:center;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center">
-            <div style="font-size:12px;color:var(--text);letter-spacing:1px">${card.name}</div>
-            <div style="font-size:9px;color:var(--text-dim)">${card.archetype}</div>
+          <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:8px 4px;text-align:center;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div style="width:36px;height:36px;margin-bottom:4px;display:flex;align-items:center;justify-content:center" id="gc-${i}"></div>
+            <div style="font-size:12px;color:var(--text);letter-spacing:1px;font-weight:bold">${card.name}</div>
+            <div style="font-size:9px;color:var(--text-muted);margin-top:1px">${card.code}</div>
+            <div style="font-size:8px;color:var(--text-dim);font-style:italic">${card.archetype}</div>
             ${extra}
           </div>`;
+        // Попробовать загрузить картинку дара после рендера
+        setTimeout(() => {
+          const wrap = document.getElementById('gc-'+i);
+          if(wrap && imgBase) {
+            const img = new Image();
+            img.src = 'images/dars/'+imgBase+'.svg';
+            img.style = 'width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px #D4AF37)';
+            img.onerror = () => { wrap.textContent = ''; };
+            img.onload = () => wrap.appendChild(img);
+          }
+        }, 50);
       } else {
-        // Закрытая карта
+        // Закрытая карта — рубашка с посохом Гермеса (кадуцей)
         html += `
           <div class="game-card-back" onclick="IntuitionGame.selectCard(${i})"
-            style="background:linear-gradient(135deg,#1a0533,#0d0221);border:2px solid rgba(212,175,55,0.3);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s">
-            <div style="font-size:22px">&#10024;</div>
-            <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${i + 1}</div>
+            style="background:linear-gradient(135deg,#1a0533 0%,#0d0221 50%,#1a0533 100%);border:2px solid rgba(212,175,55,0.3);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;position:relative">
+            <div style="font-size:28px;opacity:0.9">&#9764;</div>
+            <div style="font-size:8px;color:rgba(212,175,55,0.4);margin-top:2px;letter-spacing:2px">&#10022; &#10022; &#10022;</div>
           </div>`;
       }
     });
@@ -389,12 +404,12 @@ const IntuitionGame = (function() {
       <div style="text-align:center;margin-top:20px">
         <div style="font-size:28px;margin-bottom:8px">${debuffHit ? '&#128165;' : won ? '&#127881;' : '&#128148;'}</div>
         <div style="font-size:16px;color:${won ? '#2ecc71' : '#e74c3c'};margin-bottom:6px">
-          ${debuffHit ? 'Ловушка! Результат обнулён' : won ? (currentMode === 'multi' ? `Найдено ${targetsFound}/${totalTargets}!` : 'Интуиция работает!') : 'Не в этот раз...'}
+          ${debuffHit ? 'Карта Тени! Результат обнулён' : won ? (currentMode === 'multi' ? `Найдено ${targetsFound}/${totalTargets}!` : 'Интуиция работает!') : 'Не в этот раз...'}
         </div>
         ${won ? `
           <div style="font-size:14px;color:#D4AF37;margin-bottom:4px">
             +${crystalsWon} &#128142;
-            ${buffActive ? ' (баф x2!)' : ''}
+            ${buffActive ? ' (Карта Света x2!)' : ''}
           </div>
           ${stats.streak > 1 ? `<div style="font-size:13px;color:#D4AF37">&#128293; Серия: ${stats.streak}</div>` : ''}
         ` : `

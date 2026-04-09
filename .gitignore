@@ -1,4 +1,5 @@
 .env
+public/.env
 node_modules/
 public/node_modules/
 .vercel/

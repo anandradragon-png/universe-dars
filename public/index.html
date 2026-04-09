@@ -118,11 +118,56 @@
     .nav-btn .nav-icon{font-size:20px;line-height:1}
     .nav-btn .nav-label{font-size:11px;letter-spacing:1px;color:var(--text);font-family:Georgia,serif}
     .nav-btn .nav-desc{font-size:9px;color:var(--text-dim)}
+
+    /* === Кристаллы === */
+    #crystal-counter{position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:6px 14px;font-size:14px;color:#D4AF37;letter-spacing:1px}
+    .crystal-popup{position:absolute;top:-5px;right:-10px;font-size:14px;color:#D4AF37;font-weight:bold;transition:all .7s ease-out;pointer-events:none}
+    .crystal-popup-spend{color:#f87171}
+
+    /* === Сокровищница === */
+    #tab-treasury{padding:16px}
+    .treasury-header{text-align:center;margin-bottom:20px}
+    .treasury-progress-label{font-size:14px;color:var(--text);letter-spacing:1px;margin-bottom:8px}
+    .treasury-progress-bar{width:100%;max-width:400px;margin:0 auto;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden}
+    .treasury-progress-fill{height:100%;background:linear-gradient(90deg,#6b21a8,#D4AF37);border-radius:4px;transition:width .5s ease}
+    .treasury-field{margin-bottom:20px}
+    .treasury-field-header{display:flex;justify-content:space-between;align-items:center;padding:6px 4px;margin-bottom:8px}
+    .treasury-field-name{font-size:14px;color:var(--text);letter-spacing:2px}
+    .treasury-field-count{font-size:12px;color:var(--text-dim)}
+    .treasury-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:8px}
+    .treasury-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 6px;text-align:center;cursor:default;transition:all .2s;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .treasury-unlocked{cursor:pointer;border-color:rgba(212,175,55,0.3);background:rgba(212,175,55,0.05)}
+    .treasury-unlocked:hover{border-color:rgba(212,175,55,0.6);background:rgba(212,175,55,0.1);transform:translateY(-2px)}
+    .treasury-locked{opacity:0.4}
+    .treasury-own{border-color:rgba(212,175,55,0.6)!important;box-shadow:0 0 12px rgba(212,175,55,0.2)}
+    .treasury-card-icon{font-size:24px;margin-bottom:4px}
+    .treasury-card-name{font-size:11px;color:var(--text);letter-spacing:1px}
+    .treasury-card-sections{font-size:10px;color:#D4AF37;margin-top:2px}
+
+    /* === Секции дара в Сокровищнице === */
+    .dar-sections-list{max-width:500px;margin:0 auto}
+    .dar-section-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;margin-bottom:6px;background:var(--card);border:1px solid var(--border);border-radius:12px;font-size:14px;color:var(--text)}
+    .dar-section-unlocked{cursor:pointer;border-color:rgba(46,204,113,0.3)}
+    .dar-section-unlocked:hover{background:rgba(46,204,113,0.1)}
+    .dar-section-next{cursor:pointer;border-color:rgba(212,175,55,0.4);background:rgba(212,175,55,0.05)}
+    .dar-section-next:hover{background:rgba(212,175,55,0.1)}
+    .dar-section-locked{opacity:0.4;cursor:default}
+
+    /* === Шеринг === */
+    .share-block{text-align:center;margin-top:16px;padding:16px;background:rgba(107,33,168,0.15);border:1px solid rgba(180,120,255,0.3);border-radius:16px}
+    .share-title{font-size:16px;color:var(--text);margin-bottom:6px}
+    .share-text{font-size:13px;color:var(--text-dim);margin-bottom:12px;line-height:1.5}
+    .btn-share{background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;border:none;padding:12px 20px;border-radius:12px;font-size:14px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
+    .btn-share:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(34,158,217,0.3)}
+
+    /* === Streak === */
+    .streak-badge{font-size:12px;color:#f39c12;margin-left:6px}
   </style>
 </head>
 <body>
   <div class="stars"></div>
   <button id="btn-close"></button>
+  <div id="crystal-counter">&#128142; <span id="crystal-count">0</span></div>
   <header><h1> ВСЕЛЕННАЯ ДАРОВ</h1></header>
   <div id="app">
     <div class="tab active" id="tab-calc">
@@ -145,6 +190,7 @@
           <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()"> Получить полное послание</button>
           <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()"> Изменить дату</button>
         </div>
+        <div id="share-section" style="display:none"></div>
         <div id="full-description-block" style="display:none">
           <div id="full-description-content"></div>
           <button class="btn btn-ghost" onclick="hideDescription()" style="margin-top:12px"> Скрыть описание</button>
@@ -152,12 +198,13 @@
       </div>
       </div><!-- /main-container -->
     </div>
-    <div class="tab" id="tab-profile">
-      <div style="padding-top:40px">
-        <div style="font-size:48px;text-align:center;margin-bottom:16px"></div>
-        <div class="user-name" id="userName" style="text-align:center"></div>
-        <div class="stub-title">Профиль пользователя</div>
-        <div class="stub-text">Раздел в разработке. Здесь будет история ваших расчётов и настройки профиля.</div>
+    <div class="tab" id="tab-treasury">
+      <div id="treasury-content">
+        <div style="text-align:center;padding-top:40px">
+          <div style="font-size:48px;margin-bottom:16px">&#128142;</div>
+          <div class="stub-title">Сокровищница</div>
+          <div class="stub-text">Рассчитайте свой дар, чтобы начать коллекцию из 64 даров!</div>
+        </div>
       </div>
     </div>
     <div class="tab" id="tab-base">
@@ -190,11 +237,16 @@
     </div>
   </div>
   <div class="nav-bar">
-    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">✨</span><span class="nav-label">Мой Дар</span><span class="nav-desc">Описание</span></button>
-    <button class="nav-btn" id="nav-profile" onclick="switchNav('profile')"><span class="nav-icon">👤</span><span class="nav-label">Профиль</span><span class="nav-desc">Ваши данные</span></button>
-    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon">📚</span><span class="nav-label">База знаний</span><span class="nav-desc">О системе</span></button>
+    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">&#10024;</span><span class="nav-label">Мой Дар</span><span class="nav-desc">Рассчитать</span></button>
+    <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon">&#128142;</span><span class="nav-label">Сокровищница</span><span class="nav-desc">Коллекция</span></button>
+    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon">&#128218;</span><span class="nav-label">Энциклопедия</span><span class="nav-desc">64 дара</span></button>
   </div>
 
+  <!-- Игровые модули -->
+  <script src="js/api-client.js"></script>
+  <script src="js/crystals.js"></script>
+  <script src="js/treasury.js"></script>
+  <script src="js/referral.js"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.expand(); tg.ready(); }
@@ -240,12 +292,16 @@
       document.getElementById('tab-' + name).classList.add('active');
       document.getElementById('nav-' + name).classList.add('active');
       document.getElementById('app').scrollTop = 0;
+      // Рендер Сокровищницы при переключении
+      if (name === 'treasury' && typeof Treasury !== 'undefined') {
+        Treasury.render();
+      }
     }
 
     const FIELDS = {1:{name:"ЛОГОС"},2:{name:"НИМА"},3:{name:"АНДРА"},4:{name:"ЗИНГРА"},5:{name:"ЛУБА"},6:{name:"ТУМА"},7:{name:"АСТРА"},8:{name:"БИТРА"},9:{name:"ОМА"}};
-    const DARS = {"4-6-1":"ЖАР","3-7-1":"И-СТОК","2-8-1":"ЛА-ДА","8-2-1":"ЛЕ-ЛИ","7-3-1":"ПРИ-ТОК","6-4-1":"СВЕ-ТО","5-5-1":"ТЕ-ЛО","1-1-2":"БРА-МА","3-8-2":"ГО-РА","4-7-2":"ГУ-НА","8-3-2":"МЕ-РУ","7-4-2":"РО-ДА","5-6-2":"СО-НА","6-5-2":"У-МА","8-4-3":"АНАН-Д-РА","2-1-3":"ВИ-РА","1-2-3":"ЛИ-РА","7-5-3":"МА-ТА","5-7-3":"МАТ-КА","6-6-3":"ПА-РА","4-8-3":"СИ-ЛА","1-3-4":"АР-КА","6-7-4":"ВОС-ХА","2-2-4":"ЗИ-МА","3-1-4":"ЛА-НА","7-6-4":"МА-АТ","5-8-4":"РО-СА","8-5-4":"СЕ-МА","8-6-5":"А-МА","2-3-5":"АР-МА","7-7-5":"ЖИ-ВА","1-4-5":"ЖИ-МА","3-2-5":"РА-МА","4-1-5":"РИ-МА","6-8-5":"ТРО-НА","1-5-6":"КУ-НА","5-1-6":"ЛУ-НА","8-7-6":"СО-ХА","7-8-6":"ТА-РА","2-4-6":"ТО-ТА","3-3-6":"ТУ-РА","4-2-6":"Э-МА","4-3-7":"АР-ХЕЙ","2-5-7":"БРА-Х-МА","3-4-7":"ГРАД","1-6-7":"З-МАН","6-1-7":"МА-НА","5-2-7":"НИ-РА","8-8-7":"ПРА-НА","6-2-8":"БИ-МА","1-7-8":"БИ-РА","5-3-8":"ЗЛА-ТО","3-5-8":"КО-ДА","4-4-8":"ЛИ-КО","7-1-8":"МИ-ДА","2-6-8":"СО-ЛАР","3-6-9":"ИРИЙ","5-4-9":"МИ-РА","1-8-9":"РАЙ","8-1-9":"РОЙ","7-2-9":"ТО-РА","6-3-9":"ТОТ","2-7-9":"ФА-НА","4-5-9":"ШИ-ВА"};
+    window.DARS = {"4-6-1":"ЖАР","3-7-1":"И-СТОК","2-8-1":"ЛА-ДА","8-2-1":"ЛЕ-ЛИ","7-3-1":"ПРИ-ТОК","6-4-1":"СВЕ-ТО","5-5-1":"ТЕ-ЛО","1-1-2":"БРА-МА","3-8-2":"ГО-РА","4-7-2":"ГУ-НА","8-3-2":"МЕ-РУ","7-4-2":"РО-ДА","5-6-2":"СО-НА","6-5-2":"У-МА","8-4-3":"АНАН-Д-РА","2-1-3":"ВИ-РА","1-2-3":"ЛИ-РА","7-5-3":"МА-ТА","5-7-3":"МАТ-КА","6-6-3":"ПА-РА","4-8-3":"СИ-ЛА","1-3-4":"АР-КА","6-7-4":"ВОС-ХА","2-2-4":"ЗИ-МА","3-1-4":"ЛА-НА","7-6-4":"МА-АТ","5-8-4":"РО-СА","8-5-4":"СЕ-МА","8-6-5":"А-МА","2-3-5":"АР-МА","7-7-5":"ЖИ-ВА","1-4-5":"ЖИ-МА","3-2-5":"РА-МА","4-1-5":"РИ-МА","6-8-5":"ТРО-НА","1-5-6":"КУ-НА","5-1-6":"ЛУ-НА","8-7-6":"СО-ХА","7-8-6":"ТА-РА","2-4-6":"ТО-ТА","3-3-6":"ТУ-РА","4-2-6":"Э-МА","4-3-7":"АР-ХЕЙ","2-5-7":"БРА-Х-МА","3-4-7":"ГРАД","1-6-7":"З-МАН","6-1-7":"МА-НА","5-2-7":"НИ-РА","8-8-7":"ПРА-НА","6-2-8":"БИ-МА","1-7-8":"БИ-РА","5-3-8":"ЗЛА-ТО","3-5-8":"КО-ДА","4-4-8":"ЛИ-КО","7-1-8":"МИ-ДА","2-6-8":"СО-ЛАР","3-6-9":"ИРИЙ","5-4-9":"МИ-РА","1-8-9":"РАЙ","8-1-9":"РОЙ","7-2-9":"ТО-РА","6-3-9":"ТОТ","2-7-9":"ФА-НА","4-5-9":"ШИ-ВА"};
     const INTEGRATORS = {"1-9-1":"Архитектор Реальности","2-9-2":"Хранитель Бесконечного Пространства","3-9-3":"Сердце Вселенной","4-9-4":"Феникс Вечного Обновления","5-9-5":"Император Света","6-9-6":"Повелитель Времени","7-9-7":"Проводник Мирового Разума","8-9-8":"Творец Совершенной Формы","9-1-1":"Архитектор Вечного Порядка","9-2-2":"Творец Пространства Возможностей","9-3-3":"Сердце Мирового Единства","9-4-4":"Феникс Глобальной Эволюции","9-5-5":"Император Внутреннего Солнца","9-6-6":"Повелитель Судьбоносного Потока","9-7-7":"Голос Космического Разума","9-8-8":"Создатель Живых Границ","9-9-9":"Живое Зеркало Вселенной"};
-    const DAR_ARCHETYPES = {"8-6-5":"Первородное солнце","8-4-3":"Купол любви","1-3-4":"Портал между мирами","2-3-5":"Усилитель реальности","4-3-7":"Архитектор реальности","6-2-8":"Танец красоты","1-7-8":"Путеводная звезда","1-1-2":"Абсолютное внимание","2-5-7":"Дыхание жизни","2-1-3":"Внутренняя вера","6-7-4":"Крылья ангела","3-8-2":"Вершина власти","3-4-7":"Архитектор единства","4-7-2":"Нить времени","4-6-1":"Внутренний вулкан","7-7-5":"Квинтэссенция жизни","1-4-5":"Алхимическая лаборатория","2-2-4":"Белый огонь","5-3-8":"Золотая спираль","1-6-7":"Змей времени","3-6-9":"Река жизни","3-7-1":"Родник силы","3-5-8":"Программист реальности","1-5-6":"Рог изобилия","2-8-1":"Гармонизатор границ","3-1-4":"Огненный щит","8-2-1":"Голос природы","4-4-8":"Театральная маска","1-2-3":"Ось мира","5-1-6":"Магнит событий","7-6-4":"Цунами вдохновения","6-1-7":"Манна небесная","7-5-3":"Хирург реальности","5-7-3":"Инкубатор реальностей","8-3-2":"Вершина мира","7-1-8":"Туннель реальности","5-4-9":"Древо миров","5-2-7":"Картограф сновидений","6-6-3":"Портал любви","8-8-7":"Выдох вселенной","7-3-1":"Место силы","1-8-9":"Осознанный выбор","3-2-5":"Ядерная радость","4-1-5":"Целительный удар","7-4-2":"Живая нить рода","8-1-9":"Живой алгоритм","5-8-4":"Духовное рождение","6-4-1":"Внутреннее солнце","8-5-4":"Семя","4-8-3":"Атланты","2-6-8":"Расширенное сознание","5-6-2":"Шут","8-7-6":"Сфера покоя","7-8-6":"Конструктор аватара","5-5-1":"Храм души","7-2-9":"Ветер перемен","6-3-9":"Фрактальное зеркало","2-4-6":"Первооткрыватель","6-8-5":"Трон воли","3-3-6":"Колесо сансары","6-5-2":"Дракон порядка","2-7-9":"Священный момент","4-5-9":"Танец жизни","4-2-6":"Фантазия"};
+    window.DAR_ARCHETYPES = {"8-6-5":"Первородное солнце","8-4-3":"Купол любви","1-3-4":"Портал между мирами","2-3-5":"Усилитель реальности","4-3-7":"Архитектор реальности","6-2-8":"Танец красоты","1-7-8":"Путеводная звезда","1-1-2":"Абсолютное внимание","2-5-7":"Дыхание жизни","2-1-3":"Внутренняя вера","6-7-4":"Крылья ангела","3-8-2":"Вершина власти","3-4-7":"Архитектор единства","4-7-2":"Нить времени","4-6-1":"Внутренний вулкан","7-7-5":"Квинтэссенция жизни","1-4-5":"Алхимическая лаборатория","2-2-4":"Белый огонь","5-3-8":"Золотая спираль","1-6-7":"Змей времени","3-6-9":"Река жизни","3-7-1":"Родник силы","3-5-8":"Программист реальности","1-5-6":"Рог изобилия","2-8-1":"Гармонизатор границ","3-1-4":"Огненный щит","8-2-1":"Голос природы","4-4-8":"Театральная маска","1-2-3":"Ось мира","5-1-6":"Магнит событий","7-6-4":"Цунами вдохновения","6-1-7":"Манна небесная","7-5-3":"Хирург реальности","5-7-3":"Инкубатор реальностей","8-3-2":"Вершина мира","7-1-8":"Туннель реальности","5-4-9":"Древо миров","5-2-7":"Картограф сновидений","6-6-3":"Портал любви","8-8-7":"Выдох вселенной","7-3-1":"Место силы","1-8-9":"Осознанный выбор","3-2-5":"Ядерная радость","4-1-5":"Целительный удар","7-4-2":"Живая нить рода","8-1-9":"Живой алгоритм","5-8-4":"Духовное рождение","6-4-1":"Внутреннее солнце","8-5-4":"Семя","4-8-3":"Атланты","2-6-8":"Расширенное сознание","5-6-2":"Шут","8-7-6":"Сфера покоя","7-8-6":"Конструктор аватара","5-5-1":"Храм души","7-2-9":"Ветер перемен","6-3-9":"Фрактальное зеркало","2-4-6":"Первооткрыватель","6-8-5":"Трон воли","3-3-6":"Колесо сансары","6-5-2":"Дракон порядка","2-7-9":"Священный момент","4-5-9":"Танец жизни","4-2-6":"Фантазия"};
 
     function reduce(n){while(n>9)n=n.toString().split('').reduce((s,d)=>s+parseInt(d),0);return n}
     function calcGift(d,m,y){const ma=reduce(d+m),zhi=reduce(y.toString().split('').reduce((s,c)=>s+parseInt(c),0)),kun=reduce(ma+zhi);return{ma,zhi,kun,code:`${ma}-${zhi}-${kun}`}}
@@ -299,6 +355,10 @@
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';
+      // Показать кнопку "Поделиться"
+      if (typeof Referral !== 'undefined') {
+        Referral.renderShareButton(gift.code, darName);
+      }
     }
 
     function init(){
@@ -661,7 +721,7 @@
       const dars = groups[kunId]||[];
       const f = FIELDS_FULL[kunId];
       const container = document.getElementById('dars-field-view');
-      container.innerHTML = `<button class="btn-back" style="display:block" onclick="backToFieldFolders()">← Все поля</button><div style="text-align:center;margin-bottom:14px"><div style="font-size:16px;color:var(--text);letter-spacing:2px">${f.name}</div><div style="font-size:12px;color:var(--text-dim);font-style:italic">${f.archetype}</div></div><div class="dar-grid" id="dar-cards-grid"></div>`;
+      container.innerHTML = `<button class="btn-back" style="display:block" onclick="backToFieldFolders()">← Все поля</button><div style="text-align:center;margin-bottom:14px"><div style="font-size:16px;color:var(--text);letter-spacing:2px">${f.name}</div><div style="font-size:12px;color:var(--text-dim);font-style:italic">${f.element}</div></div><div class="dar-grid" id="dar-cards-grid"></div>`;
       const grid = document.getElementById('dar-cards-grid');
       dars.forEach(d=>{
         const arch = DAR_ARCHETYPES[d.code]||'';
@@ -878,6 +938,63 @@
     document.getElementById('promoInput').addEventListener('keydown',function(e){
       if(e.key==='Enter') submitPromoCode();
     });
+
+    // === Инициализация игровых модулей ===
+    (function initGame() {
+      // Инициализация Сокровищницы из localStorage (offline-first)
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const { gift } = JSON.parse(saved);
+          if (gift && gift.code) {
+            // Инициализировать Сокровищницу с хотя бы своим даром
+            const localDars = JSON.parse(localStorage.getItem('_treasury_dars_' + USER_ID) || '[]');
+            const hasSelf = localDars.some(d => d.dar_code === gift.code);
+            if (!hasSelf) {
+              localDars.push({ dar_code: gift.code, unlock_source: 'own', unlocked_sections: 1 });
+              localStorage.setItem('_treasury_dars_' + USER_ID, JSON.stringify(localDars));
+            }
+            Treasury.init(localDars, gift.code);
+            CrystalsUI.init(parseInt(localStorage.getItem('_crystals_' + USER_ID) || '0'));
+
+            // Показать кнопку шеринга
+            Referral.renderShareButton(gift.code, DARS[gift.code] || gift.code);
+          }
+        } catch(e) { console.error('Game init error:', e); }
+      }
+
+      // Попробовать синхронизировать с сервером (если доступен)
+      if (typeof DarAPI !== 'undefined') {
+        DarAPI.getProfile().then(data => {
+          if (data.user) {
+            CrystalsUI.setBalance(data.user.crystals);
+            localStorage.setItem('_crystals_' + USER_ID, data.user.crystals);
+          }
+          if (data.dars) {
+            Treasury.init(data.dars, data.user?.dar_code);
+            localStorage.setItem('_treasury_dars_' + USER_ID, JSON.stringify(data.dars));
+          }
+        }).catch(() => { /* Offline - используем localStorage */ });
+
+        // Ежедневный вход
+        DarAPI.dailyLogin().then(result => {
+          if (result && !result.already_logged && result.crystals_earned) {
+            CrystalsUI.animateEarn(result.crystals_earned);
+            if (result.streak_bonus > 0) {
+              setTimeout(() => alert(`Серия ${result.streak} дней! Бонус: +${result.streak_bonus} кристаллов`), 1000);
+            }
+          }
+        }).catch(() => {});
+
+        // Обработка реферала (если пришёл по ссылке)
+        const referrerId = Referral.getReferrerFromStartParam();
+        if (referrerId && saved) {
+          const { gift } = JSON.parse(saved);
+          if (gift) Referral.processReferral(gift.code);
+        }
+      }
+    })();
   </script>
+  <!-- Игровые модули (загружаются до использования, но IIFE initGame вызывается inline) -->
 </body>
 </html>

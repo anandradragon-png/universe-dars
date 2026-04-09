@@ -225,9 +225,14 @@ const BookReader = (function() {
           part.items.forEach(ch => {
             if (ch.items) {
               // Глава с дарами
+              const chAccessible = ch.page <= maxPage;
               html += `<div class="toc-chapter" onclick="event.stopPropagation()">
                 <div class="toc-chapter-title" onclick="this.parentElement.classList.toggle('open')">
-                  ${ch.icon || ''} ${ch.title} <span style="float:right;font-size:11px;color:var(--text-muted)">${ch.page}</span>
+                  ${ch.icon || ''} ${ch.title}
+                  <span style="float:right;font-size:11px">
+                    <span style="color:#D4AF37;cursor:pointer;margin-right:6px" onclick="event.stopPropagation();${chAccessible ? `BookReader.goToPage(${ch.page})` : 'BookReader.showUpgradePrompt()'}">${chAccessible ? '&#9654;' : '&#128274;'}</span>
+                    <span style="color:var(--text-muted)">${ch.page}</span>
+                  </span>
                 </div>
                 <div class="toc-chapter-items">`;
               ch.items.forEach(dar => {

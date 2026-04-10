@@ -10,6 +10,8 @@ ALTER TABLE users
   ADD COLUMN IF NOT EXISTS gender VARCHAR(10) DEFAULT '',
   ADD COLUMN IF NOT EXISTS birth_time VARCHAR(5) DEFAULT '',
   ADD COLUMN IF NOT EXISTS birth_place TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS birth_lat DECIMAL(10, 6),
+  ADD COLUMN IF NOT EXISTS birth_lon DECIMAL(10, 6),
   ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN DEFAULT FALSE;
 
 -- Индекс по флагу заполнённости профиля (для быстрого поиска незаполненных)

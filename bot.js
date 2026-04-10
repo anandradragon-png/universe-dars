@@ -140,6 +140,8 @@ app.post('/api/message', async (req, res) => {
 
 // ================= БОТ =================
 const WEB_APP_URL = process.env.WEB_APP_URL || '';
+// ID администратора для пересылки обратной связи (узнать через @userinfobot)
+const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID ? Number(process.env.ADMIN_CHAT_ID) : null;
 
 const mainKeyboard = WEB_APP_URL
     ? { reply_markup: { keyboard: [[{ text: "🚀 Запустить приложение", web_app: { url: WEB_APP_URL } }]], resize_keyboard: true } }
@@ -147,14 +149,58 @@ const mainKeyboard = WEB_APP_URL
 
 bot.onText(/\/start/, (msg) => {
     bot.sendMessage(msg.chat.id,
-        "🌌 Добро пожаловать во Вселенную Даров!\n\nНажми кнопку ниже, чтобы открыть приложение и узнать свой уникальный дар.",
+        "🌌 Добро пожаловать в YupDar!\n\nНажми кнопку ниже, чтобы открыть приложение и узнать свой уникальный дар.\n\n💬 Вопрос или баг? Просто напиши мне — я передам автору.",
         mainKeyboard
     );
 });
 
-bot.on('message', (msg) => {
-    if (!msg.text || msg.text === '/start') return;
-    bot.sendMessage(msg.chat.id, "Нажми кнопку ниже 👇", mainKeyboard);
+// ================= ОБРАТНАЯ СВЯЗЬ ЧЕРЕЗ БОТА =================
+// Пользователь пишет боту → бот пересылает админу
+// Админ отвечает командой: /reply <user_id> <текст ответа>
+
+bot.onText(/^\/reply\s+(\d+)\s+([\s\S]+)$/, async (msg, match) => {
+    if (!ADMIN_CHAT_ID || msg.chat.id !== ADMIN_CHAT_ID) return;
+    const targetId = Number(match[1]);
+    const replyText = match[2];
+    try {
+        await bot.sendMessage(targetId, `💬 Ответ от автора YupDar:\n\n${replyText}`);
+        await bot.sendMessage(msg.chat.id, `✅ Ответ доставлен пользователю ${targetId}`);
+    } catch (e) {
+        await bot.sendMessage(msg.chat.id, `❌ Не удалось отправить: ${e.message}`);
+    }
+});
+
+bot.on('message', async (msg) => {
+    if (!msg.text) return;
+    if (msg.text.startsWith('/start') || msg.text.startsWith('/reply')) return;
+
+    // Если пишет сам админ (не команда /reply) — игнорируем
+    if (ADMIN_CHAT_ID && msg.chat.id === ADMIN_CHAT_ID) {
+        bot.sendMessage(msg.chat.id,
+            "ℹ️ Чтобы ответить пользователю, используй:\n/reply <user_id> <текст>",
+            mainKeyboard);
+        return;
+    }
+
+    // Пересылаем сообщение админу
+    if (ADMIN_CHAT_ID) {
+        const from = msg.from || {};
+        const name = [from.first_name, from.last_name].filter(Boolean).join(' ') || 'Без имени';
+        const username = from.username ? `@${from.username}` : 'без username';
+        const header = `💬 Обратная связь от ${name} (${username})\n🆔 ID: ${msg.chat.id}\n\n`;
+        try {
+            await bot.sendMessage(ADMIN_CHAT_ID, header + msg.text);
+            await bot.sendMessage(msg.chat.id,
+                "✅ Сообщение передано автору. Мы ответим здесь же в чате.\n\nА пока можешь продолжить пользоваться приложением 👇",
+                mainKeyboard);
+        } catch (e) {
+            console.error("Forward error:", e.message);
+            await bot.sendMessage(msg.chat.id, "Нажми кнопку ниже 👇", mainKeyboard);
+        }
+    } else {
+        // ADMIN_CHAT_ID не задан — старое поведение
+        bot.sendMessage(msg.chat.id, "Нажми кнопку ниже 👇", mainKeyboard);
+    }
 });
 
 bot.on('polling_error', (e) => console.error("Polling error:", e.message));

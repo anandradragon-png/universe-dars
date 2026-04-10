@@ -253,15 +253,69 @@ const DailyDar = (function() {
     } catch (e) {}
     const gotWord = gender === 'female' ? 'получила' : gender === 'male' ? 'получил' : 'получил(а)';
 
+    const level = getAccessLevel();
+    const currentLimit = getDailyLimit(mode);
+
     const title = mode === 'card' ? `Ты уже ${gotWord} своё послание сегодня`
       : mode === 'personal' ? `Ты уже ${gotWord} своё личное послание сегодня`
       : `Ты уже ${gotWord} Дар дня сегодня`;
+
+    // Для card-режима и не-premium - показываем upsell
+    let upsellBlock = '';
+    if (mode === 'card' && level !== 'premium') {
+      const nextLevel = level === 'basic' ? 'extended' : 'premium';
+      const nextLimit = LIMITS_BY_LEVEL[nextLevel].card;
+      const nextName = nextLevel === 'extended' ? 'Хранитель' : 'Мастер';
+      const nextIcon = nextLevel === 'extended' ? '&#127769;' : '&#127775;';
+      const nextDesc = nextLevel === 'extended'
+        ? `<div>&#8226; Оракул: <b>${nextLimit}</b> обращений в день</div>
+           <div>&#8226; Доступ к дарам друзей</div>
+           <div>&#8226; Полная энциклопедия даров</div>
+           <div>&#8226; Бонусные кристаллы &#215;2</div>`
+        : `<div>&#8226; Оракул: <b>${nextLimit}</b> обращений в день</div>
+           <div>&#8226; Всё из уровня Хранителя</div>
+           <div>&#8226; Приоритетный доступ к новым функциям</div>
+           <div>&#8226; Ранний доступ к глубоким расшифровкам</div>`;
+
+      upsellBlock = `
+        <div style="margin-top:20px;padding-top:20px;border-top:1px dashed rgba(212,175,55,0.3)">
+          <div style="font-size:13px;color:var(--text);margin-bottom:10px;line-height:1.5">Хочешь больше обращений к Оракулу? Открой уровень ${nextIcon} <b style="color:#D4AF37">${nextName}</b>:</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.9;text-align:left;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:12px;margin-bottom:14px">
+            ${nextDesc}
+          </div>
+          <button onclick="DailyDar.showUpgradeMessage()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px;font-weight:bold;box-shadow:0 2px 12px rgba(212,175,55,0.25)">&#9733; Повысить уровень</button>
+        </div>`;
+    }
+
     return `<div style="text-align:center;padding:32px 20px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(107,33,168,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:18px">
       <div style="font-size:42px;margin-bottom:14px">&#128170;</div>
       <div style="font-size:16px;color:#D4AF37;margin-bottom:12px;line-height:1.4;letter-spacing:0.5px">${title}</div>
       <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">Дай посланию раскрыться в твоей жизни. Новое будет доступно через <b style="color:#D4AF37">${timeUntilReset()}</b>.</div>
       <div style="font-size:11px;color:var(--text-muted);font-style:italic">Мудрость раскрывается медленно - возвращайся завтра</div>
+      ${upsellBlock}
     </div>`;
+  }
+
+  // --- Сообщение "Скоро будет доступна оплата" ---
+  function showUpgradeMessage() {
+    // Простая модалка через alert-подобный блок
+    const existing = document.getElementById('upgrade-msg-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'upgrade-msg-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.innerHTML = `
+      <div style="max-width:380px;width:100%;background:linear-gradient(180deg,#1a0533,#0d0221);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:28px 22px;text-align:center;box-shadow:0 10px 40px rgba(212,175,55,0.15)">
+        <div style="font-size:44px;margin-bottom:14px">&#9201;</div>
+        <div style="font-size:17px;color:#D4AF37;margin-bottom:12px;letter-spacing:1px;line-height:1.4">Скоро будет доступна оплата</div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:20px">Мы готовим возможность повысить уровень доступа прямо в приложении. Следи за новостями в нашем чате беты!</div>
+        <button onclick="document.getElementById('upgrade-msg-modal').remove()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#3b0764);color:var(--text);font-size:14px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px">Понятно</button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
   }
 
   // --- Рендер карточки дара ---
@@ -279,11 +333,32 @@ const DailyDar = (function() {
   }
 
   // === ЛИМИТЫ И КЭШ ПРОРОЧЕСТВ (сбрасываются в 00:00) ===
-  const DAILY_LIMITS = {
-    general: 1,  // Дар дня - 1 раз в сутки
-    personal: 1, // Личный дар - 1 раз в сутки
-    card: 3      // Оракул (карта-подсказка) - 3 раза в сутки
+  // Лимиты зависят от уровня доступа (access_level)
+  const LIMITS_BY_LEVEL = {
+    basic:    { card: 3,  general: 1, personal: 1 }, // Странник
+    extended: { card: 7,  general: 1, personal: 1 }, // Хранитель
+    premium:  { card: 10, general: 1, personal: 1 }  // Мастер
   };
+
+  function getAccessLevel() {
+    // Уровень хранится в профиле на сервере, на фронте подтягивается в ЛК
+    // Используем _profileData (общий кэш из index.html) если доступен, иначе 'basic'
+    try {
+      if (window._profileData && window._profileData.access_level) {
+        return window._profileData.access_level;
+      }
+    } catch (e) {}
+    return 'basic';
+  }
+
+  function getDailyLimit(mode) {
+    const level = getAccessLevel();
+    const limits = LIMITS_BY_LEVEL[level] || LIMITS_BY_LEVEL.basic;
+    return limits[mode] || 1;
+  }
+
+  // Для обратной совместимости: старый объект с лимитами Странника
+  const DAILY_LIMITS = LIMITS_BY_LEVEL.basic;
 
   function todayKey() {
     const now = new Date();
@@ -315,7 +390,7 @@ const DailyDar = (function() {
   }
 
   function getRemainingLimit(mode) {
-    const max = DAILY_LIMITS[mode] || 1;
+    const max = getDailyLimit(mode);
     const state = getLimitState(mode);
     return Math.max(0, max - state.count);
   }
@@ -400,7 +475,7 @@ const DailyDar = (function() {
   // === ВКЛАДКА 1: Оракул (карта-подсказка) ===
   function renderCardTab(container) {
     const remaining = getRemainingLimit('card');
-    const limitInfo = `<div style="text-align:center;margin-bottom:10px;font-size:11px;color:var(--text-muted)">Осталось обращений сегодня: <span style="color:#D4AF37;font-weight:bold">${remaining}</span> из ${DAILY_LIMITS.card}</div>`;
+    const limitInfo = `<div style="text-align:center;margin-bottom:10px;font-size:11px;color:var(--text-muted)">Осталось обращений сегодня: <span style="color:#D4AF37;font-weight:bold">${remaining}</span> из ${getDailyLimit('card')}</div>`;
 
     if (!_cardRevealed) {
       if (remaining === 0) {
@@ -544,5 +619,5 @@ const DailyDar = (function() {
     window._dailyDarCode = dar.code;
   }
 
-  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar };
+  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage };
 })();

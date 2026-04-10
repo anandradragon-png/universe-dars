@@ -36,6 +36,10 @@
       "memory": 256,
       "maxDuration": 10
     },
+    "api/admin-feedback.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
     "api/section.js": {
       "memory": 512,
       "maxDuration": 30

@@ -67,5 +67,8 @@ const DarAPI = (function() {
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>
       request('/api/message', 'POST', { giftCode }),
+
+    // ---- Админ ----
+    adminGetFeedback: () => request('/api/admin-feedback'),
   };
 })();

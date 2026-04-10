@@ -11,6 +11,29 @@ try {
   console.error('Failed to load dar-content.json:', e.message);
 }
 
+// Загрузка базы медитаций (дополнение к meditation в dar-content.json)
+let meditationsDB = { meditations: [] };
+try {
+  const raw = fs.readFileSync(path.join(__dirname, '..', 'meditations.json'), 'utf8');
+  meditationsDB = JSON.parse(raw);
+} catch (e) {
+  console.error('Failed to load meditations.json:', e.message);
+}
+
+// Подобрать медитацию по коду дара (возвращает первую подходящую или null)
+function pickMeditationForDar(darCode) {
+  if (!Array.isArray(meditationsDB.meditations)) return null;
+  const matches = meditationsDB.meditations.filter(m => Array.isArray(m.dars) && m.dars.includes(darCode));
+  if (matches.length === 0) return null;
+  // Если несколько — берём одну (пока первую; потом можно ротировать по дате)
+  const m = matches[0];
+  return {
+    title: m.title,
+    description: m.description,
+    url: m.url
+  };
+}
+
 // Имена даров
 const fieldsData = require('../fields.json');
 const DARS_DB = {};
@@ -166,6 +189,12 @@ ${context}
     } catch (parseErr) {
       console.error('Oracle parse error:', parseErr.message);
       throw new Error('Ошибка разбора JSON');
+    }
+
+    // Добавляем ненавязчивую рекомендацию-медитацию (если есть для этого дара)
+    const med = pickMeditationForDar(dar_code);
+    if (med) {
+      parsed.meditation_video = med;
     }
 
     res.status(200).json(parsed);

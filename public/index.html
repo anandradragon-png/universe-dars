@@ -278,6 +278,15 @@
       </div>
     </div>
 
+    <!-- Мои данные -->
+    <div class="profile-section">
+      <div class="profile-section-title">МОИ ДАННЫЕ</div>
+      <div id="profile-data-block">
+        <div style="font-size:12px;color:var(--text-dim);text-align:center;padding:6px 0 10px">Данные не заполнены</div>
+      </div>
+      <button onclick="openProfileSetup(false)" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">&#9998; Заполнить / изменить</button>
+    </div>
+
     <!-- Мои друзья -->
     <div class="profile-section">
       <div class="profile-section-title">МОИ ДРУЗЬЯ</div>
@@ -531,6 +540,61 @@
     .adm-fb-cat-other{color:#c4a0f0}
   </style>
 
+  <!-- Модалка профиля: имя, фамилия, пол, время и место рождения -->
+  <div id="profile-setup-modal" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.88);backdrop-filter:blur(6px);padding:16px;overflow-y:auto">
+    <div style="max-width:480px;margin:20px auto;background:linear-gradient(180deg,#1a0533,#0d0221);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:22px 20px;box-shadow:0 10px 40px rgba(212,175,55,0.15)">
+      <div style="text-align:center;margin-bottom:18px">
+        <div style="font-size:32px;margin-bottom:8px">&#10024;</div>
+        <div style="font-size:18px;color:#D4AF37;letter-spacing:2px;margin-bottom:10px">ТВОЙ ПУТЬ НАЧИНАЕТСЯ</div>
+        <div id="profile-setup-intro" style="font-size:13px;color:var(--text-dim);line-height:1.6"></div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div class="psu-label">Имя (настоящее)</div>
+        <input id="psu-first-name" type="text" placeholder="Например: Светлана" class="psu-input" maxlength="50" autocomplete="given-name">
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="psu-label">Фамилия (настоящая)</div>
+        <input id="psu-last-name" type="text" placeholder="Например: Иванова" class="psu-input" maxlength="50" autocomplete="family-name">
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="psu-label">Пол</div>
+        <div style="display:flex;gap:8px">
+          <button class="psu-gender" data-gender="female" onclick="psuSelectGender('female')">&#9792; Женский</button>
+          <button class="psu-gender" data-gender="male" onclick="psuSelectGender('male')">&#9794; Мужской</button>
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="psu-label">Время рождения (ЧЧ:ММ)</div>
+        <input id="psu-birth-time" type="text" placeholder="14:30" class="psu-input" maxlength="5" inputmode="numeric">
+      </div>
+      <div style="margin-bottom:16px">
+        <div class="psu-label">Место рождения (город)</div>
+        <input id="psu-birth-place" type="text" placeholder="Например: Москва" class="psu-input" maxlength="100">
+      </div>
+
+      <div style="background:rgba(244,81,30,0.12);border:1px solid rgba(244,81,30,0.3);border-radius:10px;padding:10px 12px;margin-bottom:14px">
+        <div style="font-size:11px;color:#F4511E;line-height:1.5">
+          &#9888;&#65039; Для точных и глубоких расшифровок все данные должны быть <b>настоящими</b>. Вымышленные имя, время или место рождения приведут к посланиям, которые не будут соответствовать тебе.
+        </div>
+      </div>
+
+      <div id="psu-status" style="min-height:20px;font-size:12px;text-align:center;color:#f87171;margin-bottom:8px"></div>
+
+      <button id="psu-save-btn" onclick="psuSave()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px;font-weight:bold;box-shadow:0 0 15px rgba(212,175,55,0.3)">Сохранить и продолжить</button>
+      <button id="psu-later-btn" onclick="psuSkip()" style="width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">Заполнить позже</button>
+    </div>
+  </div>
+  <style>
+    .psu-label{font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+    .psu-input{width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Georgia,serif;outline:none;transition:border-color .2s}
+    .psu-input:focus{border-color:rgba(212,175,55,0.6)}
+    .psu-input::placeholder{color:var(--text-muted)}
+    .psu-gender{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:14px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
+    .psu-gender.active{background:linear-gradient(135deg,rgba(107,33,168,0.35),rgba(212,175,55,0.2));border-color:rgba(212,175,55,0.6);color:var(--text);font-weight:bold}
+    .psu-gender:hover{border-color:rgba(180,120,255,0.4)}
+  </style>
+
   <div class="nav-bar">
     <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">&#10024;</span><span class="nav-label">Мой Дар</span></button>
     <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon">&#128142;</span><span class="nav-label">Сокровищница</span></button>
@@ -596,6 +660,7 @@
       setTimeout(() => document.getElementById('profile-panel').classList.add('open'), 10);
       loadProfileData();
       showAdminSectionIfAdmin();
+      if (typeof renderProfileDataBlock === 'function') renderProfileDataBlock();
     }
 
     function closeProfile() {
@@ -664,6 +729,26 @@
               access_level: data.user.access_level || 'basic',
               dars: data.dars || []
             };
+
+            // Синк расширенного профиля с сервера в localStorage
+            if (data.user.real_first_name || data.user.gender) {
+              const localProf = getLocalProfile();
+              const serverProf = {
+                real_first_name: data.user.real_first_name || localProf.real_first_name || '',
+                real_last_name: data.user.real_last_name || localProf.real_last_name || '',
+                gender: data.user.gender || localProf.gender || '',
+                birth_time: data.user.birth_time || localProf.birth_time || '',
+                birth_place: data.user.birth_place || localProf.birth_place || '',
+              };
+              saveLocalProfile(serverProf);
+              // Обновляем блок "Мои данные" если отрисован
+              if (typeof renderProfileDataBlock === 'function') renderProfileDataBlock();
+              // Если имя на сервере - показываем его в ЛК
+              if (serverProf.real_first_name) {
+                document.getElementById('profile-name').textContent = serverProf.real_first_name + (serverProf.real_last_name ? ' ' + serverProf.real_last_name : '');
+              }
+            }
+
             document.getElementById('profile-crystals').textContent = _profileData.crystals;
             document.getElementById('profile-streak').textContent = _profileData.streak;
             document.getElementById('profile-collection').textContent = (_profileData.dars.length || localDars.length) + '/64';
@@ -1000,6 +1085,15 @@
       err.textContent='';
       const gift=calcGift(day,month,year);
       localStorage.setItem(STORAGE_KEY,JSON.stringify({gift,date:raw}));
+
+      // Новый пользователь: сначала собираем профиль, потом показываем результат
+      const profile = getLocalProfile();
+      if (!isProfileComplete(profile)) {
+        // Сохраняем флаг "покажи дар после профиля"
+        sessionStorage.setItem('_pendingShowResult', JSON.stringify(gift));
+        openProfileSetup(true);
+        return;
+      }
       showResult(gift);
     }
 
@@ -1593,6 +1687,151 @@
       }
     }
 
+    // === Модалка профиля (имя, пол, время/место рождения) ===
+    let _psuGender = '';
+    let _psuIsNewUser = true;
+
+    function getLocalProfile() {
+      try { return JSON.parse(localStorage.getItem('_darProfile') || '{}'); }
+      catch (e) { return {}; }
+    }
+
+    function saveLocalProfile(p) {
+      localStorage.setItem('_darProfile', JSON.stringify(p));
+    }
+
+    function isProfileComplete(p) {
+      if (!p) return false;
+      return !!(p.real_first_name && p.real_last_name && (p.gender === 'male' || p.gender === 'female') && p.birth_time && p.birth_place);
+    }
+
+    function openProfileSetup(isNew) {
+      _psuIsNewUser = isNew !== false;
+      const intro = document.getElementById('profile-setup-intro');
+      if (_psuIsNewUser) {
+        intro.innerHTML = 'Чтобы твои предсказания были по-настоящему личными и точными, поделись несколькими деталями о себе. Это займёт минуту.';
+      } else {
+        intro.innerHTML = 'Ты давно с нами, спасибо! Чтобы послания Оракула стали по-настоящему твоими - с правильным обращением и глубиной - заполни пожалуйста эти поля. Это важно для точности расшифровок.';
+      }
+
+      // Предзаполнить если что-то уже есть
+      const p = getLocalProfile();
+      document.getElementById('psu-first-name').value = p.real_first_name || '';
+      document.getElementById('psu-last-name').value = p.real_last_name || '';
+      document.getElementById('psu-birth-time').value = p.birth_time || '';
+      document.getElementById('psu-birth-place').value = p.birth_place || '';
+      _psuGender = p.gender || '';
+      psuSelectGender(_psuGender);
+
+      document.getElementById('psu-status').textContent = '';
+      document.getElementById('profile-setup-modal').style.display = 'block';
+    }
+
+    function closeProfileSetup() {
+      document.getElementById('profile-setup-modal').style.display = 'none';
+    }
+
+    function psuSelectGender(g) {
+      _psuGender = g;
+      document.querySelectorAll('.psu-gender').forEach(b => {
+        b.classList.toggle('active', b.dataset.gender === g);
+      });
+    }
+
+    async function psuSave() {
+      const firstName = document.getElementById('psu-first-name').value.trim();
+      const lastName = document.getElementById('psu-last-name').value.trim();
+      const birthTime = document.getElementById('psu-birth-time').value.trim();
+      const birthPlace = document.getElementById('psu-birth-place').value.trim();
+      const status = document.getElementById('psu-status');
+
+      // Валидация
+      if (!firstName) { status.textContent = 'Укажи своё настоящее имя'; return; }
+      if (!lastName) { status.textContent = 'Укажи свою настоящую фамилию'; return; }
+      if (_psuGender !== 'male' && _psuGender !== 'female') { status.textContent = 'Укажи свой пол'; return; }
+      if (!/^\d{1,2}:\d{2}$/.test(birthTime)) { status.textContent = 'Время в формате ЧЧ:ММ (например 14:30)'; return; }
+      const [h, m] = birthTime.split(':').map(Number);
+      if (h > 23 || m > 59) { status.textContent = 'Проверь время: часы 00-23, минуты 00-59'; return; }
+      if (!birthPlace) { status.textContent = 'Укажи место рождения'; return; }
+
+      const profile = {
+        real_first_name: firstName,
+        real_last_name: lastName,
+        gender: _psuGender,
+        birth_time: birthTime,
+        birth_place: birthPlace,
+      };
+
+      // Сохраняем локально сразу
+      saveLocalProfile(profile);
+
+      // Пытаемся сохранить на сервер (не блокируем если упадёт)
+      const btn = document.getElementById('psu-save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Сохраняю...';
+      try {
+        if (typeof DarAPI !== 'undefined' && DarAPI.saveProfile) {
+          await DarAPI.saveProfile(profile);
+        }
+      } catch (e) {
+        console.warn('Server profile save failed, kept locally:', e.message);
+      }
+      btn.disabled = false;
+      btn.textContent = 'Сохранить и продолжить';
+
+      closeProfileSetup();
+
+      // Обновим ЛК если открыт
+      if (typeof loadProfileData === 'function') loadProfileData();
+
+      // Если был отложенный показ результата расчёта - показываем
+      const pending = sessionStorage.getItem('_pendingShowResult');
+      if (pending) {
+        sessionStorage.removeItem('_pendingShowResult');
+        try {
+          const gift = JSON.parse(pending);
+          if (typeof showResult === 'function') showResult(gift);
+        } catch (e) {}
+      }
+    }
+
+    function psuSkip() {
+      // Разрешаем пропустить, но помечаем как напомнить снова
+      localStorage.setItem('_darProfilePromptSkipped', Date.now().toString());
+      closeProfileSetup();
+    }
+
+    function renderProfileDataBlock() {
+      const block = document.getElementById('profile-data-block');
+      if (!block) return;
+      const p = getLocalProfile();
+      if (!isProfileComplete(p)) {
+        block.innerHTML = '<div style="font-size:12px;color:#F4511E;text-align:center;padding:6px 0 10px">&#9888;&#65039; Заполни для точных расшифровок</div>';
+        return;
+      }
+      const genderLabel = p.gender === 'female' ? '\u2640 Женский' : '\u2642 Мужской';
+      block.innerHTML = `
+        <div style="font-size:13px;color:var(--text);line-height:1.8">
+          <div><span style="color:var(--text-muted)">Имя:</span> ${escapeAdminHtml(p.real_first_name)} ${escapeAdminHtml(p.real_last_name)}</div>
+          <div><span style="color:var(--text-muted)">Пол:</span> ${genderLabel}</div>
+          <div><span style="color:var(--text-muted)">Время рождения:</span> ${escapeAdminHtml(p.birth_time)}</div>
+          <div><span style="color:var(--text-muted)">Место рождения:</span> ${escapeAdminHtml(p.birth_place)}</div>
+        </div>`;
+    }
+
+    // Проверяем при загрузке: если есть сохранённый дар, но нет профиля - показать напоминалку
+    function checkProfileReminder() {
+      const savedDar = localStorage.getItem(STORAGE_KEY || '_darCalculator');
+      if (!savedDar) return; // Новый пользователь - модалка покажется при расчёте дара
+      const profile = getLocalProfile();
+      if (isProfileComplete(profile)) return; // Всё ок
+      // Проверяем как давно пропускали (не чаще раза в день)
+      const skipped = parseInt(localStorage.getItem('_darProfilePromptSkipped') || '0');
+      if (skipped && Date.now() - skipped < 86400000) return; // пропускали меньше суток назад
+      // Показываем напоминалку
+      setTimeout(() => openProfileSetup(false), 1200);
+    }
+
     // === Админ-панель фидбэка ===
     const ADMIN_TELEGRAM_IDS = [269932434]; // Светлана
     let _adminFeedbackCache = [];
@@ -1676,12 +1915,14 @@
       return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
     }
 
-    // Закрытие админ-модалки по клику на фон
+    // Закрытие админ-модалки по клику на фон + проверка профиля на загрузке
     document.addEventListener('DOMContentLoaded', () => {
       const modal = document.getElementById('admin-feedback-modal');
       if (modal) {
         modal.addEventListener('click', e => { if (e.target === modal) closeAdminFeedback(); });
       }
+      // Напоминалка профиля для старых пользователей
+      if (typeof checkProfileReminder === 'function') checkProfileReminder();
     });
 
     // === Обратная связь ===

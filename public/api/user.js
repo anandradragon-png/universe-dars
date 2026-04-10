@@ -27,6 +27,12 @@ module.exports = async (req, res) => {
           crystals: user.crystals,
           access_level: user.access_level,
           streak_count: user.streak_count || 0,
+          real_first_name: user.real_first_name || '',
+          real_last_name: user.real_last_name || '',
+          gender: user.gender || '',
+          birth_time: user.birth_time || '',
+          birth_place: user.birth_place || '',
+          profile_completed: !!user.profile_completed,
         },
         dars: dars.map(d => ({
           dar_code: d.dar_code,
@@ -87,6 +93,46 @@ module.exports = async (req, res) => {
           streak_bonus: streakBonus,
           total_crystals: newBalance
         });
+      }
+
+      // Сохранить расширенный профиль
+      if (action === 'save_profile') {
+        const { real_first_name, real_last_name, gender, birth_time, birth_place } = req.body;
+
+        // Валидация
+        if (!real_first_name || !real_first_name.trim()) {
+          return res.status(400).json({ error: 'Укажи своё имя' });
+        }
+        if (!real_last_name || !real_last_name.trim()) {
+          return res.status(400).json({ error: 'Укажи свою фамилию' });
+        }
+        if (gender !== 'male' && gender !== 'female') {
+          return res.status(400).json({ error: 'Укажи пол' });
+        }
+        if (!birth_time || !/^\d{1,2}:\d{2}$/.test(birth_time)) {
+          return res.status(400).json({ error: 'Укажи время рождения в формате ЧЧ:ММ' });
+        }
+        if (!birth_place || !birth_place.trim()) {
+          return res.status(400).json({ error: 'Укажи место рождения' });
+        }
+
+        try {
+          await updateUser(user.id, {
+            real_first_name: real_first_name.trim().slice(0, 50),
+            real_last_name: real_last_name.trim().slice(0, 50),
+            gender,
+            birth_time,
+            birth_place: birth_place.trim().slice(0, 100),
+            profile_completed: true,
+          });
+          return res.json({ success: true });
+        } catch (dbErr) {
+          console.error('save_profile DB error:', dbErr.message);
+          if (dbErr.message && dbErr.message.includes('column')) {
+            return res.status(500).json({ error: 'База данных не обновлена. Запусти миграцию supabase-migration-profile.sql в Supabase SQL Editor.' });
+          }
+          throw dbErr;
+        }
       }
 
       return res.status(400).json({ error: 'Unknown action' });

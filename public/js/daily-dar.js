@@ -90,10 +90,17 @@ const DailyDar = (function() {
 
   // === ИИ-Оракул: вызов API ===
   function fetchOracle(darCode, mode, userQuery) {
+    // Достаём пол из локального профиля для гендерных форм
+    let gender = '';
+    try {
+      const prof = JSON.parse(localStorage.getItem('_darProfile') || '{}');
+      if (prof.gender === 'male' || prof.gender === 'female') gender = prof.gender;
+    } catch (e) {}
+
     return fetch(`${API_URL}/api/oracle`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dar_code: darCode, mode, user_query: userQuery || '' })
+      body: JSON.stringify({ dar_code: darCode, mode, user_query: userQuery || '', gender })
     })
     .then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);

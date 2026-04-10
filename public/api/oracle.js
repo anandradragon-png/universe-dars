@@ -99,6 +99,103 @@ function sanitizeOracleOutput(parsed, darName, darNamesAll) {
   return parsed;
 }
 
+// ===== Яндекс.Спеллер - проверка орфографии через бесплатный публичный API =====
+// https://yandex.ru/dev/speller/
+// Ловит опечатки и ошибки русской орфографии. Не ловит грамматику и стиль.
+
+// Множество слов, которые спеллер НЕ должен трогать (имена даров, полей, спец. термины)
+let SPELLCHECK_PROTECTED = null;
+function getProtectedWords() {
+  if (SPELLCHECK_PROTECTED) return SPELLCHECK_PROTECTED;
+  const set = new Set();
+  FIELD_NAMES_LIST.forEach(f => set.add(f.toUpperCase()));
+  // Имена всех 64 даров (включая варианты с дефисом и без)
+  Object.values(DARS_DB || {}).forEach(name => {
+    if (!name) return;
+    const up = name.toUpperCase();
+    set.add(up);
+    set.add(up.replace(/-/g, ''));
+    set.add(up.replace(/-/g, ' '));
+  });
+  // Специфичные термины
+  ['YUPDAR', 'YUP', 'ОРАКУЛ'].forEach(w => set.add(w));
+  SPELLCHECK_PROTECTED = set;
+  return set;
+}
+
+async function spellCheckText(text) {
+  if (!text || typeof text !== 'string' || text.length < 3) return text;
+  try {
+    // Таймаут 3 секунды чтобы не блокировать ответ Оракула
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+    const url = 'https://speller.yandex.net/services/spellservice.json/checkText'
+      + '?lang=ru&options=518&text=' + encodeURIComponent(text);
+    // options=518: 2 (ignore digits) + 4 (ignore URLs) + 512 (ignore capital) = safer
+    const resp = await fetch(url, { method: 'GET', signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!resp.ok) return text;
+    const errors = await resp.json();
+    if (!Array.isArray(errors) || errors.length === 0) return text;
+
+    const protected_ = getProtectedWords();
+
+    // Применяем исправления справа налево, чтобы позиции не сдвигались
+    const sorted = errors.slice().sort((a, b) => b.pos - a.pos);
+    let corrected = text;
+    let fixedCount = 0;
+    for (const err of sorted) {
+      if (!err.s || !err.s.length || !err.word) continue;
+      const suggestion = err.s[0];
+      if (!suggestion || suggestion.length < 2) continue;
+
+      // ЗАЩИТА: не трогаем имена даров, полей и защищённые термины
+      const origUpper = err.word.toUpperCase();
+      if (protected_.has(origUpper)) continue;
+      if (protected_.has(origUpper.replace(/-/g, ''))) continue;
+      if (protected_.has(origUpper.replace(/-/g, ' '))) continue;
+
+      // ЗАЩИТА: не исправляем если suggestion = original без дефиса
+      // (спеллер любит "исправлять" "ЛУ-НА" -> "ЛУНА")
+      if (err.word.replace(/-/g, '').toUpperCase() === suggestion.replace(/-/g, '').toUpperCase()) continue;
+
+      corrected = corrected.slice(0, err.pos) + suggestion + corrected.slice(err.pos + err.len);
+      fixedCount++;
+    }
+    if (fixedCount > 0) console.log(`Yandex Speller fixed ${fixedCount} errors in text`);
+    return corrected;
+  } catch (e) {
+    // Таймаут или сетевая ошибка - просто возвращаем исходный текст
+    if (e.name !== 'AbortError') {
+      console.warn('Spellcheck failed:', e.message);
+    }
+    return text;
+  }
+}
+
+async function spellCheckOracleOutput(parsed) {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  // Параллельно проверяем prophecy, practice и все energies
+  const promises = [];
+  if (parsed.prophecy) {
+    promises.push(spellCheckText(parsed.prophecy).then(t => { parsed.prophecy = t; }));
+  }
+  if (parsed.practice) {
+    promises.push(spellCheckText(parsed.practice).then(t => { parsed.practice = t; }));
+  }
+  if (Array.isArray(parsed.energies)) {
+    parsed.energies.forEach((e, i) => {
+      if (typeof e === 'string') {
+        promises.push(spellCheckText(e).then(t => { parsed.energies[i] = t; }));
+      }
+    });
+  }
+  await Promise.all(promises);
+  return parsed;
+}
+
 // ===== Загрузка энциклопедии =====
 
 let darContent = {};
@@ -395,6 +492,13 @@ ${context}`;
 
     // Пост-обработка: чистка символов, удаление утечек названий дара/полей
     parsed = sanitizeOracleOutput(parsed, darName, Object.values(DARS_DB));
+
+    // Орфографическая проверка через Yandex Speller (ловит опечатки Llama)
+    try {
+      parsed = await spellCheckOracleOutput(parsed);
+    } catch (spellErr) {
+      console.warn('Spellcheck stage failed, keeping sanitized text:', spellErr.message);
+    }
 
     res.status(200).json(parsed);
   } catch (e) {

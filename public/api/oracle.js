@@ -273,35 +273,75 @@ ${context}
   }
 
   try {
-    const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
     console.log('Oracle generating for:', dar_code, darName, 'mode:', mode);
 
-    let completion;
-    try {
-      completion = await groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemMsg },
-          { role: 'user', content: userPrompt }
-        ],
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.9,
-        max_tokens: 1400
-      });
-    } catch (modelErr) {
-      console.log('70b failed, trying 8b:', modelErr.message);
-      completion = await groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemMsg },
-          { role: 'user', content: userPrompt }
-        ],
-        model: 'llama-3.1-8b-instant',
-        temperature: 0.9,
-        max_tokens: 1400
-      });
+    // Вызов Anthropic Claude API (Sonnet 4.5) - высокое качество русского языка,
+    // тонкое следование инструкциям. Fallback на Groq/Llama если Claude недоступен.
+    const anthropicKey = (process.env.ANTHROPIC_API_KEY || '').trim();
+    let raw = '';
+
+    if (anthropicKey) {
+      try {
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-5',
+            max_tokens: 1400,
+            temperature: 0.9,
+            system: systemMsg,
+            messages: [
+              { role: 'user', content: userPrompt }
+            ]
+          })
+        });
+
+        if (!resp.ok) {
+          const errText = await resp.text();
+          throw new Error('Claude API ' + resp.status + ': ' + errText.slice(0, 300));
+        }
+        const data = await resp.json();
+        raw = data?.content?.[0]?.text || '';
+        console.log('Claude response length:', raw.length);
+      } catch (claudeErr) {
+        console.warn('Claude failed, falling back to Groq:', claudeErr.message);
+        raw = '';
+      }
     }
 
-    const raw = completion.choices[0]?.message?.content || '';
-    console.log('Oracle response length:', raw.length);
+    // Fallback: Groq/Llama если Claude не настроен или упал
+    if (!raw) {
+      const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
+      let completion;
+      try {
+        completion = await groq.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemMsg },
+            { role: 'user', content: userPrompt }
+          ],
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.9,
+          max_tokens: 1400
+        });
+      } catch (modelErr) {
+        console.log('70b failed, trying 8b:', modelErr.message);
+        completion = await groq.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemMsg },
+            { role: 'user', content: userPrompt }
+          ],
+          model: 'llama-3.1-8b-instant',
+          temperature: 0.9,
+          max_tokens: 1400
+        });
+      }
+      raw = completion.choices[0]?.message?.content || '';
+      console.log('Groq fallback response length:', raw.length);
+    }
 
     const start = raw.indexOf('{');
     const end = raw.lastIndexOf('}');

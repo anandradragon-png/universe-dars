@@ -287,6 +287,27 @@
       <button onclick="openProfileSetup(false)" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">&#9998; Заполнить / изменить</button>
     </div>
 
+    <!-- Моя семья и близкие -->
+    <div class="profile-section" style="border:1px dashed rgba(212,175,55,0.35);background:rgba(212,175,55,0.05)">
+      <div class="profile-section-title">&#128106; МОЯ СЕМЬЯ И БЛИЗКИЕ</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">
+        Здесь скоро появятся слоты под данные близких тебе людей: членов семьи, друзей, партнёров. Для каждого сможешь рассчитать дар и получать индивидуальные послания Оракула.
+      </div>
+      <div style="background:rgba(107,33,168,0.15);border:1px solid rgba(180,120,255,0.3);border-radius:10px;padding:10px;margin-bottom:10px">
+        <div style="font-size:11px;color:#c4a0f0;line-height:1.6">
+          <b>&#128274; Как это будет работать:</b><br>
+          - Количество слотов зависит от уровня доступа<br>
+          - Странник: только свои данные<br>
+          - Хранитель: 3 слота для близких<br>
+          - Мастер: безлимит<br>
+          - Заполненный слот нельзя заменить другим человеком (защита от подмены)
+        </div>
+      </div>
+      <div style="text-align:center;padding:6px 0;font-size:11px;color:#D4AF37">
+        &#9201; Совсем скоро
+      </div>
+    </div>
+
     <!-- Мои друзья -->
     <div class="profile-section">
       <div class="profile-section-title">МОИ ДРУЗЬЯ</div>
@@ -1868,33 +1889,68 @@
       // Сохраняем локально сразу
       saveLocalProfile(profile);
 
-      // Пытаемся сохранить на сервер (не блокируем если упадёт)
+      // Пытаемся сохранить на сервер
       const btn = document.getElementById('psu-save-btn');
       btn.disabled = true;
       btn.textContent = 'Сохраняю...';
+      let serverOk = false;
+      let serverErr = '';
       try {
         if (typeof DarAPI !== 'undefined' && DarAPI.saveProfile) {
           await DarAPI.saveProfile(profile);
+          serverOk = true;
+        } else {
+          serverOk = true; // Нет DarAPI (dev preview) - считаем успехом
         }
       } catch (e) {
-        console.warn('Server profile save failed, kept locally:', e.message);
+        serverErr = e.message || 'Неизвестная ошибка';
+        console.warn('Server profile save failed:', serverErr);
       }
       btn.disabled = false;
       btn.textContent = 'Сохранить и продолжить';
 
-      closeProfileSetup();
-
-      // Обновим ЛК если открыт
-      if (typeof loadProfileData === 'function') loadProfileData();
-
-      // Если был отложенный показ результата расчёта - показываем
-      const pending = sessionStorage.getItem('_pendingShowResult');
-      if (pending) {
-        sessionStorage.removeItem('_pendingShowResult');
-        try {
-          const gift = JSON.parse(pending);
-          if (typeof showResult === 'function') showResult(gift);
-        } catch (e) {}
+      if (serverOk) {
+        // Полный успех - показываем зелёное сообщение
+        status.style.color = '#4ade80';
+        status.innerHTML = '&#10003; Данные сохранены';
+        setTimeout(() => {
+          status.style.color = '#f87171';
+          status.textContent = '';
+          closeProfileSetup();
+          if (typeof loadProfileData === 'function') loadProfileData();
+          const pending = sessionStorage.getItem('_pendingShowResult');
+          if (pending) {
+            sessionStorage.removeItem('_pendingShowResult');
+            try {
+              const gift = JSON.parse(pending);
+              if (typeof showResult === 'function') showResult(gift);
+            } catch (e) {}
+          }
+        }, 900);
+      } else {
+        // Сервер не ответил - данные только в браузере
+        if (serverErr.includes('миграцию') || serverErr.includes('column') || serverErr.includes('birth_lat') || serverErr.includes('birth_lon')) {
+          status.style.color = '#F4511E';
+          status.innerHTML = '&#9888;&#65039; База данных не обновлена. Запусти обновлённую миграцию SQL в Supabase (birth_lat, birth_lon). Данные пока в браузере.';
+        } else {
+          status.style.color = '#fbbf24';
+          status.innerHTML = '&#9888;&#65039; Сервер недоступен. Данные сохранены в браузере, синхронизируются позже.';
+        }
+        // Через 4 секунды всё равно закрываем и показываем результат
+        setTimeout(() => {
+          status.style.color = '#f87171';
+          status.textContent = '';
+          closeProfileSetup();
+          if (typeof loadProfileData === 'function') loadProfileData();
+          const pending = sessionStorage.getItem('_pendingShowResult');
+          if (pending) {
+            sessionStorage.removeItem('_pendingShowResult');
+            try {
+              const gift = JSON.parse(pending);
+              if (typeof showResult === 'function') showResult(gift);
+            } catch (e) {}
+          }
+        }, 4000);
       }
     }
 

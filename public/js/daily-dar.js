@@ -153,20 +153,6 @@ const DailyDar = (function() {
       </div>`;
     }
 
-    // Медитация-рекомендация (ненавязчивая, чтобы усилить энергию дня)
-    if (data.meditation_video && data.meditation_video.url) {
-      const mv = data.meditation_video;
-      const safeTitle = String(mv.title || '').replace(/</g,'&lt;');
-      const safeDesc = String(mv.description || '').replace(/</g,'&lt;');
-      const safeUrl = String(mv.url || '').replace(/"/g,'&quot;');
-      html += `<div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(212,175,55,0.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:8px">&#127911; ЕСЛИ ЗАХОЧЕШЬ УСИЛИТЬ ЭНЕРГИЮ ДНЯ</div>
-        <div style="font-size:13px;color:#e0e0e0;line-height:1.6;margin-bottom:6px">${safeTitle}</div>
-        ${safeDesc ? `<div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">${safeDesc}</div>` : ''}
-        <a href="${safeUrl}" target="_blank" rel="noopener" style="display:inline-block;font-size:12px;color:#D4AF37;text-decoration:none;border-bottom:1px solid rgba(212,175,55,0.35);padding-bottom:1px">Открыть медитацию &rarr;</a>
-      </div>`;
-    }
-
     return html;
   }
 
@@ -215,19 +201,37 @@ const DailyDar = (function() {
     return html;
   }
 
-  // --- Загрузить пророчество (API с fallback на энциклопедию) ---
+  // --- Загрузить пророчество (с проверкой лимита и кэша) ---
   function loadProphecy(targetId, darCode, mode, userQuery) {
     const el = document.getElementById(targetId);
     if (!el) return;
-    el.innerHTML = renderLoading();
 
+    // 1. Проверяем кэш на сегодня для этого дара
+    const cached = getCachedOracle(mode, darCode);
+    if (cached) {
+      el.innerHTML = renderOracleBlock(cached);
+      return;
+    }
+
+    // 2. Если не в кэше - проверяем лимит
+    if (isLimitReached(mode)) {
+      // Лимит исчерпан, но кэша под этот код нет (дар дня сменился или пользователь удалил данные)
+      el.innerHTML = renderLimitReachedBlock(mode);
+      return;
+    }
+
+    // 3. Загружаем пророчество
+    el.innerHTML = renderLoading();
     fetchOracle(darCode, mode, userQuery)
       .then(data => {
+        // Увеличиваем счётчик и сохраняем в кэш
+        incrementLimit(mode);
+        saveCachedOracle(mode, darCode, data);
         if (el) el.innerHTML = renderOracleBlock(data);
       })
       .catch(err => {
         console.log('Oracle fallback:', err.message);
-        // Fallback на данные энциклопедии
+        // Fallback на данные энциклопедии (не считаем за использование лимита)
         loadDarContent().then(content => {
           if (el) {
             const title = mode === 'card' ? '&#10024; Энергии, которые помогут тебе сегодня:'
@@ -237,6 +241,27 @@ const DailyDar = (function() {
           }
         });
       });
+  }
+
+  // --- Блок "Лимит на сегодня исчерпан" ---
+  function renderLimitReachedBlock(mode) {
+    // Определяем пол для правильного окончания
+    let gender = '';
+    try {
+      const prof = JSON.parse(localStorage.getItem('_darProfile') || '{}');
+      if (prof.gender === 'male' || prof.gender === 'female') gender = prof.gender;
+    } catch (e) {}
+    const gotWord = gender === 'female' ? 'получила' : gender === 'male' ? 'получил' : 'получил(а)';
+
+    const title = mode === 'card' ? `Ты уже ${gotWord} своё послание сегодня`
+      : mode === 'personal' ? `Ты уже ${gotWord} своё личное послание сегодня`
+      : `Ты уже ${gotWord} Дар дня сегодня`;
+    return `<div style="text-align:center;padding:32px 20px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(107,33,168,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:18px">
+      <div style="font-size:42px;margin-bottom:14px">&#128170;</div>
+      <div style="font-size:16px;color:#D4AF37;margin-bottom:12px;line-height:1.4;letter-spacing:0.5px">${title}</div>
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">Дай посланию раскрыться в твоей жизни. Новое будет доступно через <b style="color:#D4AF37">${timeUntilReset()}</b>.</div>
+      <div style="font-size:11px;color:var(--text-muted);font-style:italic">Мудрость раскрывается медленно - возвращайся завтра</div>
+    </div>`;
   }
 
   // --- Рендер карточки дара ---
@@ -253,23 +278,108 @@ const DailyDar = (function() {
       </div>`;
   }
 
+  // === ЛИМИТЫ И КЭШ ПРОРОЧЕСТВ (сбрасываются в 00:00) ===
+  const DAILY_LIMITS = {
+    general: 1,  // Дар дня - 1 раз в сутки
+    personal: 1, // Личный дар - 1 раз в сутки
+    card: 3      // Оракул (карта-подсказка) - 3 раза в сутки
+  };
+
+  function todayKey() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function getLimitState(mode) {
+    const key = '_oracleLimit_' + mode;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return { date: todayKey(), count: 0 };
+      const data = JSON.parse(raw);
+      if (data.date !== todayKey()) return { date: todayKey(), count: 0 };
+      return data;
+    } catch (e) {
+      return { date: todayKey(), count: 0 };
+    }
+  }
+
+  function incrementLimit(mode) {
+    const state = getLimitState(mode);
+    state.count += 1;
+    state.date = todayKey();
+    localStorage.setItem('_oracleLimit_' + mode, JSON.stringify(state));
+    return state;
+  }
+
+  function getRemainingLimit(mode) {
+    const max = DAILY_LIMITS[mode] || 1;
+    const state = getLimitState(mode);
+    return Math.max(0, max - state.count);
+  }
+
+  function isLimitReached(mode) {
+    return getRemainingLimit(mode) === 0;
+  }
+
+  // Кэш пророчеств: сохраняем последний ответ Оракула на сутки
+  function saveCachedOracle(mode, darCode, data) {
+    const key = '_oracleCache_' + mode;
+    try {
+      localStorage.setItem(key, JSON.stringify({
+        date: todayKey(),
+        darCode,
+        data
+      }));
+    } catch (e) {}
+  }
+
+  function getCachedOracle(mode, darCode) {
+    const key = '_oracleCache_' + mode;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (obj.date !== todayKey()) return null;
+      if (obj.darCode !== darCode) return null;
+      return obj.data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Время до обнуления в формате "ЧЧ:ММ"
+  function timeUntilReset() {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const diff = tomorrow - now;
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    if (hours > 0) return `${hours} ч ${minutes} мин`;
+    return `${minutes} мин`;
+  }
+
   // === РЕНДЕР ОСНОВНОГО ЭКРАНА ===
   function render() {
     const container = document.getElementById('daily-dar-content');
     if (!container) return;
 
     const tabs = [
-      { id: 'card', icon: '&#127183;', label: 'Карта' },
+      { id: 'card', icon: '&#127183;', label: 'Оракул' },
       { id: 'general', icon: '&#127775;', label: 'Дар дня' },
-      { id: 'personal', icon: '&#128302;', label: 'Мой дар' }
+      { id: 'personal', icon: '&#128302;', label: 'Личное послание' }
     ];
 
     let html = `<div style="display:flex;gap:6px;margin-bottom:16px;justify-content:center">`;
     tabs.forEach(t => {
       const isActive = t.id === _currentTab;
-      html += `<button onclick="DailyDar.switchTab('${t.id}')" style="flex:1;max-width:120px;padding:10px 8px;border-radius:12px;border:1px solid ${isActive ? 'rgba(212,175,55,0.6)' : 'var(--border)'};background:${isActive ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.04)'};cursor:pointer;text-align:center;font-family:Georgia,serif;transition:all .2s">
+      html += `<button onclick="DailyDar.switchTab('${t.id}')" style="flex:1;max-width:130px;min-width:0;padding:10px 6px;border-radius:12px;border:1px solid ${isActive ? 'rgba(212,175,55,0.6)' : 'var(--border)'};background:${isActive ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.04)'};cursor:pointer;text-align:center;font-family:Georgia,serif;transition:all .2s">
         <div style="font-size:18px;margin-bottom:2px">${t.icon}</div>
-        <div style="font-size:11px;color:${isActive ? '#D4AF37' : 'var(--text-dim)'};letter-spacing:1px">${t.label}</div>
+        <div style="font-size:10px;color:${isActive ? '#D4AF37' : 'var(--text-dim)'};letter-spacing:0.5px;line-height:1.3;word-wrap:break-word">${t.label}</div>
       </button>`;
     });
     html += `</div><div id="daily-dar-tab-content"></div>`;
@@ -287,10 +397,18 @@ const DailyDar = (function() {
     }
   }
 
-  // === ВКЛАДКА 1: Карта-подсказка ===
+  // === ВКЛАДКА 1: Оракул (карта-подсказка) ===
   function renderCardTab(container) {
+    const remaining = getRemainingLimit('card');
+    const limitInfo = `<div style="text-align:center;margin-bottom:10px;font-size:11px;color:var(--text-muted)">Осталось обращений сегодня: <span style="color:#D4AF37;font-weight:bold">${remaining}</span> из ${DAILY_LIMITS.card}</div>`;
+
     if (!_cardRevealed) {
+      if (remaining === 0) {
+        container.innerHTML = `${limitInfo}${renderLimitReachedBlock('card')}`;
+        return;
+      }
       container.innerHTML = `
+        ${limitInfo}
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:14px;color:var(--text);margin-bottom:8px">Сформулируй свой запрос</div>
           <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">Какой вопрос тебя волнует? Какие энергии помогут приблизиться к решению?</div>
@@ -300,11 +418,15 @@ const DailyDar = (function() {
         <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:8px">Нажми на карту, чтобы вытянуть подсказку</div>`;
     } else {
       // Показать результат
-      let html = renderDarCard(_pulledCard, 'ТВОЯ КАРТА-ПОДСКАЗКА', null, false);
+      let html = limitInfo;
+      html += renderDarCard(_pulledCard, 'ТВОЯ КАРТА-ПОДСКАЗКА', null, false);
       html += `<div id="oracle-card-result"></div>`;
-      html += `<div style="text-align:center;margin-top:12px">
-        <button onclick="DailyDar.resetCard()" style="padding:10px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif">&#128260; Вытянуть ещё раз</button>
-      </div>`;
+      // Кнопка "Вытянуть ещё раз" - только если после этого раза ещё остались попытки
+      if (remaining > 0) {
+        html += `<div style="text-align:center;margin-top:12px">
+          <button onclick="DailyDar.resetCard()" style="padding:10px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif">&#128260; Вытянуть ещё раз</button>
+        </div>`;
+      }
       container.innerHTML = html;
       // Запросить пророчество от Оракула
       loadProphecy('oracle-card-result', _pulledCard, 'card', _userQuery);

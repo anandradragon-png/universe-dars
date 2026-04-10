@@ -337,22 +337,10 @@ const DailyDar = (function() {
     const today = new Date();
     const dar = calcGeneralDar(today);
     const dateStr = formatDate(today);
-    const day = today.getDate(), month = today.getMonth()+1, year = today.getFullYear();
-    const dayD = day.toString().split('').join('+');
-    const monthD = month.toString().split('').join('+');
-    const yearD = year.toString().split('').join('+');
 
     let html = `<div style="text-align:center;font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:14px">${dateStr}</div>`;
     html += renderDarCard(dar.code, 'ОБЩИЙ ДАР ДНЯ', null, true);
     html += `<div id="oracle-general-result"></div>`;
-    html += `<div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
-      <div style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:6px">ФОРМУЛА РАСЧЁТА</div>
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.8">
-        МА = (${dayD}+${monthD}) = ${dar.ma} (${getFieldName(dar.ma)})<br>
-        ЖИ = (${yearD}) = ${dar.zhi} (${getFieldName(dar.zhi)})<br>
-        КУН = МА+ЖИ = ${dar.ma}+${dar.zhi} = ${dar.kun} (${getFieldName(dar.kun)})
-      </div>
-    </div>`;
     container.innerHTML = html;
     loadProphecy('oracle-general-result', dar.code, 'general');
   }
@@ -381,44 +369,10 @@ const DailyDar = (function() {
     const generalDar = calcGeneralDar(today);
     const personalDar = calcPersonalDar(userGift.code, generalDar.code);
     const dateStr = formatDate(today);
-    const userName = getDarName(userGift.code);
-    const generalName = getDarName(generalDar.code);
-    const personalName = getDarName(personalDar.code);
-    const [uMa,uZhi,uKun] = userGift.code.split('-').map(Number);
-    const [gMa,gZhi,gKun] = generalDar.code.split('-').map(Number);
 
     let html = `<div style="text-align:center;font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:14px">${dateStr}</div>`;
     html += renderDarCard(personalDar.code, 'ТВОЙ ДАР ДНЯ', null, true);
     html += `<div id="oracle-personal-result"></div>`;
-
-    // Формула
-    html += `<div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
-      <div style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:10px">ФОРМУЛА РАСЧЁТА</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-        <div style="background:rgba(107,33,168,0.2);border:1px solid rgba(180,120,255,0.3);border-radius:10px;padding:8px 14px;text-align:center">
-          <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">Твой дар</div>
-          <div style="font-size:15px;color:var(--text)">${userName}</div>
-          <div style="font-size:11px;color:var(--text-dim)">${userGift.code}</div>
-        </div>
-        <div style="font-size:18px;color:#D4AF37">+</div>
-        <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:8px 14px;text-align:center">
-          <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">Дар дня</div>
-          <div style="font-size:15px;color:var(--text)">${generalName}</div>
-          <div style="font-size:11px;color:var(--text-dim)">${generalDar.code}</div>
-        </div>
-        <div style="font-size:18px;color:#D4AF37">=</div>
-        <div style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:8px 14px;text-align:center">
-          <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">Твой дар дня</div>
-          <div style="font-size:15px;color:var(--text)">${personalName}</div>
-          <div style="font-size:11px;color:var(--text-dim)">${personalDar.code}</div>
-        </div>
-      </div>
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.8">
-        МА: ${uMa}+${gMa} = ${personalDar.ma} (${getFieldName(personalDar.ma)})<br>
-        ЖИ: ${uZhi}+${gZhi} = ${personalDar.zhi} (${getFieldName(personalDar.zhi)})<br>
-        КУН: ${uKun}+${gKun} = ${personalDar.kun} (${getFieldName(personalDar.kun)})
-      </div>
-    </div>`;
 
     container.innerHTML = html;
     loadProphecy('oracle-personal-result', personalDar.code, 'personal');

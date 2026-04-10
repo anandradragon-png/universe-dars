@@ -7,7 +7,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    :root{--bg:#0d0221;--bg2:#1a0533;--bg3:#0a1628;--text:#e8d5ff;--text-dim:#9b7ec8;--text-muted:#5a3d8a;--border:rgba(180,120,255,0.2);--card:rgba(255,255,255,0.05)}
+    :root{--bg:#0d0221;--bg2:#1a0533;--bg3:#0a1628;--text:#f0e2ff;--text-dim:#c4a8e8;--text-muted:#a488cc;--border:rgba(180,120,255,0.3);--card:rgba(255,255,255,0.07)}
     html,body{height:100%;overflow:hidden;background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 40%,var(--bg3) 100%);font-family:Georgia,serif;color:var(--text)}
     body{display:flex;flex-direction:column}
     .stars{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 60% 10%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,rgba(255,255,255,.4) 0%,transparent 100%)}
@@ -15,10 +15,10 @@
     #btn-profile:hover{transform:scale(1.1);box-shadow:0 2px 15px rgba(212,175,55,0.5)}
     #btn-profile img{width:100%;height:100%;object-fit:cover}
     #profile-overlay{display:none;position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px)}
-    #profile-panel{position:fixed;top:0;right:-100%;width:85%;max-width:380px;height:100%;z-index:9998;background:linear-gradient(180deg,#0d0221 0%,#1a0533 50%,#0a1628 100%);border-left:1px solid var(--border);overflow-y:auto;transition:right .35s cubic-bezier(0.4,0,0.2,1);padding:20px 16px 100px}
+    #profile-panel{position:fixed;top:0;right:-100%;width:85%;max-width:380px;height:100%;z-index:9998;background:linear-gradient(180deg,#0d0221 0%,#1a0533 50%,#0a1628 100%);border-left:1px solid rgba(212,175,55,0.3);overflow-y:auto;transition:right .35s cubic-bezier(0.4,0,0.2,1);padding:20px 16px 100px}
     #profile-panel.open{right:0}
-    .profile-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
-    .profile-section-title{font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+    .profile-section{background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+    .profile-section-title{font-size:12px;color:#D4AF37;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-weight:600}
     .profile-level-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:13px;letter-spacing:1px;font-family:Georgia,serif}
     .level-basic{background:rgba(255,255,255,0.08);border:1px solid var(--border);color:var(--text-dim)}
     .level-extended{background:rgba(107,33,168,0.2);border:1px solid rgba(180,120,255,0.4);color:#c4a0f0}
@@ -291,12 +291,24 @@
       <button onclick="profileShareLink()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;transition:all .2s">&#128233; Пригласить друга</button>
     </div>
 
-    <!-- Обратная связь -->
-    <div class="profile-section" style="cursor:pointer" onclick="closeProfile();setTimeout(openFeedback,300)">
+    <!-- Чат беты -->
+    <div class="profile-section" style="cursor:pointer;background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(107,33,168,0.15));border:1px solid rgba(212,175,55,0.35)" onclick="openBetaChat()">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="font-size:20px">&#128172;</div>
         <div>
-          <div style="font-size:14px;color:var(--text)">Обратная связь</div>
+          <div style="font-size:14px;color:#D4AF37">Чат беты</div>
+          <div style="font-size:11px;color:var(--text-dim)">Общение с командой и другими тестерами</div>
+        </div>
+        <div style="margin-left:auto;color:#D4AF37">&#10095;</div>
+      </div>
+    </div>
+
+    <!-- Обратная связь -->
+    <div class="profile-section" style="cursor:pointer" onclick="closeProfile();setTimeout(openFeedback,300)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:20px">&#128221;</div>
+        <div>
+          <div style="font-size:14px;color:var(--text)">Форма обратной связи</div>
           <div style="font-size:11px;color:var(--text-dim)">Баги, идеи, вопросы</div>
         </div>
         <div style="margin-left:auto;color:var(--text-muted)">&#10095;</div>
@@ -1523,6 +1535,18 @@
         document.getElementById('daily-activities').style.display = 'block';
       } else {
         document.getElementById('screen-input').style.display = 'block';
+      }
+    }
+
+    // === Чат беты ===
+    const BETA_CHAT_URL = 'https://t.me/+YLyl125-EfcwZjJi';
+
+    function openBetaChat() {
+      const tg = window.Telegram?.WebApp;
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(BETA_CHAT_URL);
+      } else {
+        window.open(BETA_CHAT_URL, '_blank');
       }
     }
 

@@ -315,6 +315,18 @@
       </div>
     </div>
 
+    <!-- Админ: Фидбэк тестеров (виден только админу) -->
+    <div class="profile-section" id="profile-admin-feedback" style="display:none;cursor:pointer;background:linear-gradient(135deg,rgba(244,81,30,0.12),rgba(107,33,168,0.15));border:1px solid rgba(244,81,30,0.35)" onclick="openAdminFeedback()">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:20px">&#128225;</div>
+        <div>
+          <div style="font-size:14px;color:#F4511E">Админ: Фидбэк тестеров</div>
+          <div style="font-size:11px;color:var(--text-dim)">Все сообщения обратной связи <span id="admin-feedback-badge" style="display:none;background:#F4511E;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px"></span></div>
+        </div>
+        <div style="margin-left:auto;color:#F4511E">&#10095;</div>
+      </div>
+    </div>
+
     <!-- О приложении -->
     <div style="text-align:center;padding:16px 0;font-size:11px;color:var(--text-muted)">
       YupDar v1.0<br>
@@ -489,6 +501,36 @@
     .fb-cat:hover{border-color:rgba(180,120,255,0.4)}
   </style>
 
+  <!-- Админ: Модалка со списком фидбэка -->
+  <div id="admin-feedback-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);padding:16px;overflow-y:auto">
+    <div style="max-width:640px;margin:0 auto;background:linear-gradient(180deg,#1a0533,#0d0221);border:1px solid rgba(244,81,30,0.35);border-radius:16px;padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:18px;color:#F4511E;letter-spacing:2px">&#128225; ФИДБЭК ТЕСТЕРОВ</div>
+          <div id="admin-feedback-count" style="font-size:12px;color:var(--text-dim);margin-top:4px"></div>
+        </div>
+        <button onclick="closeAdminFeedback()" style="background:none;border:none;color:var(--text-dim);font-size:24px;cursor:pointer;padding:4px">&#10005;</button>
+      </div>
+      <div id="admin-feedback-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="adm-fb-filter active" data-cat="all" onclick="filterAdminFeedback('all')">Все</button>
+        <button class="adm-fb-filter" data-cat="bug" onclick="filterAdminFeedback('bug')">&#128027; Баги</button>
+        <button class="adm-fb-filter" data-cat="idea" onclick="filterAdminFeedback('idea')">&#128161; Идеи</button>
+        <button class="adm-fb-filter" data-cat="question" onclick="filterAdminFeedback('question')">&#10067; Вопросы</button>
+        <button class="adm-fb-filter" data-cat="other" onclick="filterAdminFeedback('other')">&#128172; Другое</button>
+      </div>
+      <div id="admin-feedback-list"><div style="text-align:center;color:var(--text-dim);padding:40px">Загрузка...</div></div>
+    </div>
+  </div>
+  <style>
+    .adm-fb-filter{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
+    .adm-fb-filter.active{background:rgba(244,81,30,0.25);border-color:rgba(244,81,30,0.5);color:#F4511E}
+    .adm-fb-item{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
+    .adm-fb-cat-bug{color:#f87171}
+    .adm-fb-cat-idea{color:#fbbf24}
+    .adm-fb-cat-question{color:#60a5fa}
+    .adm-fb-cat-other{color:#c4a0f0}
+  </style>
+
   <div class="nav-bar">
     <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">&#10024;</span><span class="nav-label">Мой Дар</span></button>
     <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon">&#128142;</span><span class="nav-label">Сокровищница</span></button>
@@ -553,6 +595,7 @@
       document.getElementById('profile-overlay').style.display = 'block';
       setTimeout(() => document.getElementById('profile-panel').classList.add('open'), 10);
       loadProfileData();
+      showAdminSectionIfAdmin();
     }
 
     function closeProfile() {
@@ -1549,6 +1592,97 @@
         window.open(BETA_CHAT_URL, '_blank');
       }
     }
+
+    // === Админ-панель фидбэка ===
+    const ADMIN_TELEGRAM_IDS = [269932434]; // Светлана
+    let _adminFeedbackCache = [];
+    let _adminFeedbackFilter = 'all';
+
+    function isCurrentUserAdmin() {
+      const tg = window.Telegram?.WebApp;
+      const userId = tg?.initDataUnsafe?.user?.id;
+      if (userId && ADMIN_TELEGRAM_IDS.includes(Number(userId))) return true;
+      // Dev-fallback для тестирования в браузере
+      const devId = localStorage.getItem('_dev_telegram_id');
+      if (devId && ADMIN_TELEGRAM_IDS.includes(Number(devId))) return true;
+      return false;
+    }
+
+    function showAdminSectionIfAdmin() {
+      const section = document.getElementById('profile-admin-feedback');
+      if (!section) return;
+      section.style.display = isCurrentUserAdmin() ? 'block' : 'none';
+    }
+
+    async function openAdminFeedback() {
+      const modal = document.getElementById('admin-feedback-modal');
+      const list = document.getElementById('admin-feedback-list');
+      const count = document.getElementById('admin-feedback-count');
+      modal.style.display = 'block';
+      list.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:40px">Загрузка...</div>';
+      count.textContent = '';
+      try {
+        const data = await DarAPI.adminGetFeedback();
+        _adminFeedbackCache = data.feedback || [];
+        count.textContent = `Всего: ${_adminFeedbackCache.length}`;
+        renderAdminFeedback();
+      } catch (e) {
+        list.innerHTML = `<div style="color:#f87171;text-align:center;padding:20px">Ошибка: ${escapeAdminHtml(e.message || 'неизвестная')}</div>`;
+      }
+    }
+
+    function closeAdminFeedback() {
+      document.getElementById('admin-feedback-modal').style.display = 'none';
+    }
+
+    function filterAdminFeedback(cat) {
+      _adminFeedbackFilter = cat;
+      document.querySelectorAll('.adm-fb-filter').forEach(b => {
+        b.classList.toggle('active', b.dataset.cat === cat);
+      });
+      renderAdminFeedback();
+    }
+
+    function renderAdminFeedback() {
+      const list = document.getElementById('admin-feedback-list');
+      const items = _adminFeedbackFilter === 'all'
+        ? _adminFeedbackCache
+        : _adminFeedbackCache.filter(f => f.category === _adminFeedbackFilter);
+      if (!items.length) {
+        list.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:40px">Сообщений пока нет</div>';
+        return;
+      }
+      const catIcons = { bug: '🐛', idea: '💡', question: '❓', other: '📝' };
+      const catNames = { bug: 'Баг', idea: 'Идея', question: 'Вопрос', other: 'Другое' };
+      list.innerHTML = items.map(f => {
+        const date = new Date(f.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const icon = catIcons[f.category] || '📝';
+        const catLabel = catNames[f.category] || 'Другое';
+        const catClass = `adm-fb-cat-${f.category || 'other'}`;
+        return `<div class="adm-fb-item">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <span style="font-size:16px">${icon}</span>
+            <span class="${catClass}" style="font-size:12px;letter-spacing:1px;text-transform:uppercase;font-weight:600">${catLabel}</span>
+            <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">${date}</span>
+          </div>
+          <div style="font-size:14px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-wrap:break-word">${escapeAdminHtml(f.message || '')}</div>
+          ${f.page ? `<div style="font-size:10px;color:var(--text-dim);margin-top:8px;opacity:0.7">📄 ${escapeAdminHtml(f.page)}</div>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    function escapeAdminHtml(s) {
+      if (!s) return '';
+      return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    // Закрытие админ-модалки по клику на фон
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('admin-feedback-modal');
+      if (modal) {
+        modal.addEventListener('click', e => { if (e.target === modal) closeAdminFeedback(); });
+      }
+    });
 
     // === Обратная связь ===
     let _fbCategory = 'bug';

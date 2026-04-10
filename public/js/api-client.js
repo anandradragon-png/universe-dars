@@ -34,6 +34,8 @@ const DarAPI = (function() {
     getProfile: () => request('/api/user'),
     saveDar: (dar_code, dar_name, birth_date) =>
       request('/api/user', 'POST', { action: 'save_dar', dar_code, dar_name, birth_date }),
+    saveProfile: (profile) =>
+      request('/api/user', 'POST', Object.assign({ action: 'save_profile' }, profile)),
     dailyLogin: () =>
       request('/api/user', 'POST', { action: 'daily_login' }),
 

@@ -255,14 +255,15 @@ const IntuitionGame = (function() {
           ? 'border-color:rgba(212,175,55,0.8);box-shadow:0 0 12px rgba(212,175,55,0.4);background:linear-gradient(135deg,#2a0845 0%,#1a0533 100%)'
           : '';
 
+        const centerContent = isSelected
+          ? '<div style="width:44px;height:54px;display:flex;align-items:center;justify-content:center;font-size:24px;color:rgba(212,175,55,0.9)">&#10003;</div>'
+          : '<img src="images/caduceus.png" alt="" style="width:44px;height:54px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(212,175,55,0.35))">';
         html += `
           <div class="game-card-back" onclick="IntuitionGame.selectCard(${i})"
             style="background:linear-gradient(135deg,#1a0533 0%,#0d0221 50%,#1a0533 100%);border:2px solid rgba(212,175,55,0.3);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;${selStyle}">
-            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-bottom:4px">&#10022;</div>
-            <div style="width:28px;height:28px;border:1px solid rgba(212,175,55,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center">
-              <div style="font-size:14px;color:rgba(212,175,55,0.5)">${isSelected ? '&#10003;' : '&#10024;'}</div>
-            </div>
-            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-top:4px">&#10022;</div>
+            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-bottom:2px">&#10022;</div>
+            ${centerContent}
+            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-top:2px">&#10022;</div>
           </div>`;
       }
     });

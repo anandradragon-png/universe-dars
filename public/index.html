@@ -1910,7 +1910,7 @@
       btn.textContent = 'Сохранить и продолжить';
 
       if (serverOk) {
-        // Полный успех - показываем зелёное сообщение
+        // Полный успех - показываем зелёное сообщение, закрываем через секунду
         status.style.color = '#4ade80';
         status.innerHTML = '&#10003; Данные сохранены';
         setTimeout(() => {
@@ -1928,29 +1928,31 @@
           }
         }, 900);
       } else {
-        // Сервер не ответил - данные только в браузере
-        if (serverErr.includes('миграцию') || serverErr.includes('column') || serverErr.includes('birth_lat') || serverErr.includes('birth_lon')) {
-          status.style.color = '#F4511E';
-          status.innerHTML = '&#9888;&#65039; База данных не обновлена. Запусти обновлённую миграцию SQL в Supabase (birth_lat, birth_lon). Данные пока в браузере.';
-        } else {
-          status.style.color = '#fbbf24';
-          status.innerHTML = '&#9888;&#65039; Сервер недоступен. Данные сохранены в браузере, синхронизируются позже.';
-        }
-        // Через 4 секунды всё равно закрываем и показываем результат
-        setTimeout(() => {
-          status.style.color = '#f87171';
-          status.textContent = '';
-          closeProfileSetup();
-          if (typeof loadProfileData === 'function') loadProfileData();
-          const pending = sessionStorage.getItem('_pendingShowResult');
-          if (pending) {
-            sessionStorage.removeItem('_pendingShowResult');
-            try {
-              const gift = JSON.parse(pending);
-              if (typeof showResult === 'function') showResult(gift);
-            } catch (e) {}
-          }
-        }, 4000);
+        // Сервер не ответил - показываем предупреждение, пользователь закрывает сам
+        const isMigrationErr = serverErr.includes('миграцию') || serverErr.includes('column') || serverErr.includes('birth_lat') || serverErr.includes('birth_lon');
+        const color = isMigrationErr ? '#F4511E' : '#fbbf24';
+        const msg = isMigrationErr
+          ? 'База данных не обновлена. Запусти обновлённую миграцию SQL в Supabase (колонки birth_lat, birth_lon). Данные сохранены в браузере.'
+          : 'Сервер недоступен. Данные сохранены в браузере, синхронизируются позже.';
+        status.style.color = color;
+        status.innerHTML = `<div style="padding:10px;border:1px solid ${color};border-radius:10px;background:rgba(0,0,0,0.3);text-align:left">&#9888;&#65039; ${msg}<br><br><button onclick="psuAcknowledgeWarning()" style="width:100%;padding:8px;border-radius:8px;border:none;background:${color};color:#fff;font-size:12px;cursor:pointer;font-family:Georgia,serif;margin-top:6px">Понятно, продолжить</button></div>`;
+      }
+    }
+
+    // Закрыть предупреждение и продолжить поток (показать результат дара если был отложен)
+    function psuAcknowledgeWarning() {
+      const status = document.getElementById('psu-status');
+      status.style.color = '#f87171';
+      status.textContent = '';
+      closeProfileSetup();
+      if (typeof loadProfileData === 'function') loadProfileData();
+      const pending = sessionStorage.getItem('_pendingShowResult');
+      if (pending) {
+        sessionStorage.removeItem('_pendingShowResult');
+        try {
+          const gift = JSON.parse(pending);
+          if (typeof showResult === 'function') showResult(gift);
+        } catch (e) {}
       }
     }
 

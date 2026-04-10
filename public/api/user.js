@@ -32,6 +32,8 @@ module.exports = async (req, res) => {
           gender: user.gender || '',
           birth_time: user.birth_time || '',
           birth_place: user.birth_place || '',
+          birth_lat: user.birth_lat !== null && user.birth_lat !== undefined ? Number(user.birth_lat) : null,
+          birth_lon: user.birth_lon !== null && user.birth_lon !== undefined ? Number(user.birth_lon) : null,
           profile_completed: !!user.profile_completed,
         },
         dars: dars.map(d => ({
@@ -97,7 +99,7 @@ module.exports = async (req, res) => {
 
       // Сохранить расширенный профиль
       if (action === 'save_profile') {
-        const { real_first_name, real_last_name, gender, birth_time, birth_place } = req.body;
+        const { real_first_name, real_last_name, gender, birth_time, birth_place, birth_lat, birth_lon } = req.body;
 
         // Валидация
         if (!real_first_name || !real_first_name.trim()) {
@@ -115,6 +117,14 @@ module.exports = async (req, res) => {
         if (!birth_place || !birth_place.trim()) {
           return res.status(400).json({ error: 'Укажи место рождения' });
         }
+        const lat = Number(birth_lat);
+        const lon = Number(birth_lon);
+        if (!isFinite(lat) || lat < -90 || lat > 90) {
+          return res.status(400).json({ error: 'Некорректная широта. Выбери город из подсказок.' });
+        }
+        if (!isFinite(lon) || lon < -180 || lon > 180) {
+          return res.status(400).json({ error: 'Некорректная долгота. Выбери город из подсказок.' });
+        }
 
         try {
           await updateUser(user.id, {
@@ -123,6 +133,8 @@ module.exports = async (req, res) => {
             gender,
             birth_time,
             birth_place: birth_place.trim().slice(0, 100),
+            birth_lat: lat,
+            birth_lon: lon,
             profile_completed: true,
           });
           return res.json({ success: true });

@@ -177,9 +177,11 @@ const Treasury = (function() {
 
     const shadows = getShadows(code);
     const darData = (window.DAR_CONTENT && window.DAR_CONTENT[code]) || {};
+    const hasEssence = !!(darData.essence || darData.light_power);
     const hasMeditation = !!(darData.meditation || darData.activation);
-    // Общее число квестов = тени + 1 медитация (если есть данные)
-    const totalQuests = shadows.length + (hasMeditation ? 1 : 0);
+    // Структура квестов: [1] Суть дара -> [2..N] Грани -> [N+1] Медитация
+    // ESSENCE_IDX = 1, SHADOWS_START = 2, MEDITATION_IDX = shadows.length + 2
+    const totalQuests = (hasEssence ? 1 : 0) + shadows.length + (hasMeditation ? 1 : 0);
     // unlocked_sections из БД - счётчик пройденных квестов
     const completedCount = Math.min(getUnlockedSections(code), totalQuests);
 
@@ -188,26 +190,54 @@ const Treasury = (function() {
       <div style="text-align:center;margin:16px 0 20px">
         <div style="font-size:22px;letter-spacing:2px;color:var(--text);margin-bottom:4px">${name}</div>
         ${arch ? `<div style="font-size:13px;color:#c4a0f0;font-style:italic;margin-bottom:8px">${arch}</div>` : ''}
-        <div style="font-size:12px;color:#D4AF37;letter-spacing:1px">Граней раскрыто: ${completedCount} из ${totalQuests || '?'}</div>
+        <div style="font-size:12px;color:#D4AF37;letter-spacing:1px">Раскрыто: ${completedCount} из ${totalQuests || '?'}</div>
       </div>
 
       <div style="background:linear-gradient(135deg,rgba(107,33,168,0.12),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:14px;margin-bottom:16px">
         <div style="font-size:12px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600">&#10024; Алхимия дара</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6">Каждая грань этого дара открывает путь к твоей внутренней силе. Пройди через них с открытым сердцем, и дар раскроется в своём истинном свете.</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6">Начни с сути дара, пройди через каждую его грань, и заверши медитацией активации. Так сила дара раскроется в тебе полностью.</div>
       </div>
     `;
 
     if (!totalQuests) {
-      html += `<div style="text-align:center;color:var(--text-muted);padding:30px 20px;font-size:13px">Грани этого дара пока не раскрыты.</div>`;
+      html += `<div style="text-align:center;color:var(--text-muted);padding:30px 20px;font-size:13px">Алхимия этого дара пока не раскрыта.</div>`;
       container.innerHTML = html;
       return;
     }
 
     html += `<div class="dar-sections-list">`;
 
-    // Квесты граней
+    // [1] Квест "Суть дара" - всегда первый
+    if (hasEssence) {
+      const ESSENCE_IDX = 1;
+      const isEssCompleted = ESSENCE_IDX <= completedCount;
+      const isEssNext = ESSENCE_IDX === completedCount + 1;
+
+      if (isEssCompleted) {
+        html += `
+          <div class="dar-section-item dar-section-unlocked" onclick="Treasury.openEssenceQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:4px;padding:14px;background:rgba(180,120,255,0.1);border-color:rgba(180,120,255,0.4)">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
+              <span style="font-size:14px;color:#c4a0f0;font-weight:bold">&#127775; Суть дара</span>
+              <span style="color:#2ecc71;font-size:16px">&#10003;</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);font-style:italic">Суть узнана - перечитать</div>
+          </div>`;
+      } else if (isEssNext) {
+        html += `
+          <div class="dar-section-item dar-section-next" onclick="Treasury.openEssenceQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:6px;padding:14px;background:rgba(180,120,255,0.08);border-color:rgba(180,120,255,0.4)">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
+              <span style="font-size:14px;color:#c4a0f0;font-weight:bold">&#127775; Суть дара</span>
+              <span style="color:#c4a0f0;font-size:12px">Узнать &rarr;</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Священная энергия дара и её проявление в твоей жизни.</div>
+          </div>`;
+      }
+      // essence первый, locked случай невозможен
+    }
+
+    // [2..N] Квесты граней
     shadows.forEach((shadow, i) => {
-      const idx = i + 1;
+      const idx = (hasEssence ? 2 : 1) + i;
       const isCompleted = idx <= completedCount;
       const isNext = idx === completedCount + 1;
 
@@ -233,7 +263,7 @@ const Treasury = (function() {
         html += `
           <div class="dar-section-item dar-section-locked" style="flex-direction:column;align-items:flex-start;gap:4px;padding:14px">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-              <span style="font-size:14px;color:var(--text-muted)">&#128274; Грань ${idx}</span>
+              <span style="font-size:14px;color:var(--text-muted)">&#128274; Грань ${idx - (hasEssence ? 1 : 0)}</span>
               <span style="color:var(--text-muted)">&#128274;</span>
             </div>
             <div style="font-size:11px;color:var(--text-muted);font-style:italic">Откроется после раскрытия предыдущей</div>
@@ -241,9 +271,9 @@ const Treasury = (function() {
       }
     });
 
-    // Финальный квест: Медитация - активация дара
+    // [N+1] Финальный квест: Медитация - активация дара
     if (hasMeditation) {
-      const medIdx = shadows.length + 1;
+      const medIdx = (hasEssence ? 1 : 0) + shadows.length + 1;
       const isMedCompleted = medIdx <= completedCount;
       const isMedNext = medIdx === completedCount + 1;
 
@@ -272,7 +302,7 @@ const Treasury = (function() {
               <span style="font-size:14px;color:var(--text-muted)">&#128274; Медитация активации</span>
               <span style="color:var(--text-muted)">&#128274;</span>
             </div>
-            <div style="font-size:11px;color:var(--text-muted);font-style:italic">Откроется после проработки теней</div>
+            <div style="font-size:11px;color:var(--text-muted);font-style:italic">Откроется после раскрытия всех граней</div>
           </div>`;
       }
     }
@@ -309,11 +339,13 @@ const Treasury = (function() {
     const darData = (window.DAR_CONTENT && window.DAR_CONTENT[code]) || {};
     const meditation = cleanMarkdown(darData.meditation || '');
     const activation = cleanMarkdown(darData.activation || '');
+    const hasEssence = !!(darData.essence || darData.light_power);
     const container = document.getElementById('treasury-content');
 
     const shadows = getShadows(code);
-    const medIdx = shadows.length + 1;
-    const completedCount = Math.min(getUnlockedSections(code), medIdx);
+    // Meditation idx = essence(1) + shadows(N) + 1
+    const medIdx = (hasEssence ? 1 : 0) + shadows.length + 1;
+    const completedCount = getUnlockedSections(code);
     const alreadyDone = medIdx <= completedCount;
 
     const reflKey = '_meditation_refl_' + code;
@@ -352,11 +384,9 @@ const Treasury = (function() {
         <textarea id="meditation-reflection" rows="4" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Georgia,serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="Твои слова...">${savedReflection}</textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
           <span style="font-size:11px;color:var(--text-muted)">Мин. 30 символов</span>
-          <span style="font-size:12px;color:#D4AF37">${alreadyDone ? 'Уже пройдено' : '+10 &#128142;'}</span>
+          <span style="font-size:12px;color:#D4AF37">${alreadyDone ? '&#10003; Уже пройдено' : '+10 &#128142;'}</span>
         </div>
-        ${alreadyDone
-          ? `<button class="btn btn-secondary" style="margin-top:10px;opacity:0.7" onclick="Treasury.openDar('${code}')">Вернуться</button>`
-          : `<button class="btn btn-secondary" style="margin-top:10px" onclick="Treasury.submitMeditationQuest('${code}')">Активировать дар</button>`}
+        <button class="btn btn-secondary" style="margin-top:10px" onclick="Treasury.submitMeditationQuest('${code}')">${alreadyDone ? 'Отправить обновлённый ответ' : 'Активировать дар'}</button>
       </div>
     `;
 
@@ -374,8 +404,10 @@ const Treasury = (function() {
     const reflKey = '_meditation_refl_' + code;
     localStorage.setItem(reflKey, answer);
 
+    const darData = (window.DAR_CONTENT && window.DAR_CONTENT[code]) || {};
+    const hasEssence = !!(darData.essence || darData.light_power);
     const shadows = getShadows(code);
-    const medIdx = shadows.length + 1;
+    const medIdx = (hasEssence ? 1 : 0) + shadows.length + 1;
     const reward = 10;
 
     const oldCoaching = container.querySelector('.coaching-block');
@@ -423,19 +455,143 @@ const Treasury = (function() {
     openDar(code);
   }
 
+  // --- Открыть квест "Суть дара" (священная энергия + рефлексия) ---
+  function openEssenceQuest(code) {
+    const name = getDarName(code);
+    const arch = getDarArchetype(code);
+    const darData = (window.DAR_CONTENT && window.DAR_CONTENT[code]) || {};
+    const essence = cleanMarkdown(darData.essence || '');
+    const lightPower = cleanMarkdown(darData.light_power || '');
+    const container = document.getElementById('treasury-content');
+
+    const ESSENCE_IDX = 1;
+    const completedCount = getUnlockedSections(code);
+    const alreadyDone = ESSENCE_IDX <= completedCount;
+
+    const reflKey = '_essence_refl_' + code;
+    const savedReflection = localStorage.getItem(reflKey) || '';
+
+    let html = `
+      <button class="btn-back" style="display:block" onclick="Treasury.openDar('${code}')">&#8592; ${name}</button>
+
+      <div style="text-align:center;margin:14px 0 18px">
+        <div style="font-size:11px;color:#c4a0f0;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">&#127775; Суть дара</div>
+        <div style="font-size:20px;color:var(--text);letter-spacing:1px">${name}</div>
+        ${arch ? `<div style="font-size:12px;color:#c4a0f0;font-style:italic;margin-top:4px">${arch}</div>` : ''}
+      </div>
+    `;
+
+    if (essence) {
+      html += `
+        <div style="background:rgba(107,33,168,0.12);border:1px solid rgba(180,120,255,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
+          <div style="font-size:11px;color:#c4a0f0;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#9889; Священная энергия</div>
+          <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap">${essence}</div>
+        </div>`;
+    }
+
+    if (lightPower) {
+      html += `
+        <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
+          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#127775; Светлая сила</div>
+          <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap">${lightPower}</div>
+        </div>`;
+    }
+
+    // Блок рефлексии
+    html += `
+      <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:11px;color:#2ecc71;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#128302; Твоё наблюдение</div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">Вспомни, как этот дар проявлялся в твоей жизни. В каких моментах ты чувствовала его силу? Какую суперсилу он может дать, если ты раскроешь его полностью?</div>
+        <textarea id="essence-reflection" rows="5" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Georgia,serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="Твои наблюдения...">${savedReflection}</textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-size:11px;color:var(--text-muted)">Мин. 30 символов</span>
+          <span style="font-size:12px;color:#D4AF37">${alreadyDone ? '&#10003; Уже узнано' : '+5 &#128142;'}</span>
+        </div>
+        <button class="btn btn-secondary" style="margin-top:10px" onclick="Treasury.submitEssenceQuest('${code}')">${alreadyDone ? 'Отправить обновлённый ответ' : 'Отправить ответ'}</button>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  async function submitEssenceQuest(code) {
+    const container = document.getElementById('treasury-content');
+    const answer = document.getElementById('essence-reflection')?.value?.trim();
+    if (!answer || answer.length < 30) {
+      alert(`Запиши хотя бы 30 символов. Сейчас: ${answer?.length || 0}.`);
+      return;
+    }
+
+    const reflKey = '_essence_refl_' + code;
+    localStorage.setItem(reflKey, answer);
+
+    const ESSENCE_IDX = 1;
+    const reward = 5;
+
+    const oldCoaching = container.querySelector('.coaching-block');
+    if (oldCoaching) oldCoaching.remove();
+
+    setSubmitButtonLoading(container, true);
+
+    let review;
+    try {
+      review = await DarAPI.reviewShadow({
+        quest_type: 'essence',
+        dar_name: getDarName(code),
+        user_answer: answer,
+        gender: getUserGender()
+      });
+    } catch (e) {
+      review = { accepted: true, message: 'Твоё наблюдение принято.' };
+    }
+
+    setSubmitButtonLoading(container, false);
+
+    if (!review.accepted) {
+      renderCoachingBlock(container, review.message, review.coaching_questions);
+      setTimeout(() => {
+        const b = container.querySelector('.coaching-block');
+        if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+      return;
+    }
+
+    // Принято - засчитываем кристаллы + открываем следующую секцию
+    try {
+      const result = await DarAPI.submitQuest(code, ESSENCE_IDX, 'essence', answer);
+      if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.animateEarn(result.crystals_earned);
+      }
+      const d = userDars.find(d => d.dar_code === code);
+      if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, ESSENCE_IDX);
+    } catch (e) {
+      if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(reward);
+      const d = userDars.find(d => d.dar_code === code);
+      if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, ESSENCE_IDX);
+    }
+
+    alert((review.message || 'Суть дара узнана!') + `\n\n+${reward} кристаллов мудрости`);
+    openDar(code);
+  }
+
   // --- Открыть теневой квест (УЗНАЙ → ПРОЖИВИ → ОТПУСТИ) ---
   function openShadowQuest(code, questIdx) {
     const name = getDarName(code);
     const shadows = getShadows(code);
-    const shadow = shadows[questIdx - 1];
+    const darData = (window.DAR_CONTENT && window.DAR_CONTENT[code]) || {};
+    const hasEssence = !!(darData.essence || darData.light_power);
+    // Грани начинаются с idx=2 если есть essence, иначе с 1
+    const shadowArrayIdx = questIdx - (hasEssence ? 2 : 1);
+    const shadow = shadows[shadowArrayIdx];
     const container = document.getElementById('treasury-content');
     if (!shadow) {
       openDar(code);
       return;
     }
 
-    const completedCount = Math.min(getUnlockedSections(code), shadows.length);
+    const completedCount = getUnlockedSections(code);
     const alreadyDone = questIdx <= completedCount;
+    const displayIdx = shadowArrayIdx + 1; // для отображения "Грань 1 из N"
 
     // Проверить, есть ли сохранённая рефлексия
     const reflKey = '_shadow_refl_' + code + '_' + questIdx;
@@ -445,7 +601,7 @@ const Treasury = (function() {
       <button class="btn-back" style="display:block" onclick="Treasury.openDar('${code}')">&#8592; ${name}</button>
 
       <div style="text-align:center;margin:14px 0 18px">
-        <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Грань ${questIdx} из ${shadows.length}</div>
+        <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Грань ${displayIdx} из ${shadows.length}</div>
         <div style="font-size:20px;color:var(--text);letter-spacing:1px">${shadow.title}</div>
       </div>
 
@@ -471,11 +627,9 @@ const Treasury = (function() {
         <textarea id="shadow-reflection" rows="4" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Georgia,serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="Твои слова...">${savedReflection}</textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
           <span style="font-size:11px;color:var(--text-muted)">Мин. 30 символов</span>
-          <span style="font-size:12px;color:#D4AF37">${alreadyDone ? 'Уже раскрыто' : '+7 &#128142;'}</span>
+          <span style="font-size:12px;color:#D4AF37">${alreadyDone ? '&#10003; Уже раскрыто' : '+7 &#128142;'}</span>
         </div>
-        ${alreadyDone
-          ? `<button class="btn btn-secondary" style="margin-top:10px;opacity:0.7" onclick="Treasury.openDar('${code}')">Вернуться</button>`
-          : `<button class="btn btn-secondary" style="margin-top:10px" onclick="Treasury.submitShadowQuest('${code}', ${questIdx})">Раскрыть грань</button>`}
+        <button class="btn btn-secondary" style="margin-top:10px" onclick="Treasury.submitShadowQuest('${code}', ${questIdx})">${alreadyDone ? 'Отправить обновлённый ответ' : 'Отправить ответ'}</button>
       </div>
     `;
 
@@ -547,7 +701,10 @@ const Treasury = (function() {
     localStorage.setItem(reflKey, answer);
 
     const shadows = getShadows(code);
-    const shadow = shadows[questIdx - 1];
+    const darData = (window.DAR_CONTENT && window.DAR_CONTENT[code]) || {};
+    const hasEssence = !!(darData.essence || darData.light_power);
+    // Грани в массиве начинаются с 0, а questIdx начинается с 2 (если есть essence) или 1
+    const shadow = shadows[questIdx - (hasEssence ? 2 : 1)];
 
     // Убираем прошлый блок коучинг-вопросов если был
     const oldCoaching = container.querySelector('.coaching-block');
@@ -628,5 +785,5 @@ const Treasury = (function() {
     }
   }
 
-  return { init, render, openDar, openShadowQuest, openMeditationQuest, submitShadowQuest, submitMeditationQuest, unlockRandom };
+  return { init, render, openDar, openEssenceQuest, openShadowQuest, openMeditationQuest, submitEssenceQuest, submitShadowQuest, submitMeditationQuest, unlockRandom };
 })();

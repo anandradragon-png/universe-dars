@@ -243,21 +243,12 @@ const DailyDar = (function() {
   function renderDarCard(code, title, subtitle, showFormula) {
     const name = getDarName(code);
     const arch = getDarArchetype(code);
-    const [ma, zhi, kun] = code.split('-').map(Number);
-    let formulaHtml = '';
-    if (showFormula) {
-      formulaHtml = `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.6">
-        МА=${ma} (${getFieldName(ma)}) + ЖИ=${zhi} (${getFieldName(zhi)}) + КУН=${kun} (${getFieldName(kun)})
-      </div>`;
-    }
     return `
       <div style="text-align:center;background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:24px 16px;margin-bottom:16px">
         ${title ? `<div style="font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:12px">${title}</div>` : ''}
         ${renderDarImage(code, 100)}
         <div style="font-size:28px;letter-spacing:4px;color:var(--text);margin-top:14px;text-shadow:0 0 20px rgba(180,120,255,0.4)">${name}</div>
-        <div style="font-size:13px;color:var(--text-dim);letter-spacing:3px;margin-top:4px">${code}</div>
         ${arch ? `<div style="font-size:13px;color:#c4a0f0;font-style:italic;margin-top:6px">${arch}</div>` : ''}
-        ${formulaHtml}
         ${subtitle ? `<div style="font-size:12px;color:var(--text-dim);margin-top:8px">${subtitle}</div>` : ''}
       </div>`;
   }

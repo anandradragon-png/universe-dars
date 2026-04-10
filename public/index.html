@@ -1509,7 +1509,7 @@
 
     // Контент даров загружается из отдельного файла
     let DAR_CONTENT = {};
-    fetch('dar-content.json').then(r=>r.json()).then(data=>{DAR_CONTENT=data;}).catch(()=>{});
+    fetch('dar-content.json').then(r=>r.json()).then(data=>{DAR_CONTENT=data;window.DAR_CONTENT=data;}).catch(()=>{});
 
     function openDarDetail(code){
       const name = DARS[code]||code;

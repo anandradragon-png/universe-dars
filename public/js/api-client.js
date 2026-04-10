@@ -66,6 +66,9 @@ const DarAPI = (function() {
     submitQuest: (dar_code, section_index, quest_type, answer_text) =>
       request('/api/quest', 'POST', { dar_code, section_index, quest_type, answer_text }),
 
+    // ---- AI-гуру: проверка рефлексии теневого квеста ----
+    reviewShadow: (payload) => request('/api/shadow-review', 'POST', payload),
+
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>
       request('/api/message', 'POST', { giftCode }),

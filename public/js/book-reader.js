@@ -140,6 +140,13 @@ const BookReader = (function() {
     const container = document.getElementById('book-content');
     if (!container) return;
 
+    // Обновляем уровень доступа на каждый рендер — профиль мог подгрузиться позже init
+    try {
+      if (window.PROFILE && window.PROFILE.access_level) {
+        accessLevel = window.PROFILE.access_level;
+      }
+    } catch(e) {}
+
     if (!bookData) {
       container.innerHTML = `
         <div style="text-align:center;padding:60px 20px;color:var(--text-dim)">

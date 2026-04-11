@@ -129,7 +129,25 @@
     .accordion-body ol li::marker{color:#D4AF37;font-weight:bold}
     #tab-profile{padding:40px 24px;text-align:center}
     #tab-base{padding:0;max-width:700px;margin:0 auto}
-    #tab-book{max-width:700px;margin:0 auto}
+    #tab-book{max-width:720px;margin:0 auto}
+    .book-chapter{overflow-wrap:break-word;word-wrap:break-word}
+    .book-chapter .book-body p{margin:0 0 14px;text-align:justify;hyphens:auto}
+    .book-chapter .book-body h1,.book-chapter .book-body h2,.book-chapter .book-body h3{margin:20px 0 10px;line-height:1.3;text-align:center}
+    .book-chapter .book-body h1{font-size:1.3em;color:#D4AF37}
+    .book-chapter .book-body h2{font-size:1.2em;color:#c4a0f0}
+    .book-chapter .book-body h3{font-size:1.1em;color:#D4AF37}
+    .book-chapter.theme-sepia .book-body h1,.book-chapter.theme-sepia .book-body h3{color:#8b6b2c}
+    .book-chapter.theme-sepia .book-body h2{color:#6b4f9c}
+    .book-chapter.theme-light .book-body h1,.book-chapter.theme-light .book-body h3{color:#7c3aed}
+    .book-chapter.theme-light .book-body h2{color:#6b21a8}
+    .book-chapter .book-body ul,.book-chapter .book-body ol{padding-left:20px;margin:0 0 14px}
+    .book-chapter .book-body li{margin-bottom:6px;line-height:inherit}
+    .book-chapter .book-body img{display:block;max-width:100%;height:auto;margin:16px auto;border-radius:8px;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+    .book-chapter .book-body strong{font-weight:700}
+    .book-chapter .book-body em{font-style:italic;opacity:0.95}
+    .book-chapter .book-body blockquote{margin:14px 0;padding:10px 14px;border-left:3px solid #D4AF37;background:rgba(212,175,55,0.08);border-radius:0 8px 8px 0;font-style:italic}
+    .book-chapter.theme-sepia .book-body blockquote{border-left-color:#8b6b2c;background:rgba(139,107,44,0.12)}
+    .book-chapter.theme-light .book-body blockquote{border-left-color:#7c3aed;background:rgba(124,58,237,0.08)}
     .base-lock{text-align:center;padding:40px 24px}
     .promo-input{width:100%;max-width:320px;padding:14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:18px;letter-spacing:3px;text-align:center;outline:none;font-family:Georgia,serif;text-transform:uppercase}
     .promo-input:focus{border-color:rgba(124,58,237,0.7)}
@@ -705,8 +723,7 @@
   <script src="js/crystals.js?v=2"></script>
   <script src="js/treasury.js?v=4"></script>
   <script src="js/referral.js?v=2"></script>
-  <script src="js/book-reader.js?v=4"></script>
-  <script src="js/pdf-reader.js?v=1"></script>
+  <script src="js/book-reader.js?v=7"></script>
   <script src="js/intuition-game.js?v=3"></script>
   <script src="js/daily-dar.js?v=1"></script>
   <script>
@@ -1054,10 +1071,8 @@
         Treasury.render();
       }
       if (name === 'book') {
-        const isMobile = window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-        if (isMobile && typeof PdfReader !== 'undefined') {
-          PdfReader.render();
-        } else if (typeof BookReader !== 'undefined') {
+        // Единый HTML-ридер для мобильного и десктопа
+        if (typeof BookReader !== 'undefined') {
           BookReader.render();
         }
       }

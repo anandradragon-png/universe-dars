@@ -163,6 +163,9 @@
     .book-chapter .book-body ul,.book-chapter .book-body ol{padding-left:20px;margin:0 0 14px}
     .book-chapter .book-body li{margin-bottom:6px;line-height:inherit}
     .book-chapter .book-body img{display:block;max-width:100%;height:auto;margin:16px auto;border-radius:8px;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+    /* На тёмной теме картинки книги (символы даров) - тёмные на тёмном фоне.
+       Подкладываем светлый фон под картинки чтобы тёмные символы были видны. */
+    .book-chapter.theme-dark .book-body img{background:rgba(245,240,225,0.95);padding:14px;box-shadow:0 0 18px rgba(212,175,55,0.15)}
     .book-chapter .book-body strong{font-weight:700}
     .book-chapter .book-body em{font-style:italic;opacity:0.95}
     .book-chapter .book-body blockquote{margin:14px 0;padding:10px 14px;border-left:3px solid #D4AF37;background:rgba(212,175,55,0.08);border-radius:0 8px 8px 0;font-style:italic}

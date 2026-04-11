@@ -193,7 +193,7 @@
     .stub-title{font-size:20px;letter-spacing:2px;color:var(--text);font-weight:normal;margin-bottom:12px}
     .stub-text{font-size:14px;color:var(--text-dim);line-height:1.7;max-width:300px;margin:0 auto}
     .user-name{font-size:15px;color:var(--text);margin-bottom:14px}
-    .nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:200;padding:8px 16px 12px;background:rgba(10,5,25,0.97);border-top:1px solid var(--border);display:flex;gap:8px;justify-content:center;width:100%;max-width:700px}
+    .nav-bar{position:fixed;bottom:0;bottom:env(safe-area-inset-bottom,0);left:50%;transform:translateX(-50%);z-index:200;padding:8px 16px 12px;padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));background:rgba(10,5,25,0.97);border-top:1px solid var(--border);display:flex;gap:8px;justify-content:center;width:100%;max-width:700px;will-change:transform}
     .nav-btn{flex:1 1 0;min-width:0;padding:10px 4px 8px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s}
     .nav-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6)}
     .nav-btn .nav-icon{font-size:20px;line-height:1}
@@ -721,14 +721,59 @@
   <!-- Игровые модули -->
   <script src="js/api-client.js?v=2"></script>
   <script src="js/crystals.js?v=2"></script>
-  <script src="js/treasury.js?v=4"></script>
+  <script src="js/treasury.js?v=5"></script>
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=8"></script>
   <script src="js/intuition-game.js?v=3"></script>
   <script src="js/daily-dar.js?v=1"></script>
   <script>
     const tg = window.Telegram?.WebApp;
-    if (tg) { tg.expand(); tg.ready(); }
+    if (tg) {
+      tg.expand();
+      tg.ready();
+
+      // Фикс нижней панели при сворачивании/разворачивании бота в Telegram:
+      // Android иногда меняет viewport после свёртки, и position:fixed у .nav-bar
+      // ломается. Принудительно переэкспандим + обновляем CSS-переменную.
+      function resyncViewport() {
+        try {
+          if (tg.expand) tg.expand();
+          const vh = tg.viewportStableHeight || tg.viewportHeight || window.innerHeight;
+          if (vh && vh > 0) {
+            document.documentElement.style.setProperty('--tg-viewport-height', vh + 'px');
+          }
+          // Переотрисовка nav-bar: убираем и ставим класс, чтобы сбросить rendering-кеш
+          const nav = document.querySelector('.nav-bar');
+          if (nav) {
+            const prev = nav.style.display;
+            nav.style.display = 'none';
+            // force reflow
+            void nav.offsetHeight;
+            nav.style.display = prev || '';
+          }
+        } catch(e) { console.warn('resyncViewport failed:', e); }
+      }
+
+      try {
+        if (typeof tg.onEvent === 'function') {
+          tg.onEvent('viewportChanged', resyncViewport);
+        }
+      } catch(e) {}
+
+      // Когда бот возвращается из фона (visibilitychange) - тоже переэкспандим
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+          setTimeout(resyncViewport, 100);
+        }
+      });
+
+      // На всякий случай - при изменении размера окна
+      window.addEventListener('resize', function() {
+        // debounce чуть-чуть
+        clearTimeout(window._resyncTimer);
+        window._resyncTimer = setTimeout(resyncViewport, 150);
+      });
+    }
 
     function getUserId() {
       if (tg?.initDataUnsafe?.user?.id) return 'tg_' + tg.initDataUnsafe.user.id;
@@ -1087,6 +1132,45 @@
 
     function reduce(n){while(n>9)n=n.toString().split('').reduce((s,d)=>s+parseInt(d),0);return n}
     function calcGift(d,m,y){const ma=reduce(d+m),zhi=reduce(y.toString().split('').reduce((s,c)=>s+parseInt(c),0)),kun=reduce(ma+zhi);return{ma,zhi,kun,code:`${ma}-${zhi}-${kun}`}}
+
+    // Склонение числительных: pluralize(1, 'день', 'дня', 'дней') => 'день'
+    function pluralize(n, one, few, many) {
+      const mod10 = n % 10;
+      const mod100 = n % 100;
+      if (mod10 === 1 && mod100 !== 11) return one;
+      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+      return many;
+    }
+
+    // Неблокирующее тост-уведомление (не прерывает ввод юзера как alert)
+    function showToast(text, type) {
+      try {
+        const host = document.getElementById('toast-host') || (function(){
+          const el = document.createElement('div');
+          el.id = 'toast-host';
+          el.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:92vw;width:auto';
+          document.body.appendChild(el);
+          return el;
+        })();
+        const toast = document.createElement('div');
+        const bg = type === 'error' ? 'linear-gradient(135deg,#9c1f3b,#7a0f26)' :
+                   type === 'success' ? 'linear-gradient(135deg,#107c3a,#0b5a29)' :
+                   'linear-gradient(135deg,#6b21a8,#D4AF37)';
+        toast.style.cssText = 'background:' + bg + ';color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;font-family:Georgia,serif;box-shadow:0 8px 24px rgba(0,0,0,0.4);opacity:0;transform:translateY(-10px);transition:all 0.3s ease;pointer-events:auto;max-width:420px;text-align:center;line-height:1.4';
+        toast.textContent = text;
+        host.appendChild(toast);
+        requestAnimationFrame(() => {
+          toast.style.opacity = '1';
+          toast.style.transform = 'translateY(0)';
+        });
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-10px)';
+          setTimeout(() => toast.remove(), 300);
+        }, 3800);
+      } catch(e) { console.warn('showToast failed:', e); }
+    }
+    window.showToast = showToast;
 
     document.getElementById('dateInput').addEventListener('input',function(){
       let v=this.value.replace(/\D/g,'');
@@ -1480,27 +1564,64 @@
     }
 
     function formatText(text){
+      // 1. Markdown inline (bold, italic)
       let h = text
         .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
         .replace(/\*(.+?)\*/g,'<em>$1</em>');
-      // Numbered lists (1. **Step**)
-      h = h.replace(/((?:^|\n)\d+\.\s*.+)+/gm, m => {
-        const items = m.trim().split('\n').filter(Boolean)
-          .map(l=>`<li>${l.replace(/^\d+\.\s*/,'')}</li>`).join('');
-        return `<ol>${items}</ol>`;
-      });
-      // Bullet lists
-      h = h.replace(/((?:^|\n)[•\-–]\s*.+)+/gm, m => {
-        const items = m.trim().split('\n').filter(Boolean)
-          .map(l=>`<li>${l.replace(/^[•\-–]\s*/,'')}</li>`).join('');
-        return `<ul>${items}</ul>`;
-      });
-      h = h.split(/\n\n+/).map(p => {
-        p = p.trim(); if(!p) return '';
-        if(p.startsWith('<ul>')||p.startsWith('<ol>')) return p;
-        return `<p>${p.replace(/\n/g,'<br>')}</p>`;
-      }).join('');
-      return h;
+
+      // 2. Разбиваем на параграфы (по \n\n), ЗАТЕМ группируем соседние
+      // нумерованные и маркированные пункты в один <ol>/<ul>.
+      // Это решает проблему, когда данные имеют формат
+      // "1. Пункт\n\n2. Пункт\n\n3. Пункт" - раньше каждый пункт становился
+      // отдельным <ol><li>..</li></ol> и счётчик сбрасывался на 1.
+      const paragraphs = h.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+      const blocks = [];
+      let currentList = null; // { tag, items }
+
+      const NUM_RE = /^(\d+)\.\s+([\s\S]+)$/;
+      const BULLET_RE = /^[•\-–]\s+([\s\S]+)$/;
+
+      function flushList() {
+        if (!currentList) return;
+        blocks.push(`<${currentList.tag}>${currentList.items.map(i=>`<li>${i}</li>`).join('')}</${currentList.tag}>`);
+        currentList = null;
+      }
+
+      for (const p of paragraphs) {
+        const numMatch = p.match(NUM_RE);
+        const bulletMatch = p.match(BULLET_RE);
+        if (numMatch) {
+          const content = numMatch[2].trim().replace(/\n/g,'<br>');
+          if (!currentList || currentList.tag !== 'ol') {
+            flushList();
+            currentList = { tag: 'ol', items: [] };
+          }
+          currentList.items.push(content);
+        } else if (bulletMatch) {
+          const content = bulletMatch[1].trim().replace(/\n/g,'<br>');
+          if (!currentList || currentList.tag !== 'ul') {
+            flushList();
+            currentList = { tag: 'ul', items: [] };
+          }
+          currentList.items.push(content);
+        } else {
+          flushList();
+          // Проверим однострочные списки внутри параграфа (одна строка \n)
+          // Для простоты: если в строке несколько строк подряд с цифрами, тоже собираем.
+          const lines = p.split('\n');
+          if (lines.length > 1 && lines.every(l => /^(\d+)\.\s/.test(l.trim()))) {
+            const items = lines.map(l => l.trim().replace(/^\d+\.\s+/,''));
+            blocks.push(`<ol>${items.map(i=>`<li>${i}</li>`).join('')}</ol>`);
+          } else if (lines.length > 1 && lines.every(l => /^[•\-–]\s/.test(l.trim()))) {
+            const items = lines.map(l => l.trim().replace(/^[•\-–]\s+/,''));
+            blocks.push(`<ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul>`);
+          } else {
+            blocks.push(`<p>${p.replace(/\n/g,'<br>')}</p>`);
+          }
+        }
+      }
+      flushList();
+      return blocks.join('');
     }
 
     function hideDescription(){
@@ -2283,10 +2404,11 @@
 
       try {
         const data = await DarAPI.getHallOfFame();
-        renderHallOfFame(data);
+        renderHallOfFame(data || { titles: [], counts: { day: 0, week: 0, month: 0 } });
       } catch (e) {
         console.warn('hall-of-fame load failed:', e.message);
-        container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:10px 0;font-style:italic">Не удалось загрузить титулы.</div>';
+        // При сетевой ошибке показываем дружелюбный пустой state, не красный текст
+        renderHallOfFame({ titles: [], counts: { day: 0, week: 0, month: 0 } });
       }
     }
 
@@ -2555,14 +2677,24 @@
           }
         }).catch(() => { /* Offline - используем localStorage */ });
 
-        // Ежедневный вход
+        // Ежедневный вход - используем неблокирующий тост (не прерывает ввод даты)
         DarAPI.dailyLogin().then(result => {
-          if (result && !result.already_logged && result.crystals_earned) {
+          if (!result || result.already_logged) return;
+          // Сервер - источник правды для баланса
+          if (typeof result.total_crystals === 'number') {
+            CrystalsUI.setBalance(result.total_crystals);
+          } else if (result.crystals_earned) {
             CrystalsUI.animateEarn(result.crystals_earned);
-            if (result.streak_bonus > 0) {
-              setTimeout(() => alert(`Серия ${result.streak} дней! Бонус: +${result.streak_bonus} кристаллов`), 1000);
-            }
           }
+          const dayWord = pluralize(result.streak || 1, 'день', 'дня', 'дней');
+          // Откладываем тост - пусть юзер успеет напечатать дату
+          setTimeout(() => {
+            if (result.streak_bonus > 0) {
+              showToast(`\u2728 Серия ${result.streak} ${dayWord}! Бонус: +${result.streak_bonus} кристаллов`, 'success');
+            } else if (result.crystals_earned > 0) {
+              showToast(`\u2728 +${result.crystals_earned} кристалла за ежедневный вход`, 'success');
+            }
+          }, 2500);
         }).catch(() => {});
 
         // Обработка реферала (если пришёл по ссылке)

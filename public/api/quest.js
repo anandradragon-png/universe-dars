@@ -38,12 +38,19 @@ module.exports = async (req, res) => {
       }
 
       // Таблица наград по типу задания
+      // Должна совпадать с константами reward в treasury.js при вызовах submitQuest
       const QUEST_REWARDS = {
+        // Старые типы (legacy)
         read: 1,
         question: 3,
         reflection: 7,
         practice: 5,
-        report: 10
+        report: 10,
+        // Новые типы коучинг-диалога (должны совпадать с treasury.js)
+        essence: 5,       // Суть дара
+        meditation: 7,    // Активация дара (медитация)
+        shadow_work: 7,   // Работа с тенью (грани)
+        shadow: 7         // Alias для shadow_work
       };
 
       const reward = QUEST_REWARDS[quest_type] || 1;

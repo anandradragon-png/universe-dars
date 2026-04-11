@@ -111,6 +111,9 @@ async function checkAndAwardPrevPeriods(db) {
   }
 }
 
+// Пустой ответ, который клиент отрендерит как "Пока нет титулов"
+const EMPTY_RESPONSE = { titles: [], counts: { day: 0, week: 0, month: 0 } };
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -123,9 +126,16 @@ module.exports = async (req, res) => {
     if (!tgUser) return;
 
     const db = getSupabase();
-    const user = await getOrCreateUser(tgUser);
+    let user;
+    try {
+      user = await getOrCreateUser(tgUser);
+    } catch (e) {
+      console.warn('hall-of-fame: getOrCreateUser failed:', e.message);
+      return res.status(200).json(EMPTY_RESPONSE);
+    }
 
     // Проверяем и присуждаем титулы за закрытые периоды (lazy подсчёт)
+    // Если таблица intuition_scores ещё не создана - тихо пропускаем
     try {
       await checkAndAwardPrevPeriods(db);
     } catch (e) {
@@ -133,29 +143,33 @@ module.exports = async (req, res) => {
     }
 
     // Получаем титулы этого пользователя
-    const { data: titles, error } = await db
-      .from('hall_of_fame')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('awarded_at', { ascending: false })
-      .limit(50);
-
-    if (error) {
-      console.error('hall-of-fame fetch error:', error.message);
-      if (error.message.includes('relation') && error.message.includes('does not exist')) {
-        return res.json({ titles: [], note: 'Таблица hall_of_fame не создана. Запусти миграцию leaderboard.' });
+    let titles = [];
+    try {
+      const { data, error } = await db
+        .from('hall_of_fame')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('awarded_at', { ascending: false })
+        .limit(50);
+      if (error) {
+        // Таблица может не существовать - не считаем это ошибкой, просто нет титулов
+        console.warn('hall-of-fame select error:', error.message, error.code);
+        return res.status(200).json(EMPTY_RESPONSE);
       }
-      throw error;
+      titles = data || [];
+    } catch (e) {
+      console.warn('hall-of-fame select threw:', e.message);
+      return res.status(200).json(EMPTY_RESPONSE);
     }
 
     // Счётчики
     const counts = { day: 0, week: 0, month: 0 };
-    for (const t of titles || []) {
+    for (const t of titles) {
       if (counts[t.title_type] !== undefined) counts[t.title_type]++;
     }
 
-    return res.json({
-      titles: (titles || []).map(t => ({
+    return res.status(200).json({
+      titles: titles.map(t => ({
         title_type: t.title_type,
         period_start: t.period_start,
         score: t.score,
@@ -165,7 +179,8 @@ module.exports = async (req, res) => {
       counts
     });
   } catch (e) {
-    console.error('hall-of-fame.js error:', e.message);
-    return res.status(500).json({ error: e.message });
+    // Ловим абсолютно всё - пустой ответ лучше, чем красная ошибка в ЛК
+    console.error('hall-of-fame.js fatal:', e.message);
+    return res.status(200).json(EMPTY_RESPONSE);
   }
 };

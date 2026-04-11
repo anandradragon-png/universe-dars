@@ -43,6 +43,20 @@ const Treasury = (function() {
     const container = document.getElementById('treasury-content');
     if (!container) return;
 
+    // Периодическая синхронизация кристаллов с сервером (защита от рассинхрона)
+    if (typeof DarAPI !== 'undefined') {
+      DarAPI.getTreasury().then(data => {
+        if (typeof data.crystals === 'number' && typeof CrystalsUI !== 'undefined') {
+          if (CrystalsUI.getBalance() !== data.crystals) {
+            CrystalsUI.setBalance(data.crystals);
+          }
+        }
+        if (Array.isArray(data.dars) && data.dars.length > 0) {
+          userDars = data.dars;
+        }
+      }).catch(() => {});
+    }
+
     const allDars = window.DARS || {};
     const totalUnlocked = userDars.length;
     const total = Object.keys(allDars).length;
@@ -405,11 +419,12 @@ const Treasury = (function() {
       <div id="coach-messages" style="max-height:400px;overflow-y:auto;margin-bottom:12px">`;
 
     if (dialogue.messages.length === 0) {
-      // Приветствие наставника
+      // Приветствие наставника (формы глаголов по полу)
+      const felt = genderText('почувствовал', 'почувствовала');
       const greeting = config.questType === 'essence'
-        ? 'Я с тобой. Поделись тем, что уже открывается в тебе об этом даре. Вспомни моменты, когда ты чувствовала эту силу. Расскажи своими словами.'
+        ? `Я с тобой. Поделись тем, что уже открывается в тебе об этом даре. Вспомни моменты, когда ты ${genderText('чувствовал', 'чувствовала')} эту силу. Расскажи своими словами.`
         : config.questType === 'meditation'
-        ? 'Я здесь. Расскажи, как прошла для тебя эта практика. Что ты почувствовала в теле, какие образы пришли, какое состояние осталось.'
+        ? `Я здесь. Расскажи, как прошла для тебя эта практика. Что ты ${felt} в теле, какие образы пришли, какое состояние осталось.`
         : 'Я рядом. Прочитай описание этой грани и поделись: что отзывается, что узнаёшь в себе. Не спеши, говори своими словами.';
       html += renderCoachBubble(greeting);
     } else {
@@ -427,9 +442,10 @@ const Treasury = (function() {
         &#10003; Этот квест уже пройден. Ты можешь перечитать диалог или <button onclick="Treasury.resetCoachDialogue('${code}', '${config.questType}', ${config.questIdx || 0})" style="background:none;border:none;color:#D4AF37;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:13px">начать новый</button>.
       </div>`;
     } else if (dialogue.state === 'offered_close') {
+      const readyWord = genderText('Готов', 'Готова');
       html += `<div style="text-align:center;margin-top:10px">
         <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;font-style:italic">Что выбираешь?</div>
-        <button class="btn btn-secondary" style="width:auto;padding:10px 18px;margin:4px" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">&#10003; Готова двигаться дальше</button>
+        <button class="btn btn-secondary" style="width:auto;padding:10px 18px;margin:4px" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">&#10003; ${readyWord} двигаться дальше</button>
         <button class="btn btn-ghost" style="width:auto;padding:10px 18px;margin:4px" onclick="Treasury.coachContinue('${code}', '${config.questType}', ${config.questIdx || 0})">Хочу ещё побыть</button>
       </div>`;
     } else {
@@ -531,7 +547,7 @@ const Treasury = (function() {
   }
 
   async function coachFinish(code, questType, questIdx, reward) {
-    // Пользователь нажал "Готова двигаться дальше"
+    // Пользователь нажал "Готов(а) двигаться дальше"
     const dialogue = loadDialogue(code, questType, questIdx);
 
     // Просим у API финальное благословение
@@ -539,7 +555,7 @@ const Treasury = (function() {
       const review = await DarAPI.reviewShadow({
         quest_type: questType,
         dar_name: getDarName(code),
-        user_answer: 'я готова двигаться дальше',
+        user_answer: genderText('я готов двигаться дальше', 'я готова двигаться дальше'),
         gender: getUserGender(),
         dialogue: dialogue.messages,
         round_number: dialogue.roundCount,
@@ -583,22 +599,32 @@ const Treasury = (function() {
   }
 
   async function completeCoachingQuest(code, questType, questIdx, reward) {
+    let earned = 0;
+    let serverOk = false;
     try {
       const dialogue = loadDialogue(code, questType, questIdx);
       const summary = JSON.stringify(dialogue.messages).slice(0, 1800);
       const result = await DarAPI.submitQuest(code, questIdx, questType, summary);
-      if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
-        CrystalsUI.animateEarn(result.crystals_earned);
+      earned = result.crystals_earned || 0;
+      // Синхронизируем UI с сервером (источник правды)
+      if (typeof result.total_crystals === 'number' && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.setBalance(result.total_crystals);
+      } else if (earned > 0 && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.animateEarn(earned);
       }
       const d = userDars.find(d => d.dar_code === code);
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
+      serverOk = true;
     } catch (e) {
-      if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(reward);
-      const d = userDars.find(d => d.dar_code === code);
-      if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
+      // Сервер не ответил - не начисляем кристаллы локально, иначе UI уйдёт в рассинхрон с DB
+      console.error('completeCoachingQuest error:', e);
+      alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
+      return;
     }
 
-    alert('Квест пройден. +' + reward + ' кристаллов мудрости');
+    alert(earned > 0
+      ? 'Квест пройден. +' + earned + ' кристаллов мудрости'
+      : 'Квест пройден.');
     openDar(code);
   }
 
@@ -696,20 +722,24 @@ const Treasury = (function() {
       return;
     }
 
+    let earned = 0;
     try {
       const result = await DarAPI.submitQuest(code, medIdx, 'meditation', answer);
-      if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
-        CrystalsUI.animateEarn(result.crystals_earned);
+      earned = result.crystals_earned || 0;
+      if (typeof result.total_crystals === 'number' && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.setBalance(result.total_crystals);
+      } else if (earned > 0 && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.animateEarn(earned);
       }
       const d = userDars.find(d => d.dar_code === code);
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, medIdx);
     } catch (e) {
-      if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(reward);
-      const d = userDars.find(d => d.dar_code === code);
-      if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, medIdx);
+      console.error('submitMeditationQuest error:', e);
+      alert('Не удалось засчитать медитацию. Проверь соединение и попробуй ещё раз.');
+      return;
     }
 
-    alert((review.message || 'Дар активирован!') + `\n\n+${reward} кристаллов мудрости`);
+    alert((review.message || 'Дар активирован!') + (earned > 0 ? `\n\n+${earned} кристаллов мудрости` : ''));
     openDar(code);
   }
 
@@ -793,20 +823,24 @@ const Treasury = (function() {
     }
 
     // Принято - засчитываем кристаллы + открываем следующую секцию
+    let earned = 0;
     try {
       const result = await DarAPI.submitQuest(code, ESSENCE_IDX, 'essence', answer);
-      if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
-        CrystalsUI.animateEarn(result.crystals_earned);
+      earned = result.crystals_earned || 0;
+      if (typeof result.total_crystals === 'number' && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.setBalance(result.total_crystals);
+      } else if (earned > 0 && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.animateEarn(earned);
       }
       const d = userDars.find(d => d.dar_code === code);
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, ESSENCE_IDX);
     } catch (e) {
-      if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(reward);
-      const d = userDars.find(d => d.dar_code === code);
-      if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, ESSENCE_IDX);
+      console.error('submitEssenceQuest error:', e);
+      alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
+      return;
     }
 
-    alert((review.message || 'Суть дара узнана!') + `\n\n+${reward} кристаллов мудрости`);
+    alert((review.message || 'Суть дара узнана!') + (earned > 0 ? `\n\n+${earned} кристаллов мудрости` : ''));
     openDar(code);
   }
 
@@ -862,6 +896,13 @@ const Treasury = (function() {
       if (prof.gender === 'male' || prof.gender === 'female') return prof.gender;
     } catch (e) {}
     return '';
+  }
+
+  // Выбрать форму слова по полу пользователя.
+  // Если пол не задан, вернёт female-форму (исторически так было).
+  // Пример: genderText('Готов', 'Готова') => 'Готов' для мужского
+  function genderText(male, female) {
+    return getUserGender() === 'male' ? male : female;
   }
 
   // Показать блок "AI-гуру размышляет"
@@ -961,29 +1002,40 @@ const Treasury = (function() {
     }
 
     // Ответ принят - начисляем кристаллы и открываем следующую секцию
-    const reward = 7;
+    let earned = 0;
     try {
       const result = await DarAPI.submitQuest(code, questIdx, 'shadow_work', answer);
-      if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
-        CrystalsUI.animateEarn(result.crystals_earned);
+      earned = result.crystals_earned || 0;
+      if (typeof result.total_crystals === 'number' && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.setBalance(result.total_crystals);
+      } else if (earned > 0 && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.animateEarn(earned);
       }
       const d = userDars.find(d => d.dar_code === code);
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
     } catch (e) {
-      if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(reward);
-      const d = userDars.find(d => d.dar_code === code);
-      if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
+      console.error('submitShadowQuest error:', e);
+      alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
+      return;
     }
 
     // Показать сообщение одобрения + переход
-    alert((review.message || 'Грань раскрыта!') + `\n\n+${reward} кристаллов мудрости`);
+    alert((review.message || 'Грань раскрыта!') + (earned > 0 ? `\n\n+${earned} кристаллов мудрости` : ''));
     openDar(code);
   }
 
   async function unlockRandom() {
     const cost = 20;
+    // Синхронизируем баланс с сервером ПЕРЕД проверкой - UI мог рассинхрониться
+    try {
+      const t = await DarAPI.getTreasury();
+      if (typeof t.crystals === 'number' && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.setBalance(t.crystals);
+      }
+    } catch(e) { /* offline - работаем с локальным балансом */ }
+
     if (CrystalsUI.getBalance() < cost) {
-      alert(`Недостаточно кристаллов! Нужно ${cost}, у вас ${CrystalsUI.getBalance()}`);
+      alert(`Недостаточно кристаллов! Нужно ${cost}, у тебя ${CrystalsUI.getBalance()}`);
       return;
     }
     if (!confirm(`Открыть случайный дар за ${cost} кристаллов?`)) return;
@@ -991,10 +1043,15 @@ const Treasury = (function() {
     try {
       const result = await DarAPI.unlockRandomDar();
       if (result.success) {
-        CrystalsUI.animateSpend(result.crystals_spent);
+        // Сервер - источник правды
+        if (typeof result.total_crystals === 'number' && typeof CrystalsUI !== 'undefined') {
+          CrystalsUI.setBalance(result.total_crystals);
+        } else {
+          CrystalsUI.animateSpend(result.crystals_spent || cost);
+        }
         const darName = getDarName(result.dar_code);
         userDars.push({ dar_code: result.dar_code, unlock_source: 'crystal_purchase', unlocked_sections: 1 });
-        alert(`Вы открыли дар: ${darName}!`);
+        alert(`Ты открыл дар: ${darName}!`);
         render();
       } else {
         alert(result.message || 'Все дары уже открыты!');

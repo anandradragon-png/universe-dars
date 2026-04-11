@@ -1,6 +1,7 @@
 const Groq = require('groq-sdk');
 const fs = require('fs');
 const path = require('path');
+const deepseek = require('./lib/deepseek');
 
 // ===== Санитайзер-страховка вывода Оракула =====
 
@@ -243,6 +244,56 @@ const fieldsData = require('../fields.json');
 const DARS_DB = {};
 fieldsData.dars.forEach(d => { DARS_DB[d.code] = d.name; });
 
+// Имена 9 полей по id (для интеграторов используется поле)
+const FIELDS_BY_ID = {};
+(fieldsData.fields || []).forEach(f => { FIELDS_BY_ID[f.id] = f; });
+
+// Интеграторы (универсалы) - дары, где одна из позиций равна 9.
+// Для них нет записей в dar-content.json, поэтому строим darData из данных поля.
+// Имена интеграторов из game vision (соответствует window.INTEGRATORS на клиенте).
+const INTEGRATORS = {
+  '1-9-1': { name: 'Архитектор Реальности', field_id: 1 },
+  '2-9-2': { name: 'Хранитель Бесконечного Пространства', field_id: 2 },
+  '3-9-3': { name: 'Сердце Вселенной', field_id: 3 },
+  '4-9-4': { name: 'Феникс Вечного Обновления', field_id: 4 },
+  '5-9-5': { name: 'Император Света', field_id: 5 },
+  '6-9-6': { name: 'Повелитель Времени', field_id: 6 },
+  '7-9-7': { name: 'Проводник Мирового Разума', field_id: 7 },
+  '8-9-8': { name: 'Творец Совершенной Формы', field_id: 8 },
+  '9-1-1': { name: 'Архитектор Вечного Порядка', field_id: 1 },
+  '9-2-2': { name: 'Творец Пространства Возможностей', field_id: 2 },
+  '9-3-3': { name: 'Сердце Мирового Единства', field_id: 3 },
+  '9-4-4': { name: 'Феникс Глобальной Эволюции', field_id: 4 },
+  '9-5-5': { name: 'Император Внутреннего Солнца', field_id: 5 },
+  '9-6-6': { name: 'Повелитель Судьбоносного Потока', field_id: 6 },
+  '9-7-7': { name: 'Голос Космического Разума', field_id: 7 },
+  '9-8-8': { name: 'Создатель Живых Границ', field_id: 8 },
+  '9-9-9': { name: 'Живое Зеркало Вселенной', field_id: 9 }
+};
+
+function isIntegratorCode(code) {
+  return !!INTEGRATORS[code];
+}
+
+// Построить darData для интегратора из данных его поля
+function buildIntegratorDarData(code) {
+  const intInfo = INTEGRATORS[code];
+  if (!intInfo) return null;
+  const field = FIELDS_BY_ID[intInfo.field_id];
+  if (!field) return null;
+  // Эмулируем структуру dar-content.json
+  return {
+    essence: `${field.essence} Это универсал-интегратор поля ${field.name}, проявляющий силу всего поля целиком. ${intInfo.name}.`,
+    light_power: `Полнота силы поля ${field.name}: ${field.harmony_key} Способность объединять все аспекты этого поля и действовать как живое воплощение его сути.`,
+    shadow: `${field.shadow_ma} ${field.shadow_zhi}`,
+    energy_pattern: field.flow,
+    application: '',
+    safety: field.harmony_key,
+    meditation: '',
+    activation: ''
+  };
+}
+
 // ===== Обработчик API =====
 
 module.exports = async (req, res) => {
@@ -255,9 +306,20 @@ module.exports = async (req, res) => {
   const { dar_code, mode, user_query, gender, relative_name, relative_relationship } = req.body;
   if (!dar_code) { res.status(400).json({ error: 'dar_code required' }); return; }
 
-  const darName = DARS_DB[dar_code] || dar_code;
-  const darData = darContent[dar_code];
-  if (!darData) { res.status(400).json({ error: 'Dar not found: ' + dar_code }); return; }
+  // Имя дара: для обычных - из DARS_DB, для интеграторов - из INTEGRATORS
+  const intInfo = INTEGRATORS[dar_code];
+  const darName = intInfo ? intInfo.name : (DARS_DB[dar_code] || dar_code);
+
+  // darData: для интеграторов синтезируем из данных поля, для остальных - из dar-content.json
+  let darData = darContent[dar_code];
+  if (!darData && intInfo) {
+    darData = buildIntegratorDarData(dar_code);
+    console.log('[oracle] Using integrator fallback for', dar_code, '->', darName);
+  }
+  if (!darData) {
+    res.status(400).json({ error: 'Dar not found: ' + dar_code });
+    return;
+  }
 
   // Если режим 'relative' - послание для близкого, не для самого юзера
   const isRelative = mode === 'relative' && relative_name;
@@ -526,34 +588,65 @@ ${context}`;
   }
   } // закрываем if (!authoredPrediction)
 
+  // Гибрид: DeepSeek (если включён feature flag и есть ключ) или Groq Llama
+  // ENV для включения: USE_DEEPSEEK_FOR_ORACLE=1 + DEEPSEEK_API_KEY=...
+  // Откат: убрать USE_DEEPSEEK_FOR_ORACLE или поставить =0
+  const useDeepSeek = deepseek.isDeepSeekEnabled('oracle') && deepseek.isDeepSeekConfigured();
+
   try {
-    const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
-    console.log('Oracle generating for:', dar_code, darName, 'mode:', mode);
+    console.log('Oracle generating for:', dar_code, darName, 'mode:', mode, '| provider:', useDeepSeek ? 'deepseek' : 'groq');
 
     let completion;
-    try {
-      completion = await groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemMsg },
-          { role: 'user', content: userPrompt }
-        ],
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.9,
-        max_tokens: 900
-      });
-    } catch (modelErr) {
-      console.log('70b failed, trying 8b:', modelErr.message);
-      completion = await groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemMsg },
-          { role: 'user', content: userPrompt }
-        ],
-        model: 'llama-3.1-8b-instant',
-        temperature: 0.9,
-        max_tokens: 900
-      });
+    let providerUsed = 'groq';
+
+    const messages = [
+      { role: 'system', content: systemMsg },
+      { role: 'user', content: userPrompt }
+    ];
+
+    if (useDeepSeek) {
+      try {
+        completion = await deepseek.chatCompletion({
+          messages,
+          model: 'deepseek-chat',
+          temperature: 0.9,
+          max_tokens: 900
+        });
+        providerUsed = 'deepseek';
+      } catch (dsErr) {
+        // Если DeepSeek упал - откатываемся на Groq автоматически
+        console.warn('[oracle] DeepSeek failed, fallback to Groq:', dsErr.message);
+        const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
+        completion = await groq.chat.completions.create({
+          messages,
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.9,
+          max_tokens: 900
+        });
+        providerUsed = 'groq-fallback';
+      }
+    } else {
+      const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
+      try {
+        completion = await groq.chat.completions.create({
+          messages,
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.9,
+          max_tokens: 900
+        });
+      } catch (modelErr) {
+        console.log('70b failed, trying 8b:', modelErr.message);
+        completion = await groq.chat.completions.create({
+          messages,
+          model: 'llama-3.1-8b-instant',
+          temperature: 0.9,
+          max_tokens: 900
+        });
+        providerUsed = 'groq-8b';
+      }
     }
 
+    console.log('[oracle] used provider:', providerUsed);
     const raw = completion.choices[0]?.message?.content || '';
     console.log('Oracle response length:', raw.length);
 

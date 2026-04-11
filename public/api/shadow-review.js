@@ -1,5 +1,6 @@
 const Groq = require('groq-sdk');
 const { getUser } = require('./lib/auth');
+const deepseek = require('./lib/deepseek');
 
 // AI-наставник ведёт коучинговый диалог с пользователем.
 // Состояние диалога хранится на клиенте (localStorage), передаётся целиком.
@@ -289,25 +290,58 @@ module.exports = async (req, res) => {
   const systemPrompt = buildSystemPrompt(quest_type, roundNum, gender, canOfferClose);
   const messages = buildDialogueMessages(systemPrompt, dialogue, trimmed, contextBlock);
 
+  // Выбираем провайдера AI: DeepSeek (если включён feature flag) или Groq Llama
+  // ENV для включения DeepSeek для коуча: USE_DEEPSEEK_FOR_COACH=1 + DEEPSEEK_API_KEY=...
+  // Откат: убрать USE_DEEPSEEK_FOR_COACH или поставить =0
+  const useDeepSeek = deepseek.isDeepSeekEnabled('coach') && deepseek.isDeepSeekConfigured();
+
   try {
-    const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
     let completion;
-    try {
-      completion = await groq.chat.completions.create({
-        messages,
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.75,
-        max_tokens: 500
-      });
-    } catch (modelErr) {
-      console.log('70b failed, trying 8b:', modelErr.message);
-      completion = await groq.chat.completions.create({
-        messages,
-        model: 'llama-3.1-8b-instant',
-        temperature: 0.75,
-        max_tokens: 500
-      });
+    let providerUsed = 'groq';
+
+    if (useDeepSeek) {
+      try {
+        completion = await deepseek.chatCompletion({
+          messages,
+          model: 'deepseek-chat',
+          temperature: 0.75,
+          max_tokens: 500
+        });
+        providerUsed = 'deepseek';
+      } catch (dsErr) {
+        // Если DeepSeek упал - откатываемся на Groq автоматически
+        console.warn('[shadow-review] DeepSeek failed, falling back to Groq:', dsErr.message);
+        const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
+        completion = await groq.chat.completions.create({
+          messages,
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.75,
+          max_tokens: 500
+        });
+        providerUsed = 'groq-fallback';
+      }
+    } else {
+      const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
+      try {
+        completion = await groq.chat.completions.create({
+          messages,
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.75,
+          max_tokens: 500
+        });
+      } catch (modelErr) {
+        console.log('70b failed, trying 8b:', modelErr.message);
+        completion = await groq.chat.completions.create({
+          messages,
+          model: 'llama-3.1-8b-instant',
+          temperature: 0.75,
+          max_tokens: 500
+        });
+        providerUsed = 'groq-8b';
+      }
     }
+
+    console.log('[shadow-review] provider:', providerUsed, '| quest:', quest_type, '| round:', roundNum);
 
     const raw = completion.choices[0]?.message?.content || '';
     const start = raw.indexOf('{');

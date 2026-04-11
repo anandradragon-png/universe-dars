@@ -32,8 +32,7 @@ const Referral = (function() {
       const result = await DarAPI.submitReferral(referrerId, newUserDarCode);
       localStorage.setItem('_referral_processed', 'true');
 
-      if (result.success && result.dar_unlocked) {
-        // Показать анимацию: "Ваш друг получил ваш дар в свою Сокровищницу!"
+      if (result.success) {
         showReferralSuccess(result);
       }
       return result;
@@ -53,7 +52,7 @@ const Referral = (function() {
     container.innerHTML = `
       <div class="share-block">
         <div class="share-title">&#127873; Поделись с другом!</div>
-        <div class="share-text">Если дар друга отличается от твоего, ты откроешь его в своей Сокровищнице</div>
+        <div class="share-text">Если дар друга отличается от твоего, ты откроешь его в своей Сокровищнице и получишь кристаллы</div>
         <button class="btn btn-share" onclick="Referral.shareLink()">
           &#128233; Отправить ссылку другу
         </button>
@@ -63,13 +62,20 @@ const Referral = (function() {
   }
 
   /**
-   * Отправить реферальную ссылку через Telegram
+   * Получить реферальную ссылку текущего пользователя
+   */
+  function getMyLink() {
+    const botUsername = window.BOT_USERNAME || 'YupDarBot';
+    const userId = tg?.initDataUnsafe?.user?.id || localStorage.getItem('_dev_telegram_id') || '';
+    return `https://t.me/${botUsername}?startapp=ref_${userId}`;
+  }
+
+  /**
+   * Отправить реферальную ссылку через Telegram share
    */
   function shareLink() {
-    const botUsername = window.BOT_USERNAME || 'UniverseDarBot';
-    const userId = tg?.initDataUnsafe?.user?.id || localStorage.getItem('_dev_telegram_id') || '';
-    const link = `https://t.me/${botUsername}?startapp=ref_${userId}`;
-    const text = 'Узнай свой Дар! Рассчитай по дате рождения и открой свою Сокровищницу.';
+    const link = getMyLink();
+    const text = 'Открой для себя YupDar - путешествие к своему Дару. Узнай свой дар по дате рождения и начни путь Алхимии.';
 
     if (tg?.openTelegramLink) {
       tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
@@ -80,14 +86,41 @@ const Referral = (function() {
     }
   }
 
-  function showReferralSuccess(result) {
-    // Простое уведомление, позже можно сделать красивую анимацию
-    const msg = result.dar_unlocked
-      ? `Реферал успешен! Ваш друг получил ваш дар. +${result.new_user_crystals} кристаллов!`
-      : `Добро пожаловать! +${result.new_user_crystals} кристаллов!`;
+  /**
+   * Скопировать ссылку в буфер обмена
+   */
+  async function copyLink() {
+    const link = getMyLink();
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(link);
+        return true;
+      }
+    } catch (e) {}
+    // Fallback: prompt
+    prompt('Скопируй эту ссылку:', link);
+    return false;
+  }
 
+  function showReferralSuccess(result) {
+    // Простое уведомление
+    let msg;
+    if (result.dar_unlocked) {
+      msg = `Добро пожаловать в YupDar!\n\nТвой дар открыт в Сокровищнице того, кто тебя пригласил. Это особая связь, которая начинает ваше общее путешествие.\n\n+${result.new_user_crystals} кристаллов мудрости как приветствие.`;
+    } else if (result.success) {
+      msg = `Добро пожаловать в YupDar!\n\nТот, кто тебя пригласил, уже имел твой дар в своей Сокровищнице. Зато ты приносишь ему кристаллы мудрости.\n\n+${result.new_user_crystals} кристаллов мудрости как приветствие.`;
+    } else {
+      return;
+    }
     setTimeout(() => alert(msg), 500);
   }
 
-  return { getReferrerFromStartParam, processReferral, renderShareButton, shareLink };
+  return {
+    getReferrerFromStartParam,
+    processReferral,
+    renderShareButton,
+    shareLink,
+    copyLink,
+    getMyLink
+  };
 })();

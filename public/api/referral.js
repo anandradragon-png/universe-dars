@@ -48,31 +48,40 @@ module.exports = async (req, res) => {
         return res.json({ success: false, message: 'Referrer not found' });
       }
 
-      // Проверить: дар нового пользователя отличается от дара реферера?
-      const darUnlocked = referrer.dar_code !== new_user_dar_code;
+      // Проверяем: есть ли уже этот дар в сокровищнице реферера?
+      const { getUserDars } = require('./lib/db');
+      const referrerDars = await getUserDars(referrer.id);
+      const darAlreadyInTreasury = referrerDars.some(d => d.dar_code === new_user_dar_code);
+
+      // Логика наград:
+      // - Если дар друга ЕЩЁ НЕ в сокровищнице реферера → открываем дар (без кристаллов)
+      // - Если дар ЕСТЬ → даём кристаллы
+      let darUnlocked = false;
+      let referrerCrystals = 0;
+
+      if (!darAlreadyInTreasury) {
+        // Открываем дар в сокровищнице реферера
+        await unlockDar(referrer.id, new_user_dar_code, 'referral');
+        darUnlocked = true;
+      } else {
+        // Дар уже есть - даём кристаллы
+        referrerCrystals = getReward('referral', referrer.access_level);
+        await addCrystals(referrer.id, referrerCrystals, 'referral_duplicate', {
+          referred_dar: new_user_dar_code
+        });
+      }
 
       // Записать реферал
       await createReferral(referrer.id, user.id, new_user_dar_code, darUnlocked);
 
-      // Кристаллы рефереру
-      let referrerCrystals = getReward('referral', referrer.access_level);
-      if (darUnlocked) {
-        // Открыть дар в сокровищнице реферера
-        await unlockDar(referrer.id, new_user_dar_code, 'referral');
-        referrerCrystals += getReward('referral_new_dar', referrer.access_level);
-      }
-      await addCrystals(referrer.id, referrerCrystals, 'referral', {
-        referred_dar: new_user_dar_code,
-        dar_unlocked: darUnlocked
-      });
-
-      // Кристаллы новому пользователю тоже
+      // Новому пользователю - приветственные кристаллы (независимо от механики)
       const newUserCrystals = getReward('referral', user.access_level);
       await addCrystals(user.id, newUserCrystals, 'was_referred');
 
       return res.json({
         success: true,
         dar_unlocked: darUnlocked,
+        dar_already_in_treasury: darAlreadyInTreasury,
         referrer_crystals: referrerCrystals,
         new_user_crystals: newUserCrystals
       });

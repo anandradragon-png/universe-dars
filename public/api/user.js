@@ -35,6 +35,8 @@ module.exports = async (req, res) => {
           birth_lat: user.birth_lat !== null && user.birth_lat !== undefined ? Number(user.birth_lat) : null,
           birth_lon: user.birth_lon !== null && user.birth_lon !== undefined ? Number(user.birth_lon) : null,
           profile_completed: !!user.profile_completed,
+          leaderboard_name_type: user.leaderboard_name_type || 'real',
+          leaderboard_custom_name: user.leaderboard_custom_name || '',
         },
         dars: dars.map(d => ({
           dar_code: d.dar_code,
@@ -142,6 +144,36 @@ module.exports = async (req, res) => {
           console.error('save_profile DB error:', dbErr.message);
           if (dbErr.message && dbErr.message.includes('column')) {
             return res.status(500).json({ error: 'База данных не обновлена. Запусти миграцию supabase-migration-profile.sql в Supabase SQL Editor.' });
+          }
+          throw dbErr;
+        }
+      }
+
+      // Сохранить выбор имени для рейтинга
+      if (action === 'save_leaderboard_name') {
+        const { name_type, custom_name } = req.body;
+        if (name_type !== 'real' && name_type !== 'tg' && name_type !== 'custom') {
+          return res.status(400).json({ error: 'Неверный тип имени. Допустимые: real, tg, custom.' });
+        }
+        if (name_type === 'custom') {
+          const trimmed = (custom_name || '').trim();
+          if (trimmed.length < 2) {
+            return res.status(400).json({ error: 'Твоё имя должно быть не короче 2 символов.' });
+          }
+          if (trimmed.length > 30) {
+            return res.status(400).json({ error: 'Твоё имя не должно превышать 30 символов.' });
+          }
+        }
+        try {
+          await updateUser(user.id, {
+            leaderboard_name_type: name_type,
+            leaderboard_custom_name: name_type === 'custom' ? (custom_name || '').trim().slice(0, 30) : ''
+          });
+          return res.json({ success: true });
+        } catch (dbErr) {
+          console.error('save_leaderboard_name DB error:', dbErr.message);
+          if (dbErr.message && dbErr.message.includes('column')) {
+            return res.status(500).json({ error: 'База данных не обновлена. Запусти миграцию supabase-migration-leaderboard.sql.' });
           }
           throw dbErr;
         }

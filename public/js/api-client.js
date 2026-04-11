@@ -20,7 +20,7 @@ const DarAPI = (function() {
     return headers;
   }
 
-  // --- Кольцевой буфер последних API-ошибок для диагностики ---
+  // Кольцевой буфер последних API-ошибок для диагностики
   function logApiError(kind, path, info) {
     try {
       const list = JSON.parse(localStorage.getItem('_dar_api_errors') || '[]');
@@ -30,7 +30,6 @@ const DarAPI = (function() {
         path,
         info: typeof info === 'string' ? info.slice(0, 300) : info
       });
-      // Храним только 20 последних
       while (list.length > 20) list.shift();
       localStorage.setItem('_dar_api_errors', JSON.stringify(list));
     } catch (e) {}
@@ -71,6 +70,8 @@ const DarAPI = (function() {
       request('/api/user', 'POST', { action: 'save_dar', dar_code, dar_name, birth_date }),
     saveProfile: (profile) =>
       request('/api/user', 'POST', Object.assign({ action: 'save_profile' }, profile)),
+    saveLeaderboardName: (name_type, custom_name) =>
+      request('/api/user', 'POST', { action: 'save_leaderboard_name', name_type, custom_name: custom_name || '' }),
     dailyLogin: () =>
       request('/api/user', 'POST', { action: 'daily_login' }),
 
@@ -113,6 +114,9 @@ const DarAPI = (function() {
       return request(url);
     },
     submitIntuitionScore: (payload) => request('/api/leaderboard', 'POST', payload),
+
+    // ---- Зал Славы (титулы победителей рейтинга) ----
+    getHallOfFame: () => request('/api/hall-of-fame'),
 
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>

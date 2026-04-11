@@ -557,29 +557,97 @@ const Treasury = (function() {
   async function coachFinish(code, questType, questIdx, reward) {
     // Пользователь нажал "Готов(а) двигаться дальше"
     const dialogue = loadDialogue(code, questType, questIdx);
+    const prevState = dialogue.state; // запомним на случай отката
 
-    // Просим у API финальное благословение
-    try {
-      const review = await DarAPI.reviewShadow({
-        quest_type: questType,
-        dar_name: getDarName(code),
-        user_answer: genderText('я готов двигаться дальше', 'я готова двигаться дальше'),
-        gender: getUserGender(),
-        dialogue: dialogue.messages,
-        round_number: dialogue.roundCount,
-        user_action: 'ready_to_close'
-      });
-      if (review && review.message) {
-        dialogue.messages.push({ role: 'coach', text: review.message });
+    // Просим у API финальное благословение (только если ещё не получали)
+    const lastMsg = dialogue.messages[dialogue.messages.length - 1];
+    const alreadyHasFinalBlessing = lastMsg && lastMsg.role === 'coach' && dialogue.state === 'completed';
+
+    if (!alreadyHasFinalBlessing) {
+      try {
+        const review = await DarAPI.reviewShadow({
+          quest_type: questType,
+          dar_name: getDarName(code),
+          user_answer: genderText('я готов двигаться дальше', 'я готова двигаться дальше'),
+          gender: getUserGender(),
+          dialogue: dialogue.messages,
+          round_number: dialogue.roundCount,
+          user_action: 'ready_to_close'
+        });
+        if (review && review.message) {
+          dialogue.messages.push({ role: 'coach', text: review.message });
+        }
+      } catch (e) {
+        dialogue.messages.push({ role: 'coach', text: 'Благодарю тебя за эту работу. Пусть то, что открылось, останется с тобой.' });
       }
-    } catch (e) {
-      dialogue.messages.push({ role: 'coach', text: 'Благодарю тебя за эту работу. Пусть то, что открылось, останется с тобой.' });
     }
 
     dialogue.state = 'completed';
     saveDialogue(code, questType, questIdx, dialogue);
 
-    await completeCoachingQuest(code, questType, questIdx, reward);
+    // Пробуем засчитать квест на сервере
+    const success = await completeCoachingQuestSafe(code, questType, questIdx, reward);
+    if (!success) {
+      // Откат состояния, чтобы кнопка снова появилась и юзер мог попробовать
+      dialogue.state = prevState || 'offered_close';
+      saveDialogue(code, questType, questIdx, dialogue);
+      // Перерисовываем экран с кнопками
+      reopenQuestScreen(code, questType, questIdx);
+    }
+  }
+
+  // Обёртка которая возвращает true/false вместо просто завершения
+  async function completeCoachingQuestSafe(code, questType, questIdx, reward) {
+    let earned = 0;
+    let retryCount = 0;
+    while (retryCount < 2) {
+      try {
+        const dialogue = loadDialogue(code, questType, questIdx);
+        const summary = JSON.stringify(dialogue.messages).slice(0, 1800);
+        const result = await DarAPI.submitQuest(code, questIdx, questType, summary);
+        earned = result.crystals_earned || 0;
+        if (typeof result.total_crystals === 'number' && typeof CrystalsUI !== 'undefined') {
+          CrystalsUI.setBalance(result.total_crystals);
+        } else if (earned > 0 && typeof CrystalsUI !== 'undefined') {
+          CrystalsUI.animateEarn(earned);
+        }
+        const d = userDars.find(d => d.dar_code === code);
+        if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
+
+        alert(earned > 0
+          ? 'Квест пройден. +' + earned + ' кристаллов мудрости'
+          : 'Квест пройден.');
+        openDar(code);
+        return true;
+      } catch (e) {
+        console.error('completeCoachingQuestSafe try', retryCount + 1, 'error:', e, 'kind:', e.kind, 'status:', e.status);
+        try {
+          localStorage.setItem('_last_quest_error', JSON.stringify({
+            ts: new Date().toISOString(),
+            code, questType, questIdx,
+            msg: e.message || 'Unknown', kind: e.kind || '', status: e.status || 0,
+            attempt: retryCount + 1
+          }));
+        } catch (lsErr) {}
+
+        // Для сетевых/серверных ошибок - один автоматический retry с задержкой
+        if (retryCount === 0 && (e.kind === 'network' || e.kind === 'non-json' || (e.status && e.status >= 500))) {
+          retryCount++;
+          await new Promise(r => setTimeout(r, 1000));
+          continue;
+        }
+
+        // Не сетевая или второй раз - показываем юзеру
+        const realMsg = e.message || 'неизвестная ошибка';
+        if (typeof showToast === 'function') {
+          showToast('Не засчитано: ' + realMsg + '. Нажми ещё раз кнопку "Готова двигаться дальше"', 'error');
+        } else {
+          alert('Не засчитано: ' + realMsg + '\n\nНажми ещё раз кнопку "Готова двигаться дальше"');
+        }
+        return false;
+      }
+    }
+    return false;
   }
 
   function coachContinue(code, questType, questIdx) {
@@ -606,9 +674,9 @@ const Treasury = (function() {
     else openShadowQuest(code, questIdx);
   }
 
-  async function completeCoachingQuest(code, questType, questIdx, reward) {
+  async function completeCoachingQuest(code, questType, questIdx, reward, retryCount) {
+    retryCount = retryCount || 0;
     let earned = 0;
-    let serverOk = false;
     try {
       const dialogue = loadDialogue(code, questType, questIdx);
       const summary = JSON.stringify(dialogue.messages).slice(0, 1800);
@@ -622,11 +690,32 @@ const Treasury = (function() {
       }
       const d = userDars.find(d => d.dar_code === code);
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
-      serverOk = true;
     } catch (e) {
-      // Сервер не ответил - не начисляем кристаллы локально, иначе UI уйдёт в рассинхрон с DB
-      console.error('completeCoachingQuest error:', e);
-      if (typeof showToast === 'function') showToast('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.', 'error'); else alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
+      // Логируем подробности для диагностики
+      console.error('completeCoachingQuest error:', e, 'kind:', e.kind, 'status:', e.status);
+      try {
+        localStorage.setItem('_last_quest_error', JSON.stringify({
+          ts: new Date().toISOString(),
+          code, questType, questIdx,
+          msg: e.message || 'Unknown',
+          kind: e.kind || '',
+          status: e.status || 0,
+          retryCount
+        }));
+      } catch (lsErr) {}
+
+      // Авто-retry один раз для сетевых ошибок (DeepSeek/Vercel могут моргнуть)
+      if (retryCount === 0 && (e.kind === 'network' || e.kind === 'non-json' || (e.status && e.status >= 500))) {
+        console.log('Auto-retry submitQuest in 800ms...');
+        await new Promise(r => setTimeout(r, 800));
+        return completeCoachingQuest(code, questType, questIdx, reward, retryCount + 1);
+      }
+
+      // Показываем РЕАЛЬНУЮ ошибку, а не generic, чтобы понять причину
+      const realMsg = e.message || 'неизвестная ошибка';
+      const tryAgainMsg = 'Не удалось засчитать квест: ' + realMsg + '. Попробуй нажать кнопку ещё раз.';
+      if (typeof showToast === 'function') showToast(tryAgainMsg, 'error');
+      else alert(tryAgainMsg);
       return;
     }
 

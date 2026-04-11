@@ -2,66 +2,9 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>YupDar</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-    // Debug-режим: ?debug=1 в URL ИЛИ startapp=debug ИЛИ ранее был включён ИЛИ тройной тап
-    (function() {
-      try {
-        const params = new URLSearchParams(location.search);
-        const tgParam = (window.Telegram?.WebApp?.initDataUnsafe?.start_param) || '';
-        if (params.get('debug') === '0') {
-          localStorage.removeItem('_dar_debug');
-          return;
-        }
-        const wantsDebug = params.get('debug') === '1'
-          || tgParam === 'debug'
-          || localStorage.getItem('_dar_debug') === '1';
-        if (wantsDebug) enableDebugMode();
-      } catch (e) {}
-
-      function enableDebugMode() {
-        if (window.__darDebug) return;
-        localStorage.setItem('_dar_debug', '1');
-        window.__darDebug = true;
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/eruda';
-        s.onload = function() {
-          try {
-            eruda.init();
-            console.log('[debug] Eruda console ready. Tap the green button (bottom-right).');
-          } catch (e) {}
-        };
-        document.head.appendChild(s);
-      }
-      window.__enableDarDebug = enableDebugMode;
-
-      // Тройной тап на <header> — включает debug-режим
-      document.addEventListener('DOMContentLoaded', function() {
-        let taps = 0;
-        let timer = null;
-        const target = document.querySelector('header');
-        if (!target) return;
-        target.addEventListener('click', function() {
-          taps++;
-          clearTimeout(timer);
-          timer = setTimeout(() => { taps = 0; }, 800);
-          if (taps >= 3) {
-            taps = 0;
-            enableDebugMode();
-            try {
-              const t = document.createElement('div');
-              t.textContent = 'Debug-режим включён';
-              t.style = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#D4AF37;color:#000;padding:10px 16px;border-radius:10px;font-size:13px;font-family:Georgia,serif;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.4)';
-              document.body.appendChild(t);
-              setTimeout(() => t.remove(), 2500);
-            } catch (e) {}
-          }
-        });
-      });
-    })();
-  </script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     :root{--bg:#0d0221;--bg2:#1a0533;--bg3:#0a1628;--text:#f0e2ff;--text-dim:#c4a8e8;--text-muted:#a488cc;--border:rgba(180,120,255,0.3);--card:rgba(255,255,255,0.07)}
@@ -693,12 +636,11 @@
 
       <button id="psu-save-btn" onclick="psuSave()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px;font-weight:bold;box-shadow:0 0 15px rgba(212,175,55,0.3)">Сохранить и продолжить</button>
       <button id="psu-later-btn" onclick="psuSkip()" style="width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">Заполнить позже</button>
-      <button id="psu-debug-btn" onclick="psuSendDebugLog()" style="display:none;width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.05);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128203; Прислать лог разработчику</button>
     </div>
   </div>
   <style>
     .psu-label{font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
-    .psu-input{width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-family:Georgia,serif;outline:none;transition:border-color .2s}
+    .psu-input{width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Georgia,serif;outline:none;transition:border-color .2s}
     .psu-input:focus{border-color:rgba(212,175,55,0.6)}
     .psu-input::placeholder{color:var(--text-muted)}
     .psu-gender{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:14px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
@@ -786,6 +728,16 @@
       // Имя
       document.getElementById('profile-name').textContent = _userName;
 
+      // Единый источник правды для кристаллов - CrystalsUI (в памяти),
+      // он синхронизируется с сервером при init/setBalance
+      if (typeof CrystalsUI !== 'undefined') {
+        const live = CrystalsUI.getBalance();
+        if (live > 0) {
+          const el = document.getElementById('profile-crystals');
+          if (el) el.textContent = live;
+        }
+      }
+
       // Аватар большой
       const bigAvatar = document.getElementById('profile-avatar-big');
       const savedAvatar = localStorage.getItem('_avatar_' + USER_ID);
@@ -872,6 +824,10 @@
               if (typeof renderLeaderboardNameBlock === 'function') renderLeaderboardNameBlock();
             }
 
+            // Синхронизируем CrystalsUI с сервером - единый источник правды
+            if (typeof CrystalsUI !== 'undefined') {
+              CrystalsUI.setBalance(_profileData.crystals);
+            }
             document.getElementById('profile-crystals').textContent = _profileData.crystals;
             document.getElementById('profile-streak').textContent = _profileData.streak;
             document.getElementById('profile-collection').textContent = (_profileData.dars.length || localDars.length) + '/64';
@@ -1083,6 +1039,38 @@
       const darName=isInt?INTEGRATORS[gift.code]:(DARS[gift.code]||'✦');
       const darArchetype=isInt?INTEGRATORS[gift.code]:(DAR_ARCHETYPES[gift.code]||'');
       const intPhrase=isInt?(gift.code==='9-9-9'?'Существование как акт целостного творения':gift.zhi===9?'Действие как акт целостного творения':'Состояние как акт целостного творения'):'';
+
+      // КРИТИЧНО: сохраняем дар на сервер (в БД), иначе кристаллы signup не начисляются
+      // Это также добавит дар в сокровищницу (user_dars) и даст +10 кристаллов за первый расчёт
+      if (typeof DarAPI !== 'undefined' && DarAPI.saveDar) {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        let birthDate = '';
+        try {
+          birthDate = saved ? (JSON.parse(saved).date || '') : '';
+        } catch (e) {}
+        // Не блокируем UI - сохраняем фоном
+        DarAPI.saveDar(gift.code, darName, birthDate).then(result => {
+          if (result && result.crystals_earned) {
+            if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(result.crystals_earned);
+          }
+          // После успешного сохранения синхронизируем баланс
+          if (typeof DarAPI.getProfile === 'function') {
+            DarAPI.getProfile().then(p => {
+              if (p?.user?.crystals !== undefined && typeof CrystalsUI !== 'undefined') {
+                CrystalsUI.setBalance(p.user.crystals);
+              }
+              // Обновить ЛК если открыт
+              const profileCrystals = document.getElementById('profile-crystals');
+              if (profileCrystals && p?.user?.crystals !== undefined) {
+                profileCrystals.textContent = p.user.crystals;
+              }
+            }).catch(() => {});
+          }
+        }).catch(err => {
+          console.warn('saveDar failed:', err.message);
+        });
+      }
+
       document.getElementById('darName').textContent=darName;
       document.getElementById('darCode').textContent=`Код дара: ${gift.code}`;
       document.getElementById('darArchetype').textContent=isInt?intPhrase:darArchetype;
@@ -2068,43 +2056,6 @@
           : 'Сервер недоступен. Данные сохранены в браузере, синхронизируются позже.';
         status.style.color = color;
         status.innerHTML = `<div style="padding:10px;border:1px solid ${color};border-radius:10px;background:rgba(0,0,0,0.3);text-align:left">&#9888;&#65039; ${msg}<br><br><button onclick="psuAcknowledgeWarning()" style="width:100%;padding:8px;border-radius:8px;border:none;background:${color};color:#fff;font-size:12px;cursor:pointer;font-family:Georgia,serif;margin-top:6px">Понятно, продолжить</button></div>`;
-        // Показываем кнопку "Прислать лог" при наличии буфера ошибок (только в debug-режиме)
-        try {
-          const dbgBtn = document.getElementById('psu-debug-btn');
-          const hasErrors = (JSON.parse(localStorage.getItem('_dar_api_errors') || '[]')).length > 0;
-          if (dbgBtn && hasErrors && window.__darDebug) {
-            dbgBtn.style.display = 'block';
-          }
-        } catch (e) {}
-      }
-    }
-
-    // Отправка лога ошибок разработчику
-    function psuSendDebugLog() {
-      try {
-        const errors = JSON.parse(localStorage.getItem('_dar_api_errors') || '[]');
-        const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-        const meta = {
-          ua: navigator.userAgent.slice(0, 200),
-          platform: window.Telegram?.WebApp?.platform || 'unknown',
-          version: window.Telegram?.WebApp?.version || 'unknown',
-          tg_id: tgUser?.id || 'none',
-          errors_count: errors.length
-        };
-        const body = 'YupDar debug log\n\n'
-          + 'META: ' + JSON.stringify(meta, null, 2) + '\n\n'
-          + 'ERRORS:\n' + JSON.stringify(errors, null, 2);
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(body).then(() => {
-            alert('Лог скопирован в буфер. Вставь в чат разработчику.');
-          }).catch(() => {
-            prompt('Скопируй лог и пришли разработчику:', body);
-          });
-        } else {
-          prompt('Скопируй лог и пришли разработчику:', body);
-        }
-      } catch (e) {
-        alert('Не удалось собрать лог: ' + e.message);
       }
     }
 

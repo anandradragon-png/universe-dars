@@ -1,4 +1,4 @@
-const { getUser } = require('./lib/auth');
+const { getUser, requireUser } = require('./lib/auth');
 const { getOrCreateUser, updateUser, getUserDars, addCrystals, unlockDar } = require('./lib/db');
 const { getReward, getStreakBonus } = require('./lib/crystals');
 
@@ -9,8 +9,8 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    const tgUser = getUser(req);
-    if (!tgUser) return res.status(401).json({ error: 'Unauthorized' });
+    const tgUser = requireUser(req, res);
+    if (!tgUser) return;
 
     if (req.method === 'GET') {
       // Получить или создать профиль

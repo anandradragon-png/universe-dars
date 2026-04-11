@@ -163,11 +163,11 @@
     .book-chapter .book-body ul,.book-chapter .book-body ol{padding-left:20px;margin:0 0 14px}
     .book-chapter .book-body li{margin-bottom:6px;line-height:inherit}
     .book-chapter .book-body img{display:block;max-width:100%;height:auto;margin:16px auto;border-radius:8px;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-    /* На тёмной теме картинки книги (тёмные символы даров) делаем золотыми -
-       тот же фильтр что используется для SVG-иконок даров в Сокровищнице
-       и DailyDar. Чёрные пиксели становятся золотыми, прозрачные остаются. */
+    /* На тёмной теме картинки книги (тёмные символы даров) перекрашиваем
+       в чистый золотой #D4AF37 без подложки. Прозрачный фон остаётся
+       прозрачным, тёмные пиксели становятся золотыми со свечением. */
     .book-chapter.theme-dark .book-body img{
-      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 12px rgba(212,175,55,0.5));
+      filter: brightness(0) saturate(100%) invert(74%) sepia(54%) saturate(2476%) hue-rotate(353deg) brightness(89%) contrast(85%) drop-shadow(0 0 14px rgba(212,175,55,0.55));
     }
     .book-chapter .book-body strong{font-weight:700}
     .book-chapter .book-body em{font-style:italic;opacity:0.95}

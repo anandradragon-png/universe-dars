@@ -216,6 +216,28 @@ try {
   console.warn('oracle-predictions.json not loaded (will use fallback):', e.message);
 }
 
+// ===== База YouTube-медитаций (дополнение к dar-content.meditation) =====
+let meditationsDB = { meditations: [] };
+try {
+  const raw = fs.readFileSync(path.join(__dirname, '..', 'meditations.json'), 'utf8');
+  meditationsDB = JSON.parse(raw);
+  console.log('Meditations loaded:', (meditationsDB.meditations || []).length);
+} catch (e) {
+  console.warn('meditations.json not loaded:', e.message);
+}
+
+// Подбор медитации для дара: если подходящих несколько - детерминированно выбирается одна
+// по дате (чтобы в течение дня для одного дара выдавалась одна медитация, а в разные дни ротировалась).
+function pickMeditationForDar(darCode) {
+  if (!Array.isArray(meditationsDB.meditations)) return null;
+  const matches = meditationsDB.meditations.filter(m => Array.isArray(m.dars) && m.dars.includes(darCode));
+  if (matches.length === 0) return null;
+  // Индекс по дню с эпохи - стабилен в пределах суток, меняется между днями
+  const dayIndex = Math.floor(Date.now() / 86400000);
+  const m = matches[dayIndex % matches.length];
+  return { title: m.title, description: m.description, url: m.url };
+}
+
 // Имена даров
 const fieldsData = require('../fields.json');
 const DARS_DB = {};
@@ -498,6 +520,12 @@ ${context}`;
       parsed = await spellCheckOracleOutput(parsed);
     } catch (spellErr) {
       console.warn('Spellcheck stage failed, keeping sanitized text:', spellErr.message);
+    }
+
+    // Ненавязчивая рекомендация-медитация (если для этого дара есть в meditations.json)
+    const med = pickMeditationForDar(dar_code);
+    if (med) {
+      parsed.meditation_video = med;
     }
 
     res.status(200).json(parsed);

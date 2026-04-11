@@ -153,6 +153,20 @@ const DailyDar = (function() {
       </div>`;
     }
 
+    // Медитация-рекомендация (ненавязчивая, чтобы усилить энергию дня)
+    if (data.meditation_video && data.meditation_video.url) {
+      const mv = data.meditation_video;
+      const safeTitle = String(mv.title || '').replace(/</g,'&lt;');
+      const safeDesc = String(mv.description || '').replace(/</g,'&lt;');
+      const safeUrl = String(mv.url || '').replace(/"/g,'&quot;');
+      html += `<div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(212,175,55,0.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:left">
+        <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:8px">&#127911; ЕСЛИ ЗАХОЧЕШЬ УСИЛИТЬ ЭНЕРГИЮ ДНЯ</div>
+        <div style="font-size:13px;color:#e0e0e0;line-height:1.6;margin-bottom:6px">${safeTitle}</div>
+        ${safeDesc ? `<div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">${safeDesc}</div>` : ''}
+        <a href="${safeUrl}" target="_blank" rel="noopener" style="display:inline-block;font-size:12px;color:#D4AF37;text-decoration:none;border-bottom:1px solid rgba(212,175,55,0.35);padding-bottom:1px">Открыть медитацию &rarr;</a>
+      </div>`;
+    }
+
     return html;
   }
 

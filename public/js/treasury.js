@@ -491,7 +491,9 @@ const Treasury = (function() {
     const minLen = isFirstMsg ? 30 : 5;
 
     if (answer.length < minLen) {
-      alert('Напиши чуть больше: минимум ' + minLen + ' символов. Сейчас: ' + answer.length + '.');
+      const msg = `Напиши чуть больше: минимум ${minLen} символов. Сейчас: ${answer.length}.`;
+      if (typeof showToast === 'function') showToast(msg, 'error');
+      else alert(msg);
       return;
     }
 
@@ -624,7 +626,7 @@ const Treasury = (function() {
     } catch (e) {
       // Сервер не ответил - не начисляем кристаллы локально, иначе UI уйдёт в рассинхрон с DB
       console.error('completeCoachingQuest error:', e);
-      alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
+      if (typeof showToast === 'function') showToast('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.', 'error'); else alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
       return;
     }
 
@@ -741,7 +743,7 @@ const Treasury = (function() {
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, medIdx);
     } catch (e) {
       console.error('submitMeditationQuest error:', e);
-      alert('Не удалось засчитать медитацию. Проверь соединение и попробуй ещё раз.');
+      if (typeof showToast === 'function') showToast('Не удалось засчитать медитацию. Проверь соединение и попробуй ещё раз.', 'error'); else alert('Не удалось засчитать медитацию. Проверь соединение и попробуй ещё раз.');
       return;
     }
 
@@ -842,7 +844,7 @@ const Treasury = (function() {
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, ESSENCE_IDX);
     } catch (e) {
       console.error('submitEssenceQuest error:', e);
-      alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
+      if (typeof showToast === 'function') showToast('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.', 'error'); else alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
       return;
     }
 
@@ -1021,7 +1023,7 @@ const Treasury = (function() {
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
     } catch (e) {
       console.error('submitShadowQuest error:', e);
-      alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
+      if (typeof showToast === 'function') showToast('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.', 'error'); else alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
       return;
     }
 
@@ -1057,13 +1059,16 @@ const Treasury = (function() {
         }
         const darName = getDarName(result.dar_code);
         userDars.push({ dar_code: result.dar_code, unlock_source: 'crystal_purchase', unlocked_sections: 1 });
-        alert(`Ты открыл дар: ${darName}!`);
+        if (typeof showToast === 'function') showToast(`\u2728 Ты открыл новый дар: ${darName}!`, 'success');
+        else alert(`Ты открыл дар: ${darName}!`);
         render();
       } else {
-        alert(result.message || 'Все дары уже открыты!');
+        if (typeof showToast === 'function') showToast(result.message || 'Все дары уже открыты!', 'info');
+        else alert(result.message || 'Все дары уже открыты!');
       }
     } catch (e) {
-      alert('Ошибка: ' + e.message);
+      if (typeof showToast === 'function') showToast(e.message || 'Не удалось открыть случайный дар. Попробуй ещё раз.', 'error');
+      else alert(e.message || 'Не удалось открыть случайный дар. Попробуй ещё раз.');
     }
   }
 

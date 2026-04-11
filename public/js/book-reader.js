@@ -49,6 +49,43 @@ const BookReader = (function() {
     } catch(e) {}
   }
 
+  // -------- Прочитанные главы --------
+  // Храним Set ключей "partIdx:chapterIdx". Помечаем главу прочитанной,
+  // когда юзер на неё переходит (renderChapter).
+  function loadReadSet() {
+    try {
+      const arr = JSON.parse(localStorage.getItem('_book_read') || '[]');
+      return new Set(arr);
+    } catch(e) { return new Set(); }
+  }
+  function saveReadSet(set) {
+    try { localStorage.setItem('_book_read', JSON.stringify([...set])); } catch(e) {}
+  }
+  function readKey(partIdx, chapterIdx) { return partIdx + ':' + chapterIdx; }
+  function markChapterRead(partIdx, chapterIdx) {
+    const set = loadReadSet();
+    const key = readKey(partIdx, chapterIdx);
+    if (!set.has(key)) {
+      set.add(key);
+      saveReadSet(set);
+    }
+  }
+  function isChapterRead(partIdx, chapterIdx) {
+    return loadReadSet().has(readKey(partIdx, chapterIdx));
+  }
+  function getReadCount() {
+    return loadReadSet().size;
+  }
+  function getReadProgress() {
+    if (!totalChapters) return { count: 0, total: 0, pct: 0 };
+    const count = getReadCount();
+    return {
+      count,
+      total: totalChapters,
+      pct: Math.round((count / totalChapters) * 100)
+    };
+  }
+
   // -------- Закладки --------
   function loadBookmarks() {
     try {
@@ -149,9 +186,21 @@ const BookReader = (function() {
 
     if (!bookData) {
       container.innerHTML = `
-        <div style="text-align:center;padding:60px 20px;color:var(--text-dim)">
-          <div style="font-size:32px;margin-bottom:12px">&#128214;</div>
-          <div>Загрузка книги...</div>
+        <div style="padding:24px 16px">
+          <div style="text-align:center;margin-bottom:20px">
+            <div style="font-size:32px;margin-bottom:10px;opacity:0.6">&#128214;</div>
+            <div style="font-size:13px;color:var(--text-dim)">Загружаем Книгу Даров...</div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-line"></div>
+            <div class="skeleton skeleton-line"></div>
+            <div class="skeleton skeleton-line med"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-line"></div>
+            <div class="skeleton skeleton-line short"></div>
+          </div>
         </div>
       `;
       init().then(() => render());
@@ -163,12 +212,25 @@ const BookReader = (function() {
     const fg = theme === 'sepia' ? '#3a2f1a' : (theme === 'light' ? '#1a1a1a' : 'var(--text)');
     const accent = theme === 'sepia' ? '#8b6b2c' : (theme === 'light' ? '#7c3aed' : '#D4AF37');
 
+    const progress = getReadProgress();
+
     container.innerHTML = `
       <div style="padding:16px 16px 0">
         <div style="text-align:center;margin-bottom:12px">
           <div style="font-size:26px;margin-bottom:6px">&#128214;</div>
           <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">КНИГА ДАРОВ</div>
           <div style="font-size:12px;color:var(--text-dim)">${bookData.version || ''} &bull; ${totalChapters} глав</div>
+        </div>
+
+        <!-- Прогресс чтения -->
+        <div id="book-progress-block" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-dim);margin-bottom:4px">
+            <span>&#128218; Прочитано глав</span>
+            <span id="book-progress-text"><b style="color:#D4AF37">${progress.count}</b> / ${progress.total}</span>
+          </div>
+          <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden">
+            <div id="book-progress-fill" style="height:100%;width:${progress.pct}%;background:linear-gradient(90deg,#6b21a8,#D4AF37);transition:width 0.4s ease;border-radius:3px"></div>
+          </div>
         </div>
 
         ${!hasFullAccess() ? `
@@ -304,6 +366,7 @@ const BookReader = (function() {
       <article oncontextmenu="return false" onselectstart="return false" ondragstart="return false" style="user-select:none;-webkit-user-select:none">
         ${headerHtml}
         <div class="book-body">${html}</div>
+        ${renderTreasuryLinkIfDar(ch)}
         ${renderYupSoulBannerIfDarEnd(ch)}
       </article>
     `;
@@ -312,6 +375,9 @@ const BookReader = (function() {
     try { wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
     updatePosIndicator();
     saveProgress();
+    // Помечаем главу прочитанной (если юзер реально получил доступ - не превью-замок)
+    markChapterRead(currentPartIdx, currentChapterIdx);
+    updateProgressBar();
   }
 
   function renderYupSoulBannerIfDarEnd(ch) {
@@ -324,11 +390,51 @@ const BookReader = (function() {
     `;
   }
 
+  // Кнопка "Открыть квесты этого дара" для глав-даров - переход в Сокровищницу
+  function renderTreasuryLinkIfDar(ch) {
+    if (ch.kind !== 'dar' || !ch.dar_code) return '';
+    return `
+      <div style="margin:24px 0 0;padding:16px;background:rgba(180,120,255,0.08);border:1px solid rgba(180,120,255,0.3);border-radius:14px;text-align:center">
+        <div style="font-size:13px;color:#c4a0f0;margin-bottom:10px;line-height:1.5">
+          Хочешь не только прочитать, но и пройти алхимию этого дара?
+        </div>
+        <button onclick="BookReader.openInTreasury('${ch.dar_code}')"
+          style="padding:12px 18px;border-radius:12px;border:1px solid rgba(180,120,255,0.5);background:linear-gradient(135deg,rgba(107,33,168,0.4),rgba(180,120,255,0.2));color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:8px">
+          <span style="font-size:16px">&#128302;</span>
+          <span>Открыть квесты в Сокровищнице</span>
+        </button>
+      </div>
+    `;
+  }
+
+  // Перейти к дару в Сокровищнице (обратная связь Книга → Сокровищница)
+  function openInTreasury(darCode) {
+    try {
+      if (typeof switchNav === 'function') switchNav('treasury');
+      setTimeout(() => {
+        if (typeof Treasury !== 'undefined' && typeof Treasury.openDar === 'function') {
+          Treasury.openDar(darCode);
+        }
+      }, 250);
+    } catch (e) {
+      console.error('BookReader.openInTreasury error:', e);
+    }
+  }
+
   function updatePosIndicator() {
     const el = document.getElementById('book-pos');
     if (!el) return;
     const gIdx = globalIndex(currentPartIdx, currentChapterIdx) + 1;
     el.textContent = gIdx + ' / ' + totalChapters;
+  }
+
+  function updateProgressBar() {
+    const text = document.getElementById('book-progress-text');
+    const fill = document.getElementById('book-progress-fill');
+    if (!text || !fill) return;
+    const p = getReadProgress();
+    text.innerHTML = `<b style="color:#D4AF37">${p.count}</b> / ${p.total}`;
+    fill.style.width = p.pct + '%';
   }
 
   function escapeHtml(s) {
@@ -405,13 +511,16 @@ const BookReader = (function() {
       part.chapters.forEach((ch, cIdx) => {
         const g = globalIndex(pIdx, cIdx);
         const locked = !isChapterAccessible(g);
+        const read = isChapterRead(pIdx, cIdx);
         const isDar = ch.kind === 'dar';
         const darLabel = isDar ? `<span style="color:#D4AF37;font-size:11px;margin-right:6px">&#10022;</span>` : '';
+        const readMark = read && !locked ? '<span style="color:#2ecc71;font-size:12px;margin-left:4px" title="Прочитано">&#10003;</span>' : '';
         const titleShort = ch.title.length > 70 ? ch.title.slice(0, 70) + '...' : ch.title;
         html += `
           <div onclick="${locked ? 'BookReader.showLocked()' : `BookReader.goTo(${pIdx},${cIdx})`}"
-            style="padding:8px 6px;font-size:13px;color:${locked ? 'var(--text-muted)' : 'var(--text)'};cursor:pointer;border-radius:8px;display:flex;align-items:center;gap:4px;line-height:1.4">
+            style="padding:8px 6px;font-size:13px;color:${locked ? 'var(--text-muted)' : 'var(--text)'};cursor:pointer;border-radius:8px;display:flex;align-items:center;gap:4px;line-height:1.4;${read && !locked ? 'opacity:0.75' : ''}">
             ${darLabel}<span style="flex:1">${escapeHtml(titleShort)}</span>
+            ${readMark}
             ${locked ? '<span style="font-size:11px">&#128274;</span>' : ''}
           </div>
         `;
@@ -549,23 +658,32 @@ const BookReader = (function() {
     const input = document.getElementById('book-promo-input');
     if (!input) return;
     const code = input.value.trim();
-    if (!code) { alert('Введи промо-код'); return; }
+    if (!code) {
+      if (typeof showToast === 'function') showToast('Введи промо-код', 'error');
+      else alert('Введи промо-код');
+      return;
+    }
     try {
       const result = await DarAPI.submitPromo(code);
       if (result.success) {
         accessLevel = result.access_level || 'full';
         if (window.PROFILE) window.PROFILE.access_level = accessLevel;
-        alert('Полный доступ к книге открыт!');
+        if (typeof showToast === 'function') showToast('\u2728 Полный доступ к книге открыт!', 'success');
+        else alert('Полный доступ к книге открыт!');
         render();
       } else {
-        alert(result.message || 'Неверный промо-код');
+        if (typeof showToast === 'function') showToast(result.message || 'Неверный промо-код', 'error');
+        else alert(result.message || 'Неверный промо-код');
       }
-    } catch(e) { alert('Ошибка: ' + e.message); }
+    } catch(e) {
+      if (typeof showToast === 'function') showToast(e.message || 'Не удалось активировать промо-код', 'error');
+      else alert(e.message || 'Не удалось активировать промо-код');
+    }
   }
 
   return {
     init, render, renderChapter,
-    nextChapter, prevChapter, goTo, goToDar,
+    nextChapter, prevChapter, goTo, goToDar, openInTreasury,
     toggleTOC, toggleSettings, toggleBookmarks,
     toggleBookmark, removeBookmark, clearBookmarks,
     setFontSize, setTheme,

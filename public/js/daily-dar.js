@@ -112,12 +112,23 @@ const DailyDar = (function() {
     });
   }
 
-  // --- Рендер индикатора загрузки ---
+  // --- Рендер индикатора загрузки (с скелетоном текста + иконкой Оракула) ---
   function renderLoading() {
-    return `<div style="text-align:center;padding:30px 16px">
-      <div style="font-size:32px;margin-bottom:12px;animation:pulse 1.5s ease-in-out infinite">&#128302;</div>
-      <div style="font-size:14px;color:#D4AF37;letter-spacing:1px;margin-bottom:6px">Оракул формирует послание...</div>
-      <div style="font-size:12px;color:var(--text-muted)">Подожди несколько секунд</div>
+    return `<div style="padding:20px 16px">
+      <div style="text-align:center;margin-bottom:18px">
+        <div style="font-size:32px;margin-bottom:8px;animation:pulse 1.5s ease-in-out infinite">&#128302;</div>
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px">Оракул формирует послание...</div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line med"></div>
+        <div class="skeleton skeleton-line short"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line short"></div>
+      </div>
     </div>
     <style>@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.1)}}</style>`;
   }

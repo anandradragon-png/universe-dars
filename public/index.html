@@ -78,6 +78,26 @@
     #profile-panel{user-select:none;-webkit-user-select:none;-moz-user-select:none;-webkit-touch-callout:none}
     #profile-panel input{user-select:text;-webkit-user-select:text;-moz-user-select:text}
     .tab{display:none}.tab.active{display:block}
+    /* Скелетоны - плейсхолдеры пока грузится контент */
+    @keyframes skeletonShimmer {
+      0% { background-position: -200px 0; }
+      100% { background-position: calc(200px + 100%) 0; }
+    }
+    .skeleton {
+      display: inline-block;
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%);
+      background-size: 200px 100%;
+      background-repeat: no-repeat;
+      border-radius: 6px;
+      animation: skeletonShimmer 1.4s ease-in-out infinite;
+    }
+    .skeleton-line { height: 14px; margin-bottom: 8px; width: 100%; }
+    .skeleton-line.short { width: 60%; }
+    .skeleton-line.med { width: 80%; }
+    .skeleton-title { height: 22px; width: 50%; margin: 0 auto 12px; }
+    .skeleton-block { height: 80px; border-radius: 12px; margin-bottom: 12px; width: 100%; }
+    .skeleton-circle { width: 80px; height: 80px; border-radius: 50%; }
+    .skeleton-card { padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; margin-bottom: 10px; }
     #tab-calc{padding:16px}
     .main-container{max-width:650px;margin:0 auto;width:100%}
     .input-screen{text-align:center;padding-top:20px}
@@ -721,11 +741,11 @@
   <!-- Игровые модули -->
   <script src="js/api-client.js?v=2"></script>
   <script src="js/crystals.js?v=2"></script>
-  <script src="js/treasury.js?v=6"></script>
+  <script src="js/treasury.js?v=7"></script>
   <script src="js/referral.js?v=2"></script>
-  <script src="js/book-reader.js?v=8"></script>
+  <script src="js/book-reader.js?v=9"></script>
   <script src="js/intuition-game.js?v=3"></script>
-  <script src="js/daily-dar.js?v=2"></script>
+  <script src="js/daily-dar.js?v=3"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2414,6 +2434,17 @@
     async function loadHallOfFame() {
       const container = document.getElementById('hall-of-fame-content');
       if (!container) return;
+
+      // Скелетон пока грузим с сервера
+      container.innerHTML = `
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px">
+          <div class="skeleton skeleton-circle" style="width:60px;height:60px"></div>
+          <div class="skeleton skeleton-circle" style="width:60px;height:60px"></div>
+          <div class="skeleton skeleton-circle" style="width:60px;height:60px"></div>
+        </div>
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line short"></div>
+      `;
 
       try {
         const data = await DarAPI.getHallOfFame();

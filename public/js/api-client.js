@@ -35,6 +35,36 @@ const DarAPI = (function() {
     } catch (e) {}
   }
 
+  // Дружелюбные сообщения для пользователя по техническим ошибкам
+  function friendlyError(kind, info) {
+    if (kind === 'network') {
+      return 'Нет связи с интернетом. Проверь соединение и попробуй ещё раз.';
+    }
+    if (kind === 'non-json') {
+      const status = info && info.status;
+      if (status === 502 || status === 503 || status === 504) {
+        return 'Сервер сейчас перегружен. Подожди минуту и попробуй ещё раз.';
+      }
+      return 'Сервер ненадолго недоступен. Попробуй позже.';
+    }
+    if (kind === 'http') {
+      const status = info && info.status;
+      if (status === 401) return 'Нужно перезайти в приложение.';
+      if (status === 403) return 'Эта функция доступна только в полной версии.';
+      if (status === 404) return 'Запрошенные данные не найдены.';
+      if (status === 429) return 'Слишком много запросов. Подожди немного.';
+      if (status >= 500) return 'На сервере что-то пошло не так. Мы уже знаем и чиним.';
+      // Если сервер вернул свой error - используем его, если он на русском
+      if (info && info.body && info.body.error) {
+        const msg = String(info.body.error);
+        // Простая проверка: если есть кириллица - это уже дружелюбное сообщение
+        if (/[а-яё]/i.test(msg)) return msg;
+      }
+      return 'Что-то пошло не так. Попробуй ещё раз.';
+    }
+    return 'Не удалось выполнить запрос. Попробуй ещё раз.';
+  }
+
   async function request(path, method = 'GET', body = null) {
     const opts = { method, headers: getHeaders() };
     if (body && method !== 'GET') opts.body = JSON.stringify(body);
@@ -44,7 +74,9 @@ const DarAPI = (function() {
     } catch (netErr) {
       console.error('[DarAPI] network error', path, netErr.message);
       logApiError('network', path, netErr.message);
-      throw new Error('Нет связи с сервером (' + netErr.message + ')');
+      const err = new Error(friendlyError('network'));
+      err.kind = 'network';
+      throw err;
     }
     let data;
     try {
@@ -53,12 +85,18 @@ const DarAPI = (function() {
       const text = await resp.text().catch(() => '');
       console.error('[DarAPI] non-JSON response', path, 'status', resp.status, 'body:', text.slice(0, 200));
       logApiError('non-json', path, { status: resp.status, body: text.slice(0, 300) });
-      throw new Error('Сервер вернул не-JSON (' + resp.status + ')');
+      const err = new Error(friendlyError('non-json', { status: resp.status }));
+      err.kind = 'non-json';
+      err.status = resp.status;
+      throw err;
     }
     if (!resp.ok) {
       console.warn('[DarAPI] http error', path, 'status', resp.status, 'body:', data);
       logApiError('http', path, { status: resp.status, body: data });
-      throw new Error(data.error || ('HTTP ' + resp.status));
+      const err = new Error(friendlyError('http', { status: resp.status, body: data }));
+      err.kind = 'http';
+      err.status = resp.status;
+      throw err;
     }
     return data;
   }

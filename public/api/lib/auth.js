@@ -11,6 +11,10 @@ function validateTelegramData(initData, botToken) {
   if (!initData) return { error: 'no_init_data' };
   if (!botToken) return { error: 'no_bot_token' };
 
+  // Защита от случайных пробелов/переносов строки в Vercel env
+  const cleanToken = botToken.trim();
+  if (!cleanToken) return { error: 'empty_bot_token' };
+
   const params = new URLSearchParams(initData);
   const hash = params.get('hash');
   if (!hash) return { error: 'no_hash' };
@@ -19,10 +23,22 @@ function validateTelegramData(initData, botToken) {
   const entries = [...params.entries()].sort(([a], [b]) => a.localeCompare(b));
   const dataCheckString = entries.map(([k, v]) => `${k}=${v}`).join('\n');
 
-  const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
+  const secretKey = crypto.createHmac('sha256', 'WebAppData').update(cleanToken).digest();
   const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
 
-  if (computedHash !== hash) return { error: 'bad_hash' };
+  if (computedHash !== hash) {
+    // Диагностические данные без утечки токена: префикс sha256 от токена + его длина до и после trim
+    const tokenSig = crypto.createHash('sha256').update(cleanToken).digest('hex').slice(0, 6);
+    const botId = cleanToken.split(':')[0] || '';
+    return {
+      error: 'bad_hash',
+      bot_id: botId,                    // начальная цифровая часть (не секретно, это public bot_id)
+      token_len_raw: botToken.length,   // длина как есть
+      token_len_trimmed: cleanToken.length, // длина после trim — если разные, был пробел
+      token_sig: tokenSig,              // sha256-префикс токена — для сравнения между сессиями
+      init_data_len: initData.length
+    };
+  }
 
   // Проверить что данные не старше 24 часов (раньше был 1 час - слишком жёстко для долгих сессий)
   const authDate = parseInt(params.get('auth_date') || '0');

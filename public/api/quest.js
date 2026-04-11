@@ -1,4 +1,4 @@
-const { getUser } = require('./lib/auth');
+const { requireUser } = require('./lib/auth');
 const { getOrCreateUser, completeQuest, getUserQuests, addCrystals, unlockSection } = require('./lib/db');
 
 module.exports = async (req, res) => {
@@ -8,8 +8,8 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    const tgUser = getUser(req);
-    if (!tgUser) return res.status(401).json({ error: 'Unauthorized' });
+    const tgUser = requireUser(req, res);
+    if (!tgUser) return;
 
     const user = await getOrCreateUser(tgUser);
 

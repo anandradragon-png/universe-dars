@@ -1,4 +1,4 @@
-const { getUser } = require('./lib/auth');
+const { requireUser } = require('./lib/auth');
 const { getSupabase, getOrCreateUser, addCrystals } = require('./lib/db');
 
 // Награды победителям за титулы
@@ -119,8 +119,8 @@ module.exports = async (req, res) => {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const tgUser = getUser(req);
-    if (!tgUser) return res.status(401).json({ error: 'Unauthorized' });
+    const tgUser = requireUser(req, res);
+    if (!tgUser) return;
 
     const db = getSupabase();
     const user = await getOrCreateUser(tgUser);

@@ -1,4 +1,4 @@
-const { getUser } = require('./lib/auth');
+const { requireUser } = require('./lib/auth');
 const { getSupabase } = require('./lib/db');
 
 // ID администраторов, которым разрешён доступ к фидбэку
@@ -11,8 +11,8 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const tgUser = getUser(req);
-  if (!tgUser) return res.status(401).json({ error: 'Unauthorized' });
+  const tgUser = requireUser(req, res);
+  if (!tgUser) return;
   if (!ADMIN_IDS.includes(tgUser.id)) return res.status(403).json({ error: 'Forbidden' });
 
   try {

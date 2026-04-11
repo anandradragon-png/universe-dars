@@ -15,6 +15,14 @@ function getSupabase() {
 // ---- Пользователи ----
 
 async function getOrCreateUser(telegramUser) {
+  // Защита: не принимаем объект-ошибку от getUser/requireUser и не создаём запись с null telegram_id
+  if (!telegramUser || typeof telegramUser !== 'object') {
+    throw new Error('getOrCreateUser: no telegramUser');
+  }
+  if (!telegramUser.id) {
+    const reason = telegramUser.error || 'no_id';
+    throw new Error('getOrCreateUser: invalid telegramUser (' + reason + ')');
+  }
   const db = getSupabase();
   const { data: existing } = await db
     .from('users')
@@ -32,7 +40,7 @@ async function getOrCreateUser(telegramUser) {
     .from('users')
     .insert({
       telegram_id: telegramUser.id,
-      first_name: telegramUser.first_name,
+      first_name: telegramUser.first_name || '',
       last_name: telegramUser.last_name || '',
       username: telegramUser.username || '',
       crystals: 0,

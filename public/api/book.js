@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
       try {
         const { getUser } = require('./lib/auth');
         const tgUser = getUser(req);
-        if (tgUser) {
+        if (tgUser && tgUser.id) {
           const db = getSupabase();
           const { data: user } = await db.from('users').select('access_level').eq('telegram_id', tgUser.id).single();
           if (user) accessLevel = user.access_level;
@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
     try {
       const { getUser } = require('./lib/auth');
       const tgUser = getUser(req);
-      if (tgUser) {
+      if (tgUser && tgUser.id) {
         const db = getSupabase();
         const { data: user } = await db.from('users').select('access_level').eq('telegram_id', tgUser.id).single();
         if (user) accessLevel = user.access_level;

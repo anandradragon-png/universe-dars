@@ -1,4 +1,4 @@
-const { getUser } = require('./lib/auth');
+const { requireUser } = require('./lib/auth');
 const { getOrCreateUser, updateUser, addCrystals } = require('./lib/db');
 
 module.exports = async (req, res) => {
@@ -10,8 +10,8 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const tgUser = getUser(req);
-    if (!tgUser) return res.status(401).json({ error: 'Unauthorized' });
+    const tgUser = requireUser(req, res);
+    if (!tgUser) return;
 
     const user = await getOrCreateUser(tgUser);
     const { code } = req.body;

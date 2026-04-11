@@ -1,4 +1,4 @@
-const { getUser } = require('./lib/auth');
+const { getUser, requireUser } = require('./lib/auth');
 const { getSupabase, getOrCreateUser, updateUser, addCrystals } = require('./lib/db');
 
 // Helper: возвращает ключи текущих периодов (локальные даты, YYYY-MM-DD)
@@ -135,7 +135,7 @@ module.exports = async (req, res) => {
       let myRank = null;
       let myScore = 0;
       const tgUser = getUser(req);
-      if (tgUser) {
+      if (tgUser && tgUser.id) {
         try {
           const user = await getOrCreateUser(tgUser);
           const { data: myRow } = await db
@@ -167,16 +167,16 @@ module.exports = async (req, res) => {
           display_name: row.display_name || 'Странник',
           score: row[scoreField] || 0,
           games_won: row.games_won || 0,
-          is_me: tgUser && row.user_id === (tgUser.id ? undefined : null) // fallback
+          is_me: (tgUser && tgUser.id) && row.user_id === (tgUser.id ? undefined : null) // fallback
         })),
-        me: tgUser ? { rank: myRank, score: myScore } : null
+        me: (tgUser && tgUser.id) ? { rank: myRank, score: myScore } : null
       });
     }
 
     // ========== POST: отправить очки после игры ==========
     if (req.method === 'POST') {
-      const tgUser = getUser(req);
-      if (!tgUser) return res.status(401).json({ error: 'Unauthorized' });
+      const tgUser = requireUser(req, res);
+      if (!tgUser) return;
 
       const user = await getOrCreateUser(tgUser);
       const body = req.body || {};

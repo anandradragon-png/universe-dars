@@ -394,23 +394,17 @@
     </div>
 
     <!-- Моя семья и близкие -->
-    <div class="profile-section" style="border:1px dashed rgba(212,175,55,0.35);background:rgba(212,175,55,0.05)">
+    <div class="profile-section">
       <div class="profile-section-title">&#128106; МОЯ СЕМЬЯ И БЛИЗКИЕ</div>
       <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">
-        Здесь скоро появятся слоты под данные близких тебе людей: членов семьи, друзей, партнёров. Для каждого сможешь рассчитать дар и получать индивидуальные послания Оракула.
+        Добавь близких тебе людей: членов семьи, друзей, партнёров. Для каждого можно рассчитать его дар и (скоро) получать персональные послания Оракула.
       </div>
-      <div style="background:rgba(107,33,168,0.15);border:1px solid rgba(180,120,255,0.3);border-radius:10px;padding:10px;margin-bottom:10px">
-        <div style="font-size:11px;color:#c4a0f0;line-height:1.6">
-          <b>&#128274; Как это будет работать:</b><br>
-          - Количество слотов зависит от уровня доступа<br>
-          - Странник: только свои данные<br>
-          - Хранитель: 3 слота для близких<br>
-          - Мастер: безлимит<br>
-          - Заполненный слот нельзя заменить другим человеком (защита от подмены)
+      <div id="relatives-content">
+        <!-- заполняется renderRelativesBlock() -->
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
         </div>
-      </div>
-      <div style="text-align:center;padding:6px 0;font-size:11px;color:#D4AF37">
-        &#9201; Совсем скоро
       </div>
     </div>
 
@@ -640,7 +634,54 @@
     .fb-cat{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
     .fb-cat.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
     .fb-cat:hover{border-color:rgba(180,120,255,0.4)}
+    .rel-input{width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Georgia,serif;outline:none;margin-bottom:10px;box-sizing:border-box}
+    .rel-input:focus{border-color:rgba(180,120,255,0.6)}
+    .rel-rel-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif;transition:all .15s}
+    .rel-rel-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .rel-card{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;margin-bottom:8px}
   </style>
+
+  <!-- Модалка добавления близкого -->
+  <div id="rel-add-modal" style="display:none;position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px">
+    <div style="background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:22px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:15px;color:var(--text);letter-spacing:1.5px">&#128106; ДОБАВИТЬ БЛИЗКОГО</div>
+        <button onclick="closeAddRelative()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;padding:4px">&#10005;</button>
+      </div>
+
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">
+        Заполни данные близкого человека, чтобы рассчитать его дар. Помни: после сохранения изменить нельзя.
+      </div>
+
+      <label style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:4px;display:block">ИМЯ</label>
+      <input id="rel-name" class="rel-input" type="text" placeholder="Например: Мама, Анна" maxlength="50">
+
+      <label style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:4px;display:block">ДАТА РОЖДЕНИЯ</label>
+      <input id="rel-birth-date" class="rel-input" type="text" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" maxlength="10">
+
+      <label style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:6px;display:block">КЕМ ПРИХОДИТСЯ</label>
+      <div id="rel-relationship-buttons" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+        <button class="rel-rel-btn" data-rel="mother" onclick="selectRelationship('mother')">&#128105; Мама</button>
+        <button class="rel-rel-btn" data-rel="father" onclick="selectRelationship('father')">&#128104; Папа</button>
+        <button class="rel-rel-btn" data-rel="son" onclick="selectRelationship('son')">&#128102; Сын</button>
+        <button class="rel-rel-btn" data-rel="daughter" onclick="selectRelationship('daughter')">&#128103; Дочь</button>
+        <button class="rel-rel-btn" data-rel="partner" onclick="selectRelationship('partner')">&#128147; Партнёр</button>
+        <button class="rel-rel-btn" data-rel="sibling" onclick="selectRelationship('sibling')">&#128109; Брат/сестра</button>
+        <button class="rel-rel-btn" data-rel="friend" onclick="selectRelationship('friend')">&#129309; Друг</button>
+        <button class="rel-rel-btn" data-rel="other" onclick="selectRelationship('other')">&#10024; Другое</button>
+      </div>
+
+      <label style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:6px;display:block">ПОЛ (опционально)</label>
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button class="rel-rel-btn" data-gender="male" onclick="selectRelGender('male')" style="flex:1">&#9794; Мужской</button>
+        <button class="rel-rel-btn" data-gender="female" onclick="selectRelGender('female')" style="flex:1">&#9792; Женский</button>
+      </div>
+
+      <div id="rel-add-status" style="min-height:18px;margin-bottom:8px;font-size:12px;text-align:center"></div>
+
+      <button id="rel-save-btn" onclick="saveRelative()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px;font-weight:bold">&#10003; Сохранить</button>
+    </div>
+  </div>
 
   <!-- Админ: Модалка со списком фидбэка -->
   <div id="admin-feedback-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);padding:16px;overflow-y:auto">
@@ -843,6 +884,7 @@
       if (typeof renderProfileDataBlock === 'function') renderProfileDataBlock();
       if (typeof renderLeaderboardNameBlock === 'function') renderLeaderboardNameBlock();
       if (typeof loadHallOfFame === 'function') loadHallOfFame();
+      if (typeof loadRelatives === 'function') loadRelatives();
       if (typeof loadReferralStats === 'function') loadReferralStats();
     }
 
@@ -2512,6 +2554,210 @@
 
       container.innerHTML = html;
     }
+
+    // ============ Моя семья и близкие ============
+
+    let _relativesData = { relatives: [], slot_limit: 0, slot_used: 0, access_level: 'basic' };
+    let _selectedRelationship = '';
+    let _selectedRelGender = '';
+
+    const RELATIONSHIP_LABELS = {
+      mother:   { ru: 'Мама',         icon: '\u{1F469}' },
+      father:   { ru: 'Папа',         icon: '\u{1F468}' },
+      son:      { ru: 'Сын',          icon: '\u{1F466}' },
+      daughter: { ru: 'Дочь',         icon: '\u{1F467}' },
+      partner:  { ru: 'Партнёр',      icon: '\u{1F493}' },
+      sibling:  { ru: 'Брат/сестра',  icon: '\u{1F46D}' },
+      friend:   { ru: 'Друг',         icon: '\u{1F91D}' },
+      other:    { ru: 'Другое',       icon: '\u2728' }
+    };
+
+    async function loadRelatives() {
+      const container = document.getElementById('relatives-content');
+      if (!container) return;
+
+      try {
+        const data = await DarAPI.getRelatives();
+        _relativesData = data || { relatives: [], slot_limit: 0, slot_used: 0, access_level: 'basic' };
+        renderRelativesBlock();
+      } catch (e) {
+        console.warn('relatives load failed:', e.message);
+        _relativesData = { relatives: [], slot_limit: 0, slot_used: 0, access_level: 'basic' };
+        renderRelativesBlock();
+      }
+    }
+
+    function renderRelativesBlock() {
+      const container = document.getElementById('relatives-content');
+      if (!container) return;
+
+      const { relatives, slot_limit, slot_used, access_level } = _relativesData;
+      const isUnlimited = slot_limit === null;
+      const limitText = isUnlimited ? 'безлимит' : `${slot_used} / ${slot_limit}`;
+      const canAdd = isUnlimited || (slot_used < slot_limit);
+      const isLocked = !isUnlimited && slot_limit === 0;
+
+      let html = '';
+
+      if (isLocked) {
+        // Странник - функция недоступна
+        html += `<div style="background:rgba(212,175,55,0.08);border:1px dashed rgba(212,175,55,0.35);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:24px;margin-bottom:6px">&#128274;</div>
+          <div style="font-size:13px;color:var(--text);margin-bottom:4px">Доступно с уровня Хранитель</div>
+          <div style="font-size:11px;color:var(--text-dim);line-height:1.5">
+            Хранитель: 3 слота для близких<br>
+            Мастер: безлимит
+          </div>
+          <div style="font-size:11px;color:#D4AF37;margin-top:8px">Активируй промо-код или повысь уровень</div>
+        </div>`;
+        container.innerHTML = html;
+        return;
+      }
+
+      // Заголовок со счётчиком слотов
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:11px;color:var(--text-dim);letter-spacing:0.5px">
+        <span>СЛОТЫ ЗАНЯТО</span>
+        <span><b style="color:#D4AF37">${limitText}</b></span>
+      </div>`;
+
+      // Список добавленных близких
+      if (relatives.length === 0) {
+        html += `<div style="text-align:center;padding:14px 8px;font-size:12px;color:var(--text-dim);font-style:italic">
+          Пока не добавлено ни одного близкого человека.
+        </div>`;
+      } else {
+        for (const r of relatives) {
+          const rel = RELATIONSHIP_LABELS[r.relationship] || RELATIONSHIP_LABELS.other;
+          const darName = (window.DARS && window.DARS[r.dar_code]) || '';
+          const darArch = (window.DAR_ARCHETYPES && window.DAR_ARCHETYPES[r.dar_code]) || '';
+          html += `<div class="rel-card">
+            <div style="font-size:24px">${rel.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;color:var(--text);font-weight:bold">${escapeRelText(r.name)}</div>
+              <div style="font-size:11px;color:var(--text-dim)">${rel.ru} &bull; ${escapeRelText(r.birth_date)}</div>
+              ${darName ? `<div style="font-size:11px;color:#D4AF37;margin-top:2px">&#128302; Дар: ${darName} (${r.dar_code})</div>` : ''}
+              ${darArch ? `<div style="font-size:10px;color:#c4a0f0;font-style:italic">${darArch}</div>` : ''}
+            </div>
+            <button onclick="confirmDeleteRelative(${r.id}, '${escapeRelAttr(r.name)}')"
+              title="Удалить" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:4px 8px">&#10005;</button>
+          </div>`;
+        }
+      }
+
+      // Кнопка "Добавить" (если есть свободный слот)
+      if (canAdd) {
+        html += `<button onclick="openAddRelative()" style="width:100%;padding:12px;border-radius:12px;border:1px dashed rgba(180,120,255,0.5);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:13px;cursor:pointer;font-family:Georgia,serif;margin-top:8px">
+          &#10010; Добавить близкого
+        </button>`;
+      } else {
+        html += `<div style="text-align:center;font-size:11px;color:#D4AF37;padding:8px 0">
+          Все слоты заняты. Удали кого-то или повысь уровень доступа для получения большего количества слотов.
+        </div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function escapeRelText(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function escapeRelAttr(s) {
+      return String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    function openAddRelative() {
+      _selectedRelationship = '';
+      _selectedRelGender = '';
+      // Сброс полей
+      const nameEl = document.getElementById('rel-name');
+      const dateEl = document.getElementById('rel-birth-date');
+      const status = document.getElementById('rel-add-status');
+      if (nameEl) nameEl.value = '';
+      if (dateEl) dateEl.value = '';
+      if (status) status.textContent = '';
+      // Сброс кнопок
+      document.querySelectorAll('#rel-relationship-buttons .rel-rel-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('[data-gender]').forEach(b => b.classList.remove('active'));
+      // Открыть
+      document.getElementById('rel-add-modal').style.display = 'flex';
+    }
+    function closeAddRelative() {
+      document.getElementById('rel-add-modal').style.display = 'none';
+    }
+    function selectRelationship(rel) {
+      _selectedRelationship = rel;
+      document.querySelectorAll('#rel-relationship-buttons .rel-rel-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.rel === rel);
+      });
+    }
+    function selectRelGender(gender) {
+      _selectedRelGender = gender;
+      document.querySelectorAll('[data-gender]').forEach(b => {
+        b.classList.toggle('active', b.dataset.gender === gender);
+      });
+    }
+
+    async function saveRelative() {
+      const status = document.getElementById('rel-add-status');
+      const btn = document.getElementById('rel-save-btn');
+      const name = (document.getElementById('rel-name')?.value || '').trim();
+      const birth_date = (document.getElementById('rel-birth-date')?.value || '').trim();
+
+      function showErr(msg) {
+        if (status) { status.style.color = '#f87171'; status.textContent = msg; }
+      }
+
+      if (!name || name.length < 2) return showErr('Укажи имя (минимум 2 символа)');
+      if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(birth_date)) return showErr('Дата в формате ДД.ММ.ГГГГ');
+      if (!_selectedRelationship) return showErr('Выбери, кем приходится');
+
+      if (status) { status.style.color = 'var(--text-dim)'; status.textContent = 'Сохраняем...'; }
+      btn.disabled = true;
+
+      try {
+        const result = await DarAPI.addRelative({
+          name,
+          birth_date,
+          relationship: _selectedRelationship,
+          gender: _selectedRelGender || undefined
+        });
+        if (result && result.success) {
+          if (typeof showToast === 'function') showToast('\u2728 ' + name + ' добавлен(а) в семью!', 'success');
+          closeAddRelative();
+          loadRelatives();
+        } else {
+          showErr('Что-то пошло не так. Попробуй ещё раз.');
+        }
+      } catch (e) {
+        showErr(e.message || 'Не удалось сохранить');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function confirmDeleteRelative(id, name) {
+      if (!confirm(`Удалить ${name} из списка близких?`)) return;
+      try {
+        await DarAPI.deleteRelative(id);
+        if (typeof showToast === 'function') showToast('Удалено', 'info');
+        loadRelatives();
+      } catch (e) {
+        if (typeof showToast === 'function') showToast(e.message || 'Не удалось удалить', 'error');
+      }
+    }
+
+    // Маска для ввода даты ДД.ММ.ГГГГ в поле rel-birth-date
+    document.addEventListener('DOMContentLoaded', function() {
+      const dateInput = document.getElementById('rel-birth-date');
+      if (dateInput) {
+        dateInput.addEventListener('input', function() {
+          let v = this.value.replace(/\D/g, '');
+          if (v.length > 2) v = v.slice(0, 2) + '.' + v.slice(2);
+          if (v.length > 5) v = v.slice(0, 5) + '.' + v.slice(5, 9);
+          this.value = v;
+        });
+      }
+    });
 
     // Проверяем при загрузке: если есть сохранённый дар, но нет профиля - показать напоминалку
     function checkProfileReminder() {

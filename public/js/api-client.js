@@ -156,6 +156,13 @@ const DarAPI = (function() {
     // ---- Зал Славы (титулы победителей рейтинга) ----
     getHallOfFame: () => request('/api/hall-of-fame'),
 
+    // ---- Семья и близкие ----
+    // Возвращает: { relatives: [...], slot_limit, slot_used, access_level }
+    getRelatives: () => request('/api/relatives'),
+    // payload: { name, birth_date (DD.MM.YYYY), relationship, gender? }
+    addRelative: (payload) => request('/api/relatives', 'POST', payload),
+    deleteRelative: (id) => request('/api/relatives?id=' + encodeURIComponent(id), 'DELETE'),
+
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>
       request('/api/message', 'POST', { giftCode }),

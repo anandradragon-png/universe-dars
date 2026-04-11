@@ -55,6 +55,10 @@
     "api/section.js": {
       "memory": 512,
       "maxDuration": 30
+    },
+    "api/relatives.js": {
+      "memory": 256,
+      "maxDuration": 10
     }
   }
 }

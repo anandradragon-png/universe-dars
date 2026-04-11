@@ -322,6 +322,286 @@ const Treasury = (function() {
     container.innerHTML = html;
   }
 
+  // ========== КОУЧИНГ-ЧАТ С НАСТАВНИКОМ ==========
+  // Универсальный компонент для Сути дара / Граней / Медитации активации.
+  // Состояние диалога хранится в localStorage, API вызывается с полной историей.
+
+  const DIALOG_PREFIX = '_coach_dialogue_';
+
+  function getDialogueKey(code, questType, questIdx) {
+    if (questType === 'essence') return DIALOG_PREFIX + code + '_essence';
+    if (questType === 'meditation') return DIALOG_PREFIX + code + '_meditation';
+    return DIALOG_PREFIX + code + '_shadow_' + questIdx;
+  }
+
+  function loadDialogue(code, questType, questIdx) {
+    try {
+      const raw = localStorage.getItem(getDialogueKey(code, questType, questIdx));
+      if (!raw) return { messages: [], roundCount: 0, state: 'open' };
+      const parsed = JSON.parse(raw);
+      return {
+        messages: parsed.messages || [],
+        roundCount: parsed.roundCount || 0,
+        state: parsed.state || 'open'
+      };
+    } catch (e) {
+      return { messages: [], roundCount: 0, state: 'open' };
+    }
+  }
+
+  function saveDialogue(code, questType, questIdx, dialogue) {
+    try {
+      localStorage.setItem(getDialogueKey(code, questType, questIdx), JSON.stringify(dialogue));
+    } catch (e) {}
+  }
+
+  // Пузыри сообщений в чате
+  function renderUserBubble(text) {
+    return `<div style="text-align:right;margin-bottom:12px">
+      <div style="display:inline-block;max-width:85%;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);border-radius:14px 14px 4px 14px;padding:10px 14px;text-align:left;font-size:13px;color:var(--text);line-height:1.6;word-wrap:break-word">${escapeHtmlSimple(text)}</div>
+    </div>`;
+  }
+
+  function renderCoachBubble(text) {
+    return `<div style="text-align:left;margin-bottom:12px">
+      <div style="font-size:10px;color:#c4a0f0;margin-bottom:4px;margin-left:2px">&#128302; Наставник</div>
+      <div style="display:inline-block;max-width:85%;background:rgba(180,120,255,0.12);border:1px solid rgba(180,120,255,0.3);border-radius:14px 14px 14px 4px;padding:10px 14px;text-align:left;font-size:13px;color:var(--text);line-height:1.6;word-wrap:break-word">${escapeHtmlSimple(text)}</div>
+    </div>`;
+  }
+
+  // Универсальный рендер экрана квеста с коучинг-чатом
+  function renderCoachingQuestScreen(code, config) {
+    // config: { questType, questIdx, title, subtitle, subtitleColor,
+    //          contextBlocks: [{label, icon, text, bgColor, borderColor, labelColor}],
+    //          reward, shadow }
+    const container = document.getElementById('treasury-content');
+    if (!container) return;
+
+    const name = getDarName(code);
+    const dialogue = loadDialogue(code, config.questType, config.questIdx || 0);
+    const completedSections = getUnlockedSections(code);
+    const isAlreadyCompleted = (config.questIdx || 0) <= completedSections;
+
+    let html = `<button class="btn-back" style="display:block" onclick="Treasury.openDar('${code}')">&#8592; ${name}</button>`;
+
+    // Заголовок
+    html += `<div style="text-align:center;margin:14px 0 18px">
+      <div style="font-size:11px;color:${config.subtitleColor || '#c4a0f0'};letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">${config.subtitle || ''}</div>
+      <div style="font-size:20px;color:var(--text);letter-spacing:1px">${config.title || name}</div>
+    </div>`;
+
+    // Контекстные блоки (Узнай/Проживи/Практика и т.п.)
+    for (const block of (config.contextBlocks || [])) {
+      if (!block.text) continue;
+      html += `<div style="background:${block.bgColor};border:1px solid ${block.borderColor};border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:11px;color:${block.labelColor};letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">${block.icon || ''} ${block.label}</div>
+        <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap">${escapeHtmlSimple(block.text)}</div>
+      </div>`;
+    }
+
+    // Блок чата с наставником
+    html += `<div id="coach-dialogue-block" style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
+      <div style="font-size:11px;color:#2ecc71;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;font-weight:bold">&#128151; Диалог с наставником</div>
+      <div id="coach-messages" style="max-height:400px;overflow-y:auto;margin-bottom:12px">`;
+
+    if (dialogue.messages.length === 0) {
+      // Приветствие наставника
+      const greeting = config.questType === 'essence'
+        ? 'Я с тобой. Поделись тем, что уже открывается в тебе об этом даре. Вспомни моменты, когда ты чувствовала эту силу. Расскажи своими словами.'
+        : config.questType === 'meditation'
+        ? 'Я здесь. Расскажи, как прошла для тебя эта практика. Что ты почувствовала в теле, какие образы пришли, какое состояние осталось.'
+        : 'Я рядом. Прочитай описание этой грани и поделись: что отзывается, что узнаёшь в себе. Не спеши, говори своими словами.';
+      html += renderCoachBubble(greeting);
+    } else {
+      for (const msg of dialogue.messages) {
+        if (msg.role === 'user') html += renderUserBubble(msg.text);
+        else html += renderCoachBubble(msg.text);
+      }
+    }
+
+    html += '</div>'; // закрываем coach-messages
+
+    // Блок ввода или кнопки выбора
+    if (isAlreadyCompleted) {
+      html += `<div style="text-align:center;padding:14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:10px;font-size:13px;color:#D4AF37">
+        &#10003; Этот квест уже пройден. Ты можешь перечитать диалог или <button onclick="Treasury.resetCoachDialogue('${code}', '${config.questType}', ${config.questIdx || 0})" style="background:none;border:none;color:#D4AF37;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:13px">начать новый</button>.
+      </div>`;
+    } else if (dialogue.state === 'offered_close') {
+      html += `<div style="text-align:center;margin-top:10px">
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;font-style:italic">Что выбираешь?</div>
+        <button class="btn btn-secondary" style="width:auto;padding:10px 18px;margin:4px" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">&#10003; Готова двигаться дальше</button>
+        <button class="btn btn-ghost" style="width:auto;padding:10px 18px;margin:4px" onclick="Treasury.coachContinue('${code}', '${config.questType}', ${config.questIdx || 0})">Хочу ещё побыть</button>
+      </div>`;
+    } else {
+      const isFirstMsg = dialogue.messages.length === 0;
+      const minLen = isFirstMsg ? 30 : 5;
+      const placeholder = isFirstMsg
+        ? 'Поделись своими мыслями, не торопясь...'
+        : 'Твой ответ...';
+      html += `
+        <textarea id="coach-input" rows="3" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Georgia,serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="${placeholder}"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-size:11px;color:var(--text-muted)">Мин. ${minLen} символов</span>
+          <span style="font-size:11px;color:#D4AF37">Раунд ${dialogue.roundCount + 1}${dialogue.roundCount >= 3 ? ' (наставник скоро предложит завершить)' : ''}</span>
+        </div>
+        <button class="btn btn-secondary" id="coach-send-btn" style="margin-top:10px" onclick="Treasury.coachSend('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">Отправить</button>
+      `;
+    }
+
+    html += '</div>'; // закрываем coach-dialogue-block
+
+    container.innerHTML = html;
+
+    // Автопрокрутка чата вниз
+    setTimeout(() => {
+      const msgBlock = document.getElementById('coach-messages');
+      if (msgBlock) msgBlock.scrollTop = msgBlock.scrollHeight;
+    }, 50);
+  }
+
+  async function coachSend(code, questType, questIdx, reward) {
+    const input = document.getElementById('coach-input');
+    if (!input) return;
+    const answer = input.value.trim();
+
+    const dialogue = loadDialogue(code, questType, questIdx);
+    const isFirstMsg = dialogue.messages.length === 0;
+    const minLen = isFirstMsg ? 30 : 5;
+
+    if (answer.length < minLen) {
+      alert('Напиши чуть больше: минимум ' + minLen + ' символов. Сейчас: ' + answer.length + '.');
+      return;
+    }
+
+    // Блокируем кнопку и поле
+    const btn = document.getElementById('coach-send-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Наставник размышляет...'; }
+    input.disabled = true;
+
+    // Добавляем user-сообщение
+    const historyBeforeNew = dialogue.messages.slice();
+    dialogue.messages.push({ role: 'user', text: answer });
+    dialogue.roundCount = (dialogue.roundCount || 0) + 1;
+
+    // Собираем контекст квеста
+    const darData = window.DAR_CONTENT?.[code] || {};
+    const hasEssence = !!(darData.essence || darData.light_power);
+    let shadow = null;
+    if (questType === 'shadow') {
+      const shadows = getShadows(code);
+      const shadowArrayIdx = questIdx - (hasEssence ? 2 : 1);
+      shadow = shadows[shadowArrayIdx];
+    }
+
+    let review;
+    try {
+      review = await DarAPI.reviewShadow({
+        quest_type: questType,
+        dar_name: getDarName(code),
+        shadow_title: shadow?.title || '',
+        shadow_description: shadow?.description || '',
+        shadow_correction: shadow?.correction || '',
+        user_answer: answer,
+        gender: getUserGender(),
+        dialogue: historyBeforeNew,
+        round_number: dialogue.roundCount
+      });
+    } catch (e) {
+      console.warn('Coach review failed:', e.message);
+      review = { action: 'continue', message: 'Я тебя слышу. Поделись чуть больше: что самое важное в этом опыте?' };
+    }
+
+    // Добавляем ответ наставника
+    dialogue.messages.push({ role: 'coach', text: review.message || 'Побудь с этим вопросом.' });
+
+    if (review.action === 'offer_close') {
+      dialogue.state = 'offered_close';
+      saveDialogue(code, questType, questIdx, dialogue);
+      reopenQuestScreen(code, questType, questIdx);
+    } else if (review.action === 'accept') {
+      // Старый путь: сразу завершаем
+      saveDialogue(code, questType, questIdx, dialogue);
+      await completeCoachingQuest(code, questType, questIdx, reward);
+    } else {
+      // continue
+      dialogue.state = 'open';
+      saveDialogue(code, questType, questIdx, dialogue);
+      reopenQuestScreen(code, questType, questIdx);
+    }
+  }
+
+  async function coachFinish(code, questType, questIdx, reward) {
+    // Пользователь нажал "Готова двигаться дальше"
+    const dialogue = loadDialogue(code, questType, questIdx);
+
+    // Просим у API финальное благословение
+    try {
+      const review = await DarAPI.reviewShadow({
+        quest_type: questType,
+        dar_name: getDarName(code),
+        user_answer: 'я готова двигаться дальше',
+        gender: getUserGender(),
+        dialogue: dialogue.messages,
+        round_number: dialogue.roundCount,
+        user_action: 'ready_to_close'
+      });
+      if (review && review.message) {
+        dialogue.messages.push({ role: 'coach', text: review.message });
+      }
+    } catch (e) {
+      dialogue.messages.push({ role: 'coach', text: 'Благодарю тебя за эту работу. Пусть то, что открылось, останется с тобой.' });
+    }
+
+    dialogue.state = 'completed';
+    saveDialogue(code, questType, questIdx, dialogue);
+
+    await completeCoachingQuest(code, questType, questIdx, reward);
+  }
+
+  function coachContinue(code, questType, questIdx) {
+    // Пользователь хочет ещё побыть в теме
+    const dialogue = loadDialogue(code, questType, questIdx);
+    dialogue.state = 'open';
+    dialogue.messages.push({
+      role: 'coach',
+      text: 'Хорошо, побудем ещё. Что ты хочешь исследовать глубже в этой теме?'
+    });
+    saveDialogue(code, questType, questIdx, dialogue);
+    reopenQuestScreen(code, questType, questIdx);
+  }
+
+  function resetCoachDialogue(code, questType, questIdx) {
+    if (!confirm('Начать новый диалог? Предыдущий будет скрыт.')) return;
+    localStorage.removeItem(getDialogueKey(code, questType, questIdx));
+    reopenQuestScreen(code, questType, questIdx);
+  }
+
+  function reopenQuestScreen(code, questType, questIdx) {
+    if (questType === 'essence') openEssenceQuest(code);
+    else if (questType === 'meditation') openMeditationQuest(code);
+    else openShadowQuest(code, questIdx);
+  }
+
+  async function completeCoachingQuest(code, questType, questIdx, reward) {
+    try {
+      const dialogue = loadDialogue(code, questType, questIdx);
+      const summary = JSON.stringify(dialogue.messages).slice(0, 1800);
+      const result = await DarAPI.submitQuest(code, questIdx, questType, summary);
+      if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
+        CrystalsUI.animateEarn(result.crystals_earned);
+      }
+      const d = userDars.find(d => d.dar_code === code);
+      if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
+    } catch (e) {
+      if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(reward);
+      const d = userDars.find(d => d.dar_code === code);
+      if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
+    }
+
+    alert('Квест пройден. +' + reward + ' кристаллов мудрости');
+    openDar(code);
+  }
+
   // --- Парсер медитации и активации из dar-content.json ---
   // meditation и activation - строковые описания, возможно с markdown
   function cleanMarkdown(text) {
@@ -335,62 +615,40 @@ const Treasury = (function() {
 
   // --- Открыть квест медитации-активации ---
   function openMeditationQuest(code) {
-    const name = getDarName(code);
     const darData = (window.DAR_CONTENT && window.DAR_CONTENT[code]) || {};
     const meditation = cleanMarkdown(darData.meditation || '');
     const activation = cleanMarkdown(darData.activation || '');
     const hasEssence = !!(darData.essence || darData.light_power);
-    const container = document.getElementById('treasury-content');
 
     const shadows = getShadows(code);
-    // Meditation idx = essence(1) + shadows(N) + 1
     const medIdx = (hasEssence ? 1 : 0) + shadows.length + 1;
-    const completedCount = getUnlockedSections(code);
-    const alreadyDone = medIdx <= completedCount;
 
-    const reflKey = '_meditation_refl_' + code;
-    const savedReflection = localStorage.getItem(reflKey) || '';
-
-    let html = `
-      <button class="btn-back" style="display:block" onclick="Treasury.openDar('${code}')">&#8592; ${name}</button>
-
-      <div style="text-align:center;margin:14px 0 18px">
-        <div style="font-size:11px;color:#D4AF37;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Финальный квест</div>
-        <div style="font-size:20px;color:var(--text);letter-spacing:1px">&#129496; Медитация активации</div>
-      </div>
-    `;
-
-    if (activation) {
-      html += `
-        <div style="background:rgba(107,33,168,0.12);border:1px solid rgba(180,120,255,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-          <div style="font-size:11px;color:#c4a0f0;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#127775; Практика активации</div>
-          <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap">${activation}</div>
-        </div>`;
-    }
-
-    if (meditation) {
-      html += `
-        <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#129496; Медитация</div>
-          <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap">${meditation}</div>
-        </div>`;
-    }
-
-    // Блок рефлексии
-    html += `
-      <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-        <div style="font-size:11px;color:#2ecc71;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#128151; Твой отклик</div>
-        <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">Запиши 1-2 предложения: что ты почувствовала во время практики? Какое качество этого дара открылось тебе?</div>
-        <textarea id="meditation-reflection" rows="4" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Georgia,serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="Твои слова...">${savedReflection}</textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-          <span style="font-size:11px;color:var(--text-muted)">Мин. 30 символов</span>
-          <span style="font-size:12px;color:#D4AF37">${alreadyDone ? '&#10003; Уже пройдено' : '+10 &#128142;'}</span>
-        </div>
-        <button class="btn btn-secondary" style="margin-top:10px" onclick="Treasury.submitMeditationQuest('${code}')">${alreadyDone ? 'Отправить обновлённый ответ' : 'Активировать дар'}</button>
-      </div>
-    `;
-
-    container.innerHTML = html;
+    renderCoachingQuestScreen(code, {
+      questType: 'meditation',
+      questIdx: medIdx,
+      title: '\u129496 Медитация активации',
+      subtitle: 'Финальный квест',
+      subtitleColor: '#D4AF37',
+      reward: 10,
+      contextBlocks: [
+        activation ? {
+          label: 'Практика активации',
+          icon: '\u127775',
+          text: activation,
+          bgColor: 'rgba(107,33,168,0.12)',
+          borderColor: 'rgba(180,120,255,0.3)',
+          labelColor: '#c4a0f0'
+        } : null,
+        meditation ? {
+          label: 'Медитация',
+          icon: '\u129496',
+          text: meditation,
+          bgColor: 'rgba(212,175,55,0.1)',
+          borderColor: 'rgba(212,175,55,0.3)',
+          labelColor: '#D4AF37'
+        } : null
+      ].filter(Boolean)
+    });
   }
 
   async function submitMeditationQuest(code) {
@@ -455,66 +713,44 @@ const Treasury = (function() {
     openDar(code);
   }
 
-  // --- Открыть квест "Суть дара" (священная энергия + рефлексия) ---
+  // --- Открыть квест "Суть дара" (через коучинг-чат) ---
   function openEssenceQuest(code) {
     const name = getDarName(code);
     const arch = getDarArchetype(code);
     const darData = (window.DAR_CONTENT && window.DAR_CONTENT[code]) || {};
     const essence = cleanMarkdown(darData.essence || '');
     const lightPower = cleanMarkdown(darData.light_power || '');
-    const container = document.getElementById('treasury-content');
 
-    const ESSENCE_IDX = 1;
-    const completedCount = getUnlockedSections(code);
-    const alreadyDone = ESSENCE_IDX <= completedCount;
-
-    const reflKey = '_essence_refl_' + code;
-    const savedReflection = localStorage.getItem(reflKey) || '';
-
-    let html = `
-      <button class="btn-back" style="display:block" onclick="Treasury.openDar('${code}')">&#8592; ${name}</button>
-
-      <div style="text-align:center;margin:14px 0 18px">
-        <div style="font-size:11px;color:#c4a0f0;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">&#127775; Суть дара</div>
-        <div style="font-size:20px;color:var(--text);letter-spacing:1px">${name}</div>
-        ${arch ? `<div style="font-size:12px;color:#c4a0f0;font-style:italic;margin-top:4px">${arch}</div>` : ''}
-      </div>
-    `;
-
-    if (essence) {
-      html += `
-        <div style="background:rgba(107,33,168,0.12);border:1px solid rgba(180,120,255,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-          <div style="font-size:11px;color:#c4a0f0;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#9889; Священная энергия</div>
-          <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap">${essence}</div>
-        </div>`;
-    }
-
-    if (lightPower) {
-      html += `
-        <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#127775; Светлая сила</div>
-          <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap">${lightPower}</div>
-        </div>`;
-    }
-
-    // Блок рефлексии
-    html += `
-      <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-        <div style="font-size:11px;color:#2ecc71;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#128302; Твоё наблюдение</div>
-        <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">Вспомни, как этот дар проявлялся в твоей жизни. В каких моментах ты чувствовала его силу? Какую суперсилу он может дать, если ты раскроешь его полностью?</div>
-        <textarea id="essence-reflection" rows="5" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Georgia,serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="Твои наблюдения...">${savedReflection}</textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-          <span style="font-size:11px;color:var(--text-muted)">Мин. 30 символов</span>
-          <span style="font-size:12px;color:#D4AF37">${alreadyDone ? '&#10003; Уже узнано' : '+5 &#128142;'}</span>
-        </div>
-        <button class="btn btn-secondary" style="margin-top:10px" onclick="Treasury.submitEssenceQuest('${code}')">${alreadyDone ? 'Отправить обновлённый ответ' : 'Отправить ответ'}</button>
-      </div>
-    `;
-
-    container.innerHTML = html;
+    renderCoachingQuestScreen(code, {
+      questType: 'essence',
+      questIdx: 1,
+      title: arch ? `${name} - ${arch}` : name,
+      subtitle: '\u127775 Суть дара',
+      subtitleColor: '#c4a0f0',
+      reward: 5,
+      contextBlocks: [
+        essence ? {
+          label: 'Священная энергия',
+          icon: '\u9889',
+          text: essence,
+          bgColor: 'rgba(107,33,168,0.12)',
+          borderColor: 'rgba(180,120,255,0.3)',
+          labelColor: '#c4a0f0'
+        } : null,
+        lightPower ? {
+          label: 'Светлая сила',
+          icon: '\u127775',
+          text: lightPower,
+          bgColor: 'rgba(212,175,55,0.1)',
+          borderColor: 'rgba(212,175,55,0.3)',
+          labelColor: '#D4AF37'
+        } : null
+      ].filter(Boolean)
+    });
   }
 
-  async function submitEssenceQuest(code) {
+  // Старая функция submitEssenceQuest - оставлена для обратной совместимости, но не используется.
+  async function submitEssenceQuest_legacy(code) {
     const container = document.getElementById('treasury-content');
     const answer = document.getElementById('essence-reflection')?.value?.trim();
     if (!answer || answer.length < 30) {
@@ -583,57 +819,40 @@ const Treasury = (function() {
     // Грани начинаются с idx=2 если есть essence, иначе с 1
     const shadowArrayIdx = questIdx - (hasEssence ? 2 : 1);
     const shadow = shadows[shadowArrayIdx];
-    const container = document.getElementById('treasury-content');
     if (!shadow) {
       openDar(code);
       return;
     }
 
-    const completedCount = getUnlockedSections(code);
-    const alreadyDone = questIdx <= completedCount;
-    const displayIdx = shadowArrayIdx + 1; // для отображения "Грань 1 из N"
+    const displayIdx = shadowArrayIdx + 1;
 
-    // Проверить, есть ли сохранённая рефлексия
-    const reflKey = '_shadow_refl_' + code + '_' + questIdx;
-    const savedReflection = localStorage.getItem(reflKey) || '';
-
-    let html = `
-      <button class="btn-back" style="display:block" onclick="Treasury.openDar('${code}')">&#8592; ${name}</button>
-
-      <div style="text-align:center;margin:14px 0 18px">
-        <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Грань ${displayIdx} из ${shadows.length}</div>
-        <div style="font-size:20px;color:var(--text);letter-spacing:1px">${shadow.title}</div>
-      </div>
-
-      <div style="background:rgba(107,33,168,0.12);border:1px solid rgba(180,120,255,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-        <div style="font-size:11px;color:#c4a0f0;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#128302; Узнай</div>
-        <div style="font-size:14px;color:var(--text);line-height:1.7">${shadow.description}</div>
-      </div>
-    `;
-
-    if (shadow.correction) {
-      html += `
-        <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#127775; Проживи</div>
-          <div style="font-size:14px;color:var(--text);line-height:1.7">${shadow.correction}</div>
-        </div>`;
-    }
-
-    // Блок "Отпусти" - рефлексия
-    html += `
-      <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-        <div style="font-size:11px;color:#2ecc71;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#128151; Отпусти</div>
-        <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">Запиши 1-2 предложения: что ты заметила в себе через эту грань? Что хочешь отпустить?</div>
-        <textarea id="shadow-reflection" rows="4" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Georgia,serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="Твои слова...">${savedReflection}</textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-          <span style="font-size:11px;color:var(--text-muted)">Мин. 30 символов</span>
-          <span style="font-size:12px;color:#D4AF37">${alreadyDone ? '&#10003; Уже раскрыто' : '+7 &#128142;'}</span>
-        </div>
-        <button class="btn btn-secondary" style="margin-top:10px" onclick="Treasury.submitShadowQuest('${code}', ${questIdx})">${alreadyDone ? 'Отправить обновлённый ответ' : 'Отправить ответ'}</button>
-      </div>
-    `;
-
-    container.innerHTML = html;
+    renderCoachingQuestScreen(code, {
+      questType: 'shadow',
+      questIdx: questIdx,
+      title: shadow.title,
+      subtitle: `Грань ${displayIdx} из ${shadows.length}`,
+      subtitleColor: '#c4a0f0',
+      reward: 7,
+      shadow: shadow,
+      contextBlocks: [
+        {
+          label: 'Узнай',
+          icon: '\u128302',
+          text: shadow.description || '',
+          bgColor: 'rgba(107,33,168,0.12)',
+          borderColor: 'rgba(180,120,255,0.3)',
+          labelColor: '#c4a0f0'
+        },
+        shadow.correction ? {
+          label: 'Проживи',
+          icon: '\u127775',
+          text: shadow.correction,
+          bgColor: 'rgba(212,175,55,0.1)',
+          borderColor: 'rgba(212,175,55,0.3)',
+          labelColor: '#D4AF37'
+        } : null
+      ].filter(Boolean)
+    });
   }
 
   // Получить пол из профиля (для AI)
@@ -785,5 +1004,13 @@ const Treasury = (function() {
     }
   }
 
-  return { init, render, openDar, openEssenceQuest, openShadowQuest, openMeditationQuest, submitEssenceQuest, submitShadowQuest, submitMeditationQuest, unlockRandom };
+  return {
+    init, render, openDar,
+    openEssenceQuest, openShadowQuest, openMeditationQuest,
+    // Старые submit-функции для обратной совместимости
+    submitShadowQuest, submitMeditationQuest,
+    // Новый коучинг-чат
+    coachSend, coachFinish, coachContinue, resetCoachDialogue,
+    unlockRandom
+  };
 })();

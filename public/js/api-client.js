@@ -108,6 +108,8 @@ const DarAPI = (function() {
       request('/api/user', 'POST', { action: 'save_dar', dar_code, dar_name, birth_date }),
     saveProfile: (profile) =>
       request('/api/user', 'POST', Object.assign({ action: 'save_profile' }, profile)),
+    saveAvatar: (avatar) =>
+      request('/api/user', 'POST', { action: 'save_avatar', avatar }),
     saveLeaderboardName: (name_type, custom_name) =>
       request('/api/user', 'POST', { action: 'save_leaderboard_name', name_type, custom_name: custom_name || '' }),
     dailyLogin: () =>

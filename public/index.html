@@ -785,7 +785,7 @@
   <script src="js/crystals.js?v=2"></script>
   <script src="js/treasury.js?v=7"></script>
   <script src="js/referral.js?v=2"></script>
-  <script src="js/book-reader.js?v=9"></script>
+  <script src="js/book-reader.js?v=10"></script>
   <script src="js/intuition-game.js?v=3"></script>
   <script src="js/daily-dar.js?v=3"></script>
   <script>
@@ -968,6 +968,24 @@
             // Экспорт профиля наружу — book-reader и другие модули читают window.PROFILE
             window.PROFILE = _profileData;
 
+            // Синк аватарки с сервера: если на сервере есть, обновляем localStorage и UI
+            // Если на сервере нет, но в localStorage есть — отправляем на сервер (миграция)
+            if (data.user.avatar) {
+              try { localStorage.setItem('_avatar_' + USER_ID, data.user.avatar); } catch(e) {}
+              const bigAv = document.getElementById('profile-avatar-big');
+              if (bigAv) bigAv.innerHTML = `<img src="${data.user.avatar}" style="width:100%;height:100%;object-fit:cover">`;
+              const smallAv = document.getElementById('btn-profile');
+              if (smallAv) smallAv.innerHTML = `<img src="${data.user.avatar}" alt="">`;
+            } else {
+              const localAv = localStorage.getItem('_avatar_' + USER_ID);
+              if (localAv && DarAPI.saveAvatar) {
+                // Миграция: на клиенте есть, на сервере нет — пушим
+                DarAPI.saveAvatar(localAv).catch(err => {
+                  console.warn('avatar migrate failed:', err.message);
+                });
+              }
+            }
+
             // Синк расширенного профиля с сервера в localStorage
             if (data.user.real_first_name || data.user.gender) {
               const localProf = getLocalProfile();
@@ -1038,20 +1056,65 @@
       }
     }
 
-    // Загрузка фото аватара
+    // Загрузка фото аватара (с автоматическим сжатием до 256x256 jpeg)
     function uploadAvatar(input) {
       const file = input.files[0];
       if (!file) return;
-      if (file.size > 500000) { alert('Фото слишком большое. Макс 500KB'); return; }
+      if (file.size > 5000000) {
+        if (typeof showToast === 'function') showToast('Фото слишком большое. Максимум 5 МБ.', 'error');
+        else alert('Фото слишком большое. Максимум 5 МБ.');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = function(e) {
-        const dataUrl = e.target.result;
-        localStorage.setItem('_avatar_' + USER_ID, dataUrl);
-        // Обновить оба аватара
-        document.getElementById('profile-avatar-big').innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover">`;
-        document.getElementById('btn-profile').innerHTML = `<img src="${dataUrl}" alt="">`;
+        const rawDataUrl = e.target.result;
+        // Сжимаем картинку: квадрат 256х256, JPEG 0.85 качество
+        compressImage(rawDataUrl, 256, 0.85).then(dataUrl => {
+          // Локально сохраняем для мгновенного отображения
+          try { localStorage.setItem('_avatar_' + USER_ID, dataUrl); } catch (e) {}
+          // Сразу показываем
+          document.getElementById('profile-avatar-big').innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover">`;
+          document.getElementById('btn-profile').innerHTML = `<img src="${dataUrl}" alt="">`;
+          // Сохраняем на сервер (чтобы не слетал между сессиями)
+          if (typeof DarAPI !== 'undefined' && DarAPI.saveAvatar) {
+            DarAPI.saveAvatar(dataUrl).then(() => {
+              if (typeof showToast === 'function') showToast('\u2728 Аватарка сохранена', 'success');
+            }).catch(err => {
+              console.warn('saveAvatar failed:', err.message);
+              if (typeof showToast === 'function') showToast('Аватарка сохранена локально, но не на сервере. Попробуй позже.', 'error');
+            });
+          }
+        }).catch(err => {
+          console.error('Image compression failed:', err);
+          if (typeof showToast === 'function') showToast('Не удалось обработать изображение', 'error');
+        });
       };
       reader.readAsDataURL(file);
+    }
+
+    // Сжатие изображения через canvas
+    function compressImage(dataUrl, maxSize, quality) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = function() {
+          // Квадратный кроп по центру
+          const side = Math.min(img.width, img.height);
+          const sx = (img.width - side) / 2;
+          const sy = (img.height - side) / 2;
+          const canvas = document.createElement('canvas');
+          canvas.width = maxSize;
+          canvas.height = maxSize;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, sx, sy, side, side, 0, 0, maxSize, maxSize);
+          try {
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } catch (e) {
+            reject(e);
+          }
+        };
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
     }
 
     // Промо-код в кабинете
@@ -2274,6 +2337,8 @@
       btn.textContent = 'Сохраняю...';
       let serverOk = false;
       let serverErr = '';
+      let errKind = '';
+      let errStatus = 0;
       try {
         if (typeof DarAPI !== 'undefined' && DarAPI.saveProfile) {
           await DarAPI.saveProfile(profile);
@@ -2283,7 +2348,18 @@
         }
       } catch (e) {
         serverErr = e.message || 'Неизвестная ошибка';
-        console.warn('Server profile save failed:', serverErr);
+        errKind = e.kind || '';
+        errStatus = e.status || 0;
+        console.warn('Server profile save failed:', serverErr, 'kind:', errKind, 'status:', errStatus);
+        // Сохраняем детали ошибки для диагностики
+        try {
+          localStorage.setItem('_psu_last_error', JSON.stringify({
+            ts: new Date().toISOString(),
+            msg: serverErr,
+            kind: errKind,
+            status: errStatus
+          }));
+        } catch (lsErr) {}
       }
       btn.disabled = false;
       btn.textContent = 'Сохранить и продолжить';
@@ -2307,38 +2383,78 @@
           }
         }, 900);
       } else {
-        // Сервер не ответил - показываем предупреждение, пользователь закрывает сам
+        // Сервер не ответил - показываем понятное объяснение и actionable кнопки
         const isMigrationErr = serverErr.includes('миграцию') || serverErr.includes('column') || serverErr.includes('birth_lat') || serverErr.includes('birth_lon');
-        const color = isMigrationErr ? '#F4511E' : '#fbbf24';
-        const msg = isMigrationErr
-          ? 'База данных не обновлена. Запусти обновлённую миграцию SQL в Supabase (колонки birth_lat, birth_lon). Данные сохранены в браузере.'
-          : 'Сервер недоступен. Данные сохранены в браузере, синхронизируются позже.';
+        const isAuthErr = errStatus === 401 || serverErr.includes('перезайти');
+        const isNetworkErr = errKind === 'network' || serverErr.includes('связи');
+
+        let color, title, hint;
+        if (isMigrationErr) {
+          color = '#F4511E';
+          title = 'База данных не обновлена';
+          hint = 'Запусти обновлённую миграцию SQL в Supabase (колонки birth_lat, birth_lon). Данные сохранены в браузере.';
+        } else if (isAuthErr) {
+          color = '#F4511E';
+          title = 'Сессия Telegram устарела';
+          hint = 'Закрой Mini App полностью и открой заново — это обновит авторизацию. Данные пока сохранены в браузере.';
+        } else if (isNetworkErr) {
+          color = '#fbbf24';
+          title = 'Нет связи с интернетом';
+          hint = 'Проверь подключение и попробуй ещё раз. Данные сохранены в браузере.';
+        } else {
+          color = '#fbbf24';
+          title = 'Сервер ненадолго недоступен';
+          hint = 'Подожди немного и попробуй ещё раз. Данные сохранены в браузере и синхронизируются автоматически.';
+        }
+
         status.style.color = color;
-        status.innerHTML = `<div style="padding:10px;border:1px solid ${color};border-radius:10px;background:rgba(0,0,0,0.3);text-align:left">&#9888;&#65039; ${msg}<br><br><button onclick="psuAcknowledgeWarning()" style="width:100%;padding:8px;border-radius:8px;border:none;background:${color};color:#fff;font-size:12px;cursor:pointer;font-family:Georgia,serif;margin-top:6px">Понятно, продолжить</button></div>`;
-        // Показываем кнопку "Прислать лог" при наличии буфера ошибок (только в debug-режиме)
-        try {
-          const dbgBtn = document.getElementById('psu-debug-btn');
-          const hasErrors = (JSON.parse(localStorage.getItem('_dar_api_errors') || '[]')).length > 0;
-          if (dbgBtn && hasErrors && window.__darDebug) dbgBtn.style.display = 'block';
-        } catch (e) {}
+        status.innerHTML = `
+          <div style="padding:12px;border:1px solid ${color};border-radius:10px;background:rgba(0,0,0,0.3);text-align:left">
+            <div style="font-weight:bold;margin-bottom:6px">&#9888;&#65039; ${title}</div>
+            <div style="font-size:11px;line-height:1.5;margin-bottom:10px">${hint}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onclick="psuRetry()" style="flex:1;min-width:120px;padding:9px;border-radius:8px;border:none;background:${color};color:#fff;font-size:12px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">&#8635; Попробовать ещё раз</button>
+              <button onclick="psuAcknowledgeWarning()" style="flex:1;min-width:100px;padding:9px;border-radius:8px;border:1px solid ${color};background:transparent;color:${color};font-size:12px;cursor:pointer;font-family:Georgia,serif">Закрыть</button>
+            </div>
+            <button onclick="psuSendDebugLog()" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.05);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128203; Прислать лог разработчику (помоги починить)</button>
+          </div>
+        `;
       }
+    }
+
+    // Повторная попытка сохранения профиля (вызов psuSave заново)
+    function psuRetry() {
+      // Просто перезапускаем psuSave - все поля уже валидированы и заполнены
+      psuSave();
     }
 
     // Отправка лога ошибок разработчику
     function psuSendDebugLog() {
       try {
         const errors = JSON.parse(localStorage.getItem('_dar_api_errors') || '[]');
+        const lastPsuError = (() => {
+          try { return JSON.parse(localStorage.getItem('_psu_last_error') || 'null'); }
+          catch (e) { return null; }
+        })();
         const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        const initData = window.Telegram?.WebApp?.initData || '';
         const meta = {
           ua: navigator.userAgent.slice(0, 200),
           platform: window.Telegram?.WebApp?.platform || 'unknown',
           version: window.Telegram?.WebApp?.version || 'unknown',
           tg_id: tgUser?.id || 'none',
-          errors_count: errors.length
+          tg_first_name: tgUser?.first_name || '',
+          init_data_len: initData.length,
+          init_data_has_hash: initData.includes('hash='),
+          errors_count: errors.length,
+          ts: new Date().toISOString()
         };
-        const body = 'YupDar debug log\n\n' + 'META: ' + JSON.stringify(meta, null, 2) + '\n\n' + 'ERRORS:\n' + JSON.stringify(errors, null, 2);
+        const body = 'YupDar debug log\n\n'
+          + 'META: ' + JSON.stringify(meta, null, 2) + '\n\n'
+          + (lastPsuError ? 'LAST PROFILE SAVE ERROR:\n' + JSON.stringify(lastPsuError, null, 2) + '\n\n' : '')
+          + 'ALL API ERRORS:\n' + JSON.stringify(errors, null, 2);
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(body).then(() => alert('Лог скопирован в буфер. Вставь в чат разработчику.')).catch(() => prompt('Скопируй лог:', body));
+          navigator.clipboard.writeText(body).then(() => alert('Лог скопирован в буфер. Вставь в чат разработчику Светлане.')).catch(() => prompt('Скопируй лог:', body));
         } else {
           prompt('Скопируй лог:', body);
         }

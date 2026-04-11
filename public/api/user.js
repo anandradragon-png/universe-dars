@@ -37,6 +37,7 @@ module.exports = async (req, res) => {
           profile_completed: !!user.profile_completed,
           leaderboard_name_type: user.leaderboard_name_type || 'real',
           leaderboard_custom_name: user.leaderboard_custom_name || '',
+          avatar: user.avatar || '',
         },
         dars: dars.map(d => ({
           dar_code: d.dar_code,
@@ -144,6 +145,33 @@ module.exports = async (req, res) => {
           console.error('save_profile DB error:', dbErr.message);
           if (dbErr.message && dbErr.message.includes('column')) {
             return res.status(500).json({ error: 'База данных не обновлена. Запусти миграцию supabase-migration-profile.sql в Supabase SQL Editor.' });
+          }
+          throw dbErr;
+        }
+      }
+
+      // Сохранить аватарку (data URL base64)
+      if (action === 'save_avatar') {
+        const { avatar } = req.body || {};
+        // Допускаем пустую строку для удаления
+        if (typeof avatar !== 'string') {
+          return res.status(400).json({ error: 'Аватарка должна быть строкой' });
+        }
+        // Проверка размера: 1 МБ data URL ~ 750 КБ raw
+        if (avatar.length > 1100000) {
+          return res.status(400).json({ error: 'Аватарка слишком большая. Максимум 1 МБ.' });
+        }
+        // Базовая проверка формата (если не пустая - должна быть data:image/...)
+        if (avatar && !avatar.startsWith('data:image/')) {
+          return res.status(400).json({ error: 'Неверный формат изображения.' });
+        }
+        try {
+          await updateUser(user.id, { avatar });
+          return res.json({ success: true });
+        } catch (dbErr) {
+          console.error('save_avatar DB error:', dbErr.message);
+          if (dbErr.message && dbErr.message.includes('column') && dbErr.message.includes('avatar')) {
+            return res.status(500).json({ error: 'База данных не обновлена. Запусти миграцию supabase-migration-avatar.sql.' });
           }
           throw dbErr;
         }

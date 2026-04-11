@@ -111,6 +111,26 @@ function requireUser(req, res) {
     has_bot_token: !!process.env.BOT_TOKEN,
   };
   if (result && result.age_sec) debug.age_sec = result.age_sec;
+  // Расширенная диагностика для bad_hash - помогает понять причину
+  if (result && result.error === 'bad_hash') {
+    debug.bot_id = result.bot_id;
+    debug.token_len_raw = result.token_len_raw;
+    debug.token_len_trimmed = result.token_len_trimmed;
+    debug.token_sig = result.token_sig;
+    debug.init_data_len = result.init_data_len;
+  }
+  // Логируем в Vercel logs (без секретов) чтобы видеть причину отказов в production
+  console.warn('[auth] requireUser failed:', JSON.stringify({
+    reason,
+    path: req.url,
+    method: req.method,
+    has_init_data: debug.has_init_data,
+    has_bot_token: debug.has_bot_token,
+    init_data_len: debug.init_data_len || (req.headers['x-telegram-init-data'] || '').length,
+    bot_id: debug.bot_id || null,
+    age_sec: debug.age_sec || null,
+    user_agent: (req.headers['user-agent'] || '').slice(0, 80)
+  }));
   res.status(401).json(debug);
   return null;
 }

@@ -246,14 +246,18 @@ const BookReader = (function() {
 
         <!-- Панель кнопок -->
         <div style="display:flex;gap:6px;margin-bottom:12px">
-          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:12px;padding:10px 6px" onclick="BookReader.toggleTOC()">&#128220; Главы</button>
-          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:12px;padding:10px 6px" onclick="BookReader.toggleBookmarks()">&#11088; Закладки</button>
-          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:12px;padding:10px 6px" onclick="BookReader.toggleSettings()">&#9881; Настройки</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleTOC()">&#128220; Главы</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleSearch()">&#128269; Поиск</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleBookmarks()">&#11088; Закладки</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleSettings()">&#9881; Настройки</button>
         </div>
       </div>
 
       <!-- Панель оглавления -->
       <div id="book-toc-panel" style="display:none;padding:0 16px 12px"></div>
+
+      <!-- Панель поиска -->
+      <div id="book-search-panel" style="display:none;padding:0 16px 12px"></div>
 
       <!-- Панель закладок -->
       <div id="book-bookmarks-panel" style="display:none;padding:0 16px 12px"></div>
@@ -493,9 +497,11 @@ const BookReader = (function() {
     const panel = document.getElementById('book-toc-panel');
     const settingsPanel = document.getElementById('book-settings-panel');
     const bookmarksPanel = document.getElementById('book-bookmarks-panel');
+    const searchPanel = document.getElementById('book-search-panel');
     if (!panel) return;
     if (settingsPanel) settingsPanel.style.display = 'none';
     if (bookmarksPanel) bookmarksPanel.style.display = 'none';
+    if (searchPanel) searchPanel.style.display = 'none';
 
     if (!tocOpen) { panel.style.display = 'none'; return; }
 
@@ -537,14 +543,146 @@ const BookReader = (function() {
     alert('Эта глава доступна в полной версии. Введи промо-код ниже, чтобы открыть всю книгу.');
   }
 
+  // -------- Поиск по книге --------
+  // Выполняет поиск по всем главам, в которые юзер имеет доступ.
+  // Ищет вхождение query (case-insensitive) в title или html главы.
+  // Возвращает массив { partIdx, chapterIdx, title, snippet }
+  function searchBook(query) {
+    if (!bookData || !query || query.trim().length < 2) return [];
+    const q = query.trim().toLowerCase();
+    const results = [];
+    for (let pIdx = 0; pIdx < bookData.parts.length; pIdx++) {
+      const part = bookData.parts[pIdx];
+      for (let cIdx = 0; cIdx < part.chapters.length; cIdx++) {
+        const ch = part.chapters[cIdx];
+        const g = globalIndex(pIdx, cIdx);
+        if (!isChapterAccessible(g)) continue;
+        const titleLower = (ch.title || '').toLowerCase();
+        // Снимаем HTML теги для поиска по тексту
+        const plainText = (ch.html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+        const textLower = plainText.toLowerCase();
+        const titleHit = titleLower.includes(q);
+        const textIdx = textLower.indexOf(q);
+        if (!titleHit && textIdx === -1) continue;
+        // Делаем сниппет: 50 символов до и 80 после совпадения
+        let snippet = '';
+        if (textIdx !== -1) {
+          const start = Math.max(0, textIdx - 50);
+          const end = Math.min(plainText.length, textIdx + q.length + 80);
+          snippet = (start > 0 ? '…' : '') + plainText.slice(start, end) + (end < plainText.length ? '…' : '');
+        } else if (titleHit) {
+          snippet = plainText.slice(0, 130) + '…';
+        }
+        results.push({
+          partIdx: pIdx,
+          chapterIdx: cIdx,
+          title: ch.title,
+          partTitle: part.title,
+          dar_code: ch.dar_code || null,
+          dar_name: ch.dar_name || null,
+          kind: ch.kind,
+          snippet,
+          titleHit
+        });
+        if (results.length >= 50) return results; // лимит результатов
+      }
+    }
+    return results;
+  }
+
+  function highlightMatch(text, query) {
+    if (!text || !query) return escapeHtml(text || '');
+    const escaped = escapeHtml(text);
+    const escapedQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return escaped.replace(new RegExp(escapedQuery, 'gi'), '<mark style="background:rgba(212,175,55,0.4);color:#fff;padding:0 2px;border-radius:2px">$&</mark>');
+  }
+
+  function toggleSearch() {
+    const panel = document.getElementById('book-search-panel');
+    const tocPanel = document.getElementById('book-toc-panel');
+    const bookmarksPanel = document.getElementById('book-bookmarks-panel');
+    const settingsPanel = document.getElementById('book-settings-panel');
+    if (!panel) return;
+    if (tocPanel) { tocPanel.style.display = 'none'; tocOpen = false; }
+    if (bookmarksPanel) bookmarksPanel.style.display = 'none';
+    if (settingsPanel) settingsPanel.style.display = 'none';
+
+    const open = panel.style.display === 'block';
+    if (open) { panel.style.display = 'none'; return; }
+
+    renderSearchPanel();
+    panel.style.display = 'block';
+    setTimeout(() => {
+      const input = document.getElementById('book-search-input');
+      if (input) input.focus();
+    }, 50);
+  }
+
+  function renderSearchPanel(query) {
+    const panel = document.getElementById('book-search-panel');
+    if (!panel) return;
+    const q = query || '';
+    panel.innerHTML = `
+      <div style="background:var(--card,rgba(255,255,255,0.04));border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:14px;padding:12px">
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <input id="book-search-input" type="text" placeholder="Слово или фраза..." value="${escapeHtml(q)}"
+            oninput="BookReader.runSearch(this.value)"
+            style="flex:1;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Georgia,serif;outline:none">
+        </div>
+        <div id="book-search-results"></div>
+      </div>
+    `;
+    if (q.length >= 2) runSearch(q);
+  }
+
+  let _searchDebounceTimer = null;
+  function runSearch(query) {
+    clearTimeout(_searchDebounceTimer);
+    _searchDebounceTimer = setTimeout(() => {
+      const container = document.getElementById('book-search-results');
+      if (!container) return;
+      const q = (query || '').trim();
+      if (q.length < 2) {
+        container.innerHTML = '<div style="text-align:center;padding:14px;font-size:12px;color:var(--text-dim);font-style:italic">Введи хотя бы 2 символа</div>';
+        return;
+      }
+      const results = searchBook(q);
+      if (results.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:14px;font-size:12px;color:var(--text-dim);font-style:italic">Ничего не найдено по запросу «${escapeHtml(q)}»</div>`;
+        return;
+      }
+      let html = `<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;text-align:center">Найдено: <b style="color:#D4AF37">${results.length}</b>${results.length === 50 ? ' (показаны первые 50)' : ''}</div>`;
+      html += '<div style="max-height:50vh;overflow-y:auto">';
+      for (const r of results) {
+        const isDar = r.kind === 'dar';
+        const titleDisplay = highlightMatch(r.title.length > 75 ? r.title.slice(0, 75) + '...' : r.title, q);
+        const snippetDisplay = highlightMatch(r.snippet, q);
+        html += `
+          <div onclick="BookReader.goTo(${r.partIdx},${r.chapterIdx})"
+            style="padding:10px 8px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;border-radius:6px">
+            <div style="font-size:12px;color:var(--text);font-weight:600;line-height:1.4;margin-bottom:3px">
+              ${isDar ? '<span style="color:#D4AF37">&#10022;</span> ' : ''}${titleDisplay}
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">${escapeHtml(r.partTitle)}</div>
+            ${r.snippet ? `<div style="font-size:11px;color:var(--text-dim);line-height:1.5;font-style:italic">${snippetDisplay}</div>` : ''}
+          </div>
+        `;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }, 200);
+  }
+
   // -------- Закладки (UI) --------
   function toggleBookmarks() {
     const panel = document.getElementById('book-bookmarks-panel');
     const tocPanel = document.getElementById('book-toc-panel');
     const settingsPanel = document.getElementById('book-settings-panel');
+    const searchPanel = document.getElementById('book-search-panel');
     if (!panel) return;
     if (tocPanel) { tocPanel.style.display = 'none'; tocOpen = false; }
     if (settingsPanel) settingsPanel.style.display = 'none';
+    if (searchPanel) searchPanel.style.display = 'none';
 
     const open = panel.style.display === 'block';
     if (open) { panel.style.display = 'none'; return; }
@@ -612,9 +750,11 @@ const BookReader = (function() {
     const panel = document.getElementById('book-settings-panel');
     const tocPanel = document.getElementById('book-toc-panel');
     const bookmarksPanel = document.getElementById('book-bookmarks-panel');
+    const searchPanel = document.getElementById('book-search-panel');
     if (!panel) return;
     if (tocPanel) { tocPanel.style.display = 'none'; tocOpen = false; }
     if (bookmarksPanel) bookmarksPanel.style.display = 'none';
+    if (searchPanel) searchPanel.style.display = 'none';
 
     const open = panel.style.display === 'block';
     if (open) { panel.style.display = 'none'; return; }
@@ -684,7 +824,7 @@ const BookReader = (function() {
   return {
     init, render, renderChapter,
     nextChapter, prevChapter, goTo, goToDar, openInTreasury,
-    toggleTOC, toggleSettings, toggleBookmarks,
+    toggleTOC, toggleSettings, toggleBookmarks, toggleSearch, runSearch,
     toggleBookmark, removeBookmark, clearBookmarks,
     setFontSize, setTheme,
     submitPromo, showLocked

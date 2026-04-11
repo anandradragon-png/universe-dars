@@ -69,6 +69,14 @@ const DarAPI = (function() {
     // ---- AI-гуру: проверка рефлексии теневого квеста ----
     reviewShadow: (payload) => request('/api/shadow-review', 'POST', payload),
 
+    // ---- Рейтинг тренажёра интуиции ----
+    getLeaderboard: (period, difficulty) => {
+      const url = '/api/leaderboard?period=' + encodeURIComponent(period || 'daily')
+        + (difficulty && difficulty !== 'all' ? '&difficulty=' + encodeURIComponent(difficulty) : '');
+      return request(url);
+    },
+    submitIntuitionScore: (payload) => request('/api/leaderboard', 'POST', payload),
+
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>
       request('/api/message', 'POST', { giftCode }),

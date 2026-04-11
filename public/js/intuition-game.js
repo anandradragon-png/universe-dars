@@ -7,16 +7,23 @@
 
 const IntuitionGame = (function() {
 
+  // Балансированная экономика: шанс × награда растёт с уровнем сложности.
+  // Множитель очков (×1/1.5/2/3) для рейтинга, плюс участие — чтобы не боялись сложного.
+  // Бонус серии даётся только на Средне+ (стимул к повышению уровня).
   const MODES = {
     classic: {
       name: 'Классика',
       desc: 'Найди загаданный дар',
       icon: '&#128302;',
       levels: {
-        easy:   { cards: 3,  crystals: 2,  label: '3 карты',  opens: 1, targets: 1 },
-        medium: { cards: 6,  crystals: 4,  label: '6 карт',   opens: 1, targets: 1 },
-        hard:   { cards: 9,  crystals: 8,  label: '9 карт',   opens: 1, targets: 1 },
-        expert: { cards: 12, crystals: 12, label: '12 карт',  opens: 1, targets: 1 },
+        // cards: сколько карт, crystals: кристаллы за победу,
+        // pointsWin: очки рейтинга за победу, pointsTry: очки за участие
+        // streakBonus: разрешён ли бонус серии, mult: множитель сложности
+        // Песочница - тренировочное поле, очки в рейтинг НЕ идут
+        easy:   { cards: 3,  crystals: 2,  pointsWin: 0,  pointsTry: 0, streakBonus: false, mult: 1,   label: '3 карты (песочница)',  opens: 1, targets: 1, sandbox: true },
+        medium: { cards: 6,  crystals: 5,  pointsWin: 15, pointsTry: 1, streakBonus: true,  mult: 1.5, label: '6 карт',   opens: 1, targets: 1 },
+        hard:   { cards: 9,  crystals: 12, pointsWin: 25, pointsTry: 3, streakBonus: true,  mult: 2,   label: '9 карт',   opens: 1, targets: 1 },
+        expert: { cards: 12, crystals: 25, pointsWin: 40, pointsTry: 5, streakBonus: true,  mult: 3,   label: '12 карт',  opens: 1, targets: 1 },
       }
     },
     multi: {
@@ -24,8 +31,8 @@ const IntuitionGame = (function() {
       desc: 'Найди загаданные дары, остерегайся Карты Тени',
       icon: '&#127183;',
       levels: {
-        hard:   { cards: 9,  crystals: 15, label: '9 карт',  opens: 4, targets: 3, hasBonus: true, hasTrap: true },
-        expert: { cards: 12, crystals: 25, label: '12 карт', opens: 5, targets: 3, hasBonus: true, hasTrap: true },
+        hard:   { cards: 9,  crystals: 20, pointsWin: 50, pointsTry: 5, streakBonus: true, mult: 2.5, label: '9 карт',  opens: 4, targets: 3, hasBonus: true, hasTrap: true },
+        expert: { cards: 12, crystals: 35, pointsWin: 80, pointsTry: 8, streakBonus: true, mult: 4,   label: '12 карт', opens: 5, targets: 3, hasBonus: true, hasTrap: true },
       }
     }
   };
@@ -42,12 +49,26 @@ const IntuitionGame = (function() {
   let stats = { played: 0, correct: 0, streak: 0, bestStreak: 0, totalCrystals: 0 };
   let dailyPlayed = false;
 
+  // Выбранное пользователем соревнование (в какой период он сейчас играет)
+  let focusPeriod = 'daily'; // 'daily' | 'weekly' | 'monthly'
+  function loadFocusPeriod() {
+    try {
+      const p = localStorage.getItem('_intuition_focus_period');
+      if (p === 'daily' || p === 'weekly' || p === 'monthly') focusPeriod = p;
+    } catch (e) {}
+  }
+  function saveFocusPeriod(p) {
+    focusPeriod = p;
+    localStorage.setItem('_intuition_focus_period', p);
+  }
+
   function loadStats() {
     try {
       const s = localStorage.getItem('_intuition_stats');
       if (s) stats = JSON.parse(s);
       dailyPlayed = localStorage.getItem('_intuition_daily') === new Date().toISOString().slice(0,10);
     } catch(e) {}
+    loadFocusPeriod();
   }
   function saveStats() { localStorage.setItem('_intuition_stats', JSON.stringify(stats)); }
 
@@ -128,6 +149,37 @@ const IntuitionGame = (function() {
         </div>
       </div>
 
+      <!-- Соревнование (выбор периода для рейтинга) -->
+      ${!MODES[currentMode].levels[currentLevel]?.sandbox ? `
+        <div style="padding:0 16px 12px">
+          <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:10px 12px">
+            <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:600;text-align:center">&#127942; Твоё соревнование</div>
+            <div style="display:flex;gap:6px;justify-content:center">
+              ${[
+                { key: 'daily', label: '🌅 День' },
+                { key: 'weekly', label: '🌙 Неделя' },
+                { key: 'monthly', label: '⭐ Месяц' }
+              ].map(p => `
+                <button class="btn ${focusPeriod === p.key ? 'btn-secondary' : 'btn-ghost'}"
+                  style="flex:1;max-width:110px;margin:0;padding:8px 6px;font-size:11px"
+                  onclick="IntuitionGame.setFocusPeriod('${p.key}')">
+                  ${p.label}
+                </button>
+              `).join('')}
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:8px;font-style:italic">
+              Очки идут во все рейтинги, но этот в фокусе
+            </div>
+          </div>
+        </div>
+      ` : `
+        <div style="padding:0 16px 12px">
+          <div style="background:rgba(180,120,255,0.08);border:1px solid rgba(180,120,255,0.25);border-radius:12px;padding:10px 12px;text-align:center">
+            <div style="font-size:11px;color:#c4a0f0;font-style:italic">&#128302; Песочница — тренировочный режим, очки не идут в рейтинг</div>
+          </div>
+        </div>
+      `}
+
       ${currentMode === 'multi' ? renderMultiRules() : ''}
 
       <div id="game-board" style="padding:0 16px"></div>
@@ -135,7 +187,197 @@ const IntuitionGame = (function() {
       <div style="text-align:center;padding:12px 16px">
         <button class="btn btn-secondary" onclick="IntuitionGame.startGame()">&#128302; Начать раскладку</button>
       </div>
+
+      <div style="text-align:center;padding:0 16px 16px">
+        <button class="btn btn-ghost" style="font-size:13px;padding:10px" onclick="IntuitionGame.openLeaderboard()">&#127942; Рейтинг магов</button>
+      </div>
     `;
+  }
+
+  // === РЕЙТИНГ МАГОВ ===
+  let leaderboardPeriod = 'daily';
+  let leaderboardDifficulty = 'all'; // только для daily: all | medium | hard | expert
+  let leaderboardData = null;
+
+  async function openLeaderboard() {
+    const container = document.getElementById('game-content');
+    if (!container) return;
+    // Синхронизируем период с фокусом игры при первом открытии
+    if (!leaderboardData) leaderboardPeriod = focusPeriod;
+
+    container.innerHTML = `
+      <div style="text-align:center;padding:40px 16px">
+        <div style="font-size:32px;margin-bottom:12px;animation:pulse 1.5s infinite">&#127942;</div>
+        <div style="color:var(--text-dim);font-size:14px">Загружаю рейтинг...</div>
+      </div>
+      <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}</style>
+    `;
+    try {
+      leaderboardData = await DarAPI.getLeaderboard(
+        leaderboardPeriod,
+        leaderboardPeriod === 'daily' ? leaderboardDifficulty : undefined
+      );
+    } catch (e) {
+      console.warn('Leaderboard load failed:', e.message);
+      leaderboardData = { period: leaderboardPeriod, leaders: [], me: null, error: e.message };
+    }
+    renderLeaderboard();
+  }
+
+  function setLeaderboardPeriod(p) {
+    leaderboardPeriod = p;
+    // Для не-дневного сбрасываем difficulty
+    if (p !== 'daily') leaderboardDifficulty = 'all';
+    openLeaderboard();
+  }
+
+  function setLeaderboardDifficulty(d) {
+    leaderboardDifficulty = d;
+    openLeaderboard();
+  }
+
+  // Время до конца периода
+  function timeUntilPeriodReset(period) {
+    const now = new Date();
+    const target = new Date(now);
+    if (period === 'daily') {
+      target.setDate(target.getDate() + 1);
+      target.setHours(0, 0, 0, 0);
+    } else if (period === 'weekly') {
+      const dow = target.getDay();
+      const daysToMonday = dow === 0 ? 1 : (8 - dow);
+      target.setDate(target.getDate() + daysToMonday);
+      target.setHours(0, 0, 0, 0);
+    } else {
+      target.setMonth(target.getMonth() + 1, 1);
+      target.setHours(0, 0, 0, 0);
+    }
+    const diff = target - now;
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    if (days > 0) return `${days} д ${hours} ч`;
+    if (hours > 0) return `${hours} ч ${minutes} мин`;
+    return `${minutes} мин`;
+  }
+
+  function renderLeaderboard() {
+    const container = document.getElementById('game-content');
+    if (!container) return;
+    const data = leaderboardData || { leaders: [], me: null };
+
+    const periodTitles = {
+      daily: '🌅 Маг Дня',
+      weekly: '🌙 Маг Недели',
+      monthly: '⭐ Маг Месяца'
+    };
+
+    let html = `
+      <div style="padding:16px">
+        <button class="btn-back" style="display:block;margin-bottom:12px" onclick="IntuitionGame.render()">&#8592; К игре</button>
+
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:28px;margin-bottom:6px">&#127942;</div>
+          <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">РЕЙТИНГ МАГОВ</div>
+          <div style="font-size:12px;color:var(--text-dim)">Очки за сложность и серию, песочница не учитывается</div>
+        </div>
+
+        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">
+          ${['daily', 'weekly', 'monthly'].map(p => `
+            <button class="btn ${leaderboardPeriod === p ? 'btn-secondary' : 'btn-ghost'}"
+              style="flex:1;max-width:120px;margin:0;padding:8px 6px;font-size:11px"
+              onclick="IntuitionGame.setLeaderboardPeriod('${p}')">
+              ${periodTitles[p]}
+            </button>
+          `).join('')}
+        </div>
+
+        ${leaderboardPeriod === 'daily' ? `
+          <div style="display:flex;gap:4px;justify-content:center;margin-bottom:10px;flex-wrap:wrap">
+            ${[
+              { key: 'all', label: 'Все' },
+              { key: 'medium', label: 'Средне' },
+              { key: 'hard', label: 'Сложно' },
+              { key: 'expert', label: 'Эксперт' }
+            ].map(d => `
+              <button class="btn ${leaderboardDifficulty === d.key ? 'btn-secondary' : 'btn-ghost'}"
+                style="margin:0;padding:6px 10px;font-size:10px;width:auto"
+                onclick="IntuitionGame.setLeaderboardDifficulty('${d.key}')">
+                ${d.label}
+              </button>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-bottom:14px">
+          До сброса: <span style="color:#D4AF37">${timeUntilPeriodReset(leaderboardPeriod)}</span>
+        </div>
+    `;
+
+    if (data.error) {
+      html += `<div style="text-align:center;color:var(--text-muted);padding:40px 20px;font-size:13px">Не удалось загрузить рейтинг. Проверь соединение.</div>`;
+    } else if (!data.leaders || data.leaders.length === 0) {
+      html += `
+        <div style="text-align:center;color:var(--text-muted);padding:40px 20px">
+          <div style="font-size:32px;margin-bottom:10px">&#127776;</div>
+          <div style="font-size:14px;color:var(--text-dim);margin-bottom:6px">Рейтинг пока пустой</div>
+          <div style="font-size:12px">Стань первым магом этого периода!</div>
+        </div>`;
+    } else {
+      html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden">`;
+      data.leaders.forEach((p, i) => {
+        const isFirst = i === 0;
+        const medal = i === 0 ? '&#129351;' : i === 1 ? '&#129352;' : i === 2 ? '&#129353;' : '&#11088;';
+        const bgColor = isFirst ? 'rgba(212,175,55,0.15)' : (i < 3 ? 'rgba(180,120,255,0.08)' : 'transparent');
+        html += `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.05);background:${bgColor}">
+            <div style="width:28px;text-align:center;font-size:${i < 3 ? '20px' : '14px'};color:${isFirst ? '#D4AF37' : 'var(--text-dim)'}">${i < 3 ? medal : (i + 1)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;color:${isFirst ? '#D4AF37' : 'var(--text)'};font-weight:${isFirst ? 'bold' : 'normal'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeText(p.display_name)}</div>
+              <div style="font-size:10px;color:var(--text-muted)">Побед: ${p.games_won || 0}</div>
+            </div>
+            <div style="font-size:16px;color:${isFirst ? '#D4AF37' : '#c4a0f0'};font-weight:bold">${p.score}</div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+
+      // Моя позиция если не в топе
+      if (data.me && data.me.rank && data.me.rank > data.leaders.length) {
+        html += `
+          <div style="margin-top:12px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+            <div style="width:28px;text-align:center;font-size:14px;color:#D4AF37">#${data.me.rank}</div>
+            <div style="flex:1;font-size:13px;color:var(--text)">Твоя позиция</div>
+            <div style="font-size:16px;color:#D4AF37;font-weight:bold">${data.me.score}</div>
+          </div>
+        `;
+      } else if (data.me && data.me.score > 0) {
+        html += `<div style="text-align:center;margin-top:12px;font-size:12px;color:#D4AF37">&#11088; Ты в топе!</div>`;
+      } else if (data.me) {
+        html += `<div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted)">Сыграй на среднем+ уровне, чтобы попасть в рейтинг</div>`;
+      }
+    }
+
+    html += `
+        <div style="margin-top:20px;padding:14px;background:rgba(107,33,168,0.1);border:1px solid rgba(180,120,255,0.3);border-radius:12px;font-size:11px;color:var(--text-dim);line-height:1.6">
+          <div style="color:#c4a0f0;font-weight:bold;margin-bottom:6px">&#128161; Как зарабатывать очки</div>
+          &#10024; Средний уровень: +15 очков за победу<br>
+          &#10024; Сложный: +25 очков (×2 множитель)<br>
+          &#10024; Эксперт: +40 очков (×3 множитель)<br>
+          &#10024; Серия 3+: +20% к очкам<br>
+          &#10024; Серия 5+: +50%<br>
+          &#10024; Серия 10+: +100%<br>
+          <span style="color:var(--text-muted);font-style:italic">Песочница (3 карты) не учитывается в рейтинге</span>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function escapeText(s) {
+    if (!s) return 'Странник';
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
   function renderMultiRules() {
@@ -156,6 +398,12 @@ const IntuitionGame = (function() {
 
   function setMode(mode) { currentMode = mode; currentLevel = Object.keys(MODES[mode].levels)[0]; render(); }
   function setLevel(level) { currentLevel = level; render(); }
+  function setFocusPeriod(p) {
+    saveFocusPeriod(p);
+    // Синхронизируем с рейтингом если пользователь его откроет
+    leaderboardPeriod = p;
+    render();
+  }
 
   // === СТАРТ ===
   function startGame() {
@@ -255,15 +503,14 @@ const IntuitionGame = (function() {
           ? 'border-color:rgba(212,175,55,0.8);box-shadow:0 0 12px rgba(212,175,55,0.4);background:linear-gradient(135deg,#2a0845 0%,#1a0533 100%)'
           : '';
 
-        const centerContent = isSelected
-          ? '<div style="width:44px;height:54px;display:flex;align-items:center;justify-content:center;font-size:24px;color:rgba(212,175,55,0.9)">&#10003;</div>'
-          : '<img src="images/caduceus.png" alt="" style="width:44px;height:54px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(212,175,55,0.35))">';
         html += `
           <div class="game-card-back" onclick="IntuitionGame.selectCard(${i})"
             style="background:linear-gradient(135deg,#1a0533 0%,#0d0221 50%,#1a0533 100%);border:2px solid rgba(212,175,55,0.3);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;${selStyle}">
-            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-bottom:2px">&#10022;</div>
-            ${centerContent}
-            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-top:2px">&#10022;</div>
+            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-bottom:4px">&#10022;</div>
+            <div style="width:28px;height:28px;border:1px solid rgba(212,175,55,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center">
+              <div style="font-size:14px;color:rgba(212,175,55,0.5)">${isSelected ? '&#10003;' : '&#10024;'}</div>
+            </div>
+            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-top:4px">&#10022;</div>
           </div>`;
       }
     });
@@ -311,6 +558,34 @@ const IntuitionGame = (function() {
     renderBoard();
   }
 
+  // === ПОДСЧЁТ ОЧКОВ ДЛЯ РЕЙТИНГА ===
+  // Формула:
+  //   points = pointsTry (всегда, за участие) + (won ? pointsWin : 0)
+  //   + streakBonus если серия >= 3 и уровень разрешает бонус
+  //     серия 3+: +20%, серия 5+: +50%, серия 10+: +100%
+  // На песочнице (easy) очки всегда 0 — не идут в рейтинг.
+  function calculatePoints(lvl, won, currentStreak, targetsFound) {
+    if (lvl.sandbox) return 0;
+    let points = lvl.pointsTry || 0;
+    if (won) {
+      let winBonus = lvl.pointsWin || 0;
+      // В мультипоиске пропорционально найденным целям
+      if (currentMode === 'multi' && lvl.targets > 1) {
+        winBonus = Math.round(winBonus * (targetsFound / lvl.targets));
+      }
+      points += winBonus;
+    }
+    // Бонус серии только на уровнях где разрешено
+    if (won && lvl.streakBonus && currentStreak >= 3) {
+      let bonusMultiplier = 0;
+      if (currentStreak >= 10) bonusMultiplier = 1.0;      // +100%
+      else if (currentStreak >= 5) bonusMultiplier = 0.5;  // +50%
+      else if (currentStreak >= 3) bonusMultiplier = 0.2;  // +20%
+      points = Math.round(points * (1 + bonusMultiplier));
+    }
+    return points;
+  }
+
   // === ПОДСЧЁТ РЕЗУЛЬТАТА ===
   function finishGame() {
     const lvl = MODES[currentMode].levels[currentLevel];
@@ -320,7 +595,7 @@ const IntuitionGame = (function() {
     const hitBuff = selected.some(i => cards[i]?.type === 'buff');
     const hitDebuff = selected.some(i => cards[i]?.type === 'debuff');
 
-    let won = targetsFound > 0 && !hitDebuff;
+    const won = targetsFound > 0 && !hitDebuff;
 
     if (won) {
       stats.correct++;
@@ -351,6 +626,22 @@ const IntuitionGame = (function() {
       stats._hitDebuff = hitDebuff;
     }
 
+    // Считаем очки для рейтинга
+    const pointsEarned = calculatePoints(lvl, won, stats.streak, targetsFound);
+    stats._lastPoints = pointsEarned;
+
+    // Отправляем на сервер (не блокируем UI)
+    if (pointsEarned > 0 && typeof DarAPI !== 'undefined' && DarAPI.submitIntuitionScore) {
+      DarAPI.submitIntuitionScore({
+        points: pointsEarned,
+        difficulty: currentLevel,
+        won: won,
+        streak: stats.streak
+      }).catch(err => {
+        console.warn('Leaderboard submit failed:', err.message);
+      });
+    }
+
     saveStats();
   }
 
@@ -370,11 +661,13 @@ const IntuitionGame = (function() {
         </div>
         ${won ? `
           <div style="font-size:14px;color:#D4AF37;margin-bottom:4px">+${stats._lastWin} &#128142; ${hitBuff ? '(Карта Света x2!)' : ''}</div>
+          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#c4a0f0;margin-bottom:4px">&#127942; +${stats._lastPoints} очков в рейтинг</div>` : ''}
           ${stats.streak > 1 ? `<div style="font-size:13px;color:#D4AF37">&#128293; Серия: ${stats.streak}</div>` : ''}
         ` : `
           <div style="font-size:12px;color:var(--text-dim)">
             ${currentMode === 'classic' ? 'Правильный ответ: карта ' + (cards.findIndex(c => c.type === 'target') + 1) : 'Попробуй ещё!'}
           </div>
+          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#c4a0f0;margin-top:6px">&#127942; +${stats._lastPoints} очков за участие</div>` : ''}
         `}
         <div style="display:flex;gap:8px;margin-top:16px;justify-content:center">
           <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:0" onclick="IntuitionGame.startGame()">&#128260; Ещё раз</button>
@@ -384,5 +677,9 @@ const IntuitionGame = (function() {
     `;
   }
 
-  return { render, setMode, setLevel, startGame, selectCard, revealAll };
+  return {
+    render, setMode, setLevel, setFocusPeriod,
+    startGame, selectCard, revealAll,
+    openLeaderboard, setLeaderboardPeriod, setLeaderboardDifficulty
+  };
 })();

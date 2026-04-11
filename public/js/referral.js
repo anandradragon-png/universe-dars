@@ -69,7 +69,7 @@ const Referral = (function() {
     const botUsername = window.BOT_USERNAME || 'UniverseDarBot';
     const userId = tg?.initDataUnsafe?.user?.id || localStorage.getItem('_dev_telegram_id') || '';
     const link = `https://t.me/${botUsername}?startapp=ref_${userId}`;
-    const text = '&#10024; Узнай свой Дар! Рассчитай по дате рождения и открой свою Сокровищницу.';
+    const text = 'Узнай свой Дар! Рассчитай по дате рождения и открой свою Сокровищницу.';
 
     if (tg?.openTelegramLink) {
       tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);

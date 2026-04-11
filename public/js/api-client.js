@@ -23,9 +23,25 @@ const DarAPI = (function() {
   async function request(path, method = 'GET', body = null) {
     const opts = { method, headers: getHeaders() };
     if (body && method !== 'GET') opts.body = JSON.stringify(body);
-    const resp = await fetch(BASE_URL + path, opts);
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || 'API error');
+    let resp;
+    try {
+      resp = await fetch(BASE_URL + path, opts);
+    } catch (netErr) {
+      console.error('[DarAPI] network error', path, netErr.message);
+      throw new Error('Нет связи с сервером (' + netErr.message + ')');
+    }
+    let data;
+    try {
+      data = await resp.json();
+    } catch (parseErr) {
+      const text = await resp.text().catch(() => '');
+      console.error('[DarAPI] non-JSON response', path, 'status', resp.status, 'body:', text.slice(0, 200));
+      throw new Error('Сервер вернул не-JSON (' + resp.status + ')');
+    }
+    if (!resp.ok) {
+      console.warn('[DarAPI] http error', path, 'status', resp.status, 'body:', data);
+      throw new Error(data.error || ('HTTP ' + resp.status));
+    }
     return data;
   }
 

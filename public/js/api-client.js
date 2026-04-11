@@ -20,6 +20,22 @@ const DarAPI = (function() {
     return headers;
   }
 
+  // --- Кольцевой буфер последних API-ошибок для диагностики ---
+  function logApiError(kind, path, info) {
+    try {
+      const list = JSON.parse(localStorage.getItem('_dar_api_errors') || '[]');
+      list.push({
+        ts: new Date().toISOString(),
+        kind,
+        path,
+        info: typeof info === 'string' ? info.slice(0, 300) : info
+      });
+      // Храним только 20 последних
+      while (list.length > 20) list.shift();
+      localStorage.setItem('_dar_api_errors', JSON.stringify(list));
+    } catch (e) {}
+  }
+
   async function request(path, method = 'GET', body = null) {
     const opts = { method, headers: getHeaders() };
     if (body && method !== 'GET') opts.body = JSON.stringify(body);
@@ -28,6 +44,7 @@ const DarAPI = (function() {
       resp = await fetch(BASE_URL + path, opts);
     } catch (netErr) {
       console.error('[DarAPI] network error', path, netErr.message);
+      logApiError('network', path, netErr.message);
       throw new Error('Нет связи с сервером (' + netErr.message + ')');
     }
     let data;
@@ -36,10 +53,12 @@ const DarAPI = (function() {
     } catch (parseErr) {
       const text = await resp.text().catch(() => '');
       console.error('[DarAPI] non-JSON response', path, 'status', resp.status, 'body:', text.slice(0, 200));
+      logApiError('non-json', path, { status: resp.status, body: text.slice(0, 300) });
       throw new Error('Сервер вернул не-JSON (' + resp.status + ')');
     }
     if (!resp.ok) {
       console.warn('[DarAPI] http error', path, 'status', resp.status, 'body:', data);
+      logApiError('http', path, { status: resp.status, body: data });
       throw new Error(data.error || ('HTTP ' + resp.status));
     }
     return data;

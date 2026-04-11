@@ -207,6 +207,12 @@ const Treasury = (function() {
         <div style="font-size:12px;color:#D4AF37;letter-spacing:1px">Раскрыто: ${completedCount} из ${totalQuests || '?'}</div>
       </div>
 
+      <!-- Кнопка "Подробнее в книге" - переход к главе дара в ридере -->
+      <button onclick="Treasury.openInBook('${code}')" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.12));color:var(--text);font-size:14px;cursor:pointer;font-family:Georgia,serif;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span style="font-size:18px">&#128214;</span>
+        <span>Подробнее в Книге Даров</span>
+      </button>
+
       <div style="background:linear-gradient(135deg,rgba(107,33,168,0.12),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:14px;margin-bottom:16px">
         <div style="font-size:12px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600">&#10024; Алхимия дара</div>
         <div style="font-size:13px;color:var(--text);line-height:1.6">Начни с сути дара, пройди через каждую его грань, и заверши медитацией активации. Так сила дара раскроется в тебе полностью.</div>
@@ -1061,8 +1067,26 @@ const Treasury = (function() {
     }
   }
 
+  // Перейти к главе дара в Книге Даров (вкладка "Книга")
+  function openInBook(code) {
+    try {
+      if (typeof switchNav === 'function') switchNav('book');
+      // Даём книге отрисоваться, затем прыгаем к главе дара
+      setTimeout(() => {
+        if (typeof BookReader !== 'undefined' && typeof BookReader.goToDar === 'function') {
+          const ok = BookReader.goToDar(code);
+          if (!ok) {
+            console.warn('[Treasury.openInBook] Глава дара не найдена:', code);
+          }
+        }
+      }, 250);
+    } catch (e) {
+      console.error('openInBook error:', e);
+    }
+  }
+
   return {
-    init, render, openDar,
+    init, render, openDar, openInBook,
     openEssenceQuest, openShadowQuest, openMeditationQuest,
     // Старые submit-функции для обратной совместимости
     submitShadowQuest, submitMeditationQuest,

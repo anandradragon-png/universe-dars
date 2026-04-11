@@ -343,6 +343,10 @@ const DailyDar = (function() {
         <div style="font-size:28px;letter-spacing:4px;color:var(--text);margin-top:14px;text-shadow:0 0 20px rgba(180,120,255,0.4)">${name}</div>
         ${arch ? `<div style="font-size:13px;color:#c4a0f0;font-style:italic;margin-top:6px">${arch}</div>` : ''}
         ${subtitle ? `<div style="font-size:12px;color:var(--text-dim);margin-top:8px">${subtitle}</div>` : ''}
+        <button onclick="DailyDar.openInBook('${code}')" style="margin-top:14px;padding:10px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px">
+          <span>&#128214;</span>
+          <span>Читать в Книге Даров</span>
+        </button>
       </div>`;
   }
 
@@ -633,5 +637,19 @@ const DailyDar = (function() {
     window._dailyDarCode = dar.code;
   }
 
-  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage };
+  // Перейти к главе дара в Книге Даров
+  function openInBook(code) {
+    try {
+      if (typeof switchNav === 'function') switchNav('book');
+      setTimeout(() => {
+        if (typeof BookReader !== 'undefined' && typeof BookReader.goToDar === 'function') {
+          BookReader.goToDar(code);
+        }
+      }, 250);
+    } catch (e) {
+      console.error('DailyDar.openInBook error:', e);
+    }
+  }
+
+  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook };
 })();

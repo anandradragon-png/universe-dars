@@ -721,11 +721,11 @@
   <!-- Игровые модули -->
   <script src="js/api-client.js?v=2"></script>
   <script src="js/crystals.js?v=2"></script>
-  <script src="js/treasury.js?v=5"></script>
+  <script src="js/treasury.js?v=6"></script>
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=8"></script>
   <script src="js/intuition-game.js?v=3"></script>
-  <script src="js/daily-dar.js?v=1"></script>
+  <script src="js/daily-dar.js?v=2"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -1820,7 +1820,7 @@
       const imgPath = getDarImagePath(code);
       const container = document.getElementById('dars-detail-view');
 
-      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><div id="dar-accordion-area"></div></div>`;
+      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><button onclick="openDarInBook('${code}')" style="margin:14px auto;padding:10px 18px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.12));color:#D4AF37;font-size:13px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px"><span>📖</span><span>Читать в Книге Даров</span></button><div id="dar-accordion-area"></div></div>`;
 
       // Load image
       const wrap = document.getElementById('dar-detail-img-wrap');
@@ -1894,6 +1894,19 @@
         document.getElementById('dars-list-view').style.display='block';
       }
     }
+
+    // Переход к главе дара в Книге Даров из Энциклопедии
+    function openDarInBook(code){
+      try {
+        switchNav('book');
+        setTimeout(() => {
+          if (typeof BookReader !== 'undefined' && typeof BookReader.goToDar === 'function') {
+            BookReader.goToDar(code);
+          }
+        }, 250);
+      } catch(e) { console.error('openDarInBook error:', e); }
+    }
+    window.openDarInBook = openDarInBook;
 
     // ---- Поля: список + детальная страница с вкладками ----
     const FIELD_INNER_TABS = [

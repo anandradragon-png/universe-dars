@@ -209,28 +209,15 @@ module.exports = async (req, res) => {
       }
     }
 
-    // ========== DELETE: удалить близкого ==========
+    // ========== DELETE: ЗАПРЕЩЕНО ==========
+    // Удаление близких полностью отключено как защита от абуза
+    // (иначе юзер мог бы удалять и добавлять разных людей в один слот,
+    // используя слоты как "одноразовые проверки совместимости").
+    // После сохранения близкий привязан навсегда. См. также проверку в POST.
     if (req.method === 'DELETE') {
-      const id = parseInt(req.query?.id || '0', 10);
-      if (!id) return res.status(400).json({ error: 'id обязателен' });
-
-      try {
-        const { error } = await db
-          .from('user_relatives')
-          .delete()
-          .eq('id', id)
-          .eq('user_id', user.id); // защита: можно удалять только своих
-
-        if (error) {
-          console.error('relatives DELETE error:', error.message);
-          return res.status(500).json({ error: 'Не удалось удалить. Попробуй ещё раз.' });
-        }
-
-        return res.status(200).json({ success: true });
-      } catch (e) {
-        console.error('relatives DELETE threw:', e.message);
-        return res.status(500).json({ error: 'Не удалось удалить. Попробуй ещё раз.' });
-      }
+      return res.status(403).json({
+        error: 'Удаление близких отключено. Близкий, которого ты добавила, привязан к твоему аккаунту навсегда — это защита от подмены и злоупотреблений.'
+      });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

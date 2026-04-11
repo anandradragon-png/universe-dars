@@ -662,8 +662,11 @@
         <div style="font-size:15px;color:var(--text);letter-spacing:1.5px;text-align:center">&#128106; ДОБАВИТЬ БЛИЗКОГО</div>
       </div>
 
+      <div style="background:rgba(244,81,30,0.1);border:1px solid rgba(244,81,30,0.4);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#fbbf24;line-height:1.5">
+        &#9888;&#65039; <b>Внимание:</b> после сохранения этого близкого изменить или удалить будет <b>нельзя</b>. Это защита от подмены и злоупотреблений. Проверь данные перед сохранением.
+      </div>
       <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">
-        Заполни данные близкого человека, чтобы рассчитать его дар. Помни: после сохранения изменить нельзя.
+        Заполни данные близкого человека, чтобы рассчитать его дар.
       </div>
 
       <label style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:4px;display:block">ИМЯ</label>
@@ -2790,8 +2793,6 @@
                 ${darName ? `<div style="font-size:11px;color:#D4AF37;margin-top:2px">Дар: ${darName} (${r.dar_code})</div>` : ''}
                 ${darArch ? `<div style="font-size:10px;color:#c4a0f0;font-style:italic">${darArch}</div>` : ''}
               </div>
-              <button onclick="confirmDeleteRelative(${r.id}, '${escapeRelAttr(r.name)}')"
-                title="Удалить" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:4px 8px">&#10005;</button>
             </div>
             <div style="display:flex;gap:6px">
               <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128302; Послание Оракула</button>
@@ -2805,10 +2806,15 @@
       if (canAdd) {
         html += `<button onclick="openAddRelative()" style="width:100%;padding:12px;border-radius:12px;border:1px dashed rgba(180,120,255,0.5);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:13px;cursor:pointer;font-family:Georgia,serif;margin-top:8px">
           &#10010; Добавить близкого
-        </button>`;
+        </button>
+        <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:6px;font-style:italic;line-height:1.5">
+          &#9888;&#65039; После сохранения близкого изменить или удалить нельзя.<br>
+          Это защита от подмены.
+        </div>`;
       } else {
-        html += `<div style="text-align:center;font-size:11px;color:#D4AF37;padding:8px 0">
-          Все слоты заняты. Удали кого-то или повысь уровень доступа для получения большего количества слотов.
+        html += `<div style="text-align:center;font-size:11px;color:#D4AF37;padding:8px 0;line-height:1.5">
+          Все слоты заняты.<br>
+          Близкие привязаны навсегда (защита от подмены). Повысь уровень доступа для большего количества слотов.
         </div>`;
       }
 
@@ -2868,6 +2874,11 @@
       if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(birth_date)) return showErr('Дата в формате ДД.ММ.ГГГГ');
       if (!_selectedRelationship) return showErr('Выбери, кем приходится');
 
+      // Двойное подтверждение - запись необратимая
+      const relLabel = (RELATIONSHIP_LABELS[_selectedRelationship] || RELATIONSHIP_LABELS.other).ru;
+      const confirmMsg = `Сохранить близкого?\n\nИмя: ${name}\nДата рождения: ${birth_date}\nКем приходится: ${relLabel}\n\n⚠️ После сохранения изменить или удалить эту запись будет НЕЛЬЗЯ. Это защита от подмены.\n\nПроверь данные внимательно.`;
+      if (!confirm(confirmMsg)) return;
+
       if (status) { status.style.color = 'var(--text-dim)'; status.textContent = 'Сохраняем...'; }
       btn.disabled = true;
 
@@ -2892,16 +2903,8 @@
       }
     }
 
-    async function confirmDeleteRelative(id, name) {
-      if (!confirm(`Удалить ${name} из списка близких?`)) return;
-      try {
-        await DarAPI.deleteRelative(id);
-        if (typeof showToast === 'function') showToast('Удалено', 'info');
-        loadRelatives();
-      } catch (e) {
-        if (typeof showToast === 'function') showToast(e.message || 'Не удалось удалить', 'error');
-      }
-    }
+    // confirmDeleteRelative удалена - удаление близких отключено
+    // как защита от подмены и злоупотреблений (см. api/relatives.js DELETE)
 
     // Открыть главу дара близкого в Книге
     function openRelativeInBook(darCode) {

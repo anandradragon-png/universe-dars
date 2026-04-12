@@ -532,8 +532,8 @@
           </div>
         </div>
 
-        <!-- Тренажёр интуиции -->
-        <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="openIntuitionGame()">
+        <!-- Тренажёр интуиции — теперь ведёт на вкладку Игры -->
+        <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="switchNav('games')">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="font-size:24px">&#127183;</div>
             <div>
@@ -578,6 +578,11 @@
           <div class="stub-title">Сокровищница</div>
           <div class="stub-text">Рассчитайте свой дар, чтобы начать коллекцию из 64 даров!</div>
         </div>
+      </div>
+    </div>
+    <div class="tab" id="tab-games">
+      <div id="games-content" style="max-width:700px;margin:0 auto">
+        <div id="game-content-main"></div>
       </div>
     </div>
     <div class="tab" id="tab-book">
@@ -790,9 +795,10 @@
 
   <div class="nav-bar">
     <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">&#10024;</span><span class="nav-label">Мой Дар</span></button>
-    <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon">&#128142;</span><span class="nav-label">Сокровищница</span></button>
+    <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon">&#128142;</span><span class="nav-label">Сокровищн...</span></button>
+    <button class="nav-btn" id="nav-games" onclick="switchNav('games')"><span class="nav-icon">&#127918;</span><span class="nav-label">Игры</span></button>
     <button class="nav-btn" id="nav-book" onclick="switchNav('book')"><span class="nav-icon">&#128214;</span><span class="nav-label">Книга</span></button>
-    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon">&#128218;</span><span class="nav-label">Энциклопедия</span></button>
+    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon">&#128218;</span><span class="nav-label">Энциклоп...</span></button>
   </div>
 
   <!-- Игровые модули -->
@@ -1278,8 +1284,19 @@
       if (name === 'treasury' && typeof Treasury !== 'undefined') {
         Treasury.render();
       }
+      if (name === 'games') {
+        // Рендерим тренажёр интуиции в новой вкладке Игры
+        if (typeof IntuitionGame !== 'undefined') {
+          // Переносим контент в tab-games если ещё не перенесли
+          const mainContent = document.getElementById('game-content-main');
+          if (mainContent && !mainContent.dataset.initialized) {
+            mainContent.dataset.initialized = '1';
+            mainContent.id = 'game-content';
+          }
+          IntuitionGame.render();
+        }
+      }
       if (name === 'book') {
-        // Единый HTML-ридер для мобильного и десктопа
         if (typeof BookReader !== 'undefined') {
           BookReader.render();
         }

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YupDar - Вселенная Даров | Узнай свой Дар</title>
+  <meta name="description" content="YupDar - интерактивный сервис самопознания через систему 64 Даров. Узнай свой дар по дате рождения, получай персональные послания Оракула, тренируй интуицию.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: linear-gradient(180deg, #0a0518 0%, #1a0533 50%, #0d0221 100%); color: #e0e0e0; font-family: Georgia, 'Times New Roman', serif; min-height: 100vh; }
+    .container { max-width: 720px; margin: 0 auto; padding: 20px; }
+
+    /* Hero */
+    .hero { text-align: center; padding: 50px 20px 40px; }
+    .hero-logo { font-size: 64px; margin-bottom: 16px; }
+    .hero h1 { font-size: 32px; color: #D4AF37; letter-spacing: 4px; margin-bottom: 8px; }
+    .hero .subtitle { font-size: 16px; color: #c4a0f0; font-style: italic; margin-bottom: 24px; }
+    .hero p { font-size: 15px; color: #bbb; line-height: 1.8; max-width: 500px; margin: 0 auto 30px; }
+    .btn-main { display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #6b21a8, #D4AF37); color: #fff; font-size: 18px; font-family: Georgia, serif; text-decoration: none; border-radius: 14px; font-weight: bold; letter-spacing: 1px; box-shadow: 0 0 30px rgba(212,175,55,0.3); transition: all 0.2s; }
+    .btn-main:hover { box-shadow: 0 0 40px rgba(212,175,55,0.5); transform: translateY(-2px); }
+
+    /* Features */
+    .features { padding: 40px 0; }
+    .feature { display: flex; align-items: flex-start; gap: 16px; padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; margin-bottom: 12px; }
+    .feature-icon { font-size: 32px; flex-shrink: 0; }
+    .feature h3 { color: #D4AF37; font-size: 16px; margin-bottom: 4px; }
+    .feature p { font-size: 13px; color: #aaa; line-height: 1.6; }
+
+    /* Pricing */
+    .pricing { text-align: center; padding: 40px 0; }
+    .pricing h2 { color: #D4AF37; font-size: 22px; letter-spacing: 2px; margin-bottom: 20px; }
+    .price-card { background: linear-gradient(135deg, rgba(107,33,168,0.2), rgba(212,175,55,0.1)); border: 1px solid rgba(212,175,55,0.4); border-radius: 20px; padding: 30px 24px; margin-bottom: 16px; }
+    .price-amount { font-size: 36px; color: #D4AF37; font-weight: bold; margin-bottom: 8px; }
+    .price-desc { font-size: 14px; color: #bbb; line-height: 1.6; margin-bottom: 16px; }
+    .price-features { text-align: left; padding: 0 10px; }
+    .price-features li { font-size: 13px; color: #ccc; margin-bottom: 8px; list-style: none; }
+    .price-features li::before { content: "✓ "; color: #2ecc71; }
+
+    /* Payment methods */
+    .payments { text-align: center; padding: 20px 0; }
+    .payments h3 { color: #c4a0f0; font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; }
+    .payment-icons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .payment-icon { padding: 8px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; font-size: 12px; color: #aaa; }
+
+    /* Legal */
+    .legal { text-align: center; padding: 40px 0 20px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .legal a { color: #888; font-size: 12px; margin: 0 10px; text-decoration: none; }
+    .legal a:hover { color: #D4AF37; }
+    .legal .company { font-size: 11px; color: #555; margin-top: 16px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-logo">&#128302;</div>
+      <h1>YupDar</h1>
+      <div class="subtitle">Вселенная Даров</div>
+      <p>Узнай свой уникальный Дар по дате рождения. Получай персональные послания Оракула. Раскрой потенциал через AI-наставника. Пойми своих близких.</p>
+      <a href="https://t.me/YupDarBot" class="btn-main">&#128302; Открыть YupDar</a>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">&#10024;</div>
+        <div>
+          <h3>64 уникальных Дара</h3>
+          <p>Авторская система самопознания. Расчёт по дате рождения, полное описание сути, силы и граней каждого дара.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">&#128302;</div>
+        <div>
+          <h3>Персональный Оракул</h3>
+          <p>AI-генерация ежедневных посланий на основе твоего дара. Практика дня, энергии, советы.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">&#128214;</div>
+        <div>
+          <h3>Книга Даров</h3>
+          <p>94 главы с полными описаниями всех 64 даров. Интерактивный ридер с темами, закладками и поиском.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">&#128151;</div>
+        <div>
+          <h3>AI-наставник</h3>
+          <p>Диалоговый коуч помогает раскрыть грани дара. Работает на DeepSeek AI, бережно ведёт через осознание.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">&#128106;</div>
+        <div>
+          <h3>Семья и близкие</h3>
+          <p>Рассчитай дары близких, проверь совместимость, получи персональную книгу для родителей о ребёнке.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">&#127918;</div>
+        <div>
+          <h3>Тренажёр интуиции</h3>
+          <p>Угадай дар среди карт. Батлы с AI-дракончиком Юпиком. Рейтинги и турниры.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="pricing">
+      <h2>&#11088; Тарифы</h2>
+
+      <div class="price-card" style="border-color: rgba(255,255,255,0.15)">
+        <div style="font-size: 14px; color: #aaa; letter-spacing: 1px; margin-bottom: 8px;">СТРАННИК</div>
+        <div class="price-amount" style="color: #aaa;">Бесплатно</div>
+        <div class="price-desc">Начни знакомство с миром Даров</div>
+        <ul class="price-features">
+          <li>Расчёт своего дара</li>
+          <li>1 послание Оракула в день</li>
+          <li>Тренажёр интуиции</li>
+          <li>Превью Книги Даров (10 глав)</li>
+        </ul>
+      </div>
+
+      <div class="price-card">
+        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#128737; ХРАНИТЕЛЬ</div>
+        <div class="price-amount">~700 руб.</div>
+        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;">или 500 ⭐ Telegram Stars | 40M DarAI</div>
+        <div class="price-desc">Полный доступ навсегда, без подписки</div>
+        <ul class="price-features">
+          <li>Полная Книга Даров (94 главы)</li>
+          <li>Безлимит Оракула</li>
+          <li>3 слота для близких</li>
+          <li>AI-наставник</li>
+          <li>Совместимость пары</li>
+          <li>+50 кристаллов мудрости</li>
+          <li>Дизайнерская PDF-версия в подарок</li>
+        </ul>
+        <a href="https://t.me/YupDarBot" class="btn-main" style="display:inline-block;margin-top:16px;padding:12px 30px;font-size:15px">Получить доступ</a>
+      </div>
+    </div>
+
+    <!-- Payment methods -->
+    <div class="payments">
+      <h3>СПОСОБЫ ОПЛАТЫ</h3>
+      <div class="payment-icons">
+        <div class="payment-icon">&#11088; Telegram Stars</div>
+        <div class="payment-icon">&#128179; Visa</div>
+        <div class="payment-icon">&#128179; Mastercard</div>
+        <div class="payment-icon">&#128179; МИР</div>
+        <div class="payment-icon">&#128293; DarAI (NEAR)</div>
+      </div>
+    </div>
+
+    <!-- Legal -->
+    <div class="legal">
+      <div>
+        <a href="/legal/terms">Пользовательское соглашение</a>
+        <a href="/legal/privacy">Политика конфиденциальности</a>
+        <a href="/legal/offer">Договор оферты</a>
+        <a href="/legal/cookies">Cookies</a>
+      </div>
+      <div class="company">
+        ИП Татауров Антон Юрьевич | ИНН: 920000802153<br>
+        ул. Лесхозная, д. 9, кв./оф. 1, г. Севастополь<br>
+        Email: support@yupdar.ru | Telegram: @YupDarBot
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

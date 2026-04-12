@@ -167,9 +167,9 @@ module.exports = async (req, res) => {
         return res.status(503).json({ error: 'Оплата в DarAI временно недоступна' });
       }
 
-      // Цена: 40000 DarAI (~$10 при курсе $0.00025/DarAI)
-      // 40000 * 10^18 (18 decimals для NEP-141)
-      const DARAI_PRICE = '40000000000000000000000';
+      // Цена: 40 000 000 DarAI (~$10 при курсе $0.00000025/DarAI)
+      // 40000000 * 10^18 (18 decimals для NEP-141)
+      const DARAI_PRICE = '40000000000000000000000000';
 
       try {
         const resp = await fetch('https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api', {

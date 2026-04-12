@@ -330,9 +330,8 @@ const DailyDar = (function() {
     </div>`;
   }
 
-  // --- Сообщение "Скоро будет доступна оплата" ---
+  // --- Модалка апгрейда (замена заглушки "скоро будет оплата") ---
   function showUpgradeMessage() {
-    // Простая модалка через alert-подобный блок
     const existing = document.getElementById('upgrade-msg-modal');
     if (existing) existing.remove();
 
@@ -341,10 +340,11 @@ const DailyDar = (function() {
     modal.style.cssText = 'position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
     modal.innerHTML = `
       <div style="max-width:380px;width:100%;background:linear-gradient(180deg,#1a0533,#0d0221);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:28px 22px;text-align:center;box-shadow:0 10px 40px rgba(212,175,55,0.15)">
-        <div style="font-size:44px;margin-bottom:14px">&#9201;</div>
-        <div style="font-size:17px;color:#D4AF37;margin-bottom:12px;letter-spacing:1px;line-height:1.4">Скоро будет доступна оплата</div>
-        <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:20px">Мы готовим возможность повысить уровень доступа прямо в приложении. Следи за новостями в нашем чате беты!</div>
-        <button onclick="document.getElementById('upgrade-msg-modal').remove()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#3b0764);color:var(--text);font-size:14px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px">Понятно</button>
+        <div style="font-size:44px;margin-bottom:14px">&#11088;</div>
+        <div style="font-size:17px;color:#D4AF37;margin-bottom:12px;letter-spacing:1px;line-height:1.4">Полный доступ к YupDar</div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">Безлимитный Оракул, полная Книга Даров (94 главы), 3 слота для близких, 50 кристаллов мудрости + дизайнерская PDF</div>
+        <button onclick="document.getElementById('upgrade-msg-modal').remove();if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Georgia,serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3);margin-bottom:10px">&#11088; Купить за 500 ⭐ (~$10)</button>
+        <button onclick="document.getElementById('upgrade-msg-modal').remove()" style="width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">Не сейчас</button>
       </div>`;
     document.body.appendChild(modal);
     modal.addEventListener('click', (e) => {

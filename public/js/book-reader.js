@@ -294,11 +294,19 @@ const BookReader = (function() {
 
       ${!hasFullAccess() ? `
         <div style="padding:0 16px 20px">
-          <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center">
-            <div style="font-size:13px;color:var(--text);margin-bottom:8px">&#128273; Полный доступ</div>
-            <input id="book-promo-input" type="text" placeholder="Промо-код"
-              style="width:100%;max-width:240px;padding:10px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;text-align:center;text-transform:uppercase;outline:none;font-family:Georgia,serif;margin-bottom:8px"/>
-            <button class="btn btn-primary" style="max-width:240px;padding:10px" onclick="BookReader.submitPromo()">Активировать</button>
+          <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;text-align:center">
+            <div style="font-size:14px;color:var(--text);margin-bottom:6px">&#128273; Полный доступ к Книге Даров</div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px">94 главы + уровень Хранитель + 50 кристаллов + дизайнерская PDF</div>
+            <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Georgia,serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.25);margin-bottom:10px">&#11088; Купить за 500 ⭐ (~$10)</button>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Навсегда, без подписки</div>
+            <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px">
+              <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Есть промо-код?</div>
+              <div style="display:flex;gap:6px;justify-content:center">
+                <input id="book-promo-input" type="text" placeholder="Промо-код"
+                  style="width:140px;padding:8px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;text-align:center;text-transform:uppercase;outline:none;font-family:Georgia,serif"/>
+                <button style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif" onclick="BookReader.submitPromo()">OK</button>
+              </div>
+            </div>
           </div>
         </div>
       ` : ''}

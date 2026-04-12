@@ -187,6 +187,12 @@ const DarAPI = (function() {
       }).then(r => r.json());
     },
 
+    // ---- Платежи (Telegram Stars) ----
+    createBookInvoice: () =>
+      request('/api/payment', 'POST', { action: 'create_book_invoice' }),
+    createDonation: (amount) =>
+      request('/api/payment', 'POST', { action: 'create_donation', amount }),
+
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>
       request('/api/message', 'POST', { giftCode }),

@@ -800,9 +800,9 @@
   <script src="js/crystals.js?v=2"></script>
   <script src="js/treasury.js?v=9"></script>
   <script src="js/referral.js?v=2"></script>
-  <script src="js/book-reader.js?v=11"></script>
+  <script src="js/book-reader.js?v=12"></script>
   <script src="js/intuition-game.js?v=3"></script>
-  <script src="js/daily-dar.js?v=3"></script>
+  <script src="js/daily-dar.js?v=4"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -974,7 +974,11 @@
       document.getElementById('profile-level-info').innerHTML = `
         <div style="margin-bottom:8px"><span class="profile-level-badge ${lv.css}">${lv.icon} ${lv.name}</span></div>
         <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${lv.desc}</div>
-        ${level !== 'premium' ? `<div style="font-size:11px;color:#D4AF37;margin-top:8px">Повысь уровень промо-кодом или пригласи друзей</div>` : ''}`;
+        ${level !== 'premium' ? `
+          <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+            ${level === 'basic' ? `<button onclick="buyBookAccess()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:12px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">&#11088; Полный доступ — 500 ⭐ (~$10)</button>` : ''}
+            <button onclick="openDonationModal()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif">💜 Поддержать проект</button>
+          </div>` : `<button onclick="openDonationModal()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif;margin-top:8px">💜 Поддержать проект</button>`}`;
 
       // Прогресс из localStorage
       const crystals = parseInt(localStorage.getItem('_crystals_' + USER_ID) || '0');
@@ -2159,6 +2163,123 @@
 
     // Открыть Оракул из CTA-кнопки в результате расчёта дара
     // Сразу переключается на персональный режим и подгружает пророчество
+    // ============ ПЛАТЕЖИ (Telegram Stars) ============
+
+    // Покупка полного доступа к Книге (500 ⭐ = ~$10)
+    async function buyBookAccess() {
+      try {
+        if (typeof showToast === 'function') showToast('Создаём платёж...', 'info');
+        const result = await DarAPI.createBookInvoice();
+
+        if (result.already_purchased) {
+          if (typeof showToast === 'function') showToast('У тебя уже есть полный доступ!', 'success');
+          return;
+        }
+
+        if (!result.invoice_url) {
+          throw new Error('Не удалось создать платёж');
+        }
+
+        // Открываем нативную форму оплаты Telegram
+        const tg = window.Telegram?.WebApp;
+        if (tg && typeof tg.openInvoice === 'function') {
+          tg.openInvoice(result.invoice_url, function(status) {
+            console.log('[payment] Invoice status:', status);
+            if (status === 'paid') {
+              if (typeof showToast === 'function') showToast('\u2728 Оплата прошла! Перезагрузка...', 'success');
+              // Обновляем access_level в localStorage сразу
+              try { localStorage.setItem('_access_level', 'extended'); } catch(e) {}
+              // Перезагружаем приложение через 1.5 секунды чтобы подтянулись новые права
+              setTimeout(() => { location.reload(); }, 1500);
+            } else if (status === 'cancelled') {
+              // Пользователь закрыл — ничего не делаем
+            } else if (status === 'failed') {
+              if (typeof showToast === 'function') showToast('Оплата не прошла. Попробуй ещё раз.', 'error');
+            }
+          });
+        } else {
+          // Fallback: открываем ссылку в браузере (для десктопа без WebApp API)
+          window.open(result.invoice_url, '_blank');
+        }
+      } catch (e) {
+        console.error('[payment] buyBookAccess error:', e);
+        if (typeof showToast === 'function') showToast(e.message || 'Ошибка оплаты. Попробуй позже.', 'error');
+      }
+    }
+
+    // Донейшн — модалка с выбором суммы
+    function openDonationModal() {
+      let modal = document.getElementById('donation-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'donation-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:10200;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px';
+        modal.addEventListener('click', e => { if (e.target === modal) closeDonationModal(); });
+        document.body.appendChild(modal);
+      }
+      modal.style.display = 'flex';
+      modal.innerHTML = `
+        <div style="position:relative;background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 22px 22px;max-width:400px;width:100%">
+          <button onclick="closeDonationModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
+          <div style="text-align:center;margin-bottom:18px">
+            <div style="font-size:36px;margin-bottom:6px">💜</div>
+            <div style="font-size:16px;color:var(--text);margin-bottom:4px">Поддержать YupDar</div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Добровольное пожертвование на развитие проекта.<br>В благодарность начислим кристаллы мудрости</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;justify-content:center">
+            <button onclick="submitDonation(50)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Georgia,serif">50 ⭐</button>
+            <button onclick="submitDonation(100)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Georgia,serif">100 ⭐</button>
+            <button onclick="submitDonation(250)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Georgia,serif">250 ⭐</button>
+            <button onclick="submitDonation(500)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.18);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">500 ⭐</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:14px">
+            <input id="donation-custom-amount" type="number" min="1" max="100000" placeholder="Своя сумма в ⭐" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Georgia,serif;outline:none;text-align:center">
+            <button onclick="submitDonation(parseInt(document.getElementById('donation-custom-amount').value))" style="padding:12px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">Отправить</button>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.5">1 звезда ≈ $0.02 &bull; Минимум: 1 ⭐ &bull; Все средства идут на развитие проекта</div>
+        </div>
+      `;
+    }
+
+    function closeDonationModal() {
+      const modal = document.getElementById('donation-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function submitDonation(amount) {
+      if (!amount || amount < 1) {
+        if (typeof showToast === 'function') showToast('Укажи сумму (минимум 1 звезда)', 'error');
+        return;
+      }
+      try {
+        if (typeof showToast === 'function') showToast('Создаём платёж...', 'info');
+        const result = await DarAPI.createDonation(amount);
+
+        if (!result.invoice_url) {
+          throw new Error('Не удалось создать платёж');
+        }
+
+        closeDonationModal();
+
+        const tg = window.Telegram?.WebApp;
+        if (tg && typeof tg.openInvoice === 'function') {
+          tg.openInvoice(result.invoice_url, function(status) {
+            if (status === 'paid') {
+              if (typeof showToast === 'function') showToast('\u2728 Спасибо за поддержку! +' + result.bonus_crystals + ' кристаллов', 'success');
+              if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(result.bonus_crystals);
+            } else if (status === 'failed') {
+              if (typeof showToast === 'function') showToast('Оплата не прошла', 'error');
+            }
+          });
+        } else {
+          window.open(result.invoice_url, '_blank');
+        }
+      } catch (e) {
+        console.error('[payment] donation error:', e);
+        if (typeof showToast === 'function') showToast(e.message || 'Ошибка. Попробуй позже.', 'error');
+      }
+    }
+
     function openOracleFromResult() {
       if (typeof DailyDar === 'undefined') return;
       DailyDar.open();

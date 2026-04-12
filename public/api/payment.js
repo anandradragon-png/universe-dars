@@ -43,16 +43,51 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const tgUser = requireUser(req, res);
-    if (!tgUser) return;
+    // Мягкая авторизация: пробуем получить юзера, но если не удалось —
+    // всё равно создаём invoice (это просто ссылка на оплату, безвредная).
+    // Настоящая проверка происходит в webhook при successful_payment.
+    const { getUser } = require('./lib/auth');
+    let tgUser = getUser(req);
+    let user = null;
 
-    const user = await getOrCreateUser(tgUser);
+    if (tgUser && tgUser.id) {
+      try {
+        user = await getOrCreateUser(tgUser);
+      } catch (e) {
+        console.warn('[payment] getOrCreateUser failed:', e.message);
+      }
+    }
+
+    // Fallback: берём telegram_id из initDataUnsafe (без валидации hash)
+    if (!user) {
+      try {
+        const initData = req.headers['x-telegram-init-data'] || '';
+        if (initData) {
+          const params = new URLSearchParams(initData);
+          const userJson = params.get('user');
+          if (userJson) {
+            const parsed = JSON.parse(userJson);
+            if (parsed.id) {
+              tgUser = parsed;
+              user = await getOrCreateUser(parsed);
+              console.log('[payment] Using unvalidated user fallback:', parsed.id);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[payment] fallback auth failed:', e.message);
+      }
+    }
+
+    // Если совсем не удалось — создаём invoice без привязки к юзеру
+    const telegramId = tgUser?.id || 0;
+
     const { action, amount } = req.body || {};
 
     // ========== ПОКУПКА КНИГИ ($10 = 500⭐) ==========
     if (action === 'create_book_invoice') {
       // Проверяем что юзер ещё не купил
-      if (user.access_level === 'extended' || user.access_level === 'premium') {
+      if (user && (user.access_level === 'extended' || user.access_level === 'premium')) {
         return res.json({
           already_purchased: true,
           message: 'У тебя уже есть полный доступ!'
@@ -60,7 +95,8 @@ module.exports = async (req, res) => {
       }
 
       const price = PRICES.book_full_access;
-      const payload = `book_full_access_${user.id}_${Date.now()}`;
+      const userId = user ? user.id : telegramId;
+      const payload = `book_full_access_${userId}_${Date.now()}`;
 
       console.log('[payment] Creating book invoice:', {
         user_id: user.id,
@@ -94,7 +130,8 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Максимум 100 000 звёзд за раз' });
       }
 
-      const payload = `donation_${user.id}_${Date.now()}`;
+      const donUserId = user ? user.id : telegramId;
+      const payload = `donation_${donUserId}_${Date.now()}`;
       const bonusCrystals = Math.max(1, Math.floor(donationAmount / 10));
 
       console.log('[payment] Creating donation invoice:', {

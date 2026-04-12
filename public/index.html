@@ -1904,16 +1904,27 @@
       const groups = getDarsByKun();
       const container = document.getElementById('dars-list-view');
       container.innerHTML = '';
+      // Вкладка "Дары": полоски (вертикальный список), НЕ grid-сетка.
+      // Это визуально отличает от вкладки "Поля" (карточки-прямоугольники).
+      container.classList.remove('field-grid');
       for(let i=1;i<=9;i++){
         const f = FIELDS_FULL[i];
         const count = groups[i].length;
         const div = document.createElement('div');
-        div.className='field-folder';
+        div.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:all 0.15s';
+        div.onmouseenter = function(){ this.style.borderColor='rgba(212,175,55,0.5)'; this.style.background='rgba(107,33,168,0.12)'; };
+        div.onmouseleave = function(){ this.style.borderColor='var(--border)'; this.style.background='var(--card)'; };
         div.onclick=()=>openFieldFolder(i);
-        div.innerHTML=`<div style="margin-bottom:6px">${PATTERN_SVG[i]||''}</div><div class="field-folder-name">${f.name}</div><div class="field-folder-arch">${f.element}</div>`;
+        div.innerHTML=`
+          <div style="flex-shrink:0;width:40px;display:flex;justify-content:center">${PATTERN_SVG[i]||''}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;color:var(--text);letter-spacing:1px;font-weight:600">${f.name}</div>
+            <div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:2px">${f.element}</div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)">${count} даров &#10095;</div>
+        `;
         container.appendChild(div);
       }
-      container.classList.add('field-grid');
     }
 
     // ---- Уровень 2: Дары поля ----

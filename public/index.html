@@ -738,6 +738,8 @@
         <button class="rel-rel-btn" data-rel="daughter" onclick="selectRelationship('daughter')">&#128103; Дочь</button>
         <button class="rel-rel-btn" data-rel="partner" onclick="selectRelationship('partner')">&#128147; Партнёр</button>
         <button class="rel-rel-btn" data-rel="sibling" onclick="selectRelationship('sibling')">&#128109; Брат/сестра</button>
+        <button class="rel-rel-btn" data-rel="grandson" onclick="selectRelationship('grandson')">&#128118; Внук</button>
+        <button class="rel-rel-btn" data-rel="granddaughter" onclick="selectRelationship('granddaughter')">&#128103; Внучка</button>
         <button class="rel-rel-btn" data-rel="friend" onclick="selectRelationship('friend')">&#129309; Друг</button>
         <button class="rel-rel-btn" data-rel="other" onclick="selectRelationship('other')">&#10024; Другое</button>
       </div>
@@ -1610,8 +1612,17 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: birthDate, gift }));
             document.getElementById('dateInput').value = birthDate;
             showResult(gift);
+          } else {
+            // На сервере нет дара — показываем экран ввода
+            document.getElementById('screen-input').style.display='block';
+            document.getElementById('screen-result').style.display='none';
           }
-        }).catch(() => {});
+        }).catch(() => {
+          // Ошибка API — показываем экран ввода
+          document.getElementById('screen-input').style.display='block';
+          document.getElementById('screen-result').style.display='none';
+        });
+        return; // Не показываем экран ввода до ответа сервера
       }
 
       document.getElementById('screen-input').style.display='block';
@@ -2996,6 +3007,8 @@
       daughter: { ru: 'Дочь',         icon: '\u{1F467}' },
       partner:  { ru: 'Партнёр',      icon: '\u{1F493}' },
       sibling:  { ru: 'Брат/сестра',  icon: '\u{1F46D}' },
+      grandson:     { ru: 'Внук',         icon: '\u{1F476}' },
+      granddaughter:{ ru: 'Внучка',       icon: '\u{1F467}' },
       friend:   { ru: 'Друг',         icon: '\u{1F91D}' },
       other:    { ru: 'Другое',       icon: '\u2728' }
     };
@@ -3077,7 +3090,7 @@
             <div style="display:flex;gap:6px">
               <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128302; Оракул</button>
               <button onclick='checkCompatibilityWith(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(244,81,30,0.4);background:rgba(244,81,30,0.08);color:#f4511e;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128149; Совмест.</button>
-              ${(r.relationship === 'son' || r.relationship === 'daughter') ? `<button onclick="openChildBook(${r.id})" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128214; Книга</button>` : ''}
+              ${(['son','daughter','grandson','granddaughter'].includes(r.relationship)) ? `<button onclick="openChildBook(${r.id})" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128214; Книга</button>` : ''}
               <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128218; Дар</button>
             </div>
           </div>`;

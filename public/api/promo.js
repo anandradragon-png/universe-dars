@@ -19,7 +19,10 @@ module.exports = async (req, res) => {
     if (!code) return res.status(400).json({ error: 'code required' });
 
     // Коды из env: PROMO_CODES_EXTENDED (дают extended доступ), PROMO_CODES_PREMIUM
-    const extendedCodes = (process.env.PROMO_CODES_EXTENDED || 'DARBOOK2024,UNIVERSE777').split(',').map(c => c.trim().toUpperCase());
+    // Хардкод-коды всегда активны, env-коды дополняют
+    const hardcodedExtended = ['DARBOOK2024', 'UNIVERSE777', 'СЕМЬЯ2026'];
+    const envExtended = (process.env.PROMO_CODES_EXTENDED || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+    const extendedCodes = [...new Set([...hardcodedExtended, ...envExtended])];
     const premiumCodes = (process.env.PROMO_CODES_PREMIUM || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
 
     const inputCode = code.trim().toUpperCase();

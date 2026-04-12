@@ -25,6 +25,7 @@ const SLOT_LIMITS = {
 
 const VALID_RELATIONSHIPS = [
   'mother', 'father', 'son', 'daughter',
+  'grandson', 'granddaughter',
   'partner', 'friend', 'sibling', 'other'
 ];
 

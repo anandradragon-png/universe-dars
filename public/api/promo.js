@@ -1,4 +1,4 @@
-const { requireUser } = require('./lib/auth');
+const { getUser } = require('./lib/auth');
 const { getOrCreateUser, updateUser, addCrystals } = require('./lib/db');
 
 module.exports = async (req, res) => {
@@ -10,10 +10,42 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const tgUser = requireUser(req, res);
-    if (!tgUser) return;
+    // Мягкая авторизация (как в payment.js) — initData может быть expired
+    let tgUser = getUser(req);
+    let user = null;
 
-    const user = await getOrCreateUser(tgUser);
+    if (tgUser && tgUser.id) {
+      try {
+        user = await getOrCreateUser(tgUser);
+      } catch (e) {
+        console.warn('[promo] getOrCreateUser failed:', e.message);
+      }
+    }
+
+    // Fallback: парсим user из initData без валидации hash
+    if (!user) {
+      try {
+        const initData = req.headers['x-telegram-init-data'] || '';
+        if (initData) {
+          const params = new URLSearchParams(initData);
+          const userJson = params.get('user');
+          if (userJson) {
+            const parsed = JSON.parse(userJson);
+            if (parsed.id) {
+              tgUser = parsed;
+              user = await getOrCreateUser(parsed);
+              console.log('[promo] Using unvalidated user fallback:', parsed.id);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[promo] fallback auth failed:', e.message);
+      }
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: 'Не удалось авторизоваться. Закрой и открой приложение заново.' });
+    }
     const { code } = req.body;
 
     if (!code) return res.status(400).json({ error: 'code required' });

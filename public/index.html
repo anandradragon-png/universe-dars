@@ -563,11 +563,7 @@
         <div id="daily-dar-content"></div>
       </div>
 
-      <!-- Экран игры -->
-      <div id="game-screen" style="display:none">
-        <button class="btn-back" style="display:block" onclick="closeIntuitionGame()">&#8592; Назад</button>
-        <div id="game-content"></div>
-      </div>
+      <!-- Экран игры перенесён во вкладку "Игры" (#tab-games) -->
 
       </div><!-- /main-container -->
     </div>
@@ -581,9 +577,7 @@
       </div>
     </div>
     <div class="tab" id="tab-games">
-      <div id="games-content" style="max-width:700px;margin:0 auto">
-        <div id="game-content-main"></div>
-      </div>
+      <div id="game-content" style="max-width:700px;margin:0 auto"></div>
     </div>
     <div class="tab" id="tab-book">
       <div id="book-content">
@@ -1285,14 +1279,7 @@
         Treasury.render();
       }
       if (name === 'games') {
-        // Рендерим тренажёр интуиции в новой вкладке Игры
         if (typeof IntuitionGame !== 'undefined') {
-          // Переносим контент в tab-games если ещё не перенесли
-          const mainContent = document.getElementById('game-content-main');
-          if (mainContent && !mainContent.dataset.initialized) {
-            mainContent.dataset.initialized = '1';
-            mainContent.id = 'game-content';
-          }
           IntuitionGame.render();
         }
       }
@@ -2372,25 +2359,9 @@
       }, 100);
     }
 
-    // === Игра на интуицию ===
-    function openIntuitionGame() {
-      document.getElementById('screen-result').style.display = 'none';
-      document.getElementById('daily-activities').style.display = 'none';
-      document.getElementById('screen-input').style.display = 'none';
-      document.getElementById('game-screen').style.display = 'block';
-      if (typeof IntuitionGame !== 'undefined') IntuitionGame.render();
-    }
-
-    function closeIntuitionGame() {
-      document.getElementById('game-screen').style.display = 'none';
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        document.getElementById('screen-result').style.display = 'block';
-        document.getElementById('daily-activities').style.display = 'block';
-      } else {
-        document.getElementById('screen-input').style.display = 'block';
-      }
-    }
+    // === Игра на интуицию — перенесена во вкладку «Игры» ===
+    // Старые функции openIntuitionGame/closeIntuitionGame удалены.
+    // Теперь переключение через switchNav('games').
 
     // === Чат беты ===
     const BETA_CHAT_URL = 'https://t.me/+YLyl125-EfcwZjJi';

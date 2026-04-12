@@ -722,7 +722,10 @@
       </div>
 
       <label style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:4px;display:block">ИМЯ</label>
-      <input id="rel-name" class="rel-input" type="text" placeholder="Например: Мама, Анна" maxlength="50">
+      <input id="rel-name" class="rel-input" type="text" placeholder="Например: Анна" maxlength="50">
+
+      <label style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:4px;display:block">ФАМИЛИЯ <span style="opacity:0.5">(опционально)</span></label>
+      <input id="rel-last-name" class="rel-input" type="text" placeholder="Например: Иванова" maxlength="50">
 
       <label style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:4px;display:block">ДАТА РОЖДЕНИЯ</label>
       <input id="rel-birth-date" class="rel-input" type="text" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" maxlength="10">
@@ -3074,7 +3077,7 @@
             <div style="display:flex;gap:6px">
               <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128302; Оракул</button>
               <button onclick='checkCompatibilityWith(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(244,81,30,0.4);background:rgba(244,81,30,0.08);color:#f4511e;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128149; Совмест.</button>
-              <button onclick="openChildBook(${r.id})" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128214; Книга</button>
+              ${(r.relationship === 'son' || r.relationship === 'daughter') ? `<button onclick="openChildBook(${r.id})" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128214; Книга</button>` : ''}
               <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128218; Дар</button>
             </div>
           </div>`;
@@ -3112,9 +3115,11 @@
       _selectedRelGender = '';
       // Сброс полей
       const nameEl = document.getElementById('rel-name');
+      const lastNameEl = document.getElementById('rel-last-name');
       const dateEl = document.getElementById('rel-birth-date');
       const status = document.getElementById('rel-add-status');
       if (nameEl) nameEl.value = '';
+      if (lastNameEl) lastNameEl.value = '';
       if (dateEl) dateEl.value = '';
       if (status) status.textContent = '';
       // Сброс кнопок
@@ -3142,14 +3147,16 @@
     async function saveRelative() {
       const status = document.getElementById('rel-add-status');
       const btn = document.getElementById('rel-save-btn');
-      const name = (document.getElementById('rel-name')?.value || '').trim();
+      const firstName = (document.getElementById('rel-name')?.value || '').trim();
+      const lastName = (document.getElementById('rel-last-name')?.value || '').trim();
+      const name = [firstName, lastName].filter(Boolean).join(' ');
       const birth_date = (document.getElementById('rel-birth-date')?.value || '').trim();
 
       function showErr(msg) {
         if (status) { status.style.color = '#f87171'; status.textContent = msg; }
       }
 
-      if (!name || name.length < 2) return showErr('Укажи имя (минимум 2 символа)');
+      if (!firstName || firstName.length < 2) return showErr('Укажи имя (минимум 2 символа)');
       if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(birth_date)) return showErr('Дата в формате ДД.ММ.ГГГГ');
       if (!_selectedRelationship) return showErr('Выбери, кем приходится');
 
@@ -3534,7 +3541,7 @@
           </div>
 
           <div style="font-size:12px;color:var(--text-dim);text-align:center;line-height:1.5;margin-bottom:16px;padding:0 10px">
-            Каждая глава написана специально про ${child.name} с учётом возраста, пола и уникальной природы.
+            Каждая глава создана специально для вашего ребёнка - ${child.name} - с учётом возраста, пола и уникальной природы.
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">

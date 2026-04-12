@@ -97,9 +97,18 @@ const DailyDar = (function() {
       if (prof.gender === 'male' || prof.gender === 'female') gender = prof.gender;
     } catch (e) {}
 
+    // Передаём Telegram initData для авторизации — сервер кэширует послание
+    // привязанное к user_id, чтобы при перезапуске Mini App оно не потерялось
+    const headers = { 'Content-Type': 'application/json' };
+    try {
+      if (window.Telegram?.WebApp?.initData) {
+        headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
+      }
+    } catch (e) {}
+
     return fetch(`${API_URL}/api/oracle`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ dar_code: darCode, mode, user_query: userQuery || '', gender })
     })
     .then(r => {

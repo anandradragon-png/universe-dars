@@ -2,6 +2,7 @@ const Groq = require('groq-sdk');
 const fs = require('fs');
 const path = require('path');
 const deepseek = require('./lib/deepseek');
+const { getSupabase } = require('./lib/db');
 
 // ===== Санитайзер-страховка вывода Оракула =====
 
@@ -294,17 +295,101 @@ function buildIntegratorDarData(code) {
   };
 }
 
+// ===== Серверный кэш посланий Оракула =====
+// Сохраняет послания в Supabase чтобы юзер не терял их при закрытии Mini App
+// (localStorage в Telegram WebApp может сброситься).
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+async function getOracleCache(userId, darCode, mode, relativeId) {
+  try {
+    const db = getSupabase();
+    const q = db
+      .from('oracle_cache')
+      .select('prophecy, practice, energies, meditation_video, user_query')
+      .eq('user_id', userId)
+      .eq('dar_code', darCode)
+      .eq('mode', mode)
+      .eq('date_key', todayKey());
+    if (relativeId) q.eq('relative_id', relativeId);
+    else q.is('relative_id', null);
+    const { data } = await q.single();
+    if (data && data.prophecy) {
+      console.log('[oracle] cache HIT for', darCode, mode);
+      return {
+        prophecy: data.prophecy,
+        practice: data.practice || '',
+        energies: data.energies || [],
+        meditation_video: data.meditation_video || null,
+        cached: true
+      };
+    }
+  } catch (e) {
+    // Кэш не найден или таблица не создана — не ошибка
+  }
+  return null;
+}
+
+async function saveOracleCache(userId, darCode, mode, parsed, relativeId, userQuery) {
+  try {
+    const db = getSupabase();
+    await db.from('oracle_cache').upsert({
+      user_id: userId,
+      dar_code: darCode,
+      mode,
+      date_key: todayKey(),
+      prophecy: parsed.prophecy || '',
+      practice: parsed.practice || '',
+      energies: parsed.energies || [],
+      meditation_video: parsed.meditation_video || null,
+      relative_id: relativeId || null,
+      user_query: userQuery || null
+    }, {
+      onConflict: 'user_id,dar_code,mode,date_key'
+    });
+    console.log('[oracle] cache SAVED for', darCode, mode);
+  } catch (e) {
+    // Не критично — если таблица не создана, просто не кэшируем
+    console.warn('[oracle] cache save failed:', e.message);
+  }
+}
+
 // ===== Обработчик API =====
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-telegram-init-data, x-telegram-id');
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST') { res.status(405).end(); return; }
 
-  const { dar_code, mode, user_query, gender, relative_name, relative_relationship } = req.body;
+  const { dar_code, mode, user_query, gender, relative_name, relative_relationship, relative_id } = req.body;
   if (!dar_code) { res.status(400).json({ error: 'dar_code required' }); return; }
+
+  // Получаем user_id для серверного кэша (если есть авторизация)
+  let userId = null;
+  try {
+    const { getUser } = require('./lib/auth');
+    const { getOrCreateUser } = require('./lib/db');
+    const tgUser = getUser(req);
+    if (tgUser && tgUser.id) {
+      const user = await getOrCreateUser(tgUser);
+      userId = user.id;
+    }
+  } catch (e) {
+    // Авторизация не обязательна для Оракула — работает и без неё
+  }
+
+  // Проверяем серверный кэш (если юзер авторизован)
+  if (userId && mode !== 'card') {
+    // mode='card' не кэшируем — каждый вопрос юзера уникален
+    const cached = await getOracleCache(userId, dar_code, mode, relative_id || null);
+    if (cached) {
+      return res.status(200).json(cached);
+    }
+  }
 
   // Имя дара: для обычных - из DARS_DB, для интеграторов - из INTEGRATORS
   const intInfo = INTEGRATORS[dar_code];
@@ -677,6 +762,12 @@ ${context}`;
     const med = pickMeditationForDar(dar_code);
     if (med) {
       parsed.meditation_video = med;
+    }
+
+    // Сохраняем в серверный кэш (если юзер авторизован)
+    // Чтобы при перезапуске Mini App послание не потерялось
+    if (userId && mode !== 'card') {
+      saveOracleCache(userId, dar_code, mode, parsed, relative_id || null, user_query || null);
     }
 
     res.status(200).json(parsed);

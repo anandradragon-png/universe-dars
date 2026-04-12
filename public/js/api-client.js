@@ -166,19 +166,26 @@ const DarAPI = (function() {
     deleteRelative: (id) => request('/api/relatives?id=' + encodeURIComponent(id), 'DELETE'),
 
     // ---- Оракул для близкого ----
-    // payload: { dar_code, mode: 'relative', relative_name, relative_relationship, gender? }
-    getOracleForRelative: (relative) =>
-      fetch('/api/oracle', {
+    getOracleForRelative: (relative) => {
+      const headers = { 'Content-Type': 'application/json' };
+      try {
+        if (window.Telegram?.WebApp?.initData) {
+          headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
+        }
+      } catch (e) {}
+      return fetch('/api/oracle', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           dar_code: relative.dar_code,
           mode: 'relative',
           relative_name: relative.name,
           relative_relationship: relative.relationship,
+          relative_id: relative.id,
           gender: relative.gender || ''
         })
-      }).then(r => r.json()),
+      }).then(r => r.json());
+    },
 
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>

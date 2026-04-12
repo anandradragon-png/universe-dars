@@ -54,18 +54,43 @@ module.exports = async (req, res) => {
       };
 
       const reward = QUEST_REWARDS[quest_type] || 1;
+      console.log('[quest] submitting:', { user_id: user.id, dar_code, section_index, quest_type, reward, answer_len: (answer_text || '').length });
 
       // Записать задание
-      await completeQuest(user.id, dar_code, section_index, quest_type, answer_text || '');
+      try {
+        await completeQuest(user.id, dar_code, section_index, quest_type, answer_text || '');
+      } catch (questErr) {
+        console.error('[quest] completeQuest failed:', questErr.message, questErr.code, questErr.details);
+        return res.status(500).json({ error: 'Не удалось записать квест: ' + (questErr.message || 'неизвестная ошибка') });
+      }
 
       // Начислить кристаллы
-      const newBalance = await addCrystals(user.id, reward, 'quest_complete', {
-        dar_code, section: section_index, type: quest_type
-      });
+      let newBalance;
+      try {
+        newBalance = await addCrystals(user.id, reward, 'quest_complete', {
+          dar_code, section: section_index, type: quest_type
+        });
+      } catch (crystalErr) {
+        console.error('[quest] addCrystals failed:', crystalErr.message);
+        // Квест уже записан, кристаллы не начислились - возвращаем без кристаллов
+        return res.json({
+          success: true,
+          crystals_earned: 0,
+          total_crystals: user.crystals,
+          section_unlocked: section_index,
+          warning: 'Квест засчитан, но кристаллы не начислились. Обратись в поддержку.'
+        });
+      }
 
       // Автоматически открыть следующую секцию
-      await unlockSection(user.id, dar_code, section_index);
+      try {
+        await unlockSection(user.id, dar_code, section_index);
+      } catch (unlockErr) {
+        console.error('[quest] unlockSection failed:', unlockErr.message);
+        // Не критично - квест уже записан и кристаллы начислены
+      }
 
+      console.log('[quest] success:', { dar_code, section_index, quest_type, reward, newBalance });
       return res.json({
         success: true,
         crystals_earned: reward,
@@ -76,7 +101,7 @@ module.exports = async (req, res) => {
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (e) {
-    console.error('quest.js error:', e);
-    return res.status(500).json({ error: e.message });
+    console.error('[quest] FATAL error:', e.message, e.stack?.slice(0, 300));
+    return res.status(500).json({ error: 'На сервере произошла ошибка. Мы уже знаем и чиним. Нажми ещё раз кнопку "Готова двигаться дальше".' });
   }
 };

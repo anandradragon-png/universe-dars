@@ -467,6 +467,9 @@ const Treasury = (function() {
           <span style="font-size:11px;color:#D4AF37">Раунд ${dialogue.roundCount + 1}${dialogue.roundCount >= 3 ? ' (наставник скоро предложит завершить)' : ''}</span>
         </div>
         <button class="btn btn-secondary" id="coach-send-btn" style="margin-top:10px" onclick="Treasury.coachSend('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">Отправить</button>
+        ${dialogue.roundCount >= 3 ? `
+          <button class="btn btn-ghost" style="margin-top:6px;font-size:12px;padding:8px;opacity:0.7" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">Хочу завершить диалог</button>
+        ` : ''}
       `;
     }
 

@@ -376,10 +376,20 @@ module.exports = async (req, res) => {
         .trim();
     };
 
+    let finalAction = parsed.action === 'offer_close' ? 'offer_close'
+          : parsed.action === 'accept' ? 'accept'
+          : 'continue';
+
+    // ФОРСИРУЕМ offer_close если AI "залип" и не предлагает завершить
+    // Раунд 5+ и AI всё ещё continue → переводим в offer_close принудительно
+    // Это предотвращает бесконечные диалоги (тестировщик прошёл 8 раундов без кнопки)
+    if (finalAction === 'continue' && roundNum >= 5) {
+      console.log('[shadow-review] Forcing offer_close at round', roundNum, '(AI wanted continue)');
+      finalAction = 'offer_close';
+    }
+
     const result = {
-      action: parsed.action === 'offer_close' ? 'offer_close'
-            : parsed.action === 'accept' ? 'accept'
-            : 'continue',
+      action: finalAction,
       message: cleanText(String(parsed.message || '').slice(0, 1000)),
       round_number: roundNum,
       can_offer_close: canOfferClose

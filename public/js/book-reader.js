@@ -151,10 +151,17 @@ const BookReader = (function() {
     } catch(e) {
       console.error('[BookReader] load error:', e);
     }
-    // Уровень доступа возьмём из профиля (если есть)
+    // Уровень доступа: сначала из localStorage (мгновенно), потом обновится из PROFILE
+    try {
+      const cachedLevel = localStorage.getItem('_access_level');
+      if (cachedLevel && cachedLevel !== 'basic') {
+        accessLevel = cachedLevel;
+      }
+    } catch(e) {}
     try {
       if (window.PROFILE && window.PROFILE.access_level) {
         accessLevel = window.PROFILE.access_level;
+        try { localStorage.setItem('_access_level', accessLevel); } catch(e) {}
       }
     } catch(e) {}
   }
@@ -181,6 +188,7 @@ const BookReader = (function() {
     try {
       if (window.PROFILE && window.PROFILE.access_level) {
         accessLevel = window.PROFILE.access_level;
+        try { localStorage.setItem('_access_level', accessLevel); } catch(e) {}
       }
     } catch(e) {}
 
@@ -808,6 +816,7 @@ const BookReader = (function() {
       if (result.success) {
         accessLevel = result.access_level || 'full';
         if (window.PROFILE) window.PROFILE.access_level = accessLevel;
+        try { localStorage.setItem('_access_level', accessLevel); } catch(e) {}
         if (typeof showToast === 'function') showToast('\u2728 Полный доступ к книге открыт!', 'success');
         else alert('Полный доступ к книге открыт!');
         render();

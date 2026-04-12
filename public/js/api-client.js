@@ -192,6 +192,11 @@ const DarAPI = (function() {
       request('/api/payment', 'POST', { action: 'create_book_invoice' }),
     createDonation: (amount) =>
       request('/api/payment', 'POST', { action: 'create_donation', amount }),
+    // DarAI (NEAR) через YupPay
+    createDaraiBookInvoice: () =>
+      request('/api/payment', 'POST', { action: 'create_darai_book_invoice' }),
+    createDaraiDonation: (amount_raw) =>
+      request('/api/payment', 'POST', { action: 'create_darai_donation', amount_raw }),
 
     // ---- Книга для Родителей (AI-генерация по ребёнку) ----
     getChildBookTOC: (relative_id) =>

@@ -297,7 +297,8 @@ const BookReader = (function() {
           <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;text-align:center">
             <div style="font-size:14px;color:var(--text);margin-bottom:6px">&#128273; Полный доступ к Книге Даров</div>
             <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px">94 главы + уровень Хранитель + 50 кристаллов + дизайнерская PDF</div>
-            <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Georgia,serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.25);margin-bottom:10px">&#11088; Купить за 500 ⭐ (~$10)</button>
+            <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Georgia,serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.25);margin-bottom:8px">&#11088; Купить за 500 ⭐ (~$10)</button>
+            <button onclick="if(typeof buyWithDarai==='function')buyWithDarai()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(46,204,113,0.5);background:rgba(46,204,113,0.1);color:#2ecc71;font-size:13px;cursor:pointer;font-family:Georgia,serif;margin-bottom:10px">&#128293; Оплатить в DarAI</button>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Навсегда, без подписки</div>
             <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px">
               <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Есть промо-код?</div>

@@ -156,6 +156,106 @@ module.exports = async (req, res) => {
       });
     }
 
+    // ========== ПОКУПКА КНИГИ ЧЕРЕЗ DARAI (YupPay) ==========
+    if (action === 'create_darai_book_invoice') {
+      if (user && (user.access_level === 'extended' || user.access_level === 'premium')) {
+        return res.json({ already_purchased: true, message: 'У тебя уже есть полный доступ!' });
+      }
+
+      const yuppayKey = (process.env.YUPPAY_API_KEY || '').trim();
+      if (!yuppayKey) {
+        return res.status(503).json({ error: 'Оплата в DarAI временно недоступна' });
+      }
+
+      // Цена: 10 DarAI (18 decimals) = 10 * 10^18
+      const DARAI_PRICE = '10000000000000000000'; // TODO: настроить правильную цену
+
+      try {
+        const resp = await fetch('https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + yuppayKey
+          },
+          body: JSON.stringify({
+            action: 'create_invoice',
+            token_contract_id: 'darai.tkn.near',
+            amount_raw: DARAI_PRICE,
+            metadata: {
+              payment_type: 'book',
+              telegram_chat_id: telegramId,
+              user_id: user ? user.id : null,
+              return_url: 'https://t.me/YupDarBot'
+            }
+          })
+        });
+
+        const data = await resp.json();
+        if (!data.ok && !data.pay_tg_url) {
+          console.error('[payment] YupPay create_invoice failed:', data);
+          throw new Error(data.error || data.message || 'YupPay error');
+        }
+
+        return res.json({
+          invoice_url: data.pay_url,
+          invoice_tg_url: data.pay_tg_url || (data.links && data.links.telegram_mini_app),
+          price: '10 DarAI',
+          currency: 'DARAI'
+        });
+      } catch (e) {
+        console.error('[payment] YupPay error:', e.message);
+        return res.status(500).json({ error: 'Не удалось создать платёж в DarAI. Попробуй позже.' });
+      }
+    }
+
+    // ========== ДОНЕЙШН ЧЕРЕЗ DARAI ==========
+    if (action === 'create_darai_donation') {
+      const donAmount = req.body.amount_raw;
+      if (!donAmount) {
+        return res.status(400).json({ error: 'Укажи сумму' });
+      }
+
+      const yuppayKey = (process.env.YUPPAY_API_KEY || '').trim();
+      if (!yuppayKey) {
+        return res.status(503).json({ error: 'Оплата в DarAI временно недоступна' });
+      }
+
+      try {
+        const resp = await fetch('https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + yuppayKey
+          },
+          body: JSON.stringify({
+            action: 'create_invoice',
+            token_contract_id: 'darai.tkn.near',
+            amount_raw: donAmount,
+            metadata: {
+              payment_type: 'donation',
+              telegram_chat_id: telegramId,
+              user_id: user ? user.id : null,
+              return_url: 'https://t.me/YupDarBot'
+            }
+          })
+        });
+
+        const data = await resp.json();
+        if (!data.ok && !data.pay_tg_url) {
+          throw new Error(data.error || 'YupPay error');
+        }
+
+        return res.json({
+          invoice_url: data.pay_url,
+          invoice_tg_url: data.pay_tg_url || (data.links && data.links.telegram_mini_app),
+          currency: 'DARAI'
+        });
+      } catch (e) {
+        console.error('[payment] YupPay donation error:', e.message);
+        return res.status(500).json({ error: 'Не удалось создать платёж. Попробуй позже.' });
+      }
+    }
+
     return res.status(400).json({ error: 'Unknown action' });
   } catch (e) {
     console.error('[payment] Error:', e.message);

@@ -2291,6 +2291,34 @@
       }
     }
 
+    // Покупка через DarAI (YupPay / NEAR)
+    async function buyWithDarai() {
+      try {
+        if (typeof showToast === 'function') showToast('Создаём платёж в DarAI...', 'info');
+        const result = await DarAPI.createDaraiBookInvoice();
+
+        if (result.already_purchased) {
+          if (typeof showToast === 'function') showToast('У тебя уже есть полный доступ!', 'success');
+          return;
+        }
+
+        // В Telegram используем pay_tg_url, в браузере — pay_url
+        const url = result.invoice_tg_url || result.invoice_url;
+        if (!url) throw new Error('Не удалось создать платёж');
+
+        const tg = window.Telegram?.WebApp;
+        if (tg && result.invoice_tg_url) {
+          // Открываем через Telegram Mini App
+          tg.openTelegramLink(result.invoice_tg_url);
+        } else if (url) {
+          window.open(url, '_blank');
+        }
+      } catch (e) {
+        console.error('[payment] buyWithDarai error:', e);
+        if (typeof showToast === 'function') showToast(e.message || 'Ошибка оплаты DarAI', 'error');
+      }
+    }
+
     function openOracleFromResult() {
       if (typeof DailyDar === 'undefined') return;
       DailyDar.open();

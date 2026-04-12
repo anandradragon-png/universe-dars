@@ -3072,9 +3072,10 @@
               </div>
             </div>
             <div style="display:flex;gap:6px">
-              <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128302; Оракул</button>
-              <button onclick="openChildBook(${r.id})" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128214; Книга родителя</button>
-              <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128218; Дар</button>
+              <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128302; Оракул</button>
+              <button onclick='checkCompatibilityWith(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(244,81,30,0.4);background:rgba(244,81,30,0.08);color:#f4511e;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128149; Совмест.</button>
+              <button onclick="openChildBook(${r.id})" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128214; Книга</button>
+              <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128218; Дар</button>
             </div>
           </div>`;
         }
@@ -3343,6 +3344,129 @@
     function closeRelativeOracleModal() {
       const modal = document.getElementById('rel-oracle-modal');
       if (modal) modal.style.display = 'none';
+    }
+
+    // ============ СОВМЕСТИМОСТЬ ПАРЫ ============
+
+    async function checkCompatibilityWith(relativeJson) {
+      let relative = typeof relativeJson === 'string' ? JSON.parse(relativeJson) : relativeJson;
+
+      // Мой дар
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) { if (typeof showToast === 'function') showToast('Сначала рассчитай свой дар', 'error'); return; }
+      const { gift } = JSON.parse(saved);
+      const myCode = gift.code;
+      const myName = getUserName() || window._userName || 'Ты';
+
+      openCompatibilityModal(myName, relative.name, myCode, relative.dar_code, RELATIONSHIP_LABELS[relative.relationship]?.ru || 'близкие');
+    }
+
+    function openCompatibilityModal(name1, name2, code1, code2, relationship) {
+      let modal = document.getElementById('compat-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'compat-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:10200;background:rgba(0,0,0,0.9);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto';
+        modal.addEventListener('click', e => { if (e.target === modal) closeCompatibilityModal(); });
+        document.body.appendChild(modal);
+      }
+      modal.style.display = 'flex';
+
+      // Лоадер
+      modal.innerHTML = `
+        <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 20px 20px;max-width:460px;width:100%;max-height:92vh;overflow-y:auto">
+          <button onclick="closeCompatibilityModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#10005;</button>
+          <div style="text-align:center;padding:30px 10px">
+            <div style="font-size:36px;margin-bottom:10px;animation:pulse 1.5s ease-in-out infinite">&#128149;</div>
+            <div style="font-size:14px;color:#D4AF37">Анализирую совместимость...</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:6px">${escapeRelText(name1)} + ${escapeRelText(name2)}</div>
+          </div>
+          <div class="skeleton-card"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line med"></div></div>
+        </div>
+      `;
+
+      // Запрос
+      DarAPI.checkCompatibility(code1, code2, name1, name2, relationship)
+        .then(data => renderCompatibilityResult(data, name1, name2))
+        .catch(e => {
+          modal.querySelector('div > div:nth-child(2)').innerHTML = `
+            <div style="text-align:center;padding:20px;color:#f87171">
+              <div style="font-size:28px;margin-bottom:8px">&#9888;</div>
+              <div>${e.message || 'Не удалось проанализировать'}</div>
+            </div>
+          `;
+        });
+    }
+
+    function renderCompatibilityResult(data, name1, name2) {
+      const modal = document.getElementById('compat-modal');
+      if (!modal) return;
+
+      const scoreColor = data.score >= 85 ? '#2ecc71' : data.score >= 70 ? '#D4AF37' : '#f39c12';
+
+      modal.innerHTML = `
+        <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 20px 20px;max-width:460px;width:100%;max-height:92vh;overflow-y:auto">
+          <button onclick="closeCompatibilityModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#10005;</button>
+
+          <!-- Заголовок -->
+          <div style="text-align:center;margin-bottom:18px">
+            <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Совместимость</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px">
+              <div style="text-align:center">
+                <div style="font-size:14px;color:var(--text)">${escapeRelText(name1)}</div>
+                <div style="font-size:11px;color:#D4AF37">${data.dar_name_1}</div>
+              </div>
+              <div style="font-size:24px;color:#D4AF37">&#128149;</div>
+              <div style="text-align:center">
+                <div style="font-size:14px;color:var(--text)">${escapeRelText(name2)}</div>
+                <div style="font-size:11px;color:#D4AF37">${data.dar_name_2}</div>
+              </div>
+            </div>
+            <!-- Процент -->
+            <div style="font-size:48px;font-weight:bold;color:${scoreColor};text-shadow:0 0 20px ${scoreColor}40">${data.score}%</div>
+          </div>
+
+          <!-- Гармония -->
+          <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="font-size:12px;color:#2ecc71;letter-spacing:1px;margin-bottom:8px">&#128154; Гармония</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">${escapeRelText(data.harmony)}</div>
+          </div>
+
+          <!-- Точки напряжения -->
+          <div style="background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.25);border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="font-size:12px;color:#f39c12;letter-spacing:1px;margin-bottom:8px">&#9889; Точки роста</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">${escapeRelText(data.tension)}</div>
+          </div>
+
+          <!-- Советы -->
+          <div style="background:rgba(180,120,255,0.08);border:1px solid rgba(180,120,255,0.25);border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="font-size:12px;color:#c4a0f0;letter-spacing:1px;margin-bottom:8px">&#128161; Советы</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7">${escapeRelText(data.advice)}</div>
+          </div>
+
+          <!-- Секрет пары -->
+          <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:16px">
+            <div style="font-size:12px;color:#D4AF37;letter-spacing:1px;margin-bottom:8px">&#10024; Суперсила вашей пары</div>
+            <div style="font-size:14px;color:var(--text);line-height:1.7;font-style:italic">${escapeRelText(data.secret)}</div>
+          </div>
+
+          <button onclick="closeCompatibilityModal()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">&#128149; Спасибо</button>
+        </div>
+      `;
+    }
+
+    function closeCompatibilityModal() {
+      const modal = document.getElementById('compat-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function getUserName() {
+      try {
+        const prof = JSON.parse(localStorage.getItem('_darProfile') || '{}');
+        const first = (prof.real_first_name || '').trim();
+        const last = (prof.real_last_name || '').trim();
+        return [first, last].filter(Boolean).join(' ') || window._userName || '';
+      } catch (e) { return window._userName || ''; }
     }
 
     // ============ КНИГА ДЛЯ РОДИТЕЛЕЙ (AI-генерация) ============

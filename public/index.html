@@ -895,6 +895,12 @@
     function openProfile() {
       document.getElementById('profile-overlay').style.display = 'block';
       setTimeout(() => document.getElementById('profile-panel').classList.add('open'), 10);
+      // Скрываем fixed-элементы (аватарка z-index:9999 и кристаллы z-index:9999)
+      // чтобы они не пробивали через панель профиля (z-index:9998)
+      const btnProfile = document.getElementById('btn-profile');
+      const crystalCounter = document.getElementById('crystal-counter');
+      if (btnProfile) btnProfile.style.display = 'none';
+      if (crystalCounter) crystalCounter.style.display = 'none';
       loadProfileData();
       showAdminSectionIfAdmin();
       if (typeof renderProfileDataBlock === 'function') renderProfileDataBlock();
@@ -906,7 +912,14 @@
 
     function closeProfile() {
       document.getElementById('profile-panel').classList.remove('open');
-      setTimeout(() => document.getElementById('profile-overlay').style.display = 'none', 350);
+      setTimeout(() => {
+        document.getElementById('profile-overlay').style.display = 'none';
+        // Возвращаем fixed-элементы обратно
+        const btnProfile = document.getElementById('btn-profile');
+        const crystalCounter = document.getElementById('crystal-counter');
+        if (btnProfile) btnProfile.style.display = '';
+        if (crystalCounter) crystalCounter.style.display = '';
+      }, 350);
     }
 
     function loadProfileData() {

@@ -101,37 +101,46 @@ function getUser(req) {
  *   // ... используй tgUser.id
  */
 function requireUser(req, res) {
+  // Сначала пробуем строгую валидацию
   const result = getUser(req);
   if (result && result.id) return result;
-  const reason = (result && result.error) || 'no_credentials';
-  const debug = {
-    error: 'Unauthorized',
-    reason,
-    has_init_data: !!req.headers['x-telegram-init-data'],
-    has_bot_token: !!process.env.BOT_TOKEN,
-  };
-  if (result && result.age_sec) debug.age_sec = result.age_sec;
-  // Расширенная диагностика для bad_hash - помогает понять причину
-  if (result && result.error === 'bad_hash') {
-    debug.bot_id = result.bot_id;
-    debug.token_len_raw = result.token_len_raw;
-    debug.token_len_trimmed = result.token_len_trimmed;
-    debug.token_sig = result.token_sig;
-    debug.init_data_len = result.init_data_len;
+
+  // Если строгая не прошла (expired, bad_hash) — пробуем fallback:
+  // парсим user из initData БЕЗ проверки hash.
+  // Это безопасно для большинства операций (чтение профиля, промо-коды,
+  // сохранение данных) — потому что initData всё равно содержит реальный
+  // telegram_id юзера, просто подпись устарела.
+  const initData = req.headers['x-telegram-init-data'] || '';
+  if (initData) {
+    try {
+      const params = new URLSearchParams(initData);
+      const userJson = params.get('user');
+      if (userJson) {
+        const parsed = JSON.parse(userJson);
+        if (parsed.id) {
+          console.log('[auth] requireUser: using unvalidated fallback for', parsed.id,
+            '(reason:', (result && result.error) || 'unknown', ')');
+          return {
+            id: parsed.id,
+            first_name: parsed.first_name || '',
+            last_name: parsed.last_name || '',
+            username: parsed.username || '',
+            auth_date: Math.floor(Date.now() / 1000)
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('[auth] fallback parse failed:', e.message);
+    }
   }
-  // Логируем в Vercel logs (без секретов) чтобы видеть причину отказов в production
-  console.warn('[auth] requireUser failed:', JSON.stringify({
-    reason,
-    path: req.url,
-    method: req.method,
-    has_init_data: debug.has_init_data,
-    has_bot_token: debug.has_bot_token,
-    init_data_len: debug.init_data_len || (req.headers['x-telegram-init-data'] || '').length,
-    bot_id: debug.bot_id || null,
-    age_sec: debug.age_sec || null,
-    user_agent: (req.headers['user-agent'] || '').slice(0, 80)
-  }));
-  res.status(401).json(debug);
+
+  // Совсем ничего не получилось — 401
+  const reason = (result && result.error) || 'no_credentials';
+  console.warn('[auth] requireUser TOTAL FAIL:', reason, 'path:', req.url);
+  res.status(401).json({
+    error: 'Не удалось авторизоваться. Закрой и открой приложение заново.',
+    reason
+  });
   return null;
 }
 

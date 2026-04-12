@@ -577,7 +577,55 @@
       </div>
     </div>
     <div class="tab" id="tab-games">
-      <div id="game-content" style="max-width:700px;margin:0 auto"></div>
+      <div style="max-width:700px;margin:0 auto">
+        <!-- Хаб выбора игры -->
+        <div id="games-hub">
+          <div style="text-align:center;padding:20px 16px 14px">
+            <div style="font-size:28px;margin-bottom:6px">&#127918;</div>
+            <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">ИГРЫ</div>
+            <div style="font-size:12px;color:var(--text-dim)">Выбери игру и развивай интуицию</div>
+          </div>
+          <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:10px">
+
+            <!-- Интуитивная магия -->
+            <div onclick="openGameMode('intuition')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.4);border-radius:16px;cursor:pointer;transition:all 0.15s">
+              <div style="font-size:36px;flex-shrink:0">&#128302;</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:4px">Интуитивная магия</div>
+                <div style="font-size:11px;color:var(--text-dim);line-height:1.5">Угадай дар среди карт. Классика, мультипоиск, соло или батл с AI-дракончиком Юпиком</div>
+              </div>
+              <div style="color:#D4AF37;font-size:18px">&#10095;</div>
+            </div>
+
+            <!-- Легенды Атлантиды -->
+            <div onclick="openGameMode('atlantis')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(107,33,168,0.08));border:1px solid rgba(46,204,113,0.3);border-radius:16px;cursor:pointer;transition:all 0.15s">
+              <div style="font-size:36px;flex-shrink:0">&#127183;</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:4px">Легенды Атлантиды</div>
+                <div style="font-size:11px;color:var(--text-dim);line-height:1.5">Карточные стратегии с Юпиками: Охотник, Парная охота, Рискованная ставка</div>
+              </div>
+              <div style="color:var(--text-muted);font-size:11px;background:rgba(255,255,255,0.06);padding:4px 10px;border-radius:8px">Скоро</div>
+            </div>
+
+            <!-- Батлы с друзьями -->
+            <div onclick="openGameMode('pvp')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(180,120,255,0.08));border:1px solid rgba(180,120,255,0.3);border-radius:16px;cursor:pointer;transition:all 0.15s">
+              <div style="font-size:36px;flex-shrink:0">&#9876;</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:4px">Батлы с друзьями</div>
+                <div style="font-size:11px;color:var(--text-dim);line-height:1.5">Отправь вызов другу, сразись в реальном времени и попади в Зал Славы</div>
+              </div>
+              <div style="color:var(--text-muted);font-size:11px;background:rgba(255,255,255,0.06);padding:4px 10px;border-radius:8px">Скоро</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Контент конкретной игры (скрыт по умолчанию) -->
+        <div id="game-active" style="display:none">
+          <button class="btn-back" style="display:block;margin:8px 16px" onclick="backToGamesHub()">&#8592; Все игры</button>
+          <div id="game-content"></div>
+        </div>
+      </div>
     </div>
     <div class="tab" id="tab-book">
       <div id="book-content">
@@ -1279,9 +1327,8 @@
         Treasury.render();
       }
       if (name === 'games') {
-        if (typeof IntuitionGame !== 'undefined') {
-          IntuitionGame.render();
-        }
+        // Показываем хаб выбора игры (не конкретную игру)
+        backToGamesHub();
       }
       if (name === 'book') {
         if (typeof BookReader !== 'undefined') {
@@ -2359,9 +2406,27 @@
       }, 100);
     }
 
-    // === Игра на интуицию — перенесена во вкладку «Игры» ===
-    // Старые функции openIntuitionGame/closeIntuitionGame удалены.
-    // Теперь переключение через switchNav('games').
+    // === Хаб игр — навигация внутри вкладки 🎮 ===
+
+    function openGameMode(mode) {
+      const hub = document.getElementById('games-hub');
+      const active = document.getElementById('game-active');
+
+      if (mode === 'intuition') {
+        hub.style.display = 'none';
+        active.style.display = 'block';
+        if (typeof IntuitionGame !== 'undefined') IntuitionGame.render();
+      } else if (mode === 'atlantis') {
+        if (typeof showToast === 'function') showToast('Легенды Атлантиды появятся скоро! Мы уже работаем над ними.', 'info');
+      } else if (mode === 'pvp') {
+        if (typeof showToast === 'function') showToast('Батлы с друзьями появятся скоро! Пока можно сразиться с AI-Юпиком.', 'info');
+      }
+    }
+
+    function backToGamesHub() {
+      document.getElementById('games-hub').style.display = 'block';
+      document.getElementById('game-active').style.display = 'none';
+    }
 
     // === Чат беты ===
     const BETA_CHAT_URL = 'https://t.me/+YLyl125-EfcwZjJi';

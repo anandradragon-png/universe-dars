@@ -506,6 +506,11 @@
           <div style="font-size:15px;color:#D4AF37;margin-bottom:6px">&#128214; Читай о своём даре в Книге Даров</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Полное описание, практики, медитации и техники безопасности для каждого дара</div>
         </div>
+        <!-- Карточка для шейринга -->
+        <div id="share-card-cta" style="display:none;margin-top:14px;padding:14px;background:rgba(180,120,255,0.08);border:1px solid rgba(180,120,255,0.3);border-radius:16px;text-align:center;cursor:pointer" onclick="shareMyDar()">
+          <div style="font-size:15px;color:#c4a0f0;margin-bottom:4px">&#127912; Создать карточку для соцсетей</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Красивая картинка с твоим даром для Instagram, VK, Telegram</div>
+        </div>
         <div id="share-section" style="display:none"></div>
         <div id="full-description-block" style="display:none">
           <div id="full-description-content"></div>
@@ -850,6 +855,7 @@
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=12"></script>
   <script src="js/intuition-game.js?v=4"></script>
+  <script src="js/share-card.js?v=1"></script>
   <script src="js/daily-dar.js?v=4"></script>
   <script>
     const tg = window.Telegram?.WebApp;
@@ -1475,6 +1481,9 @@
       // Показать призыв к книге
       const bookCta = document.getElementById('book-cta');
       if (bookCta) bookCta.style.display = 'block';
+      // Показать кнопку карточки для шейринга
+      const shareCardCta = document.getElementById('share-card-cta');
+      if (shareCardCta) shareCardCta.style.display = 'block';
       // Показать ежедневные активности
       const dailyBlock = document.getElementById('daily-activities');
       if (dailyBlock) dailyBlock.style.display = 'block';
@@ -2392,6 +2401,20 @@
       } catch (e) {
         console.error('[payment] buyWithDarai error:', e);
         if (typeof showToast === 'function') showToast(e.message || 'Ошибка оплаты DarAI', 'error');
+      }
+    }
+
+    // Создать карточку дара для шейринга
+    function shareMyDar() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return;
+        const { gift } = JSON.parse(saved);
+        if (gift && gift.code && typeof ShareCard !== 'undefined') {
+          ShareCard.openModal(gift.code);
+        }
+      } catch (e) {
+        console.error('shareMyDar error:', e);
       }
     }
 

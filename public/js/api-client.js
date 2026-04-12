@@ -193,6 +193,14 @@ const DarAPI = (function() {
     createDonation: (amount) =>
       request('/api/payment', 'POST', { action: 'create_donation', amount }),
 
+    // ---- Книга для Родителей (AI-генерация по ребёнку) ----
+    getChildBookTOC: (relative_id) =>
+      request('/api/child-book', 'POST', { action: 'get_toc', relative_id }),
+    getChildBookSection: (relative_id, section_id) =>
+      request('/api/child-book', 'POST', { action: 'get_section', relative_id, section_id }),
+    regenerateChildBookSection: (relative_id, section_id) =>
+      request('/api/child-book', 'POST', { action: 'regenerate', relative_id, section_id }),
+
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>
       request('/api/message', 'POST', { giftCode }),

@@ -37,13 +37,28 @@ const IntuitionGame = (function() {
     }
   };
 
+  // === БАТЛ vs AI ===
+  // AI-противник "Юпик" играет ту же раскладку с разной точностью.
+  // После раскрытия карт — показываем "Юпик выбрал X" и сравниваем.
+  const AI_OPPONENTS = {
+    novice:  { name: 'Юпик-новичок',   icon: '🐣', accuracy: 0.30, desc: 'Угадывает в 30% случаев' },
+    medium:  { name: 'Юпик-ученик',    icon: '🐲', accuracy: 0.55, desc: 'Угадывает в 55% случаев' },
+    master:  { name: 'Юпик-мастер',    icon: '🐉', accuracy: 0.75, desc: 'Угадывает в 75% случаев' },
+    grand:   { name: 'Юпик-грандмастер', icon: '👑', accuracy: 0.92, desc: 'Угадывает в 92% случаев' }
+  };
+
+  let battleMode = false;        // играем ли батл
+  let battleOpponent = 'novice'; // текущий AI-противник
+  let aiChoice = null;           // индекс карты которую "выбрал" AI
+  let aiWon = false;             // угадал ли AI
+
   let currentMode = 'classic';
   let currentLevel = 'easy';
   let cards = [];
   let targetDar = null;
-  let selected = [];          // индексы выбранных карт (не раскрытых!)
+  let selected = [];
   let maxOpens = 1;
-  let allRevealed = false;    // все карты раскрыты
+  let allRevealed = false;
   let gameStarted = false;
 
   let stats = { played: 0, correct: 0, streak: 0, bestStreak: 0, totalCrystals: 0 };
@@ -135,6 +150,43 @@ const IntuitionGame = (function() {
         </div>
         <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:8px">${MODES[currentMode].desc}</div>
       </div>
+
+      <!-- Соло / Батл -->
+      <div style="padding:0 16px 8px">
+        <div style="display:flex;gap:6px">
+          <button class="btn ${!battleMode ? 'btn-secondary' : 'btn-ghost'}"
+            style="flex:1;margin:0;padding:10px 6px;font-size:12px"
+            onclick="IntuitionGame.setBattleMode(false)">
+            &#127775; Соло
+          </button>
+          <button class="btn ${battleMode ? 'btn-secondary' : 'btn-ghost'}"
+            style="flex:1;margin:0;padding:10px 6px;font-size:12px"
+            onclick="IntuitionGame.setBattleMode(true)">
+            &#9876; Батл vs AI
+          </button>
+        </div>
+      </div>
+
+      <!-- Выбор AI-противника (если батл) -->
+      ${battleMode ? `
+        <div style="padding:0 16px 10px">
+          <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:10px 12px">
+            <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;text-align:center">&#9876; Выбери противника</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+              ${Object.entries(AI_OPPONENTS).map(([key, ai]) => `
+                <button class="btn ${battleOpponent === key ? 'btn-secondary' : 'btn-ghost'}"
+                  style="width:auto;margin:0;padding:8px 10px;font-size:11px"
+                  onclick="IntuitionGame.setBattleOpponent('${key}')">
+                  ${ai.icon} ${ai.name.replace('Юпик-', '')}
+                </button>
+              `).join('')}
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:6px;font-style:italic">
+              ${AI_OPPONENTS[battleOpponent].desc}
+            </div>
+          </div>
+        </div>
+      ` : ''}
 
       <!-- Сложность -->
       <div style="padding:0 16px 12px">
@@ -398,6 +450,8 @@ const IntuitionGame = (function() {
 
   function setMode(mode) { currentMode = mode; currentLevel = Object.keys(MODES[mode].levels)[0]; render(); }
   function setLevel(level) { currentLevel = level; render(); }
+  function setBattleMode(on) { battleMode = !!on; aiChoice = null; aiWon = false; render(); }
+  function setBattleOpponent(key) { battleOpponent = key; render(); }
   function setFocusPeriod(p) {
     saveFocusPeriod(p);
     // Синхронизируем с рейтингом если пользователь его откроет
@@ -554,8 +608,37 @@ const IntuitionGame = (function() {
   // === РАСКРЫТИЕ ВСЕХ КАРТ ===
   function revealAll() {
     allRevealed = true;
+
+    // В режиме батла — AI тоже "выбирает" карту
+    if (battleMode) {
+      simulateAI();
+    }
+
     finishGame();
     renderBoard();
+  }
+
+  // AI-противник выбирает карту с заданной точностью
+  function simulateAI() {
+    const ai = AI_OPPONENTS[battleOpponent];
+    if (!ai) return;
+
+    // С вероятностью accuracy AI угадывает правильно
+    if (Math.random() < ai.accuracy) {
+      // AI угадал — выбирает одну из target-карт
+      const targetIdx = cards.findIndex(c => c.type === 'target');
+      aiChoice = targetIdx >= 0 ? targetIdx : 0;
+      aiWon = true;
+    } else {
+      // AI не угадал — выбирает случайную НЕ-target карту
+      const nonTargets = cards.map((c, i) => ({ c, i })).filter(x => x.c.type !== 'target');
+      if (nonTargets.length > 0) {
+        aiChoice = nonTargets[Math.floor(Math.random() * nonTargets.length)].i;
+      } else {
+        aiChoice = 0;
+      }
+      aiWon = false;
+    }
   }
 
   // === ПОДСЧЁТ ОЧКОВ ДЛЯ РЕЙТИНГА ===
@@ -653,6 +736,55 @@ const IntuitionGame = (function() {
     const hitDebuff = stats._hitDebuff;
     const hitBuff = stats._hitBuff;
 
+    // === Блок результатов батла vs AI ===
+    let battleBlock = '';
+    if (battleMode && aiChoice !== null) {
+      const ai = AI_OPPONENTS[battleOpponent];
+      const aiCardName = cards[aiChoice] ? cards[aiChoice].name : '?';
+      const playerWon = won;
+      const draw = playerWon === aiWon; // оба угадали или оба нет
+
+      let battleResult, battleColor, battleEmoji;
+      if (playerWon && !aiWon) {
+        battleResult = 'Ты победил(а)!';
+        battleColor = '#2ecc71';
+        battleEmoji = '&#127942;';
+      } else if (!playerWon && aiWon) {
+        battleResult = `${ai.name} победил!`;
+        battleColor = '#e74c3c';
+        battleEmoji = '&#128148;';
+      } else if (playerWon && aiWon) {
+        battleResult = 'Ничья — оба угадали!';
+        battleColor = '#D4AF37';
+        battleEmoji = '&#129309;';
+      } else {
+        battleResult = 'Ничья — оба мимо!';
+        battleColor = '#888';
+        battleEmoji = '&#128528;';
+      }
+
+      battleBlock = `
+        <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-top:14px">
+          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;text-align:center">&#9876; БАТЛ vs AI</div>
+          <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:10px">
+            <div style="text-align:center">
+              <div style="font-size:22px">&#128100;</div>
+              <div style="font-size:11px;color:var(--text)">Ты</div>
+              <div style="font-size:13px;color:${won ? '#2ecc71' : '#e74c3c'};font-weight:bold">${won ? 'Угадал' : 'Мимо'}</div>
+            </div>
+            <div style="font-size:22px;color:${battleColor}">${battleEmoji}</div>
+            <div style="text-align:center">
+              <div style="font-size:22px">${ai.icon}</div>
+              <div style="font-size:11px;color:var(--text)">${ai.name.replace('Юпик-','')}</div>
+              <div style="font-size:13px;color:${aiWon ? '#2ecc71' : '#e74c3c'};font-weight:bold">${aiWon ? 'Угадал' : 'Мимо'}</div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:16px;color:${battleColor};font-weight:bold">${battleResult}</div>
+          ${aiChoice !== null ? `<div style="text-align:center;font-size:10px;color:var(--text-muted);margin-top:4px">${ai.icon} выбрал карту ${aiChoice + 1}: ${aiCardName}</div>` : ''}
+        </div>
+      `;
+    }
+
     return `
       <div style="text-align:center;margin-top:20px">
         <div style="font-size:28px;margin-bottom:8px">${hitDebuff ? '&#128165;' : won ? '&#127881;' : '&#128148;'}</div>
@@ -669,6 +801,7 @@ const IntuitionGame = (function() {
           </div>
           ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#c4a0f0;margin-top:6px">&#127942; +${stats._lastPoints} очков за участие</div>` : ''}
         `}
+        ${battleBlock}
         <div style="display:flex;gap:8px;margin-top:16px;justify-content:center">
           <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:0" onclick="IntuitionGame.startGame()">&#128260; Ещё раз</button>
           <button class="btn btn-ghost" style="width:auto;padding:10px 20px;margin:0" onclick="IntuitionGame.render()">&#128200; Меню</button>
@@ -679,6 +812,7 @@ const IntuitionGame = (function() {
 
   return {
     render, setMode, setLevel, setFocusPeriod,
+    setBattleMode, setBattleOpponent,
     startGame, selectCard, revealAll,
     openLeaderboard, setLeaderboardPeriod, setLeaderboardDifficulty
   };

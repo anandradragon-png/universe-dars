@@ -801,7 +801,7 @@
   <script src="js/treasury.js?v=9"></script>
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=12"></script>
-  <script src="js/intuition-game.js?v=3"></script>
+  <script src="js/intuition-game.js?v=4"></script>
   <script src="js/daily-dar.js?v=4"></script>
   <script>
     const tg = window.Telegram?.WebApp;
@@ -1523,9 +1523,34 @@
         const saved=localStorage.getItem(STORAGE_KEY);
         if(saved){
           const data=JSON.parse(saved);
-          if(data && data.gift && data.gift.code) { showResult(data.gift); return; }
+          if(data && data.gift && data.gift.code) {
+            // Предзаполняем поле даты чтобы юзер не вводил повторно
+            if (data.date) {
+              document.getElementById('dateInput').value = data.date;
+            }
+            showResult(data.gift);
+            return;
+          }
         }
       } catch(e) { localStorage.removeItem(STORAGE_KEY); }
+
+      // Если localStorage пуст но на сервере есть дар — восстанавливаем
+      // (Telegram WebApp может сбрасывать localStorage при перезапуске)
+      if (typeof DarAPI !== 'undefined') {
+        DarAPI.getProfile().then(profileData => {
+          if (profileData?.user?.dar_code && profileData?.user?.birth_date) {
+            const code = profileData.user.dar_code;
+            const birthDate = profileData.user.birth_date || '';
+            const darName = DARS[code] || code;
+            // Восстанавливаем localStorage из сервера
+            const gift = { code, ma: parseInt(code.split('-')[0]), zhi: parseInt(code.split('-')[1]), kun: parseInt(code.split('-')[2]) };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: birthDate, gift }));
+            document.getElementById('dateInput').value = birthDate;
+            showResult(gift);
+          }
+        }).catch(() => {});
+      }
+
       document.getElementById('screen-input').style.display='block';
       document.getElementById('screen-result').style.display='none';
     }

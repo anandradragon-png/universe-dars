@@ -599,7 +599,7 @@
     </div>
   </div>
   <div id="app">
-    <div id="tab-calc" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg,#1a1a2e);z-index:400;overflow-y:auto;padding-bottom:80px">
+    <div class="tab active" id="tab-calc">
       <div class="main-container">
       <div id="screen-input" class="input-screen">
         <div class="logo"></div>
@@ -747,7 +747,7 @@
 
       </div><!-- /main-container -->
     </div>
-    <div class="tab active" id="tab-treasury">
+    <div class="tab" id="tab-treasury">
       <div id="treasury-content">
         <div style="text-align:center;padding-top:40px">
           <div style="margin-bottom:16px"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 6h6"/><path d="M7 9l2-6"/><path d="M2 9h20"/></svg></div>
@@ -1507,8 +1507,6 @@
     }
 
     function switchNav(name) {
-      // Если пытаемся переключить на calc - игнорируем (вкладка убрана)
-      if (name === 'calc') { showCalcOverlay(); return; }
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       var tabEl = document.getElementById('tab-' + name);
@@ -1647,8 +1645,6 @@
       document.getElementById('screen-input').style.display='none';
       document.getElementById('screen-result').style.display='block';
       document.getElementById('btn-back').style.display='block';
-      // Скрываем калькулятор-оверлей через 2 сек после показа результата
-      setTimeout(function() { hideCalcOverlay(); }, 2000);
       // Сброс блока описания
       document.getElementById('full-description-block').style.display='none';
       const btn=document.getElementById('btn-get-message');
@@ -1765,17 +1761,6 @@
       alert('Дар ' + darName + ' открыт в твоей Сокровищнице! +10 кристаллов');
     }
 
-    // Показать/скрыть калькулятор-оверлей
-    function showCalcOverlay() {
-      document.getElementById('tab-calc').style.display = 'block';
-      document.getElementById('screen-input').style.display = 'block';
-      document.getElementById('screen-result').style.display = 'none';
-    }
-    function hideCalcOverlay() {
-      document.getElementById('tab-calc').style.display = 'none';
-    }
-    window.showCalcOverlay = showCalcOverlay;
-
     function init(){
       try {
         const saved=localStorage.getItem(STORAGE_KEY);
@@ -1787,7 +1772,6 @@
               if (window._syncDateFieldsFromHidden) window._syncDateFieldsFromHidden();
             }
             showResult(data.gift);
-            hideCalcOverlay();
             return;
           }
         }
@@ -1810,17 +1794,17 @@
               try { localStorage.setItem('_access_level', profileData.user.access_level); } catch(e) {}
             }
             showResult(gift);
-            hideCalcOverlay();
           } else {
-            showCalcOverlay();
+            document.getElementById('screen-input').style.display='block';
           }
         }).catch(() => {
-          showCalcOverlay();
+          document.getElementById('screen-input').style.display='block';
         });
         return;
       }
 
-      showCalcOverlay();
+      document.getElementById('screen-input').style.display='block';
+      document.getElementById('screen-result').style.display='none';
     }
     init();
 
@@ -1856,7 +1840,6 @@
       document.getElementById('screen-input').style.display='block';
       document.getElementById('btn-back').style.display='none';
       document.getElementById('full-description-block').style.display='none';
-      showCalcOverlay();
     }
 
     const API_URL='https://public-yup-land1.vercel.app';

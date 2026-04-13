@@ -165,11 +165,78 @@ async function getUserQuests(userId, darCode) {
   return data || [];
 }
 
+// ---- Путешествие Героя ----
+
+async function getHeroJourney(userId, darCode) {
+  const db = getSupabase();
+  const { data } = await db
+    .from('hero_journeys')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('dar_code', darCode)
+    .single();
+  return data;
+}
+
+async function upsertHeroJourney(userId, darCode, fields) {
+  const db = getSupabase();
+  const now = new Date().toISOString();
+
+  // Пробуем обновить
+  const { data: existing } = await db
+    .from('hero_journeys')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('dar_code', darCode)
+    .single();
+
+  if (existing) {
+    const { data, error } = await db
+      .from('hero_journeys')
+      .update({ ...fields, updated_at: now })
+      .eq('id', existing.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  // Создаём новую запись
+  const { data, error } = await db
+    .from('hero_journeys')
+    .insert({
+      user_id: userId,
+      dar_code: darCode,
+      step: 1,
+      step_state: {},
+      completed_steps: [],
+      crystals_earned: 0,
+      started_at: now,
+      updated_at: now,
+      ...fields
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function getAllHeroJourneys(userId) {
+  const db = getSupabase();
+  const { data } = await db
+    .from('hero_journeys')
+    .select('*')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false });
+  return data || [];
+}
+
 module.exports = {
   getSupabase,
   getOrCreateUser, updateUser,
   getUserDars, unlockDar, unlockSection,
   addCrystals,
   createReferral, getReferralCount,
-  completeQuest, getUserQuests
+  completeQuest, getUserQuests,
+  getHeroJourney, upsertHeroJourney, getAllHeroJourneys
 };

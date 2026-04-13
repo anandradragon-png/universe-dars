@@ -44,6 +44,56 @@ const HeroJourney = (function() {
     if (c) c.scrollTop = 0;
   }
 
+  let timerInterval = null;
+
+  function startTimerCountdown(endTime) {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const remaining = endTime - Date.now();
+      const timerEl = document.getElementById('hero-timer');
+      if (!timerEl) { clearInterval(timerInterval); return; }
+
+      if (remaining <= 0) {
+        clearInterval(timerInterval);
+        // Таймер истёк - показать кнопку "Готово"
+        const block = document.getElementById('hero-timer-block');
+        if (block) {
+          block.innerHTML = `
+            <div style="text-align:center;padding:20px">
+              <div style="font-size:32px;margin-bottom:8px">🔥</div>
+              <div style="font-size:14px;color:#4CAF50;margin-bottom:12px">Время вышло! Задание выполнено?</div>
+              <button class="hero-btn hero-btn-primary" onclick="HeroJourney.completeFireTrial()">✅ Да, выполнено!</button>
+              <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.completeFireTrial()" style="margin-top:8px">Пропустить</button>
+            </div>`;
+        }
+        return;
+      }
+
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      timerEl.textContent = h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+    }, 1000);
+  }
+
+  function completeFireTrial() {
+    // Завершаем шаг Огня - отправляем как обычный выбор
+    DarAPI.journeyAction(currentDarCode, { choice_index: 0, force_complete: true }).then(data => {
+      currentJourney = data.journey;
+      if (data.result === 'step_complete' || data.result === 'journey_complete') {
+        const nextStep = data.next_step;
+        const nextInfo = nextStep ? STEPS.find(s => s.num === nextStep) : null;
+        const btnText = nextInfo ? `${nextInfo.emoji} К шагу: ${nextInfo.name}` : 'Далее';
+        showVictory(data.victory_text, data.reward, () => {
+          if (nextStep === 2 || nextStep === 6) { renderBattle(); }
+          else { HeroJourney.render(currentDarCode); }
+        }, btnText);
+      }
+    }).catch(err => {
+      if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
+    });
+  }
+
   // ---- ГЛАВНЫЙ РЕНДЕР ----
 
   function render(darCode, darName) {
@@ -126,6 +176,12 @@ const HeroJourney = (function() {
     const scene = state.scenes[sceneIdx];
     const mechanic = MECHANIC_NAMES[state.mechanic] || '';
     const color = state.field_color || '#D4AF37';
+    const step = currentJourney?.step || 1;
+    const isFireTrial = step === 4;
+
+    // Проверяем активный таймер
+    const timerEnd = state.timer_end;
+    const timerActive = timerEnd && Date.now() < timerEnd;
 
     container.innerHTML = `
       <div class="hero-journey-screen" style="--field-color: ${color}">
@@ -134,22 +190,39 @@ const HeroJourney = (function() {
           <span class="hero-field-badge" style="background:${color}">${state.field_emoji || '✦'} ${state.field_name || ''}</span>
           <span class="hero-mechanic-tag">${mechanic}</span>
         </div>
-        ${renderProgress(1, currentJourney?.completed_steps)}
+        ${renderProgress(step, currentJourney?.completed_steps)}
         <div class="hero-world-intro">${state.world || ''}</div>
         <div class="hero-content animate-fade-in">
           ${sceneIdx === 0 && state.intro ? `<p class="hero-intro-text">${state.intro}</p>` : ''}
+          ${state.instruction ? `<p style="text-align:center;color:#FFA500;font-size:13px;margin-bottom:12px;font-weight:bold">${state.instruction}</p>` : ''}
           <div class="hero-scene-text">${scene?.text || ''}</div>
-          <div class="hero-scene-counter">Сцена ${sceneIdx + 1} из ${state.scenes.length}</div>
-          <div class="hero-choices">
-            ${(scene?.choices || []).map((c, i) => `
-              <button class="hero-choice-btn" onclick="HeroJourney.choose(${i})" data-label="${(c.label || '').replace(/"/g, '&quot;')}" ${loading ? 'disabled' : ''}>
-                <span class="hero-choice-label hero-choice-hidden">${c.label || c}</span>
-                <span class="hero-choice-desc">${c.desc || c.label || ''}</span>
-              </button>
-            `).join('')}
-          </div>
+          ${!isFireTrial ? `<div class="hero-scene-counter">Сцена ${sceneIdx + 1} из ${state.scenes.length}</div>` : ''}
+
+          <div id="hero-choices-area"></div>
         </div>
       </div>`;
+
+    // Рендерим выборы или таймер отдельно (избегаем вложенных template literals)
+    const choicesArea = container.querySelector('#hero-choices-area');
+    if (choicesArea) {
+      if (timerActive) {
+        choicesArea.innerHTML = '<div class="hero-timer-block" id="hero-timer-block"><div style="text-align:center;padding:20px"><div style="font-size:14px;color:var(--text);margin-bottom:8px">🔥 Задание выполняется...</div><div id="hero-timer" style="font-size:32px;color:#FF4500;font-weight:bold;font-family:monospace"></div><p style="color:#888;font-size:12px;margin-top:8px">Вернись когда выполнишь задание</p></div></div>';
+        startTimerCountdown(timerEnd);
+      } else {
+        let btns = '';
+        (scene?.choices || []).forEach(function(c, i) {
+          const timerMin = c.timer_minutes || 0;
+          const timerLabel = timerMin >= 1440 ? '1 день' : timerMin >= 60 ? Math.round(timerMin/60) + ' ч' : timerMin > 0 ? timerMin + ' мин' : '';
+          const labelEsc = (c.label || '').replace(/"/g, '&quot;');
+          btns += '<button class="hero-choice-btn" onclick="HeroJourney.choose(' + i + ')" data-label="' + labelEsc + '" data-timer="' + timerMin + '"' + (loading ? ' disabled' : '') + '>';
+          btns += '<span class="hero-choice-label hero-choice-hidden">' + (c.label || c) + '</span>';
+          btns += '<span class="hero-choice-desc">' + (c.desc || c.label || '') + '</span>';
+          if (isFireTrial && timerLabel) btns += '<span class="hero-timer-badge">⏱ ' + timerLabel + '</span>';
+          btns += '</button>';
+        });
+        choicesArea.innerHTML = '<div class="hero-choices">' + btns + '</div>';
+      }
+    }
     scrollToTop();
   }
 
@@ -349,6 +422,27 @@ const HeroJourney = (function() {
       }
     });
 
+    // Для Испытания Огнём - запускаем таймер
+    const step = currentJourney?.step || 1;
+    const selectedBtn = buttons[index];
+    const timerMinutes = parseInt(selectedBtn?.getAttribute('data-timer') || '0');
+
+    if (step === 4 && timerMinutes > 0) {
+      // Сохраняем таймер на сервер и показываем обратный отсчёт
+      const timerEnd = Date.now() + timerMinutes * 60 * 1000;
+      DarAPI.journeyAction(currentDarCode, { choice_index: index, timer_end: timerEnd }).then(data => {
+        loading = false;
+        currentJourney = data.journey;
+        currentContent = data.journey?.step_state;
+        renderAwakening(); // Перерисует с таймером
+        startTimerCountdown(timerEnd);
+      }).catch(err => {
+        loading = false;
+        if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
+      });
+      return;
+    }
+
     // Задержка чтобы юзер увидел свой выбор и осознал
     setTimeout(() => {
     DarAPI.journeyAction(currentDarCode, { choice_index: index }).then(data => {
@@ -523,6 +617,7 @@ const HeroJourney = (function() {
     attack,
     retryBattle,
     restart,
+    completeFireTrial,
     close
   };
 })();

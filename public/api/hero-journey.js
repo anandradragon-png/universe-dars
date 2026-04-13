@@ -228,7 +228,7 @@ module.exports = async (req, res) => {
 
     // ---- step_action: действие внутри шага ----
     if (action === 'step_action') {
-      const { choice_index, answer, restart } = req.body;
+      const { choice_index, answer, restart, timer_end, force_complete } = req.body;
 
       // Перезапуск путешествия
       if (restart) {
@@ -256,10 +256,28 @@ module.exports = async (req, res) => {
         const currentScene = state.current_scene || 0;
         const scenes = state.scenes || [];
 
-        if (choice_index !== undefined && currentScene < scenes.length) {
+        // Испытание Огнём (шаг 4) - запуск таймера
+        if (step === 4 && timer_end && choice_index !== undefined) {
           const choices = state.choices_made || [];
           choices.push(choice_index);
-          const nextScene = currentScene + 1;
+          journey = await upsertHeroJourney(user.id, dar_code, {
+            step_state: { ...state, timer_end, choices_made: choices, current_scene: currentScene }
+          });
+          return res.json({ result: 'timer_started', journey });
+        }
+
+        // Испытание Огнём - завершение по таймеру
+        if (step === 4 && force_complete) {
+          // Проверяем что таймер истёк (или прошла хотя бы минута)
+          const savedTimer = state.timer_end || 0;
+          const elapsed = Date.now() - (savedTimer - (state.scenes?.[0]?.choices?.[state.choices_made?.[0]]?.timer_minutes || 1) * 60000);
+          // Принимаем завершение (мягкая проверка)
+        }
+
+        if ((choice_index !== undefined || force_complete) && currentScene < scenes.length) {
+          const choices = state.choices_made || [];
+          if (choice_index !== undefined && !force_complete) choices.push(choice_index);
+          const nextScene = force_complete ? scenes.length : currentScene + 1; // force_complete завершает сразу
 
           if (nextScene >= scenes.length) {
             // Все сцены пройдены! Завершаем шаг

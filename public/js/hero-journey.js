@@ -213,11 +213,17 @@ const HeroJourney = (function() {
         (scene?.choices || []).forEach(function(c, i) {
           const timerMin = c.timer_minutes || 0;
           const timerLabel = timerMin >= 1440 ? '1 день' : timerMin >= 60 ? Math.round(timerMin/60) + ' ч' : timerMin > 0 ? timerMin + ' мин' : '';
+          const crystalReward = timerMin >= 1440 ? 25 : timerMin >= 60 ? 15 : timerMin > 0 ? 5 : 0;
           const labelEsc = (c.label || '').replace(/"/g, '&quot;');
-          btns += '<button class="hero-choice-btn" onclick="HeroJourney.choose(' + i + ')" data-label="' + labelEsc + '" data-timer="' + timerMin + '"' + (loading ? ' disabled' : '') + '>';
+          btns += '<button class="hero-choice-btn" onclick="HeroJourney.choose(' + i + ')" data-label="' + labelEsc + '" data-timer="' + timerMin + '" data-reward="' + crystalReward + '"' + (loading ? ' disabled' : '') + '>';
           btns += '<span class="hero-choice-label hero-choice-hidden">' + (c.label || c) + '</span>';
           btns += '<span class="hero-choice-desc">' + (c.desc || c.label || '') + '</span>';
-          if (isFireTrial && timerLabel) btns += '<span class="hero-timer-badge">⏱ ' + timerLabel + '</span>';
+          if (isFireTrial) {
+            btns += '<div style="display:flex;gap:10px;margin-top:6px;justify-content:center">';
+            if (timerLabel) btns += '<span class="hero-timer-badge">⏱ ' + timerLabel + '</span>';
+            if (crystalReward) btns += '<span class="hero-crystal-badge">💎 +' + crystalReward + '</span>';
+            btns += '</div>';
+          }
           btns += '</button>';
         });
         choicesArea.innerHTML = '<div class="hero-choices">' + btns + '</div>';

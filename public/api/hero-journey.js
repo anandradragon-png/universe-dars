@@ -281,8 +281,18 @@ module.exports = async (req, res) => {
 
           if (nextScene >= scenes.length) {
             // Все сцены пройдены! Завершаем шаг
-            const rewardType = step === 1 ? 'hero_awakening' : step === 7 ? 'hero_journey_complete' : 'hero_step_complete';
-            const reward = getReward(rewardType, user.access_level);
+            let reward;
+            let rewardType;
+            if (step === 4 && force_complete) {
+              // Испытание Огнём - награда зависит от выбранного уровня
+              const chosenIdx = (choices[0] !== undefined) ? choices[0] : 0;
+              const timerMin = scenes[0]?.choices?.[chosenIdx]?.timer_minutes || 1;
+              reward = timerMin >= 1440 ? 25 : timerMin >= 60 ? 15 : 5;
+              rewardType = 'hero_fire_trial';
+            } else {
+              rewardType = step === 1 ? 'hero_awakening' : step === 7 ? 'hero_journey_complete' : 'hero_step_complete';
+              reward = getReward(rewardType, user.access_level);
+            }
             const newBalance = await addCrystals(user.id, reward, rewardType, { dar_code, step });
 
             const completedSteps = [...(journey.completed_steps || [])];

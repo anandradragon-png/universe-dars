@@ -204,6 +204,11 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Путешествие не найдено' });
       }
 
+      // Если анализ уже сохранён - вернуть из кэша
+      if (journey.step_state?.saved_analysis) {
+        return res.json({ analysis: journey.step_state.saved_analysis, path_log: journey.step_state?.path_log || [], cached: true });
+      }
+
       const pathLog = journey.step_state?.path_log || [];
       if (pathLog.length === 0) {
         return res.json({ analysis: 'Пройди хотя бы один шаг путешествия, чтобы получить анализ пути.' });
@@ -216,7 +221,7 @@ module.exports = async (req, res) => {
       const gender = user.gender || '';
 
       const prompt = buildPathAnalysisPrompt(fieldId, dar, dar_code, userName, gender, pathLog);
-      const aiResponse = await callAI(prompt, 'Проанализируй путь.', 1500);
+      const aiResponse = await callAI(prompt, 'Проанализируй путь.', 1000);
 
       // Ответ приходит как обычный текст, не JSON
       let analysis = aiResponse;
@@ -226,6 +231,11 @@ module.exports = async (req, res) => {
       } catch(e) {
         // Ожидаемо - ответ в виде текста
       }
+
+      // Сохраняем анализ в step_state чтобы не генерировать повторно
+      await upsertHeroJourney(user.id, dar_code, {
+        step_state: { ...journey.step_state, saved_analysis: analysis }
+      });
 
       return res.json({ analysis, path_log: pathLog });
     }

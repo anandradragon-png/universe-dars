@@ -225,6 +225,8 @@ const DarAPI = (function() {
       request('/api/hero-journey', 'POST', { action: 'step_action', dar_code, ...payload }),
     getJourneyStatus: (dar_code) =>
       request('/api/hero-journey', 'POST', { action: 'get_status', dar_code }),
+    getJourneyAnalysis: (dar_code) =>
+      request('/api/hero-journey', 'POST', { action: 'get_analysis', dar_code }),
     getAllJourneys: () =>
       request('/api/hero-journey', 'POST', { action: 'get_all' }),
 

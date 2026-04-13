@@ -263,6 +263,7 @@ const HeroJourney = (function() {
     container.style.display = 'block';
     const completed = currentJourney?.completed_steps || [];
     const crystals = currentJourney?.crystals_earned || 0;
+    const darCode = currentDarCode;
 
     container.innerHTML = `
       <div class="hero-journey-screen">
@@ -271,12 +272,21 @@ const HeroJourney = (function() {
           <span>Путешествие завершено!</span>
         </div>
         ${renderProgress(7, completed)}
-        <div class="hero-completed-info" style="text-align:center;padding:24px">
-          <div style="font-size:48px;margin-bottom:12px">👑</div>
-          <h3 style="color:var(--text);margin-bottom:8px">Путешествие пройдено!</h3>
-          <p style="color:#aaa;margin-bottom:16px">Ты прошёл все 7 шагов и раскрыл силу своего дара</p>
-          <div class="hero-reward-badge" style="margin-bottom:16px">💎 ${crystals} кристаллов заработано</div>
-          <div style="margin-bottom:16px">
+        <div class="hero-completed-info" style="padding:16px">
+          <div style="text-align:center">
+            <div style="font-size:48px;margin-bottom:12px">👑</div>
+            <h3 style="color:var(--text);margin-bottom:8px">Путешествие пройдено!</h3>
+            <div class="hero-reward-badge" style="margin-bottom:16px">💎 ${crystals} кристаллов заработано</div>
+          </div>
+
+          <div id="hero-analysis-area">
+            <div class="hero-journey-loading" style="padding:20px">
+              <div class="hero-loading-spinner"></div>
+              <p>Наставник анализирует твой путь...</p>
+            </div>
+          </div>
+
+          <div style="margin:16px 0">
             ${STEPS.map(s => `
               <div style="display:flex;align-items:center;gap:8px;padding:6px 0;color:${completed.includes(s.num) ? '#4CAF50' : '#666'}">
                 <span>${completed.includes(s.num) ? '✓' : '○'}</span>
@@ -284,11 +294,30 @@ const HeroJourney = (function() {
               </div>
             `).join('')}
           </div>
+
+          <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.restart('${darCode}')" style="margin-bottom:8px">🔄 Пройти заново (другой путь)</button>
           <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">Вернуться в Сокровищницу</button>
-          <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.restart('${currentDarCode}')" style="margin-top:8px">🔄 Пройти заново (другой путь)</button>
         </div>
       </div>`;
     scrollToTop();
+
+    // Загружаем AI-анализ пути
+    DarAPI.getJourneyAnalysis(darCode).then(data => {
+      const area = document.getElementById('hero-analysis-area');
+      if (area && data.analysis) {
+        const paragraphs = String(data.analysis).split('\n').filter(p => p.trim()).map(p =>
+          '<p style="margin-bottom:10px">' + p + '</p>'
+        ).join('');
+        area.innerHTML = `
+          <div class="hero-analysis animate-fade-in">
+            <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;text-align:center">🔮 Слепок твоего пути</div>
+            <div style="font-size:14px;color:var(--text);line-height:1.7">${paragraphs}</div>
+          </div>`;
+      }
+    }).catch(() => {
+      const area = document.getElementById('hero-analysis-area');
+      if (area) area.innerHTML = '<p style="color:#666;text-align:center;font-size:13px">Не удалось загрузить анализ пути</p>';
+    });
   }
 
   // ---- ДЕЙСТВИЯ ----

@@ -1,7 +1,7 @@
 const { requireUser } = require('./lib/auth');
 const { getOrCreateUser, addCrystals, getHeroJourney, upsertHeroJourney, getAllHeroJourneys, getUserDars } = require('./lib/db');
 const { getReward } = require('./lib/crystals');
-const { FIELD_CONFIGS, buildAwakeningPrompt, buildBattlePrompt, buildRiddlePrompt, buildTrialPrompt, buildMeditationPrompt, buildTransformPrompt, buildCoronationPrompt } = require('./lib/hero-prompts');
+const { FIELD_CONFIGS, buildAwakeningPrompt, buildBattlePrompt, buildRiddlePrompt, buildTrialPrompt, buildMeditationPrompt, buildTransformPrompt, buildCoronationPrompt, buildPathAnalysisPrompt } = require('./lib/hero-prompts');
 
 // DeepSeek (primary) / Groq (fallback)
 let deepseek, groqSdk;
@@ -193,6 +193,39 @@ module.exports = async (req, res) => {
       return res.json({ journey, step_content: content });
     }
 
+    // ---- get_analysis: AI-анализ пройденного пути ----
+    if (action === 'get_analysis') {
+      const journey = await getHeroJourney(user.id, dar_code);
+      if (!journey) {
+        return res.status(400).json({ error: 'Путешествие не найдено' });
+      }
+
+      const pathLog = journey.step_state?.path_log || [];
+      if (pathLog.length === 0) {
+        return res.json({ analysis: 'Пройди хотя бы один шаг путешествия, чтобы получить анализ пути.' });
+      }
+
+      const darContent = loadDarContent();
+      const dar = darContent[dar_code] || {};
+      const fieldId = getFieldId(dar_code);
+      const userName = user.real_first_name || user.first_name || '';
+      const gender = user.gender || '';
+
+      const prompt = buildPathAnalysisPrompt(fieldId, dar, dar_code, userName, gender, pathLog);
+      const aiResponse = await callAI(prompt, 'Проанализируй путь.', 1500);
+
+      // Ответ приходит как обычный текст, не JSON
+      let analysis = aiResponse;
+      try {
+        const parsed = JSON.parse(aiResponse);
+        analysis = parsed.analysis || parsed.text || aiResponse;
+      } catch(e) {
+        // Ожидаемо - ответ в виде текста
+      }
+
+      return res.json({ analysis, path_log: pathLog });
+    }
+
     // ---- step_action: действие внутри шага ----
     if (action === 'step_action') {
       const { choice_index, answer, restart } = req.body;
@@ -237,14 +270,22 @@ module.exports = async (req, res) => {
             const completedSteps = [...(journey.completed_steps || [])];
             if (!completedSteps.includes(step)) completedSteps.push(step);
 
+            // Сохраняем выборы в path_log для AI-анализа
+            const STEP_NAMES = {1:'Пробуждение',3:'Загадка Зеркала',4:'Испытание Огнём',5:'Погружение',7:'Коронация'};
+            const pathLog = journey.step_state?.path_log || state.path_log || [];
+            const stepChoiceLabels = choices.map((ci, si) => {
+              const sc = scenes[si];
+              return sc?.choices?.[ci]?.label || ('Выбор ' + (ci + 1));
+            });
+            pathLog.push({ step, name: STEP_NAMES[step] || ('Шаг ' + step), choices: stepChoiceLabels });
+
             const nextStep = step + 1;
             const isJourneyComplete = step === 7;
 
             // Подготавливаем следующий шаг
-            let nextState = {};
+            let nextState = { path_log: pathLog };
             if (nextStep === 2 || nextStep === 6) {
-              // Битва
-              nextState = { hero_hp: 100, shadow_hp: 100, round: 0, history: [], battle_started: false };
+              nextState = { ...nextState, hero_hp: 100, shadow_hp: 100, round: 0, history: [], battle_started: false };
             }
 
             journey = await upsertHeroJourney(user.id, dar_code, {
@@ -331,11 +372,23 @@ module.exports = async (req, res) => {
           const completedSteps = [...(journey.completed_steps || [])];
           if (!completedSteps.includes(step)) completedSteps.push(step);
 
+          // Сохраняем итог битвы в path_log
+          const pathLog = state.path_log || [];
+          const BATTLE_NAMES = {2:'Встреча с Тенью',6:'Трансформация'};
+          const heroAnswers = newHistory.filter(h => h.role === 'hero').map(h => h.text);
+          pathLog.push({
+            step, name: BATTLE_NAMES[step] || 'Битва',
+            result: heroWon ? 'победа' : 'поражение',
+            answers: heroAnswers,
+            rounds: round
+          });
+
           const nextStep = step + 1;
 
           journey = await upsertHeroJourney(user.id, dar_code, {
             step: nextStep,
             step_state: {
+              path_log: pathLog,
               hero_hp: newHeroHp, shadow_hp: newShadowHp, round,
               history: newHistory, battle_over: true, hero_won: heroWon
             },

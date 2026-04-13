@@ -692,6 +692,62 @@ ${genderForm} прошёл${genderEnd} все 6 испытаний и готов
 }`;
 }
 
+/**
+ * Построить промпт для AI-анализа пути (слепок маршрута)
+ */
+function buildPathAnalysisPrompt(fieldId, darContent, darCode, userName, gender, pathLog) {
+  const field = FIELD_CONFIGS[fieldId] || FIELD_CONFIGS[9];
+  const genderForm = gender === 'female' ? 'героиня' : 'герой';
+  const genderEnd = gender === 'female' ? 'а' : '';
+
+  const pathDescription = pathLog.map(entry => {
+    if (entry.choices) {
+      return `${entry.name}: выбрал${genderEnd} [${entry.choices.join(', ')}]`;
+    }
+    if (entry.answers) {
+      return `${entry.name}: ${entry.result}, ${entry.rounds} раундов. Ответы: "${entry.answers.join('"; "')}"`;
+    }
+    return `${entry.name}: пройден`;
+  }).join('\n');
+
+  return `Ты - духовный наставник-коуч в приложении YupDar.
+${genderForm} ${userName || 'Путник'} прошёл${genderEnd} Путешествие Героя по дару ${darCode}.
+
+ДАННЫЕ ДАРА:
+- Поле: ${field.name} (${field.element})
+- Суть: ${(darContent.essence || '').slice(0, 400)}
+- Световая сила: ${(darContent.light_power || '').slice(0, 200)}
+- Тень: ${(darContent.shadow || '').slice(0, 200)}
+
+МАРШРУТ (все выборы и ответы):
+${pathDescription}
+
+ЗАДАЧА:
+Напиши глубокий персональный анализ пути этого человека. Ты - мудрый наставник, который видит паттерны.
+
+СТРУКТУРА ОТВЕТА (4-5 абзацев):
+
+1. **Твой путь** - краткий слепок маршрута. Какие паттерны видны в выборах? Что человек выбирает чаще - силу, чувства, мудрость, действие?
+
+2. **Точка сборки** - где ${genderForm} сейчас находится. Какая энергия преобладает? Это не оценка, а наблюдение. "Ты сейчас в зоне..."
+
+3. **Тень и свет** - как проявились в битвах. Что давалось легко, что тяжело. Какие ответы были глубокими, а какие поверхностными.
+
+4. **Прогноз развития** - к чему ведёт этот путь. Два сценария: если продолжать так + если сделать сдвиг. Конкретно, не абстрактно.
+
+5. **Приглашение** - мотивация пройти путь заново с другими выборами. "Попробуй в следующий раз выбрать путь... и увидишь как изменится восприятие."
+
+ПРАВИЛА:
+- Русский язык, обращение на "ты"
+- Без латиницы, без длинного тире
+- Тёплый тон мудрого друга, не назидательный
+- Конкретные наблюдения на основе РЕАЛЬНЫХ выборов человека
+- Не упоминай коды, поля, формулы
+- Длина: 800-1200 символов
+
+ФОРМАТ: простой текст (не JSON), с абзацами. Каждый абзац начинай с эмодзи-маркера.`;
+}
+
 module.exports = {
   FIELD_CONFIGS,
   buildAwakeningPrompt,
@@ -701,5 +757,6 @@ module.exports = {
   buildMeditationPrompt,
   buildTransformPrompt,
   buildCoronationPrompt,
+  buildPathAnalysisPrompt,
   buildSceneResponsePrompt
 };

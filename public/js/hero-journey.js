@@ -92,6 +92,7 @@ const HeroJourney = (function() {
 
   function renderProgress(currentStep, completedSteps) {
     const completed = completedSteps || [];
+    const doneSteps = STEPS.filter(s => completed.includes(s.num));
     return `<div class="hero-progress">
       ${STEPS.map(s => {
         const done = completed.includes(s.num);
@@ -103,7 +104,15 @@ const HeroJourney = (function() {
         </div>`;
       }).join('<div class="hero-step-line"></div>')}
     </div>
-    <div class="hero-step-name">${STEPS[currentStep - 1]?.emoji || ''} ${STEPS[currentStep - 1]?.name || ''}</div>`;
+    <div class="hero-step-name">${STEPS[currentStep - 1]?.emoji || ''} ${STEPS[currentStep - 1]?.name || ''}</div>
+    ${doneSteps.length > 0 ? `
+      <div class="hero-done-toggle" onclick="this.nextElementSibling.classList.toggle('hero-done-open');this.textContent=this.nextElementSibling.classList.contains('hero-done-open')?'Скрыть пройденные ▲':'Пройдено: ${doneSteps.length} из 7 ▼'">
+        Пройдено: ${doneSteps.length} из 7 ▼
+      </div>
+      <div class="hero-done-list">
+        ${doneSteps.map(s => `<div class="hero-done-item">✓ ${s.emoji} ${s.name}</div>`).join('')}
+      </div>
+    ` : ''}`;
   }
 
   // ---- ШАГ 1: ПРОБУЖДЕНИЕ ----

@@ -124,13 +124,19 @@ module.exports = async (req, res) => {
     if (action === 'start') {
       let journey = await getHeroJourney(user.id, dar_code);
 
-      // Если путешествие уже есть и шаг имеет сгенерированный контент - вернуть как есть
-      if (journey && journey.step_state && journey.step_state.scenes) {
-        return res.json({ journey, step_content: journey.step_state });
-      }
-      // Если битва - тоже вернуть как есть
-      if (journey && journey.step_state && (journey.step_state.hero_hp !== undefined)) {
-        return res.json({ journey, step_content: journey.step_state });
+      // Если путешествие уже есть и ТЕКУЩИЙ шаг имеет актуальный контент - вернуть как есть
+      if (journey && journey.step_state) {
+        const st = journey.step_state;
+        const step = journey.step;
+        // Шаг со сценами - если сцены есть и не завершены (battle_over отсутствует)
+        if (st.scenes && !st.battle_over) {
+          return res.json({ journey, step_content: st });
+        }
+        // Активная битва (шаг 2 или 6) - если не завершена
+        if ((step === 2 || step === 6) && st.hero_hp !== undefined && !st.battle_over) {
+          return res.json({ journey, step_content: st });
+        }
+        // Если step_state от предыдущего шага (battle_over: true) - нужна генерация нового
       }
 
       const darContent = loadDarContent();

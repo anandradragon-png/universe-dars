@@ -15,6 +15,10 @@ const CRYSTAL_REWARDS = {
   referral: 15,          // Друг рассчитал дар по ссылке
   referral_new_dar: 10,  // Бонус: дар друга отличается
   daily_dar_read: 3,     // Прочитать дар дня
+  hero_awakening: 5,     // Пройти Шаг 1 Путешествия Героя
+  hero_shadow_battle: 10, // Победить Тень в Шаге 2
+  hero_step_complete: 7, // Пройти любой шаг (3-7)
+  hero_journey_complete: 25, // Завершить всё путешествие
 };
 
 // Траты

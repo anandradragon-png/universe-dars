@@ -83,6 +83,10 @@
     "api/diary.js": {
       "memory": 512,
       "maxDuration": 30
+    },
+    "api/hero-journey.js": {
+      "memory": 512,
+      "maxDuration": 30
     }
   }
 }

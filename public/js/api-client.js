@@ -218,16 +218,6 @@ const DarAPI = (function() {
     regenerateChildBookSection: (relative_id, section_id) =>
       request('/api/child-book', 'POST', { action: 'regenerate', relative_id, section_id }),
 
-    // ---- Путешествие Героя ----
-    startJourney: (dar_code) =>
-      request('/api/hero-journey', 'POST', { action: 'start', dar_code }),
-    journeyAction: (dar_code, payload) =>
-      request('/api/hero-journey', 'POST', { action: 'step_action', dar_code, ...payload }),
-    getJourneyStatus: (dar_code) =>
-      request('/api/hero-journey', 'POST', { action: 'get_status', dar_code }),
-    getAllJourneys: () =>
-      request('/api/hero-journey', 'POST', { action: 'get_all' }),
-
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>
       request('/api/message', 'POST', { giftCode }),

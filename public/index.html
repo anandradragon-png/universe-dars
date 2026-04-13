@@ -275,82 +275,6 @@
     .game-card-back:hover{border-color:rgba(212,175,55,0.6)!important;transform:translateY(-3px);box-shadow:0 4px 15px rgba(212,175,55,0.2)}
     .game-card-back:active{transform:scale(0.95)}
 
-    /* === Путешествие Героя === */
-    #hero-journey-container{margin-top:16px}
-    .hero-journey-screen{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
-    .hero-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-    .hero-back-btn{background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:16px}
-    .hero-field-badge{color:#fff;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold}
-    .hero-mechanic-tag{color:#aaa;font-size:11px;margin-left:auto}
-    .hero-progress{display:flex;align-items:center;justify-content:center;gap:0;margin:12px 0 4px}
-    .hero-step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #444;background:rgba(0,0,0,0.3);flex-shrink:0}
-    .hero-step-dot.done{border-color:#4CAF50;background:rgba(76,175,80,0.15)}
-    .hero-step-dot.active{border-color:#FFA500;background:rgba(255,165,0,0.15);box-shadow:0 0 8px rgba(255,165,0,0.3)}
-    .hero-step-dot.locked{opacity:0.4;font-size:10px}
-    .hero-step-line{width:12px;height:2px;background:#444;flex-shrink:0}
-    .hero-step-name{text-align:center;color:var(--text);font-size:13px;margin-bottom:12px;font-weight:bold}
-    .hero-world-intro{text-align:center;color:#888;font-size:12px;font-style:italic;margin-bottom:12px}
-    .hero-content{padding:8px 0}
-    .hero-intro-text{color:var(--text);font-size:14px;line-height:1.6;margin-bottom:16px;padding:12px;background:rgba(255,165,0,0.05);border-left:3px solid var(--field-color,#FFA500);border-radius:0 8px 8px 0}
-    .hero-scene-text{color:var(--text);font-size:14px;line-height:1.6;margin-bottom:12px}
-    .hero-scene-counter{text-align:center;color:#666;font-size:11px;margin-bottom:12px}
-    .hero-choices{display:flex;flex-direction:column;gap:8px}
-    .hero-choice-btn{background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.3);border-radius:12px;padding:12px 16px;text-align:left;cursor:pointer;transition:all 0.2s;color:var(--text)}
-    .hero-choice-btn:hover{background:rgba(255,165,0,0.15);border-color:rgba(255,165,0,0.6);transform:translateY(-1px)}
-    .hero-choice-btn:active{transform:scale(0.98)}
-    .hero-choice-selected{background:rgba(255,165,0,0.25)!important;border-color:#FFA500!important}
-    .hero-choice-dimmed{opacity:0.4}
-    .hero-choice-label{display:block;font-weight:bold;font-size:14px;margin-bottom:2px}
-    .hero-choice-desc{display:block;font-size:12px;color:#aaa}
-    .hero-btn{padding:12px 24px;border-radius:12px;font-size:14px;cursor:pointer;border:none;font-family:Georgia,serif;display:block;width:100%;margin-top:12px;transition:all 0.2s}
-    .hero-btn-primary{background:linear-gradient(135deg,#FF8C00,#FFA500);color:#1a1a2e}
-    .hero-btn-primary:hover{filter:brightness(1.1)}
-    .hero-btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
-    .hero-btn-attack{background:linear-gradient(135deg,#8B0000,#FF4500);color:#fff}
-    .hero-btn-attack:hover{filter:brightness(1.1)}
-    .hero-btn-attack:disabled{opacity:0.6;cursor:default}
-    .hero-battle-arena{padding:8px 0}
-    .hero-hp-bars{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-    .hero-hp-bar{display:flex;align-items:center;gap:8px}
-    .hero-hp-label{font-size:12px;color:var(--text);min-width:60px}
-    .hero-hp-track{flex:1;height:16px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden}
-    .hero-hp-fill{height:100%;border-radius:8px;transition:width 0.5s ease}
-    .hero-hp-hero{background:linear-gradient(90deg,#4CAF50,#8BC34A)}
-    .hero-hp-shadow{background:linear-gradient(90deg,#9C27B0,#E040FB)}
-    .hero-hp-num{font-size:12px;color:var(--text);min-width:24px;text-align:right}
-    .hero-battle-log{max-height:240px;overflow-y:auto;margin-bottom:12px;padding:8px;background:rgba(0,0,0,0.2);border-radius:12px}
-    .hero-battle-intro{color:#aaa;font-size:13px;line-height:1.5;padding:8px}
-    .hero-battle-intro em{color:var(--field-color,#FFA500)}
-    .hero-battle-msg{padding:8px 12px;margin-bottom:8px;border-radius:10px;font-size:13px;line-height:1.5}
-    .hero-msg-hero{background:rgba(76,175,80,0.1);border-left:3px solid #4CAF50}
-    .hero-msg-shadow{background:rgba(156,39,176,0.1);border-left:3px solid #9C27B0}
-    .hero-msg-label{font-size:11px;font-weight:bold;display:block;margin-bottom:4px}
-    .hero-battle-input textarea{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-size:14px;resize:none;font-family:Georgia,serif;box-sizing:border-box}
-    .hero-battle-input textarea:focus{border-color:rgba(255,165,0,0.5);outline:none}
-    .hero-battle-result{text-align:center;padding:24px 16px}
-    .hero-result-emoji{font-size:48px;margin-bottom:12px}
-    .hero-battle-result h3{color:var(--text);margin-bottom:8px}
-    .hero-battle-result p{color:#aaa;font-size:13px;line-height:1.5;margin-bottom:16px}
-    .hero-reward-badge{display:inline-block;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(255,200,0,0.1));border:1px solid rgba(212,175,55,0.4);color:#D4AF37;padding:8px 16px;border-radius:20px;font-size:14px;font-weight:bold;margin-bottom:16px}
-    .hero-victory-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
-    .hero-victory-card{background:var(--card);border:1px solid rgba(255,165,0,0.3);border-radius:20px;padding:32px 24px;text-align:center;max-width:340px;width:100%}
-    .hero-victory-emoji{font-size:48px;margin-bottom:12px}
-    .hero-victory-card h3{color:var(--text);margin-bottom:8px}
-    .hero-victory-card p{color:#aaa;font-size:13px;line-height:1.5;margin-bottom:16px}
-    .hero-locked-steps{display:flex;flex-direction:column;gap:8px;margin:16px 0}
-    .hero-locked-step{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:10px;color:var(--text);font-size:13px}
-    .hero-soon-badge{font-size:10px;color:#888;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:10px}
-    .hero-completed-info{text-align:center;padding:16px 0}
-    .hero-completed-info p{color:var(--text);font-size:14px;margin-bottom:8px}
-    .hero-journey-loading{text-align:center;padding:40px 20px}
-    .hero-loading-spinner{width:40px;height:40px;border:3px solid rgba(255,165,0,0.2);border-top-color:#FFA500;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
-    .hero-journey-loading p{color:#aaa;font-size:13px}
-    .hero-shake{animation:heroShake 0.3s ease}
-    @keyframes heroShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .animate-fade-in{animation:heroFadeIn 0.4s ease}
-    @keyframes heroFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
     /* === Книга: защита от копирования === */
     .book-page-wrap{user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-webkit-touch-callout:none}
     .book-page-wrap img{pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
@@ -960,7 +884,6 @@
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=12"></script>
   <script src="js/intuition-game.js?v=4"></script>
-  <script src="js/hero-journey.js?v=1"></script>
   <script src="js/share-card.js?v=1"></script>
   <script src="js/daily-dar.js?v=4"></script>
   <script>
@@ -2203,7 +2126,7 @@
       const imgPath = getDarImagePath(code);
       const container = document.getElementById('dars-detail-view');
 
-      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px auto"><button onclick="openDarInBook('${code}')" style="padding:10px 18px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.12));color:#D4AF37;font-size:13px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px"><span>📖</span><span>Книга Даров</span></button><button onclick="openHeroJourney('${code}','${name.replace(/'/g,'\\&#39;')}')" style="padding:10px 18px;border-radius:12px;border:1px solid rgba(255,140,0,0.5);background:linear-gradient(135deg,rgba(255,100,0,0.2),rgba(255,200,0,0.15));color:#FFA500;font-size:13px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px"><span>🌅</span><span>Путешествие Героя</span></button></div><div id="hero-journey-container" style="display:none"></div><div id="dar-accordion-area"></div></div>`;
+      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><button onclick="openDarInBook('${code}')" style="margin:14px auto;padding:10px 18px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.12));color:#D4AF37;font-size:13px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px"><span>📖</span><span>Читать в Книге Даров</span></button><div id="dar-accordion-area"></div></div>`;
 
       // Load image
       const wrap = document.getElementById('dar-detail-img-wrap');
@@ -2290,15 +2213,6 @@
       } catch(e) { console.error('openDarInBook error:', e); }
     }
     window.openDarInBook = openDarInBook;
-
-    function openHeroJourney(code, name) {
-      try {
-        if (typeof HeroJourney !== 'undefined') {
-          HeroJourney.render(code, name);
-        }
-      } catch(e) { console.error('openHeroJourney error:', e); }
-    }
-    window.openHeroJourney = openHeroJourney;
 
     // ---- Поля: список + детальная страница с вкладками ----
     const FIELD_INNER_TABS = [

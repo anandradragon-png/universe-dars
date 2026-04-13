@@ -406,6 +406,75 @@ const HeroJourney = (function() {
     currentDarCode = null;
   }
 
+  // ---- АВТОИНЪЕКЦИЯ КНОПКИ В СОКРОВИЩНИЦУ ----
+  // Если старый treasury.js закэширован без кнопки,
+  // hero-journey.js сам добавит её через MutationObserver
+
+  function injectButton() {
+    const container = document.getElementById('treasury-content');
+    if (!container) return;
+
+    const observer = new MutationObserver(function() {
+      // Ищем кнопку "Подробнее в Книге Даров" или "Книга Даров" в Сокровищнице
+      const bookBtns = container.querySelectorAll('button');
+      let bookBtn = null;
+      bookBtns.forEach(function(btn) {
+        if (btn.textContent.includes('Книга Даров') || btn.textContent.includes('Подробнее в Книге')) {
+          bookBtn = btn;
+        }
+      });
+
+      if (!bookBtn) return;
+      // Уже есть кнопка Путешествия?
+      if (container.querySelector('#hero-journey-btn')) return;
+
+      // Извлекаем код дара из onclick кнопки книги
+      const match = bookBtn.getAttribute('onclick')?.match(/'([^']+)'/);
+      if (!match) return;
+      const code = match[1];
+
+      // Создаём кнопку Путешествия
+      const journeyBtn = document.createElement('button');
+      journeyBtn.id = 'hero-journey-btn';
+      journeyBtn.innerHTML = '<span style="font-size:16px">&#127749;</span> <span>Путешествие</span>';
+      journeyBtn.style.cssText = 'flex:1;padding:12px;border-radius:14px;border:1px solid rgba(255,140,0,0.5);background:linear-gradient(135deg,rgba(255,100,0,0.2),rgba(255,200,0,0.15));color:#FFA500;font-size:13px;cursor:pointer;font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;gap:6px';
+      journeyBtn.onclick = function() { HeroJourney.render(code); };
+
+      // Создаём контейнер для путешествия
+      let journeyContainer = container.querySelector('#hero-journey-container');
+      if (!journeyContainer) {
+        journeyContainer = document.createElement('div');
+        journeyContainer.id = 'hero-journey-container';
+        journeyContainer.style.display = 'none';
+      }
+
+      // Если кнопка книги в flex-контейнере - добавляем рядом
+      const parent = bookBtn.parentElement;
+      if (parent && parent.style.display === 'flex') {
+        parent.appendChild(journeyBtn);
+        parent.after(journeyContainer);
+      } else {
+        // Оборачиваем обе кнопки в flex
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display:flex;gap:8px;margin-bottom:14px';
+        bookBtn.style.flex = '1';
+        bookBtn.parentElement.insertBefore(wrapper, bookBtn);
+        wrapper.appendChild(bookBtn);
+        wrapper.appendChild(journeyBtn);
+        wrapper.after(journeyContainer);
+      }
+    });
+
+    observer.observe(container, { childList: true, subtree: true });
+  }
+
+  // Запускаем инъекцию когда DOM готов
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectButton);
+  } else {
+    injectButton();
+  }
+
   return {
     render,
     choose,

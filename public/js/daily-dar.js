@@ -187,8 +187,22 @@ const DailyDar = (function() {
 
   // --- Fallback: рендер из энциклопедии ---
   function renderFallbackBlock(code, content, contextTitle) {
-    if (!content || !content[code]) return '<div style="color:var(--text-muted);text-align:center;padding:16px">Загрузка...</div>';
-    const dar = content[code];
+    let dar = content && content[code];
+    // Для интеграторов (коды с 9) данных нет в dar-content.json - строим из поля
+    if (!dar && window.INTEGRATORS && window.INTEGRATORS[code]) {
+      const parts = code.split('-').map(Number);
+      const kun = parts[2];
+      const fieldData = window.FIELDS_DATA?.[kun] || window.FIELD_DATA?.[kun];
+      if (fieldData) {
+        dar = {
+          essence: (fieldData.essence || '') + ' ' + (window.INTEGRATORS[code] || ''),
+          light_power: fieldData.harmony_key || '',
+          shadow: (fieldData.shadow_ma || '') + ' ' + (fieldData.shadow_zhi || ''),
+          meditation: '', activation: ''
+        };
+      }
+    }
+    if (!dar) return '<div style="color:var(--text-muted);text-align:center;padding:16px">Послание формируется...</div>';
     let html = '';
 
     // Essence как пророчество

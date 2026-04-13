@@ -2467,6 +2467,8 @@
     let DARS_EXTENDED = null;
     fetch('fields.json').then(r=>r.json()).then(data=>{
       DARS_EXTENDED = data.dars_extended||{};
+      // Экспортируем данные полей для интеграторов (Оракул, Путешествие)
+      if (data.fields) window.FIELDS_DATA = data.fields;
     }).catch(()=>{});
 
     // Обработка Enter в поле промо-кода

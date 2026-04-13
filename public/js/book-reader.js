@@ -218,7 +218,7 @@ const BookReader = (function() {
     const theme = settings.theme;
     const bg = theme === 'sepia' ? '#f4ecd8' : (theme === 'light' ? '#ffffff' : 'var(--bg-card, rgba(255,255,255,0.03))');
     const fg = theme === 'sepia' ? '#3a2f1a' : (theme === 'light' ? '#1a1a1a' : 'var(--text)');
-    const accent = theme === 'sepia' ? '#8b6b2c' : (theme === 'light' ? '#7c3aed' : '#D4AF37');
+    const accent = theme === 'sepia' ? '#8b6b2c' : (theme === 'light' ? '#D4AF37' : '#D4AF37');
 
     const progress = getReadProgress();
 
@@ -237,7 +237,7 @@ const BookReader = (function() {
             <span id="book-progress-text"><b style="color:#D4AF37">${progress.count}</b> / ${progress.total}</span>
           </div>
           <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden">
-            <div id="book-progress-fill" style="height:100%;width:${progress.pct}%;background:linear-gradient(90deg,#6b21a8,#D4AF37);transition:width 0.4s ease;border-radius:3px"></div>
+            <div id="book-progress-fill" style="height:100%;width:${progress.pct}%;background:linear-gradient(90deg,#D4AF37,#D4AF37);transition:width 0.4s ease;border-radius:3px"></div>
           </div>
         </div>
 
@@ -282,7 +282,7 @@ const BookReader = (function() {
         margin:0 16px 12px;
         font-size:${settings.fontSize}px;
         line-height:${settings.lineHeight};
-        font-family:Georgia,'Times New Roman',serif;
+        font-family:Manrope,sans-serif;
       "></div>
 
       <!-- Навигация -->
@@ -297,15 +297,15 @@ const BookReader = (function() {
           <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;text-align:center">
             <div style="font-size:14px;color:var(--text);margin-bottom:6px">&#128273; Полный доступ к Книге Даров</div>
             <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px">94 главы + уровень Хранитель + 50 кристаллов + дизайнерская PDF</div>
-            <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Georgia,serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.25);margin-bottom:8px">&#11088; Купить за 500 ⭐ (~$10)</button>
-            <button onclick="if(typeof buyWithDarai==='function')buyWithDarai()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(46,204,113,0.5);background:rgba(46,204,113,0.1);color:#2ecc71;font-size:13px;cursor:pointer;font-family:Georgia,serif;margin-bottom:10px">&#128293; Оплатить в DarAI (40M)</button>
+            <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.25);margin-bottom:8px">&#11088; Купить за 500 ⭐ (~$10)</button>
+            <button onclick="if(typeof buyWithDarai==='function')buyWithDarai()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(46,204,113,0.5);background:rgba(46,204,113,0.1);color:#2ecc71;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:10px">&#128293; Оплатить в DarAI (40M)</button>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Навсегда, без подписки</div>
             <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px">
               <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Есть промо-код?</div>
               <div style="display:flex;gap:6px;justify-content:center">
                 <input id="book-promo-input" type="text" placeholder="Промо-код"
-                  style="width:140px;padding:8px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;text-align:center;text-transform:uppercase;outline:none;font-family:Georgia,serif"/>
-                <button style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif" onclick="BookReader.submitPromo()">OK</button>
+                  style="width:140px;padding:8px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;text-align:center;text-transform:uppercase;outline:none;font-family:Manrope,sans-serif"/>
+                <button style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif" onclick="BookReader.submitPromo()">OK</button>
               </div>
             </div>
           </div>
@@ -404,7 +404,7 @@ const BookReader = (function() {
   function renderYupSoulBannerIfDarEnd(ch) {
     if (ch.kind !== 'dar') return '';
     return `
-      <a href="${YUPSOUL_URL}" target="_blank" rel="noopener" style="text-decoration:none;display:block;margin:24px 0 0;padding:14px;background:linear-gradient(135deg,rgba(107,33,168,0.25),rgba(212,175,55,0.15));border:1px solid rgba(212,175,55,0.35);border-radius:14px;text-align:center;color:inherit">
+      <a href="${YUPSOUL_URL}" target="_blank" rel="noopener" style="text-decoration:none;display:block;margin:24px 0 0;padding:14px;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.15));border:1px solid rgba(212,175,55,0.35);border-radius:14px;text-align:center;color:inherit">
         <div style="font-size:15px;color:#D4AF37;margin-bottom:4px">&#127925; Узнай, как звучит твоя Душа</div>
         <div style="font-size:12px;opacity:0.75">Персональная музыка по дате рождения &bull; YupSoul</div>
       </a>
@@ -415,12 +415,12 @@ const BookReader = (function() {
   function renderTreasuryLinkIfDar(ch) {
     if (ch.kind !== 'dar' || !ch.dar_code) return '';
     return `
-      <div style="margin:24px 0 0;padding:16px;background:rgba(180,120,255,0.08);border:1px solid rgba(180,120,255,0.3);border-radius:14px;text-align:center">
-        <div style="font-size:13px;color:#c4a0f0;margin-bottom:10px;line-height:1.5">
+      <div style="margin:24px 0 0;padding:16px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:14px;text-align:center">
+        <div style="font-size:13px;color:#D4AF37;margin-bottom:10px;line-height:1.5">
           Хочешь не только прочитать, но и пройти алхимию этого дара?
         </div>
         <button onclick="BookReader.openInTreasury('${ch.dar_code}')"
-          style="padding:12px 18px;border-radius:12px;border:1px solid rgba(180,120,255,0.5);background:linear-gradient(135deg,rgba(107,33,168,0.4),rgba(180,120,255,0.2));color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:8px">
+          style="padding:12px 18px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(212,175,55,0.15));color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;display:inline-flex;align-items:center;gap:8px">
           <span style="font-size:16px">&#128302;</span>
           <span>Открыть квесты в Сокровищнице</span>
         </button>
@@ -644,7 +644,7 @@ const BookReader = (function() {
         <div style="display:flex;gap:6px;margin-bottom:10px">
           <input id="book-search-input" type="text" placeholder="Слово или фраза..." value="${escapeHtml(q)}"
             oninput="BookReader.runSearch(this.value)"
-            style="flex:1;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Georgia,serif;outline:none">
+            style="flex:1;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;outline:none">
         </div>
         <div id="book-search-results"></div>
       </div>

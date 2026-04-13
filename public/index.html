@@ -4,6 +4,8 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <title>YupDar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="yupself-design-system.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header / localStorage
@@ -40,7 +42,7 @@
             try {
               const t = document.createElement('div');
               t.textContent = 'Debug-режим включён';
-              t.style = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#D4AF37;color:#000;padding:10px 16px;border-radius:10px;font-size:13px;font-family:Georgia,serif;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.4)';
+              t.style = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#D4AF37;color:#000;padding:10px 16px;border-radius:10px;font-size:13px;font-family:Manrope,sans-serif;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.4)';
               document.body.appendChild(t);
               setTimeout(() => t.remove(), 2500);
             } catch (e) {}
@@ -51,27 +53,28 @@
   </script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    :root{--bg:#0d0221;--bg2:#1a0533;--bg3:#0a1628;--text:#f0e2ff;--text-dim:#c4a8e8;--text-muted:#a488cc;--border:rgba(180,120,255,0.3);--card:rgba(255,255,255,0.07)}
-    html,body{height:100%;overflow:hidden;background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 40%,var(--bg3) 100%);font-family:Georgia,serif;color:var(--text)}
+    input,textarea,select{background-color:#111111 !important;color:#f1f5f9 !important;-webkit-appearance:none;appearance:none;color-scheme:dark}
+    :root{--bg:#080808;--text:#f1f5f9;--text-dim:#a09080;--text-muted:#7a6f63;--border:rgba(212,175,55,0.15);--border-bright:rgba(212,175,55,0.3);--card:rgba(255,255,255,0.04);--accent-1:#D4AF37;--accent-2:#C5A028;--accent-3:#9A7B1A;--glow:rgba(212,175,55,0.2);--surface-glass:rgba(10,10,10,0.7)}
+    html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Manrope',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text)}
     body{display:flex;flex-direction:column}
-    .stars{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 60% 10%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,rgba(255,255,255,.4) 0%,transparent 100%)}
-    #btn-profile{position:fixed;top:14px;right:14px;z-index:9999;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6b21a8,#D4AF37);border:2px solid rgba(212,175,55,0.5);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-weight:bold;overflow:hidden;transition:all .2s;box-shadow:0 2px 10px rgba(212,175,55,0.3)}
+    .stars{display:none}
+    #btn-profile{position:fixed;top:14px;right:14px;z-index:9999;width:38px;height:38px;border-radius:50%;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);border:2px solid rgba(212,175,55,0.5);color:#080808;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:Manrope,sans-serif;font-weight:bold;overflow:hidden;transition:all .2s;box-shadow:0 2px 10px rgba(212,175,55,0.3)}
     #btn-profile:hover{transform:scale(1.1);box-shadow:0 2px 15px rgba(212,175,55,0.5)}
     #btn-profile img{width:100%;height:100%;object-fit:cover}
     #profile-overlay{display:none;position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px)}
-    #profile-panel{position:fixed;top:0;right:-100%;width:85%;max-width:380px;height:100%;z-index:9998;background:linear-gradient(180deg,#0d0221 0%,#1a0533 50%,#0a1628 100%);border-left:1px solid rgba(212,175,55,0.3);overflow-y:auto;transition:right .35s cubic-bezier(0.4,0,0.2,1);padding:20px 16px 100px}
+    #profile-panel{position:fixed;top:0;right:-100%;width:85%;max-width:380px;height:100%;z-index:9998;background:linear-gradient(180deg,#080808 0%,#0d0d0d 50%,#080808 100%);border-left:1px solid rgba(212,175,55,0.3);overflow-y:auto;transition:right .35s cubic-bezier(0.4,0,0.2,1);padding:20px 16px 100px}
     #profile-panel.open{right:0}
     .profile-section{background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
-    .profile-section-title{font-size:12px;color:#D4AF37;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-weight:600}
-    .profile-level-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:13px;letter-spacing:1px;font-family:Georgia,serif}
+    .profile-section-title{font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:none;margin-bottom:10px;font-weight:600}
+    .profile-level-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:13px;letter-spacing:1px;font-family:Manrope,sans-serif}
     .level-basic{background:rgba(255,255,255,0.08);border:1px solid var(--border);color:var(--text-dim)}
-    .level-extended{background:rgba(107,33,168,0.2);border:1px solid rgba(180,120,255,0.4);color:#c4a0f0}
+    .level-extended{background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);color:#D4AF37}
     .level-premium{background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.5);color:#D4AF37}
     .profile-friend{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
     .profile-friend:last-child{border-bottom:none}
     .profile-friend-avatar{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(255,255,255,0.05);color:var(--text-dim);flex-shrink:0}
     .profile-friend-avatar img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px #D4AF37)}
-    header{position:relative;z-index:1;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2)}
+    header{position:relative;z-index:1;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);background:rgba(8,8,8,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
     header h1{font-size:14px;letter-spacing:3px;color:var(--text);font-weight:normal}
     #app{position:relative;z-index:1;flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:90px;user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-webkit-touch-callout:none}
     #app input,#app textarea{user-select:text;-webkit-user-select:text;-moz-user-select:text}
@@ -100,36 +103,42 @@
     .skeleton-card { padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; margin-bottom: 10px; }
     #tab-calc{padding:16px}
     .main-container{max-width:650px;margin:0 auto;width:100%}
-    .input-screen{text-align:center;padding-top:20px}
-    .input-screen .logo{font-size:44px;margin-bottom:14px}
-    .input-screen h2{font-size:20px;color:var(--text);letter-spacing:2px;margin-bottom:8px;font-weight:normal}
-    .input-screen p{font-size:13px;color:var(--text-dim);margin-bottom:24px;line-height:1.6}
-    .date-input{width:100%;padding:14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:22px;letter-spacing:4px;text-align:center;outline:none;font-family:Georgia,serif;transition:border-color .3s}
-    .date-input:focus{border-color:rgba(124,58,237,0.7)}
-    .date-input::placeholder{color:var(--text-muted);letter-spacing:2px}
+    .input-screen{text-align:center;padding-top:24px}
+    .input-screen .logo{font-size:48px;margin-bottom:16px}
+    .input-screen h2{font-size:18px;color:var(--text);letter-spacing:0.5px;margin-bottom:10px;font-weight:700}
+    .input-screen p{font-size:14px;color:var(--text-dim);margin-bottom:28px;line-height:1.6}
+    .date-input{display:none}
+    .date-fields{margin-bottom:4px}
+    .date-field-group{display:flex;align-items:center;justify-content:center;gap:4px}
+    .date-field{width:68px;padding:14px 0;background:#111111 !important;border:1px solid var(--border);border-radius:14px;color:var(--text) !important;font-size:24px;font-weight:700;letter-spacing:2px;text-align:center;outline:none;font-family:Manrope,sans-serif;transition:border-color .3s,box-shadow .3s;-webkit-appearance:none;appearance:none;color-scheme:dark}
+    .date-field.df-year{width:100px}
+    .date-field:focus{border-color:rgba(212,175,55,0.6);box-shadow:0 0 0 3px rgba(212,175,55,0.25),0 0 20px rgba(212,175,55,0.15)}
+    .date-field::placeholder{color:var(--text-muted);font-size:16px;font-weight:500;letter-spacing:1px}
+    .date-field.filled{border-color:rgba(212,175,55,0.4)}
+    .date-dot{color:#D4AF37;font-size:28px;font-weight:800;line-height:1;padding:0 2px}
     .error-msg{color:#f87171;font-size:13px;min-height:18px;margin-top:8px;text-align:center}
-    .btn{width:100%;padding:15px;border-radius:14px;border:none;cursor:pointer;font-family:Georgia,serif;font-size:15px;letter-spacing:1px;transition:all .25s;margin-top:14px}
-    .btn-primary{background:linear-gradient(135deg,#6b21a8,#3b0764);color:var(--text);border:1px solid rgba(180,120,255,0.3)}
-    .btn-primary:hover{background:linear-gradient(135deg,#7c3aed,#4c1d95)}
-    .btn-secondary{background:linear-gradient(135deg,#6b21a8,#b8860b);color:#fff;border:none;font-weight:bold;box-shadow:0 0 18px rgba(212,175,55,0.3);transition:all .25s}
-    .btn-secondary:hover{background:linear-gradient(135deg,#7c3aed,#D4AF37);box-shadow:0 0 28px rgba(212,175,55,0.55);transform:translateY(-2px) scale(1.02)}
-    .btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);font-size:13px;padding:10px;margin-top:8px}
-    .btn-ghost:hover{border-color:rgba(124,58,237,0.6);color:var(--text)}
-    .btn:disabled{opacity:0.6;cursor:not-allowed}
-    .btn-back{display:none;background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:0 0 12px;font-family:Georgia,serif;text-align:left}
+    .btn{width:100%;padding:15px;border-radius:9999px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-size:15px;font-weight:700;letter-spacing:0.5px;transition:all .25s;margin-top:14px;position:relative;overflow:hidden}
+    .btn-primary{background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 25%,#B8960F 50%,#D4AF37 75%,#E8C84A 100%);color:#1a1000;border:none;box-shadow:0 4px 16px rgba(212,175,55,0.3),inset 0 1px 0 rgba(255,255,255,0.25)}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(212,175,55,0.45),inset 0 1px 0 rgba(255,255,255,0.3)}
+    .btn-secondary{background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#1a1000;border:none;font-weight:800;box-shadow:0 4px 16px rgba(212,175,55,0.25),inset 0 1px 0 rgba(255,255,255,0.2);transition:all .25s}
+    .btn-secondary:hover{box-shadow:0 8px 28px rgba(212,175,55,0.45);transform:translateY(-2px)}
+    .btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);font-size:13px;padding:12px;margin-top:8px;font-weight:500}
+    .btn-ghost:hover{border-color:rgba(212,175,55,0.35);color:var(--text);background:rgba(212,175,55,0.04)}
+    .btn:disabled{opacity:0.5;cursor:not-allowed;filter:grayscale(0.3)}
+    .btn-back{display:none;background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:0 0 12px;font-family:Manrope,sans-serif;text-align:left}
     .btn-back:hover{color:var(--text)}
     .result-card{text-align:center;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px 20px;backdrop-filter:blur(10px)}
     .dar-image-wrap{width:110px;height:110px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center}
     .dar-image-wrap img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 10px #D4AF37)}
     .dar-placeholder{width:110px;height:110px;border-radius:50%;border:2px solid var(--border);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);letter-spacing:1px;text-align:center;padding:8px}
-    .dar-name{font-size:32px;letter-spacing:4px;color:var(--text);text-shadow:0 0 20px rgba(180,120,255,0.4);margin-bottom:6px}
+    .dar-name{font-size:32px;letter-spacing:4px;color:var(--text);text-shadow:0 0 20px rgba(212,175,55,0.3);margin-bottom:6px}
     .dar-code{font-size:13px;color:var(--text-dim);letter-spacing:3px;margin-bottom:8px}
-    .dar-archetype{font-size:14px;color:#c4a0f0;font-style:italic;letter-spacing:1px;margin-bottom:20px}
+    .dar-archetype{font-size:14px;color:#D4AF37;font-style:italic;letter-spacing:1px;margin-bottom:20px}
     #full-description-block{margin-top:16px}
     .accordion-item{margin-bottom:8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)}
-    .accordion-header{width:100%;padding:14px 16px;background:rgba(255,255,255,0.05);border:none;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left;transition:background .2s;font-family:Georgia,serif}
-    .accordion-header:hover{background:rgba(107,33,168,0.2)}
-    .accordion-header.open{background:rgba(107,33,168,0.25)}
+    .accordion-header{width:100%;padding:14px 16px;background:rgba(255,255,255,0.05);border:none;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left;transition:background .2s;font-family:Manrope,sans-serif}
+    .accordion-header:hover{background:rgba(212,175,55,0.15)}
+    .accordion-header.open{background:rgba(212,175,55,0.15)}
     .accordion-icon{font-size:20px;flex-shrink:0}
     .accordion-title{flex:1;font-size:14px;letter-spacing:1px;color:var(--text)}
     .accordion-arrow{font-size:12px;color:var(--text-dim);transition:transform .3s;flex-shrink:0}
@@ -140,7 +149,7 @@
     .accordion-body p{font-size:14px;line-height:1.8;color:#e0e0e0;margin-bottom:14px;text-align:left}
     .accordion-body p:last-child{margin-bottom:0}
     .accordion-body strong{color:#e8d5ff;font-weight:bold}
-    .accordion-body em{color:#c4a0f0;font-style:italic}
+    .accordion-body em{color:#D4AF37;font-style:italic}
     .accordion-body ul{padding-left:18px;margin-bottom:12px}
     .accordion-body ul li{font-size:14px;line-height:1.8;color:#e0e0e0;margin-bottom:8px;text-align:left}
     .accordion-body ul li::marker{color:#D4AF37}
@@ -154,12 +163,12 @@
     .book-chapter .book-body p{margin:0 0 14px;text-align:justify;hyphens:auto}
     .book-chapter .book-body h1,.book-chapter .book-body h2,.book-chapter .book-body h3{margin:20px 0 10px;line-height:1.3;text-align:center}
     .book-chapter .book-body h1{font-size:1.3em;color:#D4AF37}
-    .book-chapter .book-body h2{font-size:1.2em;color:#c4a0f0}
+    .book-chapter .book-body h2{font-size:1.2em;color:#D4AF37}
     .book-chapter .book-body h3{font-size:1.1em;color:#D4AF37}
     .book-chapter.theme-sepia .book-body h1,.book-chapter.theme-sepia .book-body h3{color:#8b6b2c}
     .book-chapter.theme-sepia .book-body h2{color:#6b4f9c}
-    .book-chapter.theme-light .book-body h1,.book-chapter.theme-light .book-body h3{color:#7c3aed}
-    .book-chapter.theme-light .book-body h2{color:#6b21a8}
+    .book-chapter.theme-light .book-body h1,.book-chapter.theme-light .book-body h3{color:#D4AF37}
+    .book-chapter.theme-light .book-body h2{color:#1a1a1a}
     .book-chapter .book-body ul,.book-chapter .book-body ol{padding-left:20px;margin:0 0 14px}
     .book-chapter .book-body li{margin-bottom:6px;line-height:inherit}
     .book-chapter .book-body img{display:block;max-width:100%;height:auto;margin:16px auto;border-radius:8px;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
@@ -173,25 +182,25 @@
     .book-chapter .book-body em{font-style:italic;opacity:0.95}
     .book-chapter .book-body blockquote{margin:14px 0;padding:10px 14px;border-left:3px solid #D4AF37;background:rgba(212,175,55,0.08);border-radius:0 8px 8px 0;font-style:italic}
     .book-chapter.theme-sepia .book-body blockquote{border-left-color:#8b6b2c;background:rgba(139,107,44,0.12)}
-    .book-chapter.theme-light .book-body blockquote{border-left-color:#7c3aed;background:rgba(124,58,237,0.08)}
+    .book-chapter.theme-light .book-body blockquote{border-left-color:#D4AF37;background:rgba(212,175,55,0.08)}
     .base-lock{text-align:center;padding:40px 24px}
-    .promo-input{width:100%;max-width:320px;padding:14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:18px;letter-spacing:3px;text-align:center;outline:none;font-family:Georgia,serif;text-transform:uppercase}
-    .promo-input:focus{border-color:rgba(124,58,237,0.7)}
+    .promo-input{width:100%;max-width:320px;padding:14px;background:#111111 !important;border:1px solid var(--border);border-radius:12px;color:var(--text) !important;font-size:18px;letter-spacing:3px;text-align:center;outline:none;font-family:Manrope,sans-serif;text-transform:uppercase;-webkit-appearance:none;appearance:none;color-scheme:dark}
+    .promo-input:focus{border-color:rgba(212,175,55,0.5)}
     .promo-input::placeholder{color:var(--text-muted);letter-spacing:2px;text-transform:none;font-size:14px}
-    .base-sub-nav{display:flex;gap:10px;padding:10px 16px;position:sticky;top:0;z-index:10;background:rgba(10,5,25,0.95);border-bottom:1px solid var(--border);justify-content:center;max-width:700px;margin:0 auto}
-    .base-sub-btn{flex:1;padding:12px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;font-family:Georgia,serif;font-size:14px;letter-spacing:1px;color:var(--text-dim);text-align:center;transition:all .2s}
-    .base-sub-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .base-sub-nav{display:flex;gap:10px;padding:10px 16px;position:sticky;top:0;z-index:10;background:rgba(8,8,8,0.95);border-bottom:1px solid var(--border);justify-content:center;max-width:700px;margin:0 auto}
+    .base-sub-btn{flex:1;padding:12px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;font-family:Manrope,sans-serif;font-size:14px;letter-spacing:1px;color:var(--text-dim);text-align:center;transition:all .2s}
+    .base-sub-btn.active{background:rgba(212,175,55,0.2);border-color:rgba(212,175,55,0.5);color:var(--text)}
     .base-content{padding:16px;max-width:700px;margin:0 auto}
     .field-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
     .field-folder{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
-    .field-folder:hover{border-color:rgba(180,120,255,0.5);background:rgba(107,33,168,0.15)}
+    .field-folder:hover{border-color:rgba(212,175,55,0.4);background:rgba(212,175,55,0.1)}
     .field-folder-num{font-size:28px;margin-bottom:6px}
     .field-folder-name{font-size:14px;color:var(--text);letter-spacing:1px;margin-bottom:4px}
     .field-folder-arch{font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:6px}
     .field-folder-count{font-size:11px;color:var(--text-muted)}
     .dar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;max-width:700px;margin:0 auto}
     .dar-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s}
-    .dar-card:hover{border-color:rgba(180,120,255,0.5);background:rgba(107,33,168,0.15)}
+    .dar-card:hover{border-color:rgba(212,175,55,0.4);background:rgba(212,175,55,0.1)}
     .dar-card-img{width:60px;height:60px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center}
     .dar-card-img img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 6px #D4AF37)}
     .dar-card-placeholder{width:50px;height:50px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-dim)}
@@ -202,28 +211,28 @@
     .dar-detail-img img{width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 10px #D4AF37)}
     .dar-detail-name{font-size:28px;letter-spacing:3px;color:var(--text);margin-bottom:4px}
     .dar-detail-code{font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px}
-    .dar-detail-arch{font-size:14px;color:#c4a0f0;font-style:italic;margin-bottom:16px}
+    .dar-detail-arch{font-size:14px;color:#D4AF37;font-style:italic;margin-bottom:16px}
     .dar-inner-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
-    .dar-inner-tab{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;font-family:Georgia,serif;font-size:12px;color:var(--text-dim);transition:all .2s}
-    .dar-inner-tab.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .dar-inner-tab{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;font-family:Manrope,sans-serif;font-size:12px;color:var(--text-dim);transition:all .2s}
+    .dar-inner-tab.active{background:rgba(212,175,55,0.2);border-color:rgba(212,175,55,0.5);color:var(--text)}
     .dar-inner-content{text-align:left;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
     .dar-meta-row{margin-bottom:12px}
-    .dar-meta-label{font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+    .dar-meta-label{font-size:11px;color:var(--text-muted);letter-spacing:0.5px;text-transform:none;margin-bottom:4px}
     .dar-meta-value{font-size:14px;color:#e0e0e0;line-height:1.7}
     .field-enc-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;text-align:left}
     .field-enc-name{font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:2px}
-    .field-enc-arch{font-size:13px;color:#c4a0f0;font-style:italic;margin-bottom:10px}
+    .field-enc-arch{font-size:13px;color:#D4AF37;font-style:italic;margin-bottom:10px}
     .field-enc-row{margin-bottom:10px}
-    .field-enc-label{font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+    .field-enc-label{font-size:11px;color:var(--text-muted);letter-spacing:0.5px;text-transform:none;margin-bottom:2px}
     .field-enc-val{font-size:13px;color:#e0e0e0;line-height:1.6}
     .stub-title{font-size:20px;letter-spacing:2px;color:var(--text);font-weight:normal;margin-bottom:12px}
     .stub-text{font-size:14px;color:var(--text-dim);line-height:1.7;max-width:300px;margin:0 auto}
     .user-name{font-size:15px;color:var(--text);margin-bottom:14px}
-    .nav-bar{position:fixed;bottom:0;bottom:env(safe-area-inset-bottom,0);left:50%;transform:translateX(-50%);z-index:200;padding:8px 16px 12px;padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));background:rgba(10,5,25,0.97);border-top:1px solid var(--border);display:flex;gap:8px;justify-content:center;width:100%;max-width:700px;will-change:transform}
-    .nav-btn{flex:1 1 0;min-width:0;padding:10px 4px 8px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s}
-    .nav-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6)}
+    .nav-bar{position:fixed;bottom:0;bottom:env(safe-area-inset-bottom,0);left:50%;transform:translateX(-50%);z-index:200;padding:8px 16px 12px;padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));background:rgba(8,8,8,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;gap:8px;justify-content:center;width:100%;max-width:700px;will-change:transform}
+    .nav-btn{flex:1 1 0;min-width:0;padding:10px 4px 8px;border-radius:12px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s}
+    .nav-btn.active{background:rgba(212,175,55,0.15);border-color:rgba(212,175,55,0.4)}
     .nav-btn .nav-icon{font-size:20px;line-height:1}
-    .nav-btn .nav-label{font-size:10px;letter-spacing:0.5px;color:var(--text);font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    .nav-btn .nav-label{font-size:10px;letter-spacing:0.5px;color:var(--text);font-family:Manrope,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
     .nav-btn .nav-desc{font-size:9px;color:var(--text-dim)}
 
     /* === Кристаллы === */
@@ -236,7 +245,7 @@
     .treasury-header{text-align:center;margin-bottom:20px}
     .treasury-progress-label{font-size:14px;color:var(--text);letter-spacing:1px;margin-bottom:8px}
     .treasury-progress-bar{width:100%;max-width:400px;margin:0 auto;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden}
-    .treasury-progress-fill{height:100%;background:linear-gradient(90deg,#6b21a8,#D4AF37);border-radius:4px;transition:width .5s ease}
+    .treasury-progress-fill{height:100%;background:linear-gradient(90deg,#1a1a1a,#D4AF37);border-radius:4px;transition:width .5s ease}
     .treasury-field{margin-bottom:20px}
     .treasury-field-header{display:flex;justify-content:space-between;align-items:center;padding:6px 4px;margin-bottom:8px}
     .treasury-field-name{font-size:14px;color:var(--text);letter-spacing:2px}
@@ -262,10 +271,10 @@
     .dar-section-locked{opacity:0.4;cursor:default}
 
     /* === Шеринг === */
-    .share-block{text-align:center;margin-top:16px;padding:16px;background:rgba(107,33,168,0.15);border:1px solid rgba(180,120,255,0.3);border-radius:16px}
+    .share-block{text-align:center;margin-top:16px;padding:16px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:16px}
     .share-title{font-size:16px;color:var(--text);margin-bottom:6px}
     .share-text{font-size:13px;color:var(--text-dim);margin-bottom:12px;line-height:1.5}
-    .btn-share{background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;border:none;padding:12px 20px;border-radius:12px;font-size:14px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
+    .btn-share{background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;border:none;padding:12px 20px;border-radius:12px;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;transition:all .2s}
     .btn-share:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(34,158,217,0.3)}
 
     /* === Streak === */
@@ -302,7 +311,7 @@
     .hero-choice-dimmed{opacity:0.4}
     .hero-choice-label{display:block;font-weight:bold;font-size:14px;margin-bottom:2px}
     .hero-choice-desc{display:block;font-size:12px;color:#aaa}
-    .hero-btn{padding:12px 24px;border-radius:12px;font-size:14px;cursor:pointer;border:none;font-family:Georgia,serif;display:block;width:100%;margin-top:12px;transition:all 0.2s}
+    .hero-btn{padding:12px 24px;border-radius:12px;font-size:14px;cursor:pointer;border:none;font-family:Manrope,sans-serif;display:block;width:100%;margin-top:12px;transition:all 0.2s}
     .hero-btn-primary{background:linear-gradient(135deg,#FF8C00,#FFA500);color:#1a1a2e}
     .hero-btn-primary:hover{filter:brightness(1.1)}
     .hero-btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
@@ -325,7 +334,7 @@
     .hero-msg-hero{background:rgba(76,175,80,0.1);border-left:3px solid #4CAF50}
     .hero-msg-shadow{background:rgba(156,39,176,0.1);border-left:3px solid #9C27B0}
     .hero-msg-label{font-size:11px;font-weight:bold;display:block;margin-bottom:4px}
-    .hero-battle-input textarea{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-size:14px;resize:none;font-family:Georgia,serif;box-sizing:border-box}
+    .hero-battle-input textarea{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-size:14px;resize:none;font-family:Manrope,sans-serif;box-sizing:border-box}
     .hero-battle-input textarea:focus{border-color:rgba(255,165,0,0.5);outline:none}
     .hero-battle-result{text-align:center;padding:24px 16px}
     .hero-result-emoji{font-size:48px;margin-bottom:12px}
@@ -350,7 +359,7 @@
     .hero-crystal-badge{display:inline-block;background:rgba(212,175,55,0.15);color:#D4AF37;padding:2px 8px;border-radius:8px;font-size:11px}
     .hero-timer-block{background:rgba(255,69,0,0.08);border:1px solid rgba(255,69,0,0.3);border-radius:14px;margin-top:12px}
     .hero-path-msg{text-align:center;color:#FFA500;font-size:13px;padding:12px;margin-top:8px;background:rgba(255,165,0,0.08);border-radius:12px;line-height:1.5}
-    .hero-analysis{background:linear-gradient(135deg,rgba(107,33,168,0.1),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:16px;margin-bottom:16px}
+    .hero-analysis{background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:16px;margin-bottom:16px}
     .hero-done-toggle{text-align:center;color:#888;font-size:12px;cursor:pointer;padding:6px;margin-bottom:4px}
     .hero-done-toggle:hover{color:#D4AF37}
     .hero-done-list{display:none;padding:4px 12px;margin-bottom:8px}
@@ -372,11 +381,11 @@
     .toc-part{border-bottom:1px solid rgba(255,255,255,0.05)}
     .toc-part:last-child{border-bottom:none}
     .toc-part-title{padding:10px 14px;color:var(--text);font-weight:bold;letter-spacing:1px;cursor:pointer;font-size:12px}
-    .toc-part-title:hover{background:rgba(107,33,168,0.15)}
+    .toc-part-title:hover{background:rgba(212,175,55,0.1)}
     .toc-part-items{display:none;padding-left:8px}
     .toc-part.open>.toc-part-items{display:block}
     .toc-chapter-title{padding:8px 14px;color:var(--text);cursor:pointer;font-size:13px}
-    .toc-chapter-title:hover{background:rgba(107,33,168,0.1)}
+    .toc-chapter-title:hover{background:rgba(212,175,55,0.08)}
     .toc-chapter-items{display:none;padding-left:12px}
     .toc-chapter.open>.toc-chapter-items{display:block}
     .toc-dar,.toc-item{padding:7px 14px;color:var(--text-dim);cursor:pointer;font-size:12px;border-radius:6px;margin:2px 4px}
@@ -388,25 +397,66 @@
     @media(min-width:768px){
       .book-toc-panel{max-height:70vh}
     }
+  
+    /* === Glass Cards === */
+    .profile-section{background:var(--surface-glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border-bright);transition:all .3s}
+    .profile-section:hover{border-color:rgba(212,175,55,0.4)}
+    .result-card{background:var(--surface-glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border-bright);box-shadow:0 0 30px rgba(212,175,55,0.1)}
+    .field-folder{background:var(--surface-glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+    .dar-card{background:var(--surface-glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+    .dar-inner-content{background:var(--surface-glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+    .treasury-card{background:var(--surface-glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    .accordion-item{border:1px solid var(--border-bright);overflow:hidden}
+    .accordion-header:hover{background:rgba(212,175,55,0.08)}
+    .accordion-header.open{background:rgba(212,175,55,0.12)}
+
+    /* === Micro-animations === */
+    .nav-btn{transition:all .25s cubic-bezier(0.4,0,0.2,1)}
+    .nav-btn:active{transform:scale(0.92)}
+    .nav-btn.active .nav-icon svg{filter:drop-shadow(0 0 6px rgba(212,175,55,0.6))}
+    .profile-section{transition:all .3s ease}
+    .field-folder:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(212,175,55,0.15)}
+    .dar-card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(212,175,55,0.15)}
+    .treasury-unlocked:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(212,175,55,0.2)}
+    .btn:hover:not(:disabled){transform:translateY(-2px)}
+    .btn:active:not(:disabled){transform:translateY(0) scale(0.98)}
+    #crystal-counter{transition:all .3s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    #btn-profile{transition:all .3s cubic-bezier(0.4,0,0.2,1)}
+    #btn-profile:hover{transform:scale(1.1);box-shadow:0 0 20px rgba(212,175,55,0.5)}
+    header h1{background:linear-gradient(135deg,#E8C84A,#D4AF37,#9A7B1A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;font-size:16px;letter-spacing:4px}
+
+    /* === Glow effects === */
+    .btn-primary,.btn-secondary{position:relative;overflow:hidden}
+    .btn-primary::after,.btn-secondary::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.2),transparent 60%);opacity:0;transition:opacity .3s}
+    .btn-primary:hover::after,.btn-secondary:hover::after{opacity:1}
+    .nav-btn.active{box-shadow:0 0 12px rgba(212,175,55,0.2) inset}
+    .date-input{transition:border-color .3s,box-shadow .3s,transform .2s}
+    .date-input:focus{transform:scale(1.01)}
+    @keyframes goldPulse{0%,100%{box-shadow:0 0 8px rgba(212,175,55,0.2)}50%{box-shadow:0 0 20px rgba(212,175,55,0.4)}}
+    .treasury-own{animation:goldPulse 3s ease-in-out infinite}
   </style>
 </head>
 <body>
-  <div class="stars"></div>
+  <div class="aurora">
+    <div class="aurora-blob"></div>
+    <div class="aurora-blob"></div>
+    <div class="aurora-blob"></div>
+  </div>
   <button id="btn-profile" onclick="openProfile()"></button>
-  <div id="crystal-counter">&#128142; <span id="crystal-count">0</span></div>
+  <div id="crystal-counter"><svg width="16" height="16" viewBox="0 0 24 24" fill="#D4AF37" stroke="none"><path d="M6 3h12l4 6-10 13L2 9z"/></svg> <span id="crystal-count">0</span></div>
   <header><h1>YupDar</h1></header>
 
   <!-- Панель личного кабинета -->
   <div id="profile-overlay" onclick="closeProfile()"></div>
   <div id="profile-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-size:14px;color:var(--text);letter-spacing:2px">ЛИЧНЫЙ КАБИНЕТ</div>
+      <div style="font-size:13px;color:var(--text);letter-spacing:1px">Личный кабинет</div>
       <button onclick="closeProfile()" style="background:none;border:none;color:var(--text-dim);font-size:22px;cursor:pointer;padding:4px">&#10005;</button>
     </div>
 
     <!-- Аватар + Имя -->
     <div style="text-align:center;margin-bottom:20px">
-      <div id="profile-avatar-big" style="width:80px;height:80px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(135deg,#6b21a8,#D4AF37);border:3px solid rgba(212,175,55,0.5);display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;font-family:Georgia,serif;overflow:hidden;cursor:pointer;position:relative" onclick="document.getElementById('avatar-upload').click()">
+      <div id="profile-avatar-big" style="width:80px;height:80px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);border:3px solid rgba(212,175,55,0.5);display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;font-family:Manrope,sans-serif;overflow:hidden;cursor:pointer;position:relative" onclick="document.getElementById('avatar-upload').click()">
       </div>
       <input type="file" id="avatar-upload" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
       <div style="font-size:10px;color:var(--text-muted);margin-top:4px;cursor:pointer" onclick="document.getElementById('avatar-upload').click()">Нажми на аватар, чтобы загрузить фото</div>
@@ -416,13 +466,13 @@
 
     <!-- Мой Дар -->
     <div class="profile-section" id="profile-dar-section">
-      <div class="profile-section-title">МОЙ ДАР</div>
+      <div class="profile-section-title">Мой дар</div>
       <div id="profile-dar-content" style="text-align:center;color:var(--text-muted)">Рассчитай свой дар</div>
     </div>
 
     <!-- Прогресс -->
     <div class="profile-section">
-      <div class="profile-section-title">ПРОГРЕСС</div>
+      <div class="profile-section-title">Прогресс</div>
       <div style="display:flex;justify-content:space-around;text-align:center">
         <div>
           <div id="profile-crystals" style="font-size:20px;color:#D4AF37">0</div>
@@ -433,7 +483,7 @@
           <div style="font-size:10px;color:var(--text-muted)">Дней подряд</div>
         </div>
         <div>
-          <div id="profile-collection" style="font-size:20px;color:#c4a0f0">0/64</div>
+          <div id="profile-collection" style="font-size:20px;color:#D4AF37">0/64</div>
           <div style="font-size:10px;color:var(--text-muted)">Коллекция</div>
         </div>
       </div>
@@ -441,46 +491,46 @@
 
     <!-- Уровень доступа -->
     <div class="profile-section">
-      <div class="profile-section-title">УРОВЕНЬ ДОСТУПА</div>
+      <div class="profile-section-title">Уровень доступа</div>
       <div id="profile-level-info"></div>
       <div id="profile-promo-section" style="margin-top:10px">
         <div id="profile-promo-input-wrap" style="display:none">
-          <input id="profile-promo-input" type="text" placeholder="Введи промо-код" style="width:100%;padding:10px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;text-align:center;outline:none;font-family:Georgia,serif;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">
+          <input id="profile-promo-input" type="text" placeholder="Введи промо-код" style="width:100%;padding:10px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;text-align:center;outline:none;font-family:Manrope,sans-serif;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">
           <div id="profile-promo-status" style="font-size:12px;text-align:center;min-height:16px"></div>
-          <button onclick="submitProfilePromo()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#6b21a8,#3b0764);color:var(--text);font-size:13px;cursor:pointer;font-family:Georgia,serif;margin-top:4px">Активировать</button>
+          <button onclick="submitProfilePromo()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-top:4px">Активировать</button>
         </div>
-        <button id="profile-promo-btn" onclick="togglePromoInput()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">&#127380; Ввести промо-код</button>
+        <button id="profile-promo-btn" onclick="togglePromoInput()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Ввести промо-код</button>
       </div>
     </div>
 
     <!-- Мои данные -->
     <div class="profile-section">
-      <div class="profile-section-title">МОИ ДАННЫЕ</div>
+      <div class="profile-section-title">Мои данные</div>
       <div id="profile-data-block">
         <div style="font-size:12px;color:var(--text-dim);text-align:center;padding:6px 0 10px">Данные не заполнены</div>
       </div>
-      <button onclick="openProfileSetup(false)" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">&#9998; Заполнить / изменить</button>
+      <button onclick="openProfileSetup(false)" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#9998; Заполнить / изменить</button>
     </div>
 
     <!-- Имя в рейтинге -->
     <div class="profile-section">
-      <div class="profile-section-title">&#127942; ИМЯ В РЕЙТИНГЕ</div>
+      <div class="profile-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 7"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 7 17 7"/><path d="M4 22h16"/><path d="M10 22V9"/><path d="M14 22V9"/><path d="M8 9h8l-1 13H9L8 9z"/></svg> Имя в рейтинге</div>
       <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">Как твоё имя будет отображаться в таблицах магов.</div>
       <div id="leaderboard-name-options" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
         <!-- Заполняется JS через renderLeaderboardNameBlock() -->
       </div>
       <div id="leaderboard-name-custom-wrap" style="display:none;margin-bottom:10px">
         <input id="leaderboard-custom-input" type="text" maxlength="30" placeholder="Например: Маг Огня"
-          style="width:100%;padding:10px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Georgia,serif;font-size:14px;outline:none"/>
+          style="width:100%;padding:10px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;outline:none"/>
         <div style="font-size:10px;color:var(--text-muted);margin-top:4px;text-align:right">от 2 до 30 символов</div>
       </div>
       <div id="leaderboard-name-status" style="font-size:11px;text-align:center;min-height:14px;margin-bottom:6px"></div>
-      <button onclick="saveLeaderboardName()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">&#10003; Сохранить</button>
+      <button onclick="saveLeaderboardName()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#10003; Сохранить</button>
     </div>
 
     <!-- Зал Славы -->
     <div class="profile-section" id="hall-of-fame-section">
-      <div class="profile-section-title">&#11088; ЗАЛ СЛАВЫ</div>
+      <div class="profile-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" style="vertical-align:-2px;margin-right:4px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Зал славы</div>
       <div id="hall-of-fame-content">
         <div style="font-size:12px;color:var(--text-dim);text-align:center;padding:10px 0;font-style:italic">Пока нет титулов. Играй в тренажёре интуиции и стань Магом Дня, Недели или Месяца!</div>
       </div>
@@ -488,7 +538,7 @@
 
     <!-- Моя семья и близкие -->
     <div class="profile-section">
-      <div class="profile-section-title">&#128106; МОЯ СЕМЬЯ И БЛИЗКИЕ</div>
+      <div class="profile-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Моя семья и близкие</div>
       <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">
         Добавь близких тебе людей: членов семьи, друзей, партнёров. Для каждого можно рассчитать его дар и (скоро) получать персональные послания Оракула.
       </div>
@@ -503,26 +553,26 @@
 
     <!-- Мои друзья -->
     <div class="profile-section">
-      <div class="profile-section-title">МОИ ДРУЗЬЯ</div>
+      <div class="profile-section-title">Мои друзья</div>
       <div id="profile-friends-list"><div style="color:var(--text-muted);font-size:13px;text-align:center;padding:8px">Пригласи друзей по реферальной ссылке!</div></div>
     </div>
 
     <!-- Реферальная ссылка -->
     <div class="profile-section">
-      <div class="profile-section-title">ПРИГЛАСИТЬ ДРУГА</div>
+      <div class="profile-section-title">Пригласить друга</div>
       <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px">Если дар друга новый для твоей коллекции, он откроется в Сокровищнице. Если уже есть, получишь кристаллы мудрости.</div>
       <div id="referral-link-preview" style="display:none;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:var(--text-dim);word-break:break-all"></div>
       <div style="display:flex;gap:6px">
-        <button onclick="profileShareLink()" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;font-size:13px;cursor:pointer;font-family:Georgia,serif">&#128233; Отправить другу</button>
-        <button onclick="profileCopyLink()" style="padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif" title="Скопировать ссылку">&#128203;</button>
+        <button onclick="profileShareLink()" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Отправить другу</button>
+        <button onclick="profileCopyLink()" style="padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif" title="Скопировать ссылку"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       </div>
       <div id="referral-stats" style="margin-top:10px;font-size:11px;color:var(--text-muted);text-align:center;display:none"></div>
     </div>
 
     <!-- Чат беты -->
-    <div class="profile-section" style="cursor:pointer;background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(107,33,168,0.15));border:1px solid rgba(212,175,55,0.35)" onclick="openBetaChat()">
+    <div class="profile-section" style="cursor:pointer;background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.35)" onclick="openBetaChat()">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="font-size:20px">&#128172;</div>
+        <div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
         <div>
           <div style="font-size:14px;color:#D4AF37">Чат беты</div>
           <div style="font-size:11px;color:var(--text-dim)">Общение с командой и другими тестерами</div>
@@ -534,7 +584,7 @@
     <!-- Обратная связь -->
     <div class="profile-section" style="cursor:pointer" onclick="closeProfile();setTimeout(openFeedback,300)">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="font-size:20px">&#128221;</div>
+        <div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
         <div>
           <div style="font-size:14px;color:var(--text)">Форма обратной связи</div>
           <div style="font-size:11px;color:var(--text-dim)">Баги, идеи, вопросы</div>
@@ -544,9 +594,9 @@
     </div>
 
     <!-- Админ: Фидбэк тестеров (виден только админу) -->
-    <div class="profile-section" id="profile-admin-feedback" style="display:none;cursor:pointer;background:linear-gradient(135deg,rgba(244,81,30,0.12),rgba(107,33,168,0.15));border:1px solid rgba(244,81,30,0.35)" onclick="openAdminFeedback()">
+    <div class="profile-section" id="profile-admin-feedback" style="display:none;cursor:pointer;background:linear-gradient(135deg,rgba(244,81,30,0.12),rgba(212,175,55,0.1));border:1px solid rgba(244,81,30,0.35)" onclick="openAdminFeedback()">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="font-size:20px">&#128225;</div>
+        <div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F4511E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
         <div>
           <div style="font-size:14px;color:#F4511E">Админ: Фидбэк тестеров</div>
           <div style="font-size:11px;color:var(--text-dim)">Все сообщения обратной связи <span id="admin-feedback-badge" style="display:none;background:#F4511E;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px"></span></div>
@@ -566,9 +616,40 @@
       <div class="main-container">
       <div id="screen-input" class="input-screen">
         <div class="logo"></div>
-        <h2>УЗНАЙ СВОЙ ДАР</h2>
+        <h2>Узнай свой дар</h2>
         <p>Введи дату рождения  и получи послание о своей природе, силе и пути</p>
-        <input class="date-input" id="dateInput" type="text" placeholder="ДД.ММ.ГГГГ" maxlength="10" inputmode="numeric"/>
+        <input type="hidden" id="dateInput"/>
+        <div class="date-fields" id="dateFields">
+          <div class="date-field-group">
+            <input class="date-field" id="df-day" type="text" inputmode="numeric" maxlength="2" placeholder="ДД" autocomplete="off"
+              oninput="this.value=this.value.replace(/\D/g,'').slice(0,2);this.classList.toggle('filled',this.value.length>0);window._dfSync();if(this.value.length===2)document.getElementById('df-month').focus()"/>
+            <span class="date-dot">.</span>
+            <input class="date-field" id="df-month" type="text" inputmode="numeric" maxlength="2" placeholder="ММ" autocomplete="off"
+              oninput="this.value=this.value.replace(/\D/g,'').slice(0,2);this.classList.toggle('filled',this.value.length>0);window._dfSync();if(this.value.length===2)document.getElementById('df-year').focus()"
+              onkeydown="if(event.key==='Backspace'&&this.value==='')document.getElementById('df-day').focus()"/>
+            <span class="date-dot">.</span>
+            <input class="date-field df-year" id="df-year" type="text" inputmode="numeric" maxlength="4" placeholder="ГГГГ" autocomplete="off"
+              oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);this.classList.toggle('filled',this.value.length>0);window._dfSync()"
+              onkeydown="if(event.key==='Backspace'&&this.value==='')document.getElementById('df-month').focus()"/>
+          </div>
+        </div>
+        <script>
+          window._dfSync=function(){
+            var d=document.getElementById('df-day').value.padStart(2,'0');
+            var m=document.getElementById('df-month').value.padStart(2,'0');
+            var y=document.getElementById('df-year').value;
+            document.getElementById('dateInput').value=(d!=='00'&&m!=='00'&&y.length===4)?d+'.'+m+'.'+y:'';
+            var e=document.getElementById('errorMsg');if(e)e.textContent='';
+          };
+          window._syncDateFieldsFromHidden=function(){
+            var v=document.getElementById('dateInput').value;
+            if(v&&v.includes('.')){var p=v.split('.');
+              var a=document.getElementById('df-day'),b=document.getElementById('df-month'),c=document.getElementById('df-year');
+              a.value=p[0]||'';b.value=p[1]||'';c.value=p[2]||'';
+              a.classList.toggle('filled',a.value.length>0);b.classList.toggle('filled',b.value.length>0);c.classList.toggle('filled',c.value.length>0);
+            }
+          };
+        </script>
         <div class="error-msg" id="errorMsg"></div>
         <button class="btn btn-primary" onclick="calculate()"> Рассчитать мой дар</button>
       </div>
@@ -583,13 +664,13 @@
           <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()"> Изменить дату</button>
         </div>
         <!-- Призыв к книге -->
-        <div id="book-cta" style="display:none;margin-top:14px;padding:16px;background:linear-gradient(135deg,rgba(107,33,168,0.15),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:16px;text-align:center;cursor:pointer" onclick="switchNav('book')">
-          <div style="font-size:15px;color:#D4AF37;margin-bottom:6px">&#128214; Читай о своём даре в Книге Даров</div>
+        <div id="book-cta" style="display:none;margin-top:14px;padding:16px;background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:16px;text-align:center;cursor:pointer" onclick="switchNav('book')">
+          <div style="font-size:15px;color:#D4AF37;margin-bottom:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Читай о своём даре в Книге Даров</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Полное описание, практики, медитации и техники безопасности для каждого дара</div>
         </div>
         <!-- Карточка для шейринга -->
-        <div id="share-card-cta" style="display:none;margin-top:14px;padding:14px;background:rgba(180,120,255,0.08);border:1px solid rgba(180,120,255,0.3);border-radius:16px;text-align:center;cursor:pointer" onclick="shareMyDar()">
-          <div style="font-size:15px;color:#c4a0f0;margin-bottom:4px">&#127912; Создать карточку для соцсетей</div>
+        <div id="share-card-cta" style="display:none;margin-top:14px;padding:14px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:16px;text-align:center;cursor:pointer" onclick="shareMyDar()">
+          <div style="font-size:15px;color:#D4AF37;margin-bottom:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Создать карточку для соцсетей</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Красивая картинка с твоим даром для Instagram, VK, Telegram</div>
         </div>
         <div id="share-section" style="display:none"></div>
@@ -598,7 +679,7 @@
           <button class="btn btn-ghost" onclick="hideDescription()" style="margin-top:12px"> Скрыть описание</button>
           <!-- Призыв к книге после описания -->
           <div style="margin-top:14px;padding:14px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
-            <div style="font-size:13px;color:#D4AF37">&#128218; Хочешь глубже? В Книге Даров — полное описание всех 64 даров</div>
+            <div style="font-size:13px;color:#D4AF37"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Хочешь глубже? В Книге Даров — полное описание всех 64 даров</div>
           </div>
         </div>
       </div>
@@ -607,9 +688,9 @@
         <div style="font-size:14px;color:var(--text);letter-spacing:2px;text-align:center;margin-bottom:12px">ЕЖЕДНЕВНЫЕ АКТИВНОСТИ</div>
 
         <!-- Дневник Дара -->
-        <div id="diary-widget" style="background:linear-gradient(135deg,rgba(107,33,168,0.15),rgba(212,175,55,0.08));border:1px solid rgba(180,120,255,0.3);border-radius:14px;padding:14px;margin-bottom:12px">
+        <div id="diary-widget" style="background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.08));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:14px;margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div style="font-size:24px">&#128147;</div>
+            <div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
             <div style="flex:1">
               <div style="font-size:14px;color:var(--text)">Дневник Дара</div>
               <div id="diary-status" style="font-size:12px;color:var(--text-dim)">Как ты себя сейчас чувствуешь?</div>
@@ -627,7 +708,7 @@
             <button onclick="saveDiaryMood('fatigue')" class="diary-mood-btn" data-mood="fatigue">😴 Усталость</button>
           </div>
           <div id="diary-insight-btn" style="display:none;margin-top:10px;text-align:center">
-            <button onclick="getDiaryInsight()" style="padding:8px 16px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128302; Получить инсайт от AI</button>
+            <button onclick="getDiaryInsight()" style="padding:8px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Получить инсайт от AI</button>
           </div>
           <div id="diary-insight-result" style="display:none;margin-top:10px;padding:12px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:10px;font-size:13px;color:var(--text);line-height:1.7"></div>
         </div>
@@ -635,7 +716,7 @@
         <!-- Оракул -->
         <div id="daily-dar-block" style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="DailyDar.open()">
           <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-size:24px">&#128302;</div>
+            <div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></div>
             <div>
               <div style="font-size:14px;color:var(--text)">Оракул</div>
               <div id="daily-dar-name" style="font-size:12px;color:#D4AF37">Загрузка...</div>
@@ -647,7 +728,7 @@
         <!-- Тренажёр интуиции — теперь ведёт на вкладку Игры -->
         <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="switchNav('games')">
           <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-size:24px">&#127183;</div>
+            <div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="14" height="20" rx="2"/><rect x="7" y="4" width="14" height="20" rx="2" fill="rgba(212,175,55,0.1)"/></svg></div>
             <div>
               <div style="font-size:14px;color:var(--text)">Тренажёр интуиции</div>
               <div style="font-size:12px;color:var(--text-dim)">Угадай дар и развивай чутьё</div>
@@ -659,7 +740,7 @@
         <!-- Обратная связь -->
         <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="openFeedback()">
           <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-size:24px">&#128172;</div>
+            <div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
             <div>
               <div style="font-size:14px;color:var(--text)">Обратная связь</div>
               <div style="font-size:12px;color:var(--text-dim)">Нашёл баг? Есть идея? Напиши!</div>
@@ -682,7 +763,7 @@
     <div class="tab" id="tab-treasury">
       <div id="treasury-content">
         <div style="text-align:center;padding-top:40px">
-          <div style="font-size:48px;margin-bottom:16px">&#128142;</div>
+          <div style="margin-bottom:16px"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 6h6"/><path d="M7 9l2-6"/><path d="M2 9h20"/></svg></div>
           <div class="stub-title">Сокровищница</div>
           <div class="stub-text">Рассчитайте свой дар, чтобы начать коллекцию из 64 даров!</div>
         </div>
@@ -693,15 +774,15 @@
         <!-- Хаб выбора игры -->
         <div id="games-hub">
           <div style="text-align:center;padding:20px 16px 14px">
-            <div style="font-size:28px;margin-bottom:6px">&#127918;</div>
+            <div style="margin-bottom:6px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg></div>
             <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">ИГРЫ</div>
             <div style="font-size:12px;color:var(--text-dim)">Выбери игру и развивай интуицию</div>
           </div>
           <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:10px">
 
             <!-- Интуитивная магия -->
-            <div onclick="openGameMode('intuition')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.4);border-radius:16px;cursor:pointer;transition:all 0.15s">
-              <div style="font-size:36px;flex-shrink:0">&#128302;</div>
+            <div onclick="openGameMode('intuition')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.4);border-radius:16px;cursor:pointer;transition:all 0.15s">
+              <div style="flex-shrink:0"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9 9H2l6 4.5L5.5 21 12 16.5 18.5 21 16 13.5 22 9h-7z"/></svg></div>
               <div style="flex:1;min-width:0">
                 <div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:4px">Интуитивная магия</div>
                 <div style="font-size:11px;color:var(--text-dim);line-height:1.5">Угадай дар среди карт. Классика, мультипоиск, соло или батл с AI-дракончиком Юпиком</div>
@@ -710,8 +791,8 @@
             </div>
 
             <!-- Легенды Атлантиды -->
-            <div onclick="openGameMode('atlantis')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(107,33,168,0.08));border:1px solid rgba(46,204,113,0.3);border-radius:16px;cursor:pointer;transition:all 0.15s">
-              <div style="font-size:36px;flex-shrink:0">&#127183;</div>
+            <div onclick="openGameMode('atlantis')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(212,175,55,0.06));border:1px solid rgba(46,204,113,0.3);border-radius:16px;cursor:pointer;transition:all 0.15s">
+              <div style="flex-shrink:0"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="14" height="20" rx="2"/><rect x="7" y="4" width="14" height="20" rx="2" fill="rgba(212,175,55,0.1)"/><line x1="10" y1="9" x2="18" y2="9"/><line x1="10" y1="13" x2="18" y2="13"/></svg></div>
               <div style="flex:1;min-width:0">
                 <div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:4px">Легенды Атлантиды</div>
                 <div style="font-size:11px;color:var(--text-dim);line-height:1.5">Карточные стратегии с Юпиками: Охотник, Парная охота, Рискованная ставка</div>
@@ -720,8 +801,8 @@
             </div>
 
             <!-- Батлы с друзьями -->
-            <div onclick="openGameMode('pvp')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(180,120,255,0.08));border:1px solid rgba(180,120,255,0.3);border-radius:16px;cursor:pointer;transition:all 0.15s">
-              <div style="font-size:36px;flex-shrink:0">&#9876;</div>
+            <div onclick="openGameMode('pvp')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:16px;cursor:pointer;transition:all 0.15s">
+              <div style="flex-shrink:0"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 7l4 4"/><path d="M9.5 17.5L21 6V3h-3L6.5 14.5"/></svg></div>
               <div style="flex:1;min-width:0">
                 <div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:4px">Батлы с друзьями</div>
                 <div style="font-size:11px;color:var(--text-dim);line-height:1.5">Отправь вызов другу, сразись в реальном времени и попади в Зал Славы</div>
@@ -742,7 +823,7 @@
     <div class="tab" id="tab-book">
       <div id="book-content">
         <div style="text-align:center;padding-top:40px">
-          <div style="font-size:48px;margin-bottom:16px">&#128214;</div>
+          <div style="margin-bottom:16px"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div>
           <div class="stub-title">Книга Даров</div>
           <div class="stub-text">Загрузка...</div>
         </div>
@@ -787,32 +868,32 @@
 
       <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Категория:</div>
       <div id="feedback-categories" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
-        <button class="fb-cat active" data-cat="bug" onclick="selectFeedbackCat('bug')">&#128027; Баг</button>
-        <button class="fb-cat" data-cat="idea" onclick="selectFeedbackCat('idea')">&#128161; Идея</button>
-        <button class="fb-cat" data-cat="question" onclick="selectFeedbackCat('question')">&#10067; Вопрос</button>
-        <button class="fb-cat" data-cat="other" onclick="selectFeedbackCat('other')">&#128172; Другое</button>
+        <button class="fb-cat active" data-cat="bug" onclick="selectFeedbackCat('bug')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Баг</button>
+        <button class="fb-cat" data-cat="idea" onclick="selectFeedbackCat('idea')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg> Идея</button>
+        <button class="fb-cat" data-cat="question" onclick="selectFeedbackCat('question')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Вопрос</button>
+        <button class="fb-cat" data-cat="other" onclick="selectFeedbackCat('other')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Другое</button>
       </div>
 
-      <textarea id="feedback-text" placeholder="Опиши проблему или предложение..." style="width:100%;min-height:120px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Georgia,serif;resize:vertical;outline:none;line-height:1.5"></textarea>
+      <textarea id="feedback-text" placeholder="Опиши проблему или предложение..." style="width:100%;min-height:120px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5"></textarea>
 
       <div id="feedback-status" style="min-height:20px;margin-top:8px;font-size:12px;text-align:center"></div>
 
-      <button id="feedback-send-btn" onclick="sendFeedback()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6b21a8,#3b0764);color:var(--text);font-size:15px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px;margin-top:12px;transition:all .25s">Отправить</button>
+      <button id="feedback-send-btn" onclick="sendFeedback()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;margin-top:12px;transition:all .25s">Отправить</button>
     </div>
   </div>
 
   <style>
-    .fb-cat{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
-    .fb-cat.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
-    .fb-cat:hover{border-color:rgba(180,120,255,0.4)}
-    .diary-mood-btn{padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:11px;cursor:pointer;font-family:Georgia,serif;transition:all .15s}
-    .diary-mood-btn:hover{border-color:rgba(180,120,255,0.4);background:rgba(107,33,168,0.12)}
-    .diary-mood-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .fb-cat{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;transition:all .2s}
+    .fb-cat.active{background:rgba(212,175,55,0.2);border-color:rgba(212,175,55,0.5);color:var(--text)}
+    .fb-cat:hover{border-color:rgba(212,175,55,0.3)}
+    .diary-mood-btn{padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:11px;cursor:pointer;font-family:Manrope,sans-serif;transition:all .15s}
+    .diary-mood-btn:hover{border-color:rgba(212,175,55,0.3);background:rgba(212,175,55,0.08)}
+    .diary-mood-btn.active{background:rgba(212,175,55,0.2);border-color:rgba(212,175,55,0.5);color:var(--text)}
     .diary-mood-btn.saved{background:rgba(46,204,113,0.2);border-color:rgba(46,204,113,0.5);color:#2ecc71;pointer-events:none}
-    .rel-input{width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Georgia,serif;outline:none;margin-bottom:10px;box-sizing:border-box}
-    .rel-input:focus{border-color:rgba(180,120,255,0.6)}
-    .rel-rel-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif;transition:all .15s}
-    .rel-rel-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .rel-input{width:100%;padding:12px;background:#111111 !important;border:1px solid var(--border);border-radius:10px;color:var(--text) !important;font-size:14px;font-family:Manrope,sans-serif;outline:none;margin-bottom:10px;box-sizing:border-box;-webkit-appearance:none;appearance:none;color-scheme:dark}
+    .rel-input:focus{border-color:rgba(212,175,55,0.5)}
+    .rel-rel-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;transition:all .15s}
+    .rel-rel-btn.active{background:rgba(212,175,55,0.2);border-color:rgba(212,175,55,0.5);color:var(--text)}
     .rel-card{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;margin-bottom:8px}
   </style>
 
@@ -822,7 +903,7 @@
       <!-- Крупный крестик закрытия (отдельный, не перекрывается заголовком) -->
       <button onclick="closeAddRelative()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
       <div style="margin-bottom:14px">
-        <div style="font-size:15px;color:var(--text);letter-spacing:1.5px;text-align:center">&#128106; ДОБАВИТЬ БЛИЗКОГО</div>
+        <div style="font-size:15px;color:var(--text);letter-spacing:1.5px;text-align:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> ДОБАВИТЬ БЛИЗКОГО</div>
       </div>
 
       <div style="background:rgba(244,81,30,0.1);border:1px solid rgba(244,81,30,0.4);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#fbbf24;line-height:1.5">
@@ -863,45 +944,45 @@
 
       <div id="rel-add-status" style="min-height:18px;margin-bottom:8px;font-size:12px;text-align:center"></div>
 
-      <button id="rel-save-btn" onclick="saveRelative()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px;font-weight:bold">&#10003; Сохранить</button>
+      <button id="rel-save-btn" onclick="saveRelative()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;font-weight:bold">&#10003; Сохранить</button>
     </div>
   </div>
 
   <!-- Админ: Модалка со списком фидбэка -->
   <div id="admin-feedback-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);padding:16px;overflow-y:auto">
-    <div style="max-width:640px;margin:0 auto;background:linear-gradient(180deg,#1a0533,#0d0221);border:1px solid rgba(244,81,30,0.35);border-radius:16px;padding:20px">
+    <div style="max-width:640px;margin:0 auto;background:linear-gradient(180deg,#0d0d0d,#080808);border:1px solid rgba(244,81,30,0.35);border-radius:16px;padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
         <div>
-          <div style="font-size:18px;color:#F4511E;letter-spacing:2px">&#128225; ФИДБЭК ТЕСТЕРОВ</div>
+          <div style="font-size:18px;color:#F4511E;letter-spacing:2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F4511E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> ФИДБЭК ТЕСТЕРОВ</div>
           <div id="admin-feedback-count" style="font-size:12px;color:var(--text-dim);margin-top:4px"></div>
         </div>
         <button onclick="closeAdminFeedback()" style="background:none;border:none;color:var(--text-dim);font-size:24px;cursor:pointer;padding:4px">&#10005;</button>
       </div>
       <div id="admin-feedback-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
         <button class="adm-fb-filter active" data-cat="all" onclick="filterAdminFeedback('all')">Все</button>
-        <button class="adm-fb-filter" data-cat="bug" onclick="filterAdminFeedback('bug')">&#128027; Баги</button>
-        <button class="adm-fb-filter" data-cat="idea" onclick="filterAdminFeedback('idea')">&#128161; Идеи</button>
-        <button class="adm-fb-filter" data-cat="question" onclick="filterAdminFeedback('question')">&#10067; Вопросы</button>
-        <button class="adm-fb-filter" data-cat="other" onclick="filterAdminFeedback('other')">&#128172; Другое</button>
+        <button class="adm-fb-filter" data-cat="bug" onclick="filterAdminFeedback('bug')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Баги</button>
+        <button class="adm-fb-filter" data-cat="idea" onclick="filterAdminFeedback('idea')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg> Идеи</button>
+        <button class="adm-fb-filter" data-cat="question" onclick="filterAdminFeedback('question')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Вопросы</button>
+        <button class="adm-fb-filter" data-cat="other" onclick="filterAdminFeedback('other')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Другое</button>
       </div>
       <div id="admin-feedback-list"><div style="text-align:center;color:var(--text-dim);padding:40px">Загрузка...</div></div>
     </div>
   </div>
   <style>
-    .adm-fb-filter{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
+    .adm-fb-filter{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;transition:all .2s}
     .adm-fb-filter.active{background:rgba(244,81,30,0.25);border-color:rgba(244,81,30,0.5);color:#F4511E}
     .adm-fb-item{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
     .adm-fb-cat-bug{color:#f87171}
     .adm-fb-cat-idea{color:#fbbf24}
     .adm-fb-cat-question{color:#60a5fa}
-    .adm-fb-cat-other{color:#c4a0f0}
+    .adm-fb-cat-other{color:#D4AF37}
   </style>
 
   <!-- Модалка профиля: имя, фамилия, пол, время и место рождения -->
   <div id="profile-setup-modal" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.88);backdrop-filter:blur(6px);padding:16px;overflow-y:auto">
-    <div style="max-width:480px;margin:20px auto;background:linear-gradient(180deg,#1a0533,#0d0221);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:22px 20px;box-shadow:0 10px 40px rgba(212,175,55,0.15)">
+    <div style="max-width:480px;margin:20px auto;background:linear-gradient(180deg,#0d0d0d,#080808);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:22px 20px;box-shadow:0 10px 40px rgba(212,175,55,0.15)">
       <div style="text-align:center;margin-bottom:18px">
-        <div style="font-size:32px;margin-bottom:8px">&#10024;</div>
+        <div style="margin-bottom:8px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
         <div style="font-size:18px;color:#D4AF37;letter-spacing:2px;margin-bottom:10px">ТВОЙ ПУТЬ НАЧИНАЕТСЯ</div>
         <div id="profile-setup-intro" style="font-size:13px;color:var(--text-dim);line-height:1.6"></div>
       </div>
@@ -929,7 +1010,7 @@
       <div style="margin-bottom:16px;position:relative">
         <div class="psu-label">Место рождения (город)</div>
         <input id="psu-birth-place" type="text" placeholder="Начни вводить город..." class="psu-input" maxlength="100" autocomplete="off" oninput="psuSearchCity(this.value)" onblur="setTimeout(()=>document.getElementById('psu-city-suggest').style.display='none',200)">
-        <div id="psu-city-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:10;background:#1a0533;border:1px solid rgba(212,175,55,0.3);border-top:none;border-radius:0 0 12px 12px;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.5)"></div>
+        <div id="psu-city-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:10;background:#0d0d0d;border:1px solid rgba(212,175,55,0.3);border-top:none;border-radius:0 0 12px 12px;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.5)"></div>
         <div id="psu-city-coords" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
       </div>
 
@@ -941,27 +1022,27 @@
 
       <div id="psu-status" style="min-height:20px;font-size:12px;text-align:center;color:#f87171;margin-bottom:8px"></div>
 
-      <button id="psu-save-btn" onclick="psuSave()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px;font-weight:bold;box-shadow:0 0 15px rgba(212,175,55,0.3)">Сохранить и продолжить</button>
-      <button id="psu-later-btn" onclick="psuSkip()" style="width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">Заполнить позже</button>
-      <button id="psu-debug-btn" onclick="psuSendDebugLog()" style="display:none;width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.05);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128203; Прислать лог разработчику</button>
+      <button id="psu-save-btn" onclick="psuSave()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;font-weight:bold;box-shadow:0 0 15px rgba(212,175,55,0.3)">Сохранить и продолжить</button>
+      <button id="psu-later-btn" onclick="psuSkip()" style="width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">Заполнить позже</button>
+      <button id="psu-debug-btn" onclick="psuSendDebugLog()" style="display:none;width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.05);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif">&#128203; Прислать лог разработчику</button>
     </div>
   </div>
   <style>
-    .psu-label{font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
-    .psu-input{width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-family:Georgia,serif;outline:none;transition:border-color .2s}
-    .psu-input:focus{border-color:rgba(212,175,55,0.6)}
+    .psu-label{font-size:11px;color:#D4AF37;letter-spacing:1px;text-transform:none;margin-bottom:6px;font-weight:600}
+    .psu-input{width:100%;padding:14px;background:#111111 !important;border:1px solid rgba(255,255,255,0.08);border-radius:14px;color:var(--text) !important;font-size:15px;font-family:Manrope,sans-serif;outline:none;transition:all .3s;-webkit-appearance:none;appearance:none;color-scheme:dark}
+    .psu-input:focus{border-color:rgba(212,175,55,0.5);box-shadow:0 0 0 3px rgba(212,175,55,0.12),0 0 16px rgba(212,175,55,0.1)}
     .psu-input::placeholder{color:var(--text-muted)}
-    .psu-gender{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:14px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
-    .psu-gender.active{background:linear-gradient(135deg,rgba(107,33,168,0.35),rgba(212,175,55,0.2));border-color:rgba(212,175,55,0.6);color:var(--text);font-weight:bold}
-    .psu-gender:hover{border-color:rgba(180,120,255,0.4)}
+    .psu-gender{flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:var(--text-dim);font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;transition:all .25s}
+    .psu-gender.active{background:linear-gradient(160deg,rgba(212,175,55,0.12),rgba(154,123,26,0.06));border-color:rgba(212,175,55,0.5);color:#D4AF37;font-weight:700;box-shadow:0 0 12px rgba(212,175,55,0.12)}
+    .psu-gender:hover{border-color:rgba(212,175,55,0.25);background:rgba(212,175,55,0.04)}
   </style>
 
   <div class="nav-bar">
-    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon">&#10024;</span><span class="nav-label">Мой Дар</span></button>
-    <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon">&#128142;</span><span class="nav-label">Сокровищн...</span></button>
-    <button class="nav-btn" id="nav-games" onclick="switchNav('games')"><span class="nav-icon">&#127918;</span><span class="nav-label">Игры</span></button>
-    <button class="nav-btn" id="nav-book" onclick="switchNav('book')"><span class="nav-icon">&#128214;</span><span class="nav-label">Книга</span></button>
-    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon">&#128218;</span><span class="nav-label">Энциклоп...</span></button>
+    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="nav-label">Мой Дар</span></button>
+    <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 6h6"/><path d="M7 9l2-6"/><path d="M2 9h20"/></svg></span><span class="nav-label">Сокровищн...</span></button>
+    <button class="nav-btn" id="nav-games" onclick="switchNav('games')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg></span><span class="nav-label">Игры</span></button>
+    <button class="nav-btn" id="nav-book" onclick="switchNav('book')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span class="nav-label">Книга</span></button>
+    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="nav-label">Энциклоп...</span></button>
   </div>
 
   <!-- Игровые модули -->
@@ -1056,9 +1137,9 @@
 
     // === Личный кабинет ===
     const LEVELS = {
-      basic: { name: 'Странник', icon: '&#127758;', css: 'level-basic', desc: 'Свой дар, Оракул 1 раз/день, тренажёр интуиции' },
-      extended: { name: 'Хранитель', icon: '&#128737;', css: 'level-extended', desc: 'Дары друзей (до 5), энциклопедия, Оракул без лимита' },
-      premium: { name: 'Мастер', icon: '&#128081;', css: 'level-premium', desc: 'Безлимитные расчёты, все секции, x2 кристаллы' }
+      basic: { name: 'Странник', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>', css: 'level-basic', desc: 'Свой дар, Оракул 1 раз/день, тренажёр интуиции' },
+      extended: { name: 'Хранитель', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', css: 'level-extended', desc: 'Дары друзей (до 5), энциклопедия, Оракул без лимита' },
+      premium: { name: 'Мастер', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" style="vertical-align:-3px"><path d="M2 4l3 12h14l3-12-5 4-5-6-5 6z"/><rect x="5" y="18" width="14" height="3" rx="1"/></svg>', css: 'level-premium', desc: 'Безлимитные расчёты, все секции, x2 кристаллы' }
     };
 
     let _profileData = { crystals: 0, streak: 0, access_level: 'basic', dars: [] };
@@ -1132,7 +1213,7 @@
               <div style="text-align:left">
                 <div style="font-size:20px;color:var(--text);letter-spacing:2px">${darName}</div>
                 <div style="font-size:12px;color:var(--text-dim)">${gift.code}</div>
-                ${arch ? `<div style="font-size:11px;color:#c4a0f0;font-style:italic;margin-top:2px">${arch}</div>` : ''}
+                ${arch ? `<div style="font-size:11px;color:#D4AF37;font-style:italic;margin-top:2px">${arch}</div>` : ''}
               </div>
             </div>`;
         } catch(e) {}
@@ -1147,9 +1228,9 @@
         <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${lv.desc}</div>
         ${level !== 'premium' ? `
           <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
-            ${level === 'basic' ? `<button onclick="buyBookAccess()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:12px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">&#11088; Полный доступ — 500 ⭐ (~$10)</button>` : ''}
-            <button onclick="openDonationModal()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif">💜 Поддержать проект</button>
-          </div>` : `<button onclick="openDonationModal()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif;margin-top:8px">💜 Поддержать проект</button>`}`;
+            ${level === 'basic' ? `<button onclick="buyBookAccess()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11088; Полный доступ — 500 ⭐ (~$10)</button>` : ''}
+            <button onclick="openDonationModal()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif">💜 Поддержать проект</button>
+          </div>` : `<button onclick="openDonationModal()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif;margin-top:8px">💜 Поддержать проект</button>`}`;
 
       // Прогресс из localStorage
       const crystals = parseInt(localStorage.getItem('_crystals_' + USER_ID) || '0');
@@ -1491,8 +1572,8 @@
         const toast = document.createElement('div');
         const bg = type === 'error' ? 'linear-gradient(135deg,#9c1f3b,#7a0f26)' :
                    type === 'success' ? 'linear-gradient(135deg,#107c3a,#0b5a29)' :
-                   'linear-gradient(135deg,#6b21a8,#D4AF37)';
-        toast.style.cssText = 'background:' + bg + ';color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;font-family:Georgia,serif;box-shadow:0 8px 24px rgba(0,0,0,0.4);opacity:0;transform:translateY(-10px);transition:all 0.3s ease;pointer-events:auto;max-width:420px;text-align:center;line-height:1.4';
+                   'linear-gradient(135deg,#1a1a1a,#D4AF37)';
+        toast.style.cssText = 'background:' + bg + ';color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;font-family:Manrope,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,0.4);opacity:0;transform:translateY(-10px);transition:all 0.3s ease;pointer-events:auto;max-width:420px;text-align:center;line-height:1.4';
         toast.textContent = text;
         host.appendChild(toast);
         requestAnimationFrame(() => {
@@ -1508,13 +1589,7 @@
     }
     window.showToast = showToast;
 
-    document.getElementById('dateInput').addEventListener('input',function(){
-      let v=this.value.replace(/\D/g,'');
-      if(v.length>2)v=v.slice(0,2)+'.'+v.slice(2);
-      if(v.length>5)v=v.slice(0,5)+'.'+v.slice(5);
-      this.value=v.slice(0,10);
-      document.getElementById('errorMsg').textContent='';
-    });
+    // Логика ввода даты реализована через inline oninput/onkeydown + _dfSync/_syncDateFieldsFromHidden
 
     function showResult(gift){
       const isInt=!!INTEGRATORS[gift.code];
@@ -1647,7 +1722,7 @@
             <img src="images/dars/${rawN}.svg" style="width:50px;height:50px;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px #D4AF37);display:block;margin:0 auto 6px" onerror="this.style.display='none'">
             <div style="font-size:14px;color:var(--text);letter-spacing:1px">${d.name}</div>
             <div style="font-size:10px;color:var(--text-dim)">${d.code}</div>
-            ${d.arch ? `<div style="font-size:9px;color:#c4a0f0;font-style:italic;margin-top:2px">${d.arch}</div>` : ''}
+            ${d.arch ? `<div style="font-size:9px;color:#D4AF37;font-style:italic;margin-top:2px">${d.arch}</div>` : ''}
           </div>`;
       });
 
@@ -1656,12 +1731,12 @@
       modal.id = 'integrator-modal';
       modal.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:16px';
       modal.innerHTML = `
-        <div style="background:linear-gradient(135deg,#0d0221,#1a0533);border:2px solid rgba(212,175,55,0.4);border-radius:20px;padding:24px 16px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;text-align:center">
-          <div style="font-size:40px;margin-bottom:12px">&#10024;</div>
+        <div style="background:linear-gradient(135deg,#0a0a0a,#111111);border:2px solid rgba(212,175,55,0.4);border-radius:20px;padding:24px 16px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;text-align:center">
+          <div style="margin-bottom:12px"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
           <div style="font-size:18px;color:#D4AF37;letter-spacing:2px;margin-bottom:8px">ПОЗДРАВЛЯЕМ!</div>
           <div style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:6px">Ты — <strong style="color:#D4AF37">${INTEGRATORS[gift.code]}</strong></div>
           <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:16px">
-            Ты обладаешь редким даром Интегратора поля <strong style="color:#c4a0f0">${fieldName}</strong>!<br>
+            Ты обладаешь редким даром Интегратора поля <strong style="color:#D4AF37">${fieldName}</strong>!<br>
             Тебе доступна особая привилегия — выбери любой дар своего поля, который откроется в твоей Сокровищнице.
           </div>
           <div style="font-size:12px;color:var(--text-muted);letter-spacing:1px;margin-bottom:12px">ВЫБЕРИ СВОЙ ПЕРВЫЙ ДАР</div>
@@ -1707,6 +1782,7 @@
             // Предзаполняем поле даты чтобы юзер не вводил повторно
             if (data.date) {
               document.getElementById('dateInput').value = data.date;
+              if (window._syncDateFieldsFromHidden) window._syncDateFieldsFromHidden();
             }
             showResult(data.gift);
             return;
@@ -1730,7 +1806,7 @@
             const [ma, zhi, kun] = code.split('-').map(Number);
             const gift = { code, ma, zhi, kun };
             localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: birthDate, gift }));
-            if (birthDate) document.getElementById('dateInput').value = birthDate;
+            if (birthDate) { document.getElementById('dateInput').value = birthDate; if (window._syncDateFieldsFromHidden) window._syncDateFieldsFromHidden(); }
             // Восстанавливаем access_level
             if (profileData.user.access_level) {
               try { localStorage.setItem('_access_level', profileData.user.access_level); } catch(e) {}
@@ -1775,6 +1851,9 @@
     function resetDate(){
       localStorage.removeItem(STORAGE_KEY);
       document.getElementById('dateInput').value='';
+      var dfd=document.getElementById('df-day');if(dfd){dfd.value='';dfd.classList.remove('filled');}
+      var dfm=document.getElementById('df-month');if(dfm){dfm.value='';dfm.classList.remove('filled');}
+      var dfy=document.getElementById('df-year');if(dfy){dfy.value='';dfy.classList.remove('filled');}
       document.getElementById('screen-result').style.display='none';
       document.getElementById('screen-input').style.display='block';
       document.getElementById('btn-back').style.display='none';
@@ -2116,7 +2195,7 @@
       6:'<svg viewBox="0 0 40 40" width="36" height="36"><path d="M4,20 Q10,10 16,20 Q22,30 28,20 Q34,10 40,20" fill="none" stroke="#5577cc" stroke-width="1.5"/><circle cx="10" cy="20" r="1.5" fill="#5577cc"/><circle cx="22" cy="20" r="1.5" fill="#5577cc"/><circle cx="34" cy="20" r="1.5" fill="#5577cc"/></svg>',
       7:'<svg viewBox="0 0 40 40" width="36" height="36"><line x1="8" y1="20" x2="32" y2="20" stroke="#9966cc" stroke-width="1.5"/><circle cx="8" cy="20" r="3" fill="#9966cc"/><circle cx="32" cy="20" r="3" fill="#9966cc"/></svg>',
       8:'<svg viewBox="0 0 40 40" width="36" height="36"><circle cx="20" cy="20" r="13" fill="none" stroke="#88bbdd" stroke-width="1.5"/></svg>',
-      9:'<svg viewBox="0 0 40 40" width="36" height="36"><polygon points="20,5 35,20 20,35 5,20" fill="none" stroke="#c4a0f0" stroke-width="1.5"/></svg>'
+      9:'<svg viewBox="0 0 40 40" width="36" height="36"><polygon points="20,5 35,20 20,35 5,20" fill="none" stroke="#D4AF37" stroke-width="1.5"/></svg>'
     };
 
     function renderFieldFolders(){
@@ -2131,7 +2210,7 @@
         const count = groups[i].length;
         const div = document.createElement('div');
         div.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:all 0.15s';
-        div.onmouseenter = function(){ this.style.borderColor='rgba(212,175,55,0.5)'; this.style.background='rgba(107,33,168,0.12)'; };
+        div.onmouseenter = function(){ this.style.borderColor='rgba(212,175,55,0.5)'; this.style.background='rgba(212,175,55,0.08)'; };
         div.onmouseleave = function(){ this.style.borderColor='var(--border)'; this.style.background='var(--card)'; };
         div.onclick=()=>openFieldFolder(i);
         div.innerHTML=`
@@ -2214,7 +2293,7 @@
       const imgPath = getDarImagePath(code);
       const container = document.getElementById('dars-detail-view');
 
-      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px auto"><button onclick="openDarInBook('${code}')" style="padding:10px 18px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.12));color:#D4AF37;font-size:13px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px"><span>📖</span><span>Книга Даров</span></button><button onclick="openHeroJourney('${code}','${name.replace(/'/g,'\\&#39;')}')" style="padding:10px 18px;border-radius:12px;border:1px solid rgba(255,140,0,0.5);background:linear-gradient(135deg,rgba(255,100,0,0.2),rgba(255,200,0,0.15));color:#FFA500;font-size:13px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px"><span>🌅</span><span>Путешествие Героя</span></button></div><div id="hero-journey-container" style="display:none"></div><div id="dar-accordion-area"></div></div>`;
+      container.innerHTML=`<button class="btn-back" style="display:block" onclick="backToDarsList()">← Назад к дарам</button><div class="dar-detail"><div class="dar-detail-img" id="dar-detail-img-wrap"></div><div class="dar-detail-name">${name}</div><div class="dar-detail-code">Код: ${code}</div><div class="dar-detail-arch">${arch}</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px auto"><button onclick="openDarInBook('${code}')" style="padding:10px 18px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.12));color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;display:inline-flex;align-items:center;gap:6px"><span>📖</span><span>Книга Даров</span></button><button onclick="openHeroJourney('${code}','${name.replace(/'/g,'\\&#39;')}')" style="padding:10px 18px;border-radius:12px;border:1px solid rgba(255,140,0,0.5);background:linear-gradient(135deg,rgba(255,100,0,0.2),rgba(255,200,0,0.15));color:#FFA500;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;display:inline-flex;align-items:center;gap:6px"><span>🌅</span><span>Путешествие Героя</span></button></div><div id="hero-journey-container" style="display:none"></div><div id="dar-accordion-area"></div></div>`;
 
       // Load image
       const wrap = document.getElementById('dar-detail-img-wrap');
@@ -2370,9 +2449,9 @@
         html+=`<div class="dar-meta-row"><div class="dar-meta-label">Посередине (КУН)</div><div class="dar-meta-value">${f.layers_kun}</div></div>`;
       } else if(tabId==='shadows'){
         html+=`<div class="dar-meta-row"><div class="dar-meta-label">Пассивная тень (МА)</div><div class="dar-meta-value">${f.shadow_ma}</div></div>`;
-        if(f.shadow_ma_image) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#c4a0f0;font-style:italic">${f.shadow_ma_image}</div></div>`;
+        if(f.shadow_ma_image) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#D4AF37;font-style:italic">${f.shadow_ma_image}</div></div>`;
         html+=`<div class="dar-meta-row"><div class="dar-meta-label">Активная тень (ЖИ)</div><div class="dar-meta-value">${f.shadow_zhi}</div></div>`;
-        if(f.shadow_zhi_image) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#c4a0f0;font-style:italic">${f.shadow_zhi_image}</div></div>`;
+        if(f.shadow_zhi_image) html+=`<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#D4AF37;font-style:italic">${f.shadow_zhi_image}</div></div>`;
         html+=`<div class="dar-meta-row"><div class="dar-meta-label">Тень соединения (КУН)</div><div class="dar-meta-value">${f.shadow_kun}</div></div>`;
       }
       html+='</div>';
@@ -2466,14 +2545,14 @@
             <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Добровольное пожертвование на развитие проекта.<br>В благодарность начислим кристаллы мудрости</div>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;justify-content:center">
-            <button onclick="submitDonation(50)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Georgia,serif">50 ⭐</button>
-            <button onclick="submitDonation(100)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Georgia,serif">100 ⭐</button>
-            <button onclick="submitDonation(250)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Georgia,serif">250 ⭐</button>
-            <button onclick="submitDonation(500)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.18);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">500 ⭐</button>
+            <button onclick="submitDonation(50)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif">50 ⭐</button>
+            <button onclick="submitDonation(100)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif">100 ⭐</button>
+            <button onclick="submitDonation(250)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif">250 ⭐</button>
+            <button onclick="submitDonation(500)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.18);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">500 ⭐</button>
           </div>
           <div style="display:flex;gap:6px;align-items:center;margin-bottom:14px">
-            <input id="donation-custom-amount" type="number" min="1" max="100000" placeholder="Своя сумма в ⭐" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Georgia,serif;outline:none;text-align:center">
-            <button onclick="submitDonation(parseInt(document.getElementById('donation-custom-amount').value))" style="padding:12px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">Отправить</button>
+            <input id="donation-custom-amount" type="number" min="1" max="100000" placeholder="Своя сумма в ⭐" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;outline:none;text-align:center">
+            <button onclick="submitDonation(parseInt(document.getElementById('donation-custom-amount').value))" style="padding:12px 18px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">Отправить</button>
           </div>
           <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.5">1 звезда ≈ $0.02 &bull; Минимум: 1 ⭐ &bull; Все средства идут на развитие проекта</div>
         </div>
@@ -2932,10 +3011,10 @@
             <div style="font-weight:bold;margin-bottom:6px">&#9888;&#65039; ${title}</div>
             <div style="font-size:11px;line-height:1.5;margin-bottom:10px">${hint}</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <button onclick="psuRetry()" style="flex:1;min-width:120px;padding:9px;border-radius:8px;border:none;background:${color};color:#fff;font-size:12px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">&#8635; Попробовать ещё раз</button>
-              <button onclick="psuAcknowledgeWarning()" style="flex:1;min-width:100px;padding:9px;border-radius:8px;border:1px solid ${color};background:transparent;color:${color};font-size:12px;cursor:pointer;font-family:Georgia,serif">Закрыть</button>
+              <button onclick="psuRetry()" style="flex:1;min-width:120px;padding:9px;border-radius:8px;border:none;background:${color};color:#fff;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#8635; Попробовать ещё раз</button>
+              <button onclick="psuAcknowledgeWarning()" style="flex:1;min-width:100px;padding:9px;border-radius:8px;border:1px solid ${color};background:transparent;color:${color};font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">Закрыть</button>
             </div>
-            <button onclick="psuSendDebugLog()" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.05);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128203; Прислать лог разработчику (помоги починить)</button>
+            <button onclick="psuSendDebugLog()" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.05);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif">&#128203; Прислать лог разработчику (помоги починить)</button>
           </div>
         `;
       }
@@ -3150,7 +3229,7 @@
       let html = '<div style="display:flex;gap:8px;margin-bottom:12px;justify-content:center;flex-wrap:wrap">';
       const counters = [
         { icon: '&#127749;', label: 'Маг Дня', count: counts.day, color: '#ff9d4d' },
-        { icon: '&#127769;', label: 'Маг Недели', count: counts.week, color: '#c4a0f0' },
+        { icon: '&#127769;', label: 'Маг Недели', count: counts.week, color: '#D4AF37' },
         { icon: '&#11088;', label: 'Маг Месяца', count: counts.month, color: '#D4AF37' }
       ];
       for (const c of counters) {
@@ -3167,7 +3246,7 @@
       // Список последних титулов (максимум 10 показываем, дальше скроллим)
       const titleIcons = { day: '&#127749;', week: '&#127769;', month: '&#11088;' };
       const titleNames = { day: 'Маг Дня', week: 'Маг Недели', month: 'Маг Месяца' };
-      const titleColors = { day: '#ff9d4d', week: '#c4a0f0', month: '#D4AF37' };
+      const titleColors = { day: '#ff9d4d', week: '#D4AF37', month: '#D4AF37' };
 
       html += '<div style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">';
       for (const t of titles.slice(0, 20)) {
@@ -3281,14 +3360,14 @@
                 <div style="font-size:14px;color:var(--text);font-weight:bold">${escapeRelText(r.name)}</div>
                 <div style="font-size:11px;color:var(--text-dim)">${rel.ru} &bull; ${escapeRelText(r.birth_date)}</div>
                 ${darName ? `<div style="font-size:11px;color:#D4AF37;margin-top:2px">Дар: ${darName} (${r.dar_code})</div>` : ''}
-                ${darArch ? `<div style="font-size:10px;color:#c4a0f0;font-style:italic">${darArch}</div>` : ''}
+                ${darArch ? `<div style="font-size:10px;color:#D4AF37;font-style:italic">${darArch}</div>` : ''}
               </div>
             </div>
             <div style="display:flex;gap:6px">
-              <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128302; Оракул</button>
-              <button onclick='checkCompatibilityWith(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(244,81,30,0.4);background:rgba(244,81,30,0.08);color:#f4511e;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128149; Совмест.</button>
-              ${(['son','daughter','grandson','granddaughter'].includes(r.relationship)) ? `<button onclick="openChildBook(${r.id})" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128214; Книга</button>` : ''}
-              <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:10px;cursor:pointer;font-family:Georgia,serif">&#128218; Дар</button>
+              <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128302; Оракул</button>
+              <button onclick='checkCompatibilityWith(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(244,81,30,0.4);background:rgba(244,81,30,0.08);color:#f4511e;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128149; Совмест.</button>
+              ${(['son','daughter','grandson','granddaughter'].includes(r.relationship)) ? `<button onclick="openChildBook(${r.id})" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128214; Книга</button>` : ''}
+              <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128218; Дар</button>
             </div>
           </div>`;
         }
@@ -3296,7 +3375,7 @@
 
       // Кнопка "Добавить" (если есть свободный слот)
       if (canAdd) {
-        html += `<button onclick="openAddRelative()" style="width:100%;padding:12px;border-radius:12px;border:1px dashed rgba(180,120,255,0.5);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:13px;cursor:pointer;font-family:Georgia,serif;margin-top:8px">
+        html += `<button onclick="openAddRelative()" style="width:100%;padding:12px;border-radius:12px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-top:8px">
           &#10010; Добавить близкого
         </button>
         <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:6px;font-style:italic;line-height:1.5">
@@ -3525,9 +3604,9 @@
       }
 
       if (data.energies && data.energies.length > 0) {
-        html += `<div style="background:rgba(107,33,168,0.1);border:1px solid rgba(180,120,255,0.25);border-radius:14px;padding:14px;margin-bottom:14px">
-          <div style="font-size:12px;color:#c4a0f0;letter-spacing:1px;margin-bottom:8px">&#10024; Энергии дня</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">${data.energies.map(e => `<span style="padding:5px 10px;background:rgba(180,120,255,0.15);border:1px solid rgba(180,120,255,0.3);border-radius:8px;font-size:11px;color:#c4a0f0">${escapeRelText(e)}</span>`).join('')}</div>
+        html += `<div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:14px;margin-bottom:14px">
+          <div style="font-size:12px;color:#D4AF37;letter-spacing:1px;margin-bottom:8px">&#10024; Энергии дня</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">${data.energies.map(e => `<span style="padding:5px 10px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.25);border-radius:8px;font-size:11px;color:#D4AF37">${escapeRelText(e)}</span>`).join('')}</div>
         </div>`;
       }
 
@@ -3538,7 +3617,7 @@
         </div>`;
       }
 
-      html += `<button onclick="closeRelativeOracleModal()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;font-weight:bold;margin-top:6px">Спасибо</button>`;
+      html += `<button onclick="closeRelativeOracleModal()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;margin-top:6px">Спасибо</button>`;
 
       content.innerHTML = html;
     }
@@ -3552,8 +3631,8 @@
           <div style="font-size:42px;margin-bottom:12px">&#9888;&#65039;</div>
           <div style="font-size:14px;color:var(--text);margin-bottom:8px">Не удалось получить послание</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:16px">${escapeRelText(errMsg)}</div>
-          <button onclick="openRelativeOracle(${JSON.stringify(relative).replace(/"/g, '&quot;')})" style="padding:10px 18px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Georgia,serif;margin-right:8px">Попробовать ещё раз</button>
-          <button onclick="closeRelativeOracleModal()" style="padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif">Закрыть</button>
+          <button onclick="openRelativeOracle(${JSON.stringify(relative).replace(/"/g, '&quot;')})" style="padding:10px 18px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-right:8px">Попробовать ещё раз</button>
+          <button onclick="closeRelativeOracleModal()" style="padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">Закрыть</button>
         </div>
       `;
     }
@@ -3591,7 +3670,7 @@
 
       // Лоадер
       modal.innerHTML = `
-        <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 20px 20px;max-width:460px;width:100%;max-height:92vh;overflow-y:auto">
+        <div style="position:relative;background:linear-gradient(135deg,#0a0a0a,#111111);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 20px 20px;max-width:460px;width:100%;max-height:92vh;overflow-y:auto">
           <button onclick="closeCompatibilityModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#10005;</button>
           <div style="text-align:center;padding:30px 10px">
             <div style="font-size:36px;margin-bottom:10px;animation:pulse 1.5s ease-in-out infinite">&#128149;</div>
@@ -3622,7 +3701,7 @@
       const scoreColor = data.score >= 85 ? '#2ecc71' : data.score >= 70 ? '#D4AF37' : '#f39c12';
 
       modal.innerHTML = `
-        <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 20px 20px;max-width:460px;width:100%;max-height:92vh;overflow-y:auto">
+        <div style="position:relative;background:linear-gradient(135deg,#0a0a0a,#111111);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 20px 20px;max-width:460px;width:100%;max-height:92vh;overflow-y:auto">
           <button onclick="closeCompatibilityModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#10005;</button>
 
           <!-- Заголовок -->
@@ -3656,8 +3735,8 @@
           </div>
 
           <!-- Советы -->
-          <div style="background:rgba(180,120,255,0.08);border:1px solid rgba(180,120,255,0.25);border-radius:14px;padding:14px;margin-bottom:12px">
-            <div style="font-size:12px;color:#c4a0f0;letter-spacing:1px;margin-bottom:8px">&#128161; Советы</div>
+          <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="font-size:12px;color:#D4AF37;letter-spacing:1px;margin-bottom:8px">&#128161; Советы</div>
             <div style="font-size:13px;color:var(--text);line-height:1.7">${escapeRelText(data.advice)}</div>
           </div>
 
@@ -3667,7 +3746,7 @@
             <div style="font-size:14px;color:var(--text);line-height:1.7;font-style:italic">${escapeRelText(data.secret)}</div>
           </div>
 
-          <button onclick="closeCompatibilityModal()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">&#128149; Спасибо</button>
+          <button onclick="closeCompatibilityModal()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#128149; Спасибо</button>
         </div>
       `;
     }
@@ -3707,7 +3786,7 @@
 
       // Лоадер
       modal.innerHTML = `
-        <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 18px;max-width:500px;width:100%;max-height:92vh;overflow-y:auto">
+        <div style="position:relative;background:linear-gradient(135deg,#0a0a0a,#111111);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 18px;max-width:500px;width:100%;max-height:92vh;overflow-y:auto">
           <button onclick="closeChildBook()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
           <div style="text-align:center;padding:30px 10px">
             <div style="font-size:36px;margin-bottom:14px;animation:pulse 1.5s ease-in-out infinite">📖</div>
@@ -3739,7 +3818,7 @@
       const darImgBase = child.dar_name ? child.dar_name.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '') : '';
 
       let html = `
-        <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 18px;max-width:500px;width:100%;max-height:92vh;overflow-y:auto">
+        <div style="position:relative;background:linear-gradient(135deg,#0a0a0a,#111111);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 18px;max-width:500px;width:100%;max-height:92vh;overflow-y:auto">
           <button onclick="closeChildBook()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
 
           <div style="text-align:center;margin-bottom:18px">
@@ -3747,7 +3826,7 @@
             <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase">Персональная книга для родителей</div>
             <div style="font-size:22px;color:var(--text);margin-top:6px">${escapeRelText(child.name)}</div>
             <div style="font-size:12px;color:#D4AF37;margin-top:4px">${child.dar_name} &bull; ${child.age} лет &bull; ${child.age_period.label}</div>
-            ${child.archetype ? `<div style="font-size:11px;color:#c4a0f0;font-style:italic;margin-top:2px">${child.archetype}</div>` : ''}
+            ${child.archetype ? `<div style="font-size:11px;color:#D4AF37;font-style:italic;margin-top:2px">${child.archetype}</div>` : ''}
           </div>
 
           <div style="font-size:12px;color:var(--text-dim);text-align:center;line-height:1.5;margin-bottom:16px;padding:0 10px">
@@ -3786,7 +3865,7 @@
 
       // Показываем лоадер внутри модалки
       modal.innerHTML = `
-        <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 18px;max-width:500px;width:100%;max-height:92vh;overflow-y:auto">
+        <div style="position:relative;background:linear-gradient(135deg,#0a0a0a,#111111);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 18px;max-width:500px;width:100%;max-height:92vh;overflow-y:auto">
           <button onclick="renderChildBookTOC()" style="position:absolute;top:10px;left:10px;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(0,0,0,0.6);color:var(--text-dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8592;</button>
           <button onclick="closeChildBook()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#10005;</button>
           <div style="text-align:center;margin-bottom:14px">
@@ -3813,7 +3892,7 @@
         modal.querySelector('div').innerHTML += `
           <div style="text-align:center;padding:20px;color:#f87171">
             <div>${e.message || 'Не удалось создать главу'}</div>
-            <button onclick="openChildBookSection('${sectionId}')" style="margin-top:10px;padding:10px 18px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Georgia,serif">Попробовать ещё раз</button>
+            <button onclick="openChildBookSection('${sectionId}')" style="margin-top:10px;padding:10px 18px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">Попробовать ещё раз</button>
           </div>
         `;
       }
@@ -3824,7 +3903,7 @@
       if (!modal) return;
 
       modal.innerHTML = `
-        <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 18px;max-width:500px;width:100%;max-height:92vh;overflow-y:auto">
+        <div style="position:relative;background:linear-gradient(135deg,#0a0a0a,#111111);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 18px;max-width:500px;width:100%;max-height:92vh;overflow-y:auto">
           <button onclick="renderChildBookTOC()" style="position:absolute;top:10px;left:10px;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(0,0,0,0.6);color:var(--text-dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8592;</button>
           <button onclick="closeChildBook()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#10005;</button>
 
@@ -3834,14 +3913,14 @@
             <div style="font-size:11px;color:#D4AF37;margin-top:4px">${child.name} &bull; ${child.age} лет &bull; ${child.age_period.label}</div>
           </div>
 
-          <div style="font-size:14px;color:var(--text);line-height:1.8;font-family:Georgia,serif;padding:0 4px"
+          <div style="font-size:14px;color:var(--text);line-height:1.8;font-family:Manrope,sans-serif;padding:0 4px"
             oncontextmenu="return false" onselectstart="return false">
             ${result.content}
           </div>
 
           <div style="margin-top:20px;display:flex;gap:8px">
-            <button onclick="renderChildBookTOC()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif">&#8592; К оглавлению</button>
-            <button onclick="regenerateChildSection('${section.id}')" style="padding:12px 14px;border-radius:12px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Georgia,serif" title="Другая версия">&#8635;</button>
+            <button onclick="renderChildBookTOC()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">&#8592; К оглавлению</button>
+            <button onclick="regenerateChildSection('${section.id}')" style="padding:12px 14px;border-radius:12px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif" title="Другая версия">&#8635;</button>
           </div>
 
           ${result.cached ? '<div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:8px;font-style:italic">Из кэша. Нажми &#8635; для новой версии.</div>' : ''}

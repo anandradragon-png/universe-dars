@@ -162,8 +162,8 @@ const DailyDar = (function() {
 
     // Практика дня
     if (data.practice) {
-      html += `<div style="background:rgba(107,33,168,0.1);border:1px solid rgba(180,120,255,0.25);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:13px;color:#c4a0f0;letter-spacing:1px;margin-bottom:10px">&#127793; Практика дня:</div>
+      html += `<div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#127793; Практика дня:</div>
         <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${data.practice}</div>
       </div>`;
     }
@@ -221,8 +221,8 @@ const DailyDar = (function() {
     if (dar.meditation || dar.activation) {
       const practiceText = dar.meditation || dar.activation;
       const firstParagraph = practiceText.replace(/\*\*/g,'').split('\n\n')[0];
-      html += `<div style="background:rgba(107,33,168,0.1);border:1px solid rgba(180,120,255,0.25);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:13px;color:#c4a0f0;letter-spacing:1px;margin-bottom:10px">&#127793; Практика дня:</div>
+      html += `<div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#127793; Практика дня:</div>
         <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${firstParagraph}</div>
       </div>`;
     }
@@ -312,11 +312,11 @@ const DailyDar = (function() {
           <div style="font-size:12px;color:var(--text-dim);line-height:1.9;text-align:left;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:12px;margin-bottom:14px">
             ${nextDesc}
           </div>
-          <button onclick="DailyDar.showUpgradeMessage()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px;font-weight:bold;box-shadow:0 2px 12px rgba(212,175,55,0.25)">&#9733; Повысить уровень</button>
+          <button onclick="DailyDar.showUpgradeMessage()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;font-weight:bold;box-shadow:0 2px 12px rgba(212,175,55,0.25)">&#9733; Повысить уровень</button>
         </div>`;
     }
 
-    return `<div style="text-align:center;padding:32px 20px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(107,33,168,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:18px">
+    return `<div style="text-align:center;padding:32px 20px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(212,175,55,0.04));border:1px solid rgba(212,175,55,0.25);border-radius:18px">
       <div style="font-size:42px;margin-bottom:14px">&#128170;</div>
       <div style="font-size:16px;color:#D4AF37;margin-bottom:12px;line-height:1.4;letter-spacing:0.5px">${title}</div>
       <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">Дай посланию раскрыться в твоей жизни. Новое будет доступно через <b style="color:#D4AF37">${timeUntilReset()}</b>.</div>
@@ -334,12 +334,12 @@ const DailyDar = (function() {
     modal.id = 'upgrade-msg-modal';
     modal.style.cssText = 'position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
     modal.innerHTML = `
-      <div style="max-width:380px;width:100%;background:linear-gradient(180deg,#1a0533,#0d0221);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:28px 22px;text-align:center;box-shadow:0 10px 40px rgba(212,175,55,0.15)">
+      <div style="max-width:380px;width:100%;background:linear-gradient(180deg,#0d0d0d,#080808);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:28px 22px;text-align:center;box-shadow:0 10px 40px rgba(212,175,55,0.15)">
         <div style="font-size:44px;margin-bottom:14px">&#11088;</div>
         <div style="font-size:17px;color:#D4AF37;margin-bottom:12px;letter-spacing:1px;line-height:1.4">Полный доступ к YupDar</div>
         <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">Безлимитный Оракул, полная Книга Даров (94 главы), 3 слота для близких, 50 кристаллов мудрости + дизайнерская PDF</div>
-        <button onclick="document.getElementById('upgrade-msg-modal').remove();if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Georgia,serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3);margin-bottom:10px">&#11088; Купить за 500 ⭐ (~$10)</button>
-        <button onclick="document.getElementById('upgrade-msg-modal').remove()" style="width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">Не сейчас</button>
+        <button onclick="document.getElementById('upgrade-msg-modal').remove();if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3);margin-bottom:10px">&#11088; Купить за 500 ⭐ (~$10)</button>
+        <button onclick="document.getElementById('upgrade-msg-modal').remove()" style="width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">Не сейчас</button>
       </div>`;
     document.body.appendChild(modal);
     modal.addEventListener('click', (e) => {
@@ -358,11 +358,11 @@ const DailyDar = (function() {
       <div style="text-align:center;background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:24px 16px;margin-bottom:16px">
         ${title ? `<div style="font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:12px">${title}</div>` : ''}
         <img src="cards/${code}.jpg" style="width:160px;height:auto;border-radius:12px;box-shadow:0 4px 20px rgba(212,175,55,0.2);display:block;margin:0 auto" onerror="this.style.display='none'"/>
-        <div style="font-size:28px;letter-spacing:4px;color:var(--text);margin-top:14px;text-shadow:0 0 20px rgba(180,120,255,0.4)">${name}</div>
-        ${arch ? `<div style="font-size:13px;color:#c4a0f0;font-style:italic;margin-top:6px">${arch}</div>` : ''}
+        <div style="font-size:28px;letter-spacing:4px;color:var(--text);margin-top:14px;text-shadow:0 0 20px rgba(212,175,55,0.3)">${name}</div>
+        ${arch ? `<div style="font-size:13px;color:#D4AF37;font-style:italic;margin-top:6px">${arch}</div>` : ''}
         ${isIntegrator ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px">${fieldNames}</div>` : ''}
         ${subtitle ? `<div style="font-size:12px;color:var(--text-dim);margin-top:8px">${subtitle}</div>` : ''}
-        ${!isIntegrator ? `<button onclick="DailyDar.openInBook('${code}')" style="margin-top:14px;padding:10px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px">
+        ${!isIntegrator ? `<button onclick="DailyDar.openInBook('${code}')" style="margin-top:14px;padding:10px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;display:inline-flex;align-items:center;gap:6px">
           <span>&#128214;</span>
           <span>Читать в Книге Даров</span>
         </button>` : ''}
@@ -489,7 +489,7 @@ const DailyDar = (function() {
     let html = `<div style="display:flex;gap:6px;margin-bottom:16px;justify-content:center">`;
     tabs.forEach(t => {
       const isActive = t.id === _currentTab;
-      html += `<button onclick="DailyDar.switchTab('${t.id}')" style="flex:1;max-width:130px;min-width:0;padding:10px 6px;border-radius:12px;border:1px solid ${isActive ? 'rgba(212,175,55,0.6)' : 'var(--border)'};background:${isActive ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.04)'};cursor:pointer;text-align:center;font-family:Georgia,serif;transition:all .2s">
+      html += `<button onclick="DailyDar.switchTab('${t.id}')" style="flex:1;max-width:130px;min-width:0;padding:10px 6px;border-radius:12px;border:1px solid ${isActive ? 'rgba(212,175,55,0.6)' : 'var(--border)'};background:${isActive ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.04)'};cursor:pointer;text-align:center;font-family:Manrope,sans-serif;transition:all .2s">
         <div style="font-size:18px;margin-bottom:2px">${t.icon}</div>
         <div style="font-size:10px;color:${isActive ? '#D4AF37' : 'var(--text-dim)'};letter-spacing:0.5px;line-height:1.3;word-wrap:break-word">${t.label}</div>
       </button>`;
@@ -524,7 +524,7 @@ const DailyDar = (function() {
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:14px;color:var(--text);margin-bottom:8px">Сформулируй свой запрос</div>
           <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">Какой вопрос тебя волнует? Какие энергии помогут приблизиться к решению?</div>
-          <textarea id="daily-card-query" placeholder="Например: Как мне найти баланс между работой и отдыхом?..." style="width:100%;min-height:70px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Georgia,serif;resize:vertical;outline:none;line-height:1.5"></textarea>
+          <textarea id="daily-card-query" placeholder="Например: Как мне найти баланс между работой и отдыхом?..." style="width:100%;min-height:70px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5"></textarea>
         </div>
         ${renderCardBack()}
         <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:8px">Нажми на карту, чтобы вытянуть подсказку</div>`;
@@ -536,7 +536,7 @@ const DailyDar = (function() {
       // Кнопка "Вытянуть ещё раз" - только если после этого раза ещё остались попытки
       if (remaining > 0) {
         html += `<div style="text-align:center;margin-top:12px">
-          <button onclick="DailyDar.resetCard()" style="padding:10px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif">&#128260; Вытянуть ещё раз</button>
+          <button onclick="DailyDar.resetCard()" style="padding:10px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">&#128260; Вытянуть ещё раз</button>
         </div>`;
       }
       container.innerHTML = html;
@@ -595,7 +595,7 @@ const DailyDar = (function() {
           <div style="font-size:40px;margin-bottom:16px">&#128302;</div>
           <div style="font-size:16px;color:var(--text);margin-bottom:10px">Сначала рассчитай свой Дар</div>
           <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:20px">Чтобы узнать индивидуальный Дар Дня, нужно знать твой личный дар по дате рождения</div>
-          <button onclick="DailyDar.close();switchNav('calc')" style="padding:12px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#6b21a8,#3b0764);color:var(--text);font-size:14px;cursor:pointer;font-family:Georgia,serif;letter-spacing:1px">Рассчитать мой дар</button>
+          <button onclick="DailyDar.close();switchNav('calc')" style="padding:12px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#D4AF37,#b8860b);color:var(--text);font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px">Рассчитать мой дар</button>
         </div>`;
       return;
     }

@@ -226,8 +226,8 @@ const IntuitionGame = (function() {
         </div>
       ` : `
         <div style="padding:0 16px 12px">
-          <div style="background:rgba(180,120,255,0.08);border:1px solid rgba(180,120,255,0.25);border-radius:12px;padding:10px 12px;text-align:center">
-            <div style="font-size:11px;color:#c4a0f0;font-style:italic">&#128302; Песочница — тренировочный режим, очки не идут в рейтинг</div>
+          <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:10px 12px;text-align:center">
+            <div style="font-size:11px;color:#D4AF37;font-style:italic">&#128302; Песочница — тренировочный режим, очки не идут в рейтинг</div>
           </div>
         </div>
       `}
@@ -380,7 +380,7 @@ const IntuitionGame = (function() {
       data.leaders.forEach((p, i) => {
         const isFirst = i === 0;
         const medal = i === 0 ? '&#129351;' : i === 1 ? '&#129352;' : i === 2 ? '&#129353;' : '&#11088;';
-        const bgColor = isFirst ? 'rgba(212,175,55,0.15)' : (i < 3 ? 'rgba(180,120,255,0.08)' : 'transparent');
+        const bgColor = isFirst ? 'rgba(212,175,55,0.15)' : (i < 3 ? 'rgba(212,175,55,0.06)' : 'transparent');
         html += `
           <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.05);background:${bgColor}">
             <div style="width:28px;text-align:center;font-size:${i < 3 ? '20px' : '14px'};color:${isFirst ? '#D4AF37' : 'var(--text-dim)'}">${i < 3 ? medal : (i + 1)}</div>
@@ -388,7 +388,7 @@ const IntuitionGame = (function() {
               <div style="font-size:14px;color:${isFirst ? '#D4AF37' : 'var(--text)'};font-weight:${isFirst ? 'bold' : 'normal'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeText(p.display_name)}</div>
               <div style="font-size:10px;color:var(--text-muted)">Побед: ${p.games_won || 0}</div>
             </div>
-            <div style="font-size:16px;color:${isFirst ? '#D4AF37' : '#c4a0f0'};font-weight:bold">${p.score}</div>
+            <div style="font-size:16px;color:${isFirst ? '#D4AF37' : '#D4AF37'};font-weight:bold">${p.score}</div>
           </div>
         `;
       });
@@ -411,8 +411,8 @@ const IntuitionGame = (function() {
     }
 
     html += `
-        <div style="margin-top:20px;padding:14px;background:rgba(107,33,168,0.1);border:1px solid rgba(180,120,255,0.3);border-radius:12px;font-size:11px;color:var(--text-dim);line-height:1.6">
-          <div style="color:#c4a0f0;font-weight:bold;margin-bottom:6px">&#128161; Как зарабатывать очки</div>
+        <div style="margin-top:20px;padding:14px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:12px;font-size:11px;color:var(--text-dim);line-height:1.6">
+          <div style="color:#D4AF37;font-weight:bold;margin-bottom:6px">&#128161; Как зарабатывать очки</div>
           &#10024; Средний уровень: +15 очков за победу<br>
           &#10024; Сложный: +25 очков (×2 множитель)<br>
           &#10024; Эксперт: +40 очков (×3 множитель)<br>
@@ -436,7 +436,7 @@ const IntuitionGame = (function() {
     const lvl = MODES.multi.levels[currentLevel] || MODES.multi.levels.hard;
     return `
       <div style="padding:0 16px 8px">
-        <div style="background:rgba(107,33,168,0.15);border:1px solid var(--border);border-radius:12px;padding:10px;font-size:11px;color:var(--text-dim);line-height:1.5">
+        <div style="background:rgba(212,175,55,0.1);border:1px solid var(--border);border-radius:12px;padding:10px;font-size:11px;color:var(--text-dim);line-height:1.5">
           <div style="color:var(--text);margin-bottom:4px">&#127183; Правила:</div>
           &#10024; Найди <strong>${lvl.targets}</strong> одинаковых дара<br>
           &#128994; Можно выбрать <strong>${lvl.opens}</strong> карты<br>
@@ -554,12 +554,12 @@ const IntuitionGame = (function() {
       } else {
         // ЗАКРЫТАЯ КАРТА (рубашка)
         const selStyle = isSelected
-          ? 'border-color:rgba(212,175,55,0.8);box-shadow:0 0 12px rgba(212,175,55,0.4);background:linear-gradient(135deg,#2a0845 0%,#1a0533 100%)'
+          ? 'border-color:rgba(212,175,55,0.8);box-shadow:0 0 12px rgba(212,175,55,0.4);background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%)'
           : '';
 
         html += `
           <div class="game-card-back" onclick="IntuitionGame.selectCard(${i})"
-            style="background:linear-gradient(135deg,#1a0533 0%,#0d0221 50%,#1a0533 100%);border:2px solid rgba(212,175,55,0.3);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;${selStyle}">
+            style="background:linear-gradient(135deg,#0d0d0d 0%,#080808 50%,#0d0d0d 100%);border:2px solid rgba(212,175,55,0.3);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;${selStyle}">
             <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-bottom:4px">&#10022;</div>
             <div style="width:28px;height:28px;border:1px solid rgba(212,175,55,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center">
               <div style="font-size:14px;color:rgba(212,175,55,0.5)">${isSelected ? '&#10003;' : '&#10024;'}</div>
@@ -793,13 +793,13 @@ const IntuitionGame = (function() {
         </div>
         ${won ? `
           <div style="font-size:14px;color:#D4AF37;margin-bottom:4px">+${stats._lastWin} &#128142; ${hitBuff ? '(Карта Света x2!)' : ''}</div>
-          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#c4a0f0;margin-bottom:4px">&#127942; +${stats._lastPoints} очков в рейтинг</div>` : ''}
+          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-bottom:4px">&#127942; +${stats._lastPoints} очков в рейтинг</div>` : ''}
           ${stats.streak > 1 ? `<div style="font-size:13px;color:#D4AF37">&#128293; Серия: ${stats.streak}</div>` : ''}
         ` : `
           <div style="font-size:12px;color:var(--text-dim)">
             ${currentMode === 'classic' ? 'Правильный ответ: карта ' + (cards.findIndex(c => c.type === 'target') + 1) : 'Попробуй ещё!'}
           </div>
-          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#c4a0f0;margin-top:6px">&#127942; +${stats._lastPoints} очков за участие</div>` : ''}
+          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-top:6px">&#127942; +${stats._lastPoints} очков за участие</div>` : ''}
         `}
         ${battleBlock}
         <div style="display:flex;gap:8px;margin-top:16px;justify-content:center">

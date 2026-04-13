@@ -75,7 +75,7 @@ const Treasury = (function() {
     // Баннер книги + Путешествие Героя
     html += `
       <div style="display:flex;gap:8px;margin:0 0 16px">
-        <div style="flex:1;padding:14px;background:linear-gradient(135deg,rgba(107,33,168,0.15),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
+        <div style="flex:1;padding:14px;background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
           <div style="font-size:14px;color:#D4AF37;margin-bottom:4px">&#128214; Книга Даров</div>
           <div style="font-size:11px;color:var(--text-dim)">Практики и медитации</div>
         </div>
@@ -211,17 +211,17 @@ const Treasury = (function() {
       <button class="btn-back" style="display:block" onclick="Treasury.render()">&#8592; Сокровищница</button>
       <div style="text-align:center;margin:16px 0 20px">
         <div style="font-size:22px;letter-spacing:2px;color:var(--text);margin-bottom:4px">${name}</div>
-        ${arch ? `<div style="font-size:13px;color:#c4a0f0;font-style:italic;margin-bottom:8px">${arch}</div>` : ''}
+        ${arch ? `<div style="font-size:13px;color:#D4AF37;font-style:italic;margin-bottom:8px">${arch}</div>` : ''}
         <div style="font-size:12px;color:#D4AF37;letter-spacing:1px">Раскрыто: ${completedCount} из ${totalQuests || '?'}</div>
       </div>
 
       <!-- Кнопка "Подробнее в книге" -->
-      <button onclick="Treasury.openInBook('${code}')" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.12));color:var(--text);font-size:14px;cursor:pointer;font-family:Georgia,serif;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px">
+      <button onclick="Treasury.openInBook('${code}')" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.12));color:var(--text);font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span style="font-size:18px">&#128214;</span>
         <span>Подробнее в Книге Даров</span>
       </button>
 
-      <div style="background:linear-gradient(135deg,rgba(107,33,168,0.12),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:14px;margin-bottom:16px">
+      <div style="background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:14px;margin-bottom:16px">
         <div style="font-size:12px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600">&#10024; Алхимия дара</div>
         <div style="font-size:13px;color:var(--text);line-height:1.6">Начни с сути дара, пройди через каждую его грань, и заверши медитацией активации. Так сила дара раскроется в тебе полностью.</div>
       </div>
@@ -243,19 +243,19 @@ const Treasury = (function() {
 
       if (isEssCompleted) {
         html += `
-          <div class="dar-section-item dar-section-unlocked" onclick="Treasury.openEssenceQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:4px;padding:14px;background:rgba(180,120,255,0.1);border-color:rgba(180,120,255,0.4)">
+          <div class="dar-section-item dar-section-unlocked" onclick="Treasury.openEssenceQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:4px;padding:14px;background:rgba(212,175,55,0.08);border-color:rgba(212,175,55,0.3)">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-              <span style="font-size:14px;color:#c4a0f0;font-weight:bold">&#127775; Суть дара</span>
+              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#127775; Суть дара</span>
               <span style="color:#2ecc71;font-size:16px">&#10003;</span>
             </div>
             <div style="font-size:11px;color:var(--text-dim);font-style:italic">Суть узнана - перечитать</div>
           </div>`;
       } else if (isEssNext) {
         html += `
-          <div class="dar-section-item dar-section-next" onclick="Treasury.openEssenceQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:6px;padding:14px;background:rgba(180,120,255,0.08);border-color:rgba(180,120,255,0.4)">
+          <div class="dar-section-item dar-section-next" onclick="Treasury.openEssenceQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:6px;padding:14px;background:rgba(212,175,55,0.06);border-color:rgba(212,175,55,0.3)">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-              <span style="font-size:14px;color:#c4a0f0;font-weight:bold">&#127775; Суть дара</span>
-              <span style="color:#c4a0f0;font-size:12px">Узнать &rarr;</span>
+              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#127775; Суть дара</span>
+              <span style="color:#D4AF37;font-size:12px">Узнать &rarr;</span>
             </div>
             <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Священная энергия дара и её проявление в твоей жизни.</div>
           </div>`;
@@ -340,7 +340,7 @@ const Treasury = (function() {
     // Если все квесты проработаны - баннер достижения
     if (completedCount === totalQuests && totalQuests > 0) {
       html += `
-        <div style="margin-top:18px;padding:18px;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(107,33,168,0.15));border:1px solid rgba(212,175,55,0.5);border-radius:14px;text-align:center">
+        <div style="margin-top:18px;padding:18px;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.5);border-radius:14px;text-align:center">
           <div style="font-size:36px;margin-bottom:8px">&#11088;</div>
           <div style="font-size:15px;color:#D4AF37;margin-bottom:6px;letter-spacing:1px">Дар раскрыт и активирован</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.6">Ты прошла через все грани этого дара и активировала его через медитацию. Его светлая сила раскрылась в тебе.</div>
@@ -392,8 +392,8 @@ const Treasury = (function() {
 
   function renderCoachBubble(text) {
     return `<div style="text-align:left;margin-bottom:12px">
-      <div style="font-size:10px;color:#c4a0f0;margin-bottom:4px;margin-left:2px">&#128302; Наставник</div>
-      <div style="display:inline-block;max-width:85%;background:rgba(180,120,255,0.12);border:1px solid rgba(180,120,255,0.3);border-radius:14px 14px 14px 4px;padding:10px 14px;text-align:left;font-size:13px;color:var(--text);line-height:1.6;word-wrap:break-word">${escapeHtmlSimple(text)}</div>
+      <div style="font-size:10px;color:#D4AF37;margin-bottom:4px;margin-left:2px">&#128302; Наставник</div>
+      <div style="display:inline-block;max-width:85%;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:14px 14px 14px 4px;padding:10px 14px;text-align:left;font-size:13px;color:var(--text);line-height:1.6;word-wrap:break-word">${escapeHtmlSimple(text)}</div>
     </div>`;
   }
 
@@ -414,7 +414,7 @@ const Treasury = (function() {
 
     // Заголовок
     html += `<div style="text-align:center;margin:14px 0 18px">
-      <div style="font-size:11px;color:${config.subtitleColor || '#c4a0f0'};letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">${config.subtitle || ''}</div>
+      <div style="font-size:11px;color:${config.subtitleColor || '#D4AF37'};letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">${config.subtitle || ''}</div>
       <div style="font-size:20px;color:var(--text);letter-spacing:1px">${config.title || name}</div>
     </div>`;
 
@@ -469,7 +469,7 @@ const Treasury = (function() {
         ? 'Поделись своими мыслями, не торопясь...'
         : 'Твой ответ...';
       html += `
-        <textarea id="coach-input" rows="3" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Georgia,serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="${placeholder}"></textarea>
+        <textarea id="coach-input" rows="3" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="${placeholder}"></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
           <span style="font-size:11px;color:var(--text-muted)">Мин. ${minLen} символов</span>
           <span style="font-size:11px;color:#D4AF37">Раунд ${dialogue.roundCount + 1}${dialogue.roundCount >= 3 ? ' (наставник скоро предложит завершить)' : ''}</span>
@@ -769,9 +769,9 @@ const Treasury = (function() {
           label: 'Практика активации',
           icon: '\u127775',
           text: activation,
-          bgColor: 'rgba(107,33,168,0.12)',
-          borderColor: 'rgba(180,120,255,0.3)',
-          labelColor: '#c4a0f0'
+          bgColor: 'rgba(212,175,55,0.08)',
+          borderColor: 'rgba(212,175,55,0.25)',
+          labelColor: '#D4AF37'
         } : null,
         meditation ? {
           label: 'Медитация',
@@ -864,16 +864,16 @@ const Treasury = (function() {
       questIdx: 1,
       title: arch ? `${name} - ${arch}` : name,
       subtitle: '\u127775 Суть дара',
-      subtitleColor: '#c4a0f0',
+      subtitleColor: '#D4AF37',
       reward: 5,
       contextBlocks: [
         essence ? {
           label: 'Священная энергия',
           icon: '\u9889',
           text: essence,
-          bgColor: 'rgba(107,33,168,0.12)',
-          borderColor: 'rgba(180,120,255,0.3)',
-          labelColor: '#c4a0f0'
+          bgColor: 'rgba(212,175,55,0.08)',
+          borderColor: 'rgba(212,175,55,0.25)',
+          labelColor: '#D4AF37'
         } : null,
         lightPower ? {
           label: 'Светлая сила',
@@ -973,7 +973,7 @@ const Treasury = (function() {
       questIdx: questIdx,
       title: shadow.title,
       subtitle: `Грань ${displayIdx} из ${shadows.length}`,
-      subtitleColor: '#c4a0f0',
+      subtitleColor: '#D4AF37',
       reward: 7,
       shadow: shadow,
       contextBlocks: [
@@ -981,9 +981,9 @@ const Treasury = (function() {
           label: 'Узнай',
           icon: '\u128302',
           text: shadow.description || '',
-          bgColor: 'rgba(107,33,168,0.12)',
-          borderColor: 'rgba(180,120,255,0.3)',
-          labelColor: '#c4a0f0'
+          bgColor: 'rgba(212,175,55,0.08)',
+          borderColor: 'rgba(212,175,55,0.25)',
+          labelColor: '#D4AF37'
         },
         shadow.correction ? {
           label: 'Проживи',
@@ -1036,7 +1036,7 @@ const Treasury = (function() {
 
     const block = document.createElement('div');
     block.className = 'coaching-block';
-    block.style.cssText = 'margin-top:14px;background:rgba(180,120,255,0.1);border:1px solid rgba(180,120,255,0.35);border-radius:14px;padding:16px';
+    block.style.cssText = 'margin-top:14px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px';
     let qHtml = '';
     if (questions && questions.length) {
       qHtml = '<ul style="margin:10px 0 0 0;padding-left:20px;color:var(--text);font-size:13px;line-height:1.7">' +
@@ -1044,7 +1044,7 @@ const Treasury = (function() {
         '</ul>';
     }
     block.innerHTML = `
-      <div style="font-size:11px;color:#c4a0f0;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#128172; Послание наставника</div>
+      <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#128172; Послание наставника</div>
       <div style="font-size:13px;color:var(--text);line-height:1.7">${escapeHtmlSimple(message)}</div>
       ${qHtml}
       <div style="font-size:11px;color:var(--text-muted);margin-top:10px;font-style:italic">Подумай над вопросами и дополни свою рефлексию выше, затем отправь снова.</div>

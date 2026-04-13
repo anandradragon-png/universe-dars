@@ -98,7 +98,7 @@ const ShareCard = (function() {
   function drawDecorStars(ctx, w, h, positions, color) {
     ctx.save();
     ctx.fillStyle = color || 'rgba(212, 175, 55, 0.8)';
-    ctx.font = '36px Georgia, serif';
+    ctx.font = '36px 'Manrope', sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const p of positions) {
@@ -140,9 +140,9 @@ const ShareCard = (function() {
     // === ФОН: космический градиент ===
     const bg = ctx.createLinearGradient(0, 0, w, h);
     bg.addColorStop(0, '#0a0118');
-    bg.addColorStop(0.4, '#1a0533');
+    bg.addColorStop(0.4, '#0d0d0d');
     bg.addColorStop(0.7, '#2d0e5e');
-    bg.addColorStop(1, '#0d0221');
+    bg.addColorStop(1, '#080808');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
 
@@ -204,7 +204,7 @@ const ShareCard = (function() {
       ctx.fillStyle = '#D4AF37';
       ctx.shadowColor = 'rgba(212, 175, 55, 0.8)';
       ctx.shadowBlur = 40;
-      ctx.font = `${iconSize}px Georgia, serif`;
+      ctx.font = `${iconSize}px 'Manrope', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('✦', w / 2, iconY + iconSize / 2);
@@ -219,7 +219,7 @@ const ShareCard = (function() {
     // Заголовок "МОЙ ДАР"
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-    ctx.font = '32px Georgia, serif';
+    ctx.font = '32px 'Manrope', sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText('М О Й   Д А Р', w / 2, isVertical ? 200 : 140);
@@ -228,7 +228,7 @@ const ShareCard = (function() {
     // Название дара (большое золотое)
     ctx.save();
     ctx.fillStyle = '#D4AF37';
-    ctx.font = `bold ${isVertical ? 110 : 90}px Georgia, serif`;
+    ctx.font = `bold ${isVertical ? 110 : 90}px 'Manrope', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.shadowColor = 'rgba(212, 175, 55, 0.5)';
@@ -240,7 +240,7 @@ const ShareCard = (function() {
     // Код дара (под названием)
     ctx.save();
     ctx.fillStyle = 'rgba(212, 175, 55, 0.7)';
-    ctx.font = `${isVertical ? 38 : 32}px Georgia, serif`;
+    ctx.font = `${isVertical ? 38 : 32}px 'Manrope', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     const codeY = nameY + (isVertical ? 130 : 110);
@@ -250,8 +250,8 @@ const ShareCard = (function() {
     // Архетип (курсив, фиолетовый)
     if (darArchetype) {
       ctx.save();
-      ctx.fillStyle = '#c4a0f0';
-      ctx.font = `italic ${isVertical ? 44 : 38}px Georgia, serif`;
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = `italic ${isVertical ? 44 : 38}px 'Manrope', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       const archY = codeY + (isVertical ? 70 : 60);
@@ -282,7 +282,7 @@ const ShareCard = (function() {
     if (userName) {
       ctx.save();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
-      ctx.font = `${isVertical ? 48 : 40}px Georgia, serif`;
+      ctx.font = `${isVertical ? 48 : 40}px 'Manrope', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillText(userName, w / 2, divY + (isVertical ? 50 : 40));
@@ -294,7 +294,7 @@ const ShareCard = (function() {
     if (birthDate) {
       ctx.save();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-      ctx.font = `${isVertical ? 32 : 28}px Georgia, serif`;
+      ctx.font = `${isVertical ? 32 : 28}px 'Manrope', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       const dateY = divY + (isVertical ? 130 : 100) + (userName ? 0 : -40);
@@ -305,7 +305,7 @@ const ShareCard = (function() {
     // === Хештеги ===
     ctx.save();
     ctx.fillStyle = 'rgba(212, 175, 55, 0.85)';
-    ctx.font = `${isVertical ? 30 : 26}px Georgia, serif`;
+    ctx.font = `${isVertical ? 30 : 26}px 'Manrope', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText('#ВселеннаяДаров   #YupDar', w / 2, h - (isVertical ? 110 : 80));
@@ -314,7 +314,7 @@ const ShareCard = (function() {
     // === Подпись YupDar внизу ===
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.font = `${isVertical ? 26 : 22}px Georgia, serif`;
+    ctx.font = `${isVertical ? 26 : 22}px 'Manrope', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText('Y u p D a r   ·   t.me/YupDarBot', w / 2, h - (isVertical ? 50 : 35));
@@ -362,7 +362,7 @@ const ShareCard = (function() {
 
     // Лоадер
     modal.innerHTML = `
-      <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 22px 22px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto">
+      <div style="position:relative;background:linear-gradient(135deg,#080808,#0d0d0d);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 22px 22px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto">
         <button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
         <div style="text-align:center;padding:30px 10px">
           <div style="font-size:36px;margin-bottom:14px;animation:pulse 1.5s ease-in-out infinite">&#127912;</div>
@@ -395,21 +395,21 @@ const ShareCard = (function() {
     const safeFileBase = ('yupdar-' + darName.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '') + '-' + darCode).replace(/--+/g, '-');
 
     modal.innerHTML = `
-      <div style="position:relative;background:linear-gradient(135deg,#0d0221,#1a0533);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 22px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto">
+      <div style="position:relative;background:linear-gradient(135deg,#080808,#0d0d0d);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 22px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto">
         <button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
         <div style="text-align:center;margin-bottom:14px">
           <div style="font-size:13px;color:#D4AF37;letter-spacing:1.5px">&#127912; КАРТОЧКА ДЛЯ ШЕЙРИНГА</div>
         </div>
         <div id="share-tabs" style="display:flex;gap:6px;margin-bottom:14px">
-          <button id="share-tab-sq" onclick="ShareCard.switchTab('square')" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(212,175,55,0.6);background:rgba(212,175,55,0.18);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Georgia,serif">&#11036; Квадрат</button>
-          <button id="share-tab-vt" onclick="ShareCard.switchTab('vertical')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif">&#128247; Вертикаль</button>
+          <button id="share-tab-sq" onclick="ShareCard.switchTab('square')" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(212,175,55,0.6);background:rgba(212,175,55,0.18);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#11036; Квадрат</button>
+          <button id="share-tab-vt" onclick="ShareCard.switchTab('vertical')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#128247; Вертикаль</button>
         </div>
         <div id="share-preview" style="text-align:center;margin-bottom:14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:10px">
           <img id="share-img" src="${squareData}" style="max-width:100%;max-height:50vh;border-radius:8px;display:block;margin:0 auto">
         </div>
         <div style="display:flex;gap:6px;margin-bottom:8px">
-          <button onclick="ShareCard.download('square')" style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">&#11015; Квадрат</button>
-          <button onclick="ShareCard.download('vertical')" style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#6b21a8,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Georgia,serif;font-weight:bold">&#11015; Вертикаль</button>
+          <button onclick="ShareCard.download('square')" style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11015; Квадрат</button>
+          <button onclick="ShareCard.download('vertical')" style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11015; Вертикаль</button>
         </div>
         <div style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.5;margin-top:10px">
           Скачай и поделись в Telegram, Instagram или ВКонтакте.<br>
@@ -437,7 +437,7 @@ const ShareCard = (function() {
     if (sq && vt) {
       const active = 'background:rgba(212,175,55,0.18);border:1px solid rgba(212,175,55,0.6);color:#D4AF37';
       const inactive = 'background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-dim)';
-      const baseStyle = 'flex:1;padding:10px;border-radius:10px;font-size:12px;cursor:pointer;font-family:Georgia,serif;';
+      const baseStyle = 'flex:1;padding:10px;border-radius:10px;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;';
       sq.style.cssText = baseStyle + (format === 'square' ? active : inactive);
       vt.style.cssText = baseStyle + (format === 'vertical' ? active : inactive);
     }

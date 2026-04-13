@@ -134,6 +134,8 @@ const HeroJourney = (function() {
 
   function renderBattle() {
     const container = getContainer();
+    if (!container) { console.error('[HeroJourney] container not found'); return; }
+    container.style.display = 'block';
     const state = currentJourney?.step_state || {};
     const heroHp = state.hero_hp ?? 100;
     const shadowHp = state.shadow_hp ?? 100;
@@ -356,10 +358,13 @@ const HeroJourney = (function() {
       </div>`;
     container.appendChild(overlay);
 
-    document.getElementById('hero-continue-btn').onclick = () => {
+    document.getElementById('hero-continue-btn').addEventListener('click', () => {
       overlay.remove();
       if (onContinue) onContinue();
-    };
+      // Скроллим к контейнеру чтобы битва была видна
+      const c = getContainer();
+      if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   function animateBattleHit(data, onDone) {

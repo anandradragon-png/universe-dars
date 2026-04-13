@@ -104,12 +104,34 @@ const HeroJourney = (function() {
     container.innerHTML = `
       <div class="hero-journey-loading">
         <div class="hero-loading-spinner"></div>
-        <p>Открываю врата путешествия...</p>
+        <p id="hero-loading-text">Открываю врата путешествия...</p>
       </div>`;
     container.style.display = 'block';
     container.scrollTop = 0;
 
+    // Анимированные фразы ожидания
+    const loadingPhrases = [
+      'Открываю врата путешествия...',
+      'Настраиваю энергию дара...',
+      'Призываю силы поля...',
+      'Формирую твой путь...',
+      'Почти готово...'
+    ];
+    let phraseIdx = 0;
+    const phraseTimer = setInterval(() => {
+      phraseIdx++;
+      const el = document.getElementById('hero-loading-text');
+      if (el && phraseIdx < loadingPhrases.length) {
+        el.textContent = loadingPhrases[phraseIdx];
+        el.classList.remove('animate-fade-in');
+        void el.offsetWidth;
+        el.classList.add('animate-fade-in');
+      }
+    }, 4000);
+    const clearPhrases = () => clearInterval(phraseTimer);
+
     DarAPI.startJourney(darCode).then(data => {
+      clearPhrases();
       currentJourney = data.journey;
       currentContent = data.step_content || (data.journey && data.journey.step_state);
 
@@ -133,6 +155,7 @@ const HeroJourney = (function() {
         renderAwakening();
       }
     }).catch(err => {
+      clearPhrases();
       container.innerHTML = `<p style="text-align:center;padding:40px;color:#ff6b6b">${err.message || 'Ошибка загрузки'}</p>
         <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.render('${darCode}')">Попробовать снова</button>`;
     });

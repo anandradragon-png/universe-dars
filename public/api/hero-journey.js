@@ -8,40 +8,17 @@ let deepseek, groqSdk;
 try { deepseek = require('./lib/deepseek'); } catch(e) {}
 
 async function callAI(systemPrompt, userMessage, maxTokens = 800) {
-  // Пробуем DeepSeek с таймаутом
-  if (deepseek && deepseek.isDeepSeekConfigured()) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000); // 20 сек таймаут
-      const result = await deepseek.chatCompletion({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...(userMessage ? [{ role: 'user', content: userMessage }] : [])
-        ],
-        model: 'deepseek-chat',
-        temperature: 0.85,
-        max_tokens: maxTokens,
-        response_format: { type: 'json_object' },
-        signal: controller.signal
-      });
-      clearTimeout(timeout);
-      return result.choices[0].message.content;
-    } catch(e) {
-      console.warn('[hero-journey] DeepSeek failed, trying Groq:', e.message);
-    }
+  // Только DeepSeek - качественные тексты, без fallback на Groq
+  if (!deepseek || !deepseek.isDeepSeekConfigured()) {
+    throw new Error('DeepSeek не настроен. Обратись в поддержку.');
   }
 
-  // Fallback на Groq
-  if (!groqSdk) {
-    const Groq = require('groq-sdk');
-    groqSdk = new Groq({ apiKey: process.env.GROQ_API_KEY });
-  }
-  const result = await groqSdk.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+  const result = await deepseek.chatCompletion({
     messages: [
       { role: 'system', content: systemPrompt },
       ...(userMessage ? [{ role: 'user', content: userMessage }] : [])
     ],
+    model: 'deepseek-chat',
     temperature: 0.85,
     max_tokens: maxTokens,
     response_format: { type: 'json_object' }

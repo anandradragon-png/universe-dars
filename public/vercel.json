@@ -86,7 +86,7 @@
     },
     "api/hero-journey.js": {
       "memory": 512,
-      "maxDuration": 45
+      "maxDuration": 60
     }
   },
   "headers": [

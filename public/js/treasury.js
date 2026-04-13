@@ -208,10 +208,17 @@ const Treasury = (function() {
       </div>
 
       <!-- Кнопка "Подробнее в книге" - переход к главе дара в ридере -->
-      <button onclick="Treasury.openInBook('${code}')" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.12));color:var(--text);font-size:14px;cursor:pointer;font-family:Georgia,serif;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px">
-        <span style="font-size:18px">&#128214;</span>
-        <span>Подробнее в Книге Даров</span>
-      </button>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button onclick="Treasury.openInBook('${code}')" style="flex:1;padding:12px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(107,33,168,0.2),rgba(212,175,55,0.12));color:var(--text);font-size:13px;cursor:pointer;font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;gap:6px">
+          <span style="font-size:16px">&#128214;</span>
+          <span>Книга Даров</span>
+        </button>
+        <button onclick="HeroJourney.render('${code}','${name}')" style="flex:1;padding:12px;border-radius:14px;border:1px solid rgba(255,140,0,0.5);background:linear-gradient(135deg,rgba(255,100,0,0.2),rgba(255,200,0,0.15));color:#FFA500;font-size:13px;cursor:pointer;font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;gap:6px">
+          <span style="font-size:16px">&#127749;</span>
+          <span>Путешествие</span>
+        </button>
+      </div>
+      <div id="hero-journey-container" style="display:none"></div>
 
       <div style="background:linear-gradient(135deg,rgba(107,33,168,0.12),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:14px;margin-bottom:16px">
         <div style="font-size:12px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600">&#10024; Алхимия дара</div>

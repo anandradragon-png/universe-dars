@@ -599,7 +599,7 @@
     </div>
   </div>
   <div id="app">
-    <div class="tab active" id="tab-calc">
+    <div id="tab-calc" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg,#1a1a2e);z-index:400;overflow-y:auto;padding-bottom:80px">
       <div class="main-container">
       <div id="screen-input" class="input-screen">
         <div class="logo"></div>
@@ -747,7 +747,7 @@
 
       </div><!-- /main-container -->
     </div>
-    <div class="tab" id="tab-treasury">
+    <div class="tab active" id="tab-treasury">
       <div id="treasury-content">
         <div style="text-align:center;padding-top:40px">
           <div style="margin-bottom:16px"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 6h6"/><path d="M7 9l2-6"/><path d="M2 9h20"/></svg></div>
@@ -1025,11 +1025,10 @@
   </style>
 
   <div class="nav-bar">
-    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="nav-label">Мой Дар</span></button>
-    <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 6h6"/><path d="M7 9l2-6"/><path d="M2 9h20"/></svg></span><span class="nav-label">Сокровищн...</span></button>
+    <button class="nav-btn active" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 6h6"/><path d="M7 9l2-6"/><path d="M2 9h20"/></svg></span><span class="nav-label">Сокровищница</span></button>
     <button class="nav-btn" id="nav-games" onclick="switchNav('games')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg></span><span class="nav-label">Игры</span></button>
     <button class="nav-btn" id="nav-book" onclick="switchNav('book')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span class="nav-label">Книга</span></button>
-    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="nav-label">Энциклоп...</span></button>
+    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="nav-label">Энциклопедия</span></button>
   </div>
 
   <!-- Игровые модули -->
@@ -1508,10 +1507,14 @@
     }
 
     function switchNav(name) {
+      // Если пытаемся переключить на calc - игнорируем (вкладка убрана)
+      if (name === 'calc') { showCalcOverlay(); return; }
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + name).classList.add('active');
-      document.getElementById('nav-' + name).classList.add('active');
+      var tabEl = document.getElementById('tab-' + name);
+      var navEl = document.getElementById('nav-' + name);
+      if (tabEl) tabEl.classList.add('active');
+      if (navEl) navEl.classList.add('active');
       document.getElementById('app').scrollTop = 0;
       // Рендер при переключении
       if (name === 'treasury' && typeof Treasury !== 'undefined') {
@@ -1644,6 +1647,8 @@
       document.getElementById('screen-input').style.display='none';
       document.getElementById('screen-result').style.display='block';
       document.getElementById('btn-back').style.display='block';
+      // Скрываем калькулятор-оверлей через 2 сек после показа результата
+      setTimeout(function() { hideCalcOverlay(); }, 2000);
       // Сброс блока описания
       document.getElementById('full-description-block').style.display='none';
       const btn=document.getElementById('btn-get-message');
@@ -1760,28 +1765,36 @@
       alert('Дар ' + darName + ' открыт в твоей Сокровищнице! +10 кристаллов');
     }
 
+    // Показать/скрыть калькулятор-оверлей
+    function showCalcOverlay() {
+      document.getElementById('tab-calc').style.display = 'block';
+      document.getElementById('screen-input').style.display = 'block';
+      document.getElementById('screen-result').style.display = 'none';
+    }
+    function hideCalcOverlay() {
+      document.getElementById('tab-calc').style.display = 'none';
+    }
+    window.showCalcOverlay = showCalcOverlay;
+
     function init(){
       try {
         const saved=localStorage.getItem(STORAGE_KEY);
         if(saved){
           const data=JSON.parse(saved);
           if(data && data.gift && data.gift.code) {
-            // Предзаполняем поле даты чтобы юзер не вводил повторно
             if (data.date) {
               document.getElementById('dateInput').value = data.date;
               if (window._syncDateFieldsFromHidden) window._syncDateFieldsFromHidden();
             }
             showResult(data.gift);
+            hideCalcOverlay();
             return;
           }
         }
       } catch(e) { localStorage.removeItem(STORAGE_KEY); }
 
-      // Если localStorage пуст но на сервере есть дар — восстанавливаем
-      // (Telegram WebApp может сбрасывать localStorage при перезапуске)
-      // Показываем лоадер пока ждём ответ от сервера
+      // Если localStorage пуст но на сервере есть дар - восстанавливаем
       if (typeof DarAPI !== 'undefined') {
-        // Скрываем оба экрана пока ждём
         document.getElementById('screen-input').style.display='none';
         document.getElementById('screen-result').style.display='none';
 
@@ -1789,27 +1802,25 @@
           if (profileData?.user?.dar_code) {
             const code = profileData.user.dar_code;
             const birthDate = profileData.user.birth_date || '';
-            // Восстанавливаем localStorage из сервера
             const [ma, zhi, kun] = code.split('-').map(Number);
             const gift = { code, ma, zhi, kun };
             localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: birthDate, gift }));
             if (birthDate) { document.getElementById('dateInput').value = birthDate; if (window._syncDateFieldsFromHidden) window._syncDateFieldsFromHidden(); }
-            // Восстанавливаем access_level
             if (profileData.user.access_level) {
               try { localStorage.setItem('_access_level', profileData.user.access_level); } catch(e) {}
             }
             showResult(gift);
+            hideCalcOverlay();
           } else {
-            document.getElementById('screen-input').style.display='block';
+            showCalcOverlay();
           }
         }).catch(() => {
-          document.getElementById('screen-input').style.display='block';
+          showCalcOverlay();
         });
         return;
       }
 
-      document.getElementById('screen-input').style.display='block';
-      document.getElementById('screen-result').style.display='none';
+      showCalcOverlay();
     }
     init();
 
@@ -1845,6 +1856,7 @@
       document.getElementById('screen-input').style.display='block';
       document.getElementById('btn-back').style.display='none';
       document.getElementById('full-description-block').style.display='none';
+      showCalcOverlay();
     }
 
     const API_URL='https://public-yup-land1.vercel.app';

@@ -195,7 +195,20 @@ module.exports = async (req, res) => {
 
     // ---- step_action: действие внутри шага ----
     if (action === 'step_action') {
-      const { choice_index, answer } = req.body;
+      const { choice_index, answer, restart } = req.body;
+
+      // Перезапуск путешествия
+      if (restart) {
+        const journey = await upsertHeroJourney(user.id, dar_code, {
+          step: 1,
+          step_state: {},
+          completed_steps: [],
+          crystals_earned: 0,
+          completed_at: null
+        });
+        return res.json({ ok: true, journey });
+      }
+
       let journey = await getHeroJourney(user.id, dar_code);
 
       if (!journey) {

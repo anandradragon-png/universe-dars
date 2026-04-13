@@ -142,9 +142,9 @@ const HeroJourney = (function() {
           <div class="hero-scene-counter">Сцена ${sceneIdx + 1} из ${state.scenes.length}</div>
           <div class="hero-choices">
             ${(scene?.choices || []).map((c, i) => `
-              <button class="hero-choice-btn" onclick="HeroJourney.choose(${i})" ${loading ? 'disabled' : ''}>
-                <span class="hero-choice-label">${c.label || c}</span>
-                ${c.desc ? `<span class="hero-choice-desc">${c.desc}</span>` : ''}
+              <button class="hero-choice-btn" onclick="HeroJourney.choose(${i})" data-label="${(c.label || '').replace(/"/g, '&quot;')}" ${loading ? 'disabled' : ''}>
+                <span class="hero-choice-label hero-choice-hidden">${c.label || c}</span>
+                <span class="hero-choice-desc">${c.desc || c.label || ''}</span>
               </button>
             `).join('')}
           </div>
@@ -285,6 +285,7 @@ const HeroJourney = (function() {
             `).join('')}
           </div>
           <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">Вернуться в Сокровищницу</button>
+          <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.restart('${currentDarCode}')" style="margin-top:8px">🔄 Пройти заново (другой путь)</button>
         </div>
       </div>`;
     scrollToTop();
@@ -296,14 +297,31 @@ const HeroJourney = (function() {
     if (loading) return;
     loading = true;
 
-    // Визуально отмечаем выбор
+    // Визуально отмечаем выбор и раскрываем название пути
     const buttons = document.querySelectorAll('.hero-choice-btn');
     buttons.forEach((btn, i) => {
       btn.disabled = true;
-      if (i === index) btn.classList.add('hero-choice-selected');
-      else btn.classList.add('hero-choice-dimmed');
+      if (i === index) {
+        btn.classList.add('hero-choice-selected');
+        // Раскрываем скрытое название пути
+        const labelEl = btn.querySelector('.hero-choice-label');
+        if (labelEl) labelEl.classList.remove('hero-choice-hidden');
+        // Показываем "Твоя точка сборки..."
+        const label = btn.getAttribute('data-label') || '';
+        const pathMsg = document.createElement('div');
+        pathMsg.className = 'hero-path-msg animate-fade-in';
+        pathMsg.innerHTML = `<em>Твоя точка сборки: ${label}</em><br><span style="font-size:11px;color:#888">Это не хорошо и не плохо. Это то, где ты сейчас.</span>`;
+        btn.parentElement.after(pathMsg);
+      } else {
+        btn.classList.add('hero-choice-dimmed');
+        // Раскрываем названия и у остальных (чтобы видеть что было)
+        const labelEl = btn.querySelector('.hero-choice-label');
+        if (labelEl) { labelEl.classList.remove('hero-choice-hidden'); labelEl.style.opacity = '0.5'; }
+      }
     });
 
+    // Задержка чтобы юзер увидел свой выбор и осознал
+    setTimeout(() => {
     DarAPI.journeyAction(currentDarCode, { choice_index: index }).then(data => {
       loading = false;
 
@@ -341,6 +359,7 @@ const HeroJourney = (function() {
       buttons.forEach(btn => btn.disabled = false);
       if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
     });
+    }, 1500); // Задержка 1.5 сек чтобы увидеть свой выбор
   }
 
   function attack() {
@@ -458,11 +477,23 @@ const HeroJourney = (function() {
     currentDarCode = null;
   }
 
+  function restart(darCode) {
+    // Сбрасываем путешествие на сервере и начинаем заново
+    DarAPI.journeyAction(darCode || currentDarCode, { restart: true }).then(() => {
+      currentJourney = null;
+      currentContent = null;
+      HeroJourney.render(darCode || currentDarCode);
+    }).catch(err => {
+      if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
+    });
+  }
+
   return {
     render,
     choose,
     attack,
     retryBattle,
+    restart,
     close
   };
 })();

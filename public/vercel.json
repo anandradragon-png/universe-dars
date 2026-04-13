@@ -79,6 +79,10 @@
     "api/compatibility.js": {
       "memory": 512,
       "maxDuration": 30
+    },
+    "api/diary.js": {
+      "memory": 512,
+      "maxDuration": 30
     }
   }
 }

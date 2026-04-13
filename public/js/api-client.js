@@ -198,6 +198,14 @@ const DarAPI = (function() {
     createDaraiDonation: (amount_raw) =>
       request('/api/payment', 'POST', { action: 'create_darai_donation', amount_raw }),
 
+    // ---- Дневник Дара ----
+    saveDiaryMood: (mood, note) =>
+      request('/api/diary', 'POST', { action: 'save_mood', mood, note }),
+    getDiaryWeek: () =>
+      request('/api/diary', 'POST', { action: 'get_week' }),
+    getDiaryInsight: () =>
+      request('/api/diary', 'POST', { action: 'get_insight' }),
+
     // ---- Совместимость пары ----
     checkCompatibility: (dar_code_1, dar_code_2, name_1, name_2, relationship) =>
       request('/api/compatibility', 'POST', { dar_code_1, dar_code_2, name_1, name_2, relationship }),

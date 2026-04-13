@@ -525,6 +525,32 @@
       <div id="daily-activities" style="display:none;padding-top:16px">
         <div style="font-size:14px;color:var(--text);letter-spacing:2px;text-align:center;margin-bottom:12px">ЕЖЕДНЕВНЫЕ АКТИВНОСТИ</div>
 
+        <!-- Дневник Дара -->
+        <div id="diary-widget" style="background:linear-gradient(135deg,rgba(107,33,168,0.15),rgba(212,175,55,0.08));border:1px solid rgba(180,120,255,0.3);border-radius:14px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="font-size:24px">&#128147;</div>
+            <div style="flex:1">
+              <div style="font-size:14px;color:var(--text)">Дневник Дара</div>
+              <div id="diary-status" style="font-size:12px;color:var(--text-dim)">Как ты себя сейчас чувствуешь?</div>
+            </div>
+            <div id="diary-streak" style="font-size:11px;color:#D4AF37;display:none">&#128293; 0</div>
+          </div>
+          <div id="diary-mood-buttons" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+            <button onclick="saveDiaryMood('joy')" class="diary-mood-btn" data-mood="joy">😊 Радость</button>
+            <button onclick="saveDiaryMood('calm')" class="diary-mood-btn" data-mood="calm">😌 Спокойствие</button>
+            <button onclick="saveDiaryMood('energy')" class="diary-mood-btn" data-mood="energy">🔥 Энергия</button>
+            <button onclick="saveDiaryMood('inspiration')" class="diary-mood-btn" data-mood="inspiration">✨ Вдохновение</button>
+            <button onclick="saveDiaryMood('anxiety')" class="diary-mood-btn" data-mood="anxiety">😰 Тревога</button>
+            <button onclick="saveDiaryMood('sadness')" class="diary-mood-btn" data-mood="sadness">😔 Грусть</button>
+            <button onclick="saveDiaryMood('irritation')" class="diary-mood-btn" data-mood="irritation">😤 Раздражение</button>
+            <button onclick="saveDiaryMood('fatigue')" class="diary-mood-btn" data-mood="fatigue">😴 Усталость</button>
+          </div>
+          <div id="diary-insight-btn" style="display:none;margin-top:10px;text-align:center">
+            <button onclick="getDiaryInsight()" style="padding:8px 16px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(107,33,168,0.1);color:#c4a0f0;font-size:11px;cursor:pointer;font-family:Georgia,serif">&#128302; Получить инсайт от AI</button>
+          </div>
+          <div id="diary-insight-result" style="display:none;margin-top:10px;padding:12px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:10px;font-size:13px;color:var(--text);line-height:1.7"></div>
+        </div>
+
         <!-- Оракул -->
         <div id="daily-dar-block" style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer" onclick="DailyDar.open()">
           <div style="display:flex;align-items:center;gap:10px">
@@ -698,6 +724,10 @@
     .fb-cat{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Georgia,serif;transition:all .2s}
     .fb-cat.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
     .fb-cat:hover{border-color:rgba(180,120,255,0.4)}
+    .diary-mood-btn{padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:11px;cursor:pointer;font-family:Georgia,serif;transition:all .15s}
+    .diary-mood-btn:hover{border-color:rgba(180,120,255,0.4);background:rgba(107,33,168,0.12)}
+    .diary-mood-btn.active{background:rgba(107,33,168,0.35);border-color:rgba(180,120,255,0.6);color:var(--text)}
+    .diary-mood-btn.saved{background:rgba(46,204,113,0.2);border-color:rgba(46,204,113,0.5);color:#2ecc71;pointer-events:none}
     .rel-input{width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Georgia,serif;outline:none;margin-bottom:10px;box-sizing:border-box}
     .rel-input:focus{border-color:rgba(180,120,255,0.6)}
     .rel-rel-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Georgia,serif;transition:all .15s}
@@ -1493,6 +1523,8 @@
       const dailyBlock = document.getElementById('daily-activities');
       if (dailyBlock) dailyBlock.style.display = 'block';
       loadDailyDar();
+      // Инициализация дневника
+      if (typeof initDiary === 'function') initDiary();
       // Интегратор — поздравление + выбор дара поля
       if (isInt) {
         const shown = localStorage.getItem('_int_gift_shown_' + USER_ID);
@@ -2420,6 +2452,74 @@
       } catch (e) {
         console.error('[payment] buyWithDarai error:', e);
         if (typeof showToast === 'function') showToast(e.message || 'Ошибка оплаты DarAI', 'error');
+      }
+    }
+
+    // ============ ДНЕВНИК ДАРА ============
+
+    let _diaryTodayMood = null;
+
+    function initDiary() {
+      // Загружаем данные дневника чтобы показать статус
+      if (typeof DarAPI === 'undefined' || !DarAPI.getDiaryWeek) return;
+      DarAPI.getDiaryWeek().then(data => {
+        _diaryTodayMood = data.today_mood;
+        if (data.streak > 0) {
+          const streakEl = document.getElementById('diary-streak');
+          if (streakEl) { streakEl.textContent = '\u{1F525} ' + data.streak; streakEl.style.display = 'block'; }
+        }
+        if (_diaryTodayMood) {
+          // Уже отметила сегодня
+          const statusEl = document.getElementById('diary-status');
+          if (statusEl) statusEl.textContent = 'Сегодня: отмечено \u2714';
+          document.querySelectorAll('.diary-mood-btn').forEach(b => {
+            if (b.dataset.mood === _diaryTodayMood) b.classList.add('saved');
+            else b.style.opacity = '0.4';
+          });
+          // Показать кнопку инсайта если 3+ записей
+          if (data.entries && data.entries.length >= 3) {
+            const insBtn = document.getElementById('diary-insight-btn');
+            if (insBtn) insBtn.style.display = 'block';
+          }
+        }
+      }).catch(() => {});
+    }
+
+    async function saveDiaryMood(mood) {
+      if (_diaryTodayMood) return; // уже отмечено
+      try {
+        const result = await DarAPI.saveDiaryMood(mood);
+        _diaryTodayMood = mood;
+        // UI обновление
+        document.querySelectorAll('.diary-mood-btn').forEach(b => {
+          if (b.dataset.mood === mood) b.classList.add('saved');
+          else b.style.opacity = '0.4';
+        });
+        const statusEl = document.getElementById('diary-status');
+        if (statusEl) statusEl.textContent = 'Сегодня: отмечено \u2714';
+        if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
+          CrystalsUI.animateEarn(result.crystals_earned);
+        }
+        if (typeof showToast === 'function') showToast('\u2728 +1 кристалл за дневник', 'success');
+      } catch (e) {
+        if (typeof showToast === 'function') showToast(e.message || 'Ошибка', 'error');
+      }
+    }
+
+    async function getDiaryInsight() {
+      const resultEl = document.getElementById('diary-insight-result');
+      if (!resultEl) return;
+      resultEl.style.display = 'block';
+      resultEl.innerHTML = '<div style="text-align:center;animation:pulse 1.5s infinite">&#128302; Анализирую твой дневник...</div>';
+      try {
+        const data = await DarAPI.getDiaryInsight();
+        if (data.insight) {
+          resultEl.innerHTML = data.insight.replace(/\n/g, '<br>');
+        } else {
+          resultEl.innerHTML = data.message || 'Нужно больше записей для анализа';
+        }
+      } catch (e) {
+        resultEl.innerHTML = '<span style="color:#f87171">' + (e.message || 'Ошибка') + '</span>';
       }
     }
 

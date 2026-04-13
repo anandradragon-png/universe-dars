@@ -72,13 +72,21 @@ const Treasury = (function() {
       </div>
     `;
 
-    // Баннер книги
+    // Баннер книги + Путешествие Героя
     html += `
-      <div style="margin:0 0 16px;padding:14px;background:linear-gradient(135deg,rgba(107,33,168,0.15),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
-        <div style="font-size:14px;color:#D4AF37;margin-bottom:4px">&#128214; Книга Даров</div>
-        <div style="font-size:11px;color:var(--text-dim)">Полное описание каждого дара с практиками и медитациями</div>
+      <div style="display:flex;gap:8px;margin:0 0 16px">
+        <div style="flex:1;padding:14px;background:linear-gradient(135deg,rgba(107,33,168,0.15),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
+          <div style="font-size:14px;color:#D4AF37;margin-bottom:4px">&#128214; Книга Даров</div>
+          <div style="font-size:11px;color:var(--text-dim)">Практики и медитации</div>
+        </div>
+        <div style="flex:1;padding:14px;background:linear-gradient(135deg,rgba(255,100,0,0.12),rgba(255,200,0,0.08));border:1px solid rgba(255,140,0,0.35);border-radius:14px;text-align:center;cursor:pointer" onclick="Treasury.startHeroJourney()">
+          <div style="font-size:14px;color:#FFA500;margin-bottom:4px">&#127749; Путешествие</div>
+          <div style="font-size:11px;color:var(--text-dim)">Квест по твоему дару</div>
+        </div>
       </div>
     `;
+    // Контейнер для Путешествия (скрыт, открывается при клике)
+    html += `<div id="hero-journey-container" style="display:none"></div>`;
 
     // Группировка по полям
     const groups = {};
@@ -1189,8 +1197,17 @@ const Treasury = (function() {
     }
   }
 
+  function startHeroJourney() {
+    // Запускаем путешествие для своего дара
+    if (userDarCode && typeof HeroJourney !== 'undefined') {
+      HeroJourney.render(userDarCode);
+    } else {
+      if (typeof showToast === 'function') showToast('Сначала рассчитай свой дар', 'warning');
+    }
+  }
+
   return {
-    init, render, openDar, openInBook,
+    init, render, openDar, openInBook, startHeroJourney,
     openEssenceQuest, openShadowQuest, openMeditationQuest,
     // Старые submit-функции для обратной совместимости
     submitShadowQuest, submitMeditationQuest,

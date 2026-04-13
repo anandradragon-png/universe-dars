@@ -187,28 +187,7 @@ const DailyDar = (function() {
 
   // --- Fallback: рендер из энциклопедии ---
   function renderFallbackBlock(code, content, contextTitle) {
-    // Для интеграторов (9-x-x, x-9-x) собираем данные из полей
-    if (!content || !content[code]) {
-      const parts = code.split('-').map(Number);
-      const fieldNums = parts.filter(n => n >= 1 && n <= 9 && n !== 9);
-      if (fieldNums.length === 0) return '<div style="color:var(--text-muted);text-align:center;padding:16px">Описание недоступно</div>';
-      // Берём первое уникальное поле
-      const fieldContent = {};
-      for (const fn of fieldNums) {
-        const fCode = fn + '-' + fn + '-' + fn; // не сработает, ищем по полям
-        // Попробуем собрать хоть что-то из FIELDS
-        const fieldName = FIELDS[fn] || '';
-        if (fieldName) {
-          fieldContent.essence = fieldContent.essence || '';
-          fieldContent.essence += (fieldContent.essence ? ' ' : '') + 'Энергия поля ' + fieldName + ' усиливает твой день.';
-        }
-      }
-      const intName = window.INTEGRATORS?.[code] || code;
-      return `<div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">${contextTitle || '&#10024; Энергии дня:'}</div>
-        <div style="font-size:13px;color:#e0e0e0;line-height:1.7">Сегодня через тебя проходит энергия интегратора <strong style="color:#D4AF37">${intName}</strong>. Это мощная объединяющая сила полей ${parts.map(n => FIELDS[n] || n).join(', ')}. Позволь этим энергиям свободно течь через тебя.</div>
-      </div>`;
-    }
+    if (!content || !content[code]) return '<div style="color:var(--text-muted);text-align:center;padding:16px">Загрузка...</div>';
     const dar = content[code];
     let html = '';
 

@@ -461,9 +461,245 @@ function buildSceneResponsePrompt(fieldId, darContent, sceneIndex, choiceLabel) 
 Тон: живой, поддерживающий. Без латиницы, без длинного тире. Русский язык.`;
 }
 
+/**
+ * Построить промпт для Шага 3 (Загадка Зеркала)
+ */
+function buildRiddlePrompt(fieldId, darContent, darCode, userName, gender, choicesMade) {
+  const field = FIELD_CONFIGS[fieldId] || FIELD_CONFIGS[9];
+  const genderForm = gender === 'female' ? 'героиня' : 'герой';
+
+  return `Ты - Зеркало Истины в игре "Путешествие Героя" (YupDar).
+Поле: ${field.name} (${field.element}). Мир: ${field.world}.
+
+ДАННЫЕ ДАРА:
+- Код: ${darCode}
+- Суть: ${(darContent.essence || '').slice(0, 400)}
+- Световая сила: ${(darContent.light_power || '').slice(0, 300)}
+
+Игрок: ${userName || 'Путник'} (${genderForm})
+${choicesMade ? 'Предыдущие выборы: ' + JSON.stringify(choicesMade) : ''}
+
+ЗАДАЧА: Сгенерируй 3 метафорические загадки, каждая раскрывает грань дара.
+Каждая загадка имеет 3 варианта ответа. Нет "правильного" - все раскрывают что-то.
+
+ПРАВИЛА:
+- Русский язык, обращение на "ты"
+- Без латиницы, без длинного тире
+- Загадки должны быть образными, поэтичными
+- Каждый ответ дает инсайт о себе
+
+ФОРМАТ JSON:
+{
+  "intro": "Зеркало Истины стоит перед тобой... (2-3 предложения)",
+  "scenes": [
+    {
+      "text": "В зеркале появляется образ: [метафорическая загадка 3-4 предложения]. Что ты видишь?",
+      "choices": [
+        {"label": "Отражение силы", "desc": "Трактовка (1 предложение)"},
+        {"label": "Отражение страха", "desc": "Трактовка"},
+        {"label": "Отражение пути", "desc": "Трактовка"}
+      ]
+    },
+    {"text": "Зеркало меняется... [вторая загадка]", "choices": [{"label":"...","desc":"..."},{"label":"...","desc":"..."},{"label":"...","desc":"..."}]},
+    {"text": "Последнее отражение... [третья загадка]", "choices": [{"label":"...","desc":"..."},{"label":"...","desc":"..."},{"label":"...","desc":"..."}]}
+  ],
+  "victory": "Зеркало показало истину. Теперь ты знаешь себя глубже. (2-3 предложения)"
+}`;
+}
+
+/**
+ * Построить промпт для Шага 4 (Испытание Огнём)
+ */
+function buildTrialPrompt(fieldId, darContent, darCode, userName, gender) {
+  const field = FIELD_CONFIGS[fieldId] || FIELD_CONFIGS[9];
+  const genderForm = gender === 'female' ? 'героиня' : 'герой';
+
+  return `Ты - Хранитель Испытаний в игре "Путешествие Героя" (YupDar).
+Поле: ${field.name} (${field.element}). Мир: ${field.world}.
+
+ДАННЫЕ ДАРА:
+- Код: ${darCode}
+- Суть: ${(darContent.essence || '').slice(0, 400)}
+- Применение: ${(darContent.application || '').slice(0, 300)}
+
+Игрок: ${userName || 'Путник'} (${genderForm})
+
+ЗАДАЧА: Сгенерируй 3 реальных задания для жизни, связанных с даром.
+Задания должны быть конкретными и выполнимыми прямо сейчас или в течение дня.
+Три уровня сложности на выбор.
+
+ПРАВИЛА:
+- Русский язык, обращение на "ты"
+- Без латиницы, без длинного тире
+- Задания конкретные, не абстрактные
+- Привязаны к реальной жизни
+
+ФОРМАТ JSON:
+{
+  "intro": "Огонь испытания горит перед тобой... (2-3 предложения)",
+  "scenes": [
+    {
+      "text": "Первое испытание. Выбери свой вызов:",
+      "choices": [
+        {"label": "Искра (1 мин)", "desc": "Лёгкое задание прямо сейчас"},
+        {"label": "Пламя (1 час)", "desc": "Среднее задание на ближайший час"},
+        {"label": "Костёр (1 день)", "desc": "Серьёзный вызов на весь день"}
+      ]
+    },
+    {"text": "Второе испытание...", "choices": [{"label":"...","desc":"..."},{"label":"...","desc":"..."},{"label":"...","desc":"..."}]},
+    {"text": "Финальное испытание...", "choices": [{"label":"...","desc":"..."},{"label":"...","desc":"..."},{"label":"...","desc":"..."}]}
+  ],
+  "victory": "Ты принял вызов огня. Дар закаляется в действии. (2-3 предложения)"
+}`;
+}
+
+/**
+ * Построить промпт для Шага 5 (Погружение - медитация)
+ */
+function buildMeditationPrompt(fieldId, darContent, darCode, userName, gender) {
+  const field = FIELD_CONFIGS[fieldId] || FIELD_CONFIGS[9];
+  const genderForm = gender === 'female' ? 'героиня' : 'герой';
+
+  return `Ты - Проводник Погружения в игре "Путешествие Героя" (YupDar).
+Поле: ${field.name} (${field.element}). Мир: ${field.world}.
+
+ДАННЫЕ ДАРА:
+- Код: ${darCode}
+- Суть: ${(darContent.essence || '').slice(0, 400)}
+- Медитация: ${(darContent.meditation || '').slice(0, 300)}
+
+Игрок: ${userName || 'Путник'} (${genderForm})
+
+ЗАДАЧА: Сгенерируй интерактивную медитацию из 3 этапов.
+На каждом этапе ${genderForm} выбирает ощущение или образ.
+Это глубокое погружение в энергию дара через тело и чувства.
+
+ПРАВИЛА:
+- Русский язык, обращение на "ты"
+- Без латиницы, без длинного тире
+- Мягкий медитативный тон
+- Акцент на телесных ощущениях и образах
+
+ФОРМАТ JSON:
+{
+  "intro": "Закрой глаза... Ты погружаешься в пространство своего дара. (2-3 предложения)",
+  "scenes": [
+    {
+      "text": "Первый слой погружения. [Описание ощущения 3-4 предложения]. Что ты чувствуешь?",
+      "choices": [
+        {"label": "Тепло", "desc": "Ощущение в теле (1 предложение)"},
+        {"label": "Вибрация", "desc": "Ощущение энергии"},
+        {"label": "Покой", "desc": "Ощущение тишины"}
+      ]
+    },
+    {"text": "Глубже... [второй слой]", "choices": [{"label":"...","desc":"..."},{"label":"...","desc":"..."},{"label":"...","desc":"..."}]},
+    {"text": "Самая глубина... [третий слой]", "choices": [{"label":"...","desc":"..."},{"label":"...","desc":"..."},{"label":"...","desc":"..."}]}
+  ],
+  "victory": "Ты прикоснулся к самому сердцу своего дара. Это ощущение теперь с тобой. (2-3 предложения)"
+}`;
+}
+
+/**
+ * Построить промпт для Шага 6 (Трансформация - вторая битва, сложнее)
+ */
+function buildTransformPrompt(fieldId, darContent, darCode, userName, gender, round, heroHp, shadowHp, userAnswer, history) {
+  const field = FIELD_CONFIGS[fieldId] || FIELD_CONFIGS[9];
+  const genderForm = gender === 'female' ? 'героиня' : 'герой';
+
+  return `Ты - Глубокая Тень дара в игре "Путешествие Героя" (YupDar).
+Это ВТОРАЯ битва - сложнее первой. Тень стала хитрее и глубже.
+Поле: ${field.name}. Стиль: ${field.battleStyle}
+
+ДАННЫЕ ДАРА:
+- Суть: ${(darContent.essence || '').slice(0, 300)}
+- Тень: ${(darContent.shadow || '').slice(0, 400)}
+- Безопасность: ${(darContent.safety || '').slice(0, 200)}
+
+СОСТОЯНИЕ:
+- Раунд: ${round}/5, HP героя: ${heroHp}/100, HP тени: ${shadowHp}/100
+- Игрок: ${userName || 'Путник'} (${genderForm})
+
+${history && history.length > 0 ? 'ИСТОРИЯ:\n' + history.map(h => (h.role === 'hero' ? 'Герой: ' : 'Тень: ') + h.text).join('\n') : ''}
+
+ОТВЕТ ГЕРОЯ: "${userAnswer}"
+
+ОТЛИЧИЯ ОТ ПЕРВОЙ БИТВЫ:
+- Тень задаёт БОЛЕЕ ГЛУБОКИЕ вопросы (не про поведение, а про мотивы и страхи)
+- Порог глубины выше: depth < 5 = слабый удар
+- Тень может цитировать предыдущие ответы героя и указывать на противоречия
+- Урон тени = (depth + authenticity) * 4 (слабее чем в первой битве)
+- Урон герою: 20-25 HP (сильнее)
+
+ФОРМАТ JSON:
+{
+  "score": {"depth": число, "authenticity": число},
+  "damage_to_shadow": число,
+  "damage_to_hero": число (20-25),
+  "shadow_response": "Ответ глубокой тени (2-3 предложения)",
+  "new_hero_hp": число,
+  "new_shadow_hp": число,
+  "battle_over": true/false,
+  "hero_won": true/false
+}`;
+}
+
+/**
+ * Построить промпт для Шага 7 (Коронация - финал)
+ */
+function buildCoronationPrompt(fieldId, darContent, darCode, userName, gender, completedSteps) {
+  const field = FIELD_CONFIGS[fieldId] || FIELD_CONFIGS[9];
+  const genderForm = gender === 'female' ? 'героиня' : 'герой';
+  const genderEnd = gender === 'female' ? 'а' : '';
+
+  return `Ты - Хранитель Коронации в игре "Путешествие Героя" (YupDar).
+${genderForm} прошёл${genderEnd} все 6 испытаний и готов${genderEnd} к коронации.
+Поле: ${field.name} (${field.element}). Мир: ${field.world}.
+
+ДАННЫЕ ДАРА:
+- Код: ${darCode}
+- Суть: ${(darContent.essence || '').slice(0, 400)}
+- Световая сила: ${(darContent.light_power || '').slice(0, 300)}
+- Атрибуты: ${(darContent.attributes || '').slice(0, 200)}
+
+Игрок: ${userName || 'Путник'} (${genderForm})
+
+ЗАДАЧА: Сгенерируй торжественный финал из 3 сцен.
+Это кульминация путешествия. ${genderForm} получает Печать Дара.
+Каждый выбор - это обещание себе на будущее.
+
+ПРАВИЛА:
+- Русский язык, обращение на "ты"
+- Без латиницы, без длинного тире
+- Торжественный но тёплый тон
+- Конкретные обещания, не абстрактные
+
+ФОРМАТ JSON:
+{
+  "intro": "Путь пройден. ${field.world} открывает свои врата... (2-3 предложения)",
+  "scenes": [
+    {
+      "text": "Первая клятва. [Описание момента 3-4 предложения]. Какое обещание ты даёшь себе?",
+      "choices": [
+        {"label": "Обещание силы", "desc": "Конкретное обещание (1 предложение)"},
+        {"label": "Обещание мудрости", "desc": "Конкретное обещание"},
+        {"label": "Обещание любви", "desc": "Конкретное обещание"}
+      ]
+    },
+    {"text": "Вторая клятва...", "choices": [{"label":"...","desc":"..."},{"label":"...","desc":"..."},{"label":"...","desc":"..."}]},
+    {"text": "Печать Дара сияет перед тобой...", "choices": [{"label":"...","desc":"..."},{"label":"...","desc":"..."},{"label":"...","desc":"..."}]}
+  ],
+  "victory": "Печать Дара принята. Ты прошёл${genderEnd} путь от пробуждения до коронации. Сила дара теперь полностью твоя. (2-3 предложения)"
+}`;
+}
+
 module.exports = {
   FIELD_CONFIGS,
   buildAwakeningPrompt,
   buildBattlePrompt,
+  buildRiddlePrompt,
+  buildTrialPrompt,
+  buildMeditationPrompt,
+  buildTransformPrompt,
+  buildCoronationPrompt,
   buildSceneResponsePrompt
 };

@@ -1,7 +1,7 @@
 const { requireUser } = require('./lib/auth');
 const { getOrCreateUser, addCrystals, getHeroJourney, upsertHeroJourney, getAllHeroJourneys, getUserDars } = require('./lib/db');
 const { getReward } = require('./lib/crystals');
-const { FIELD_CONFIGS, buildAwakeningPrompt, buildBattlePrompt } = require('./lib/hero-prompts');
+const { FIELD_CONFIGS, buildAwakeningPrompt, buildBattlePrompt, buildRiddlePrompt, buildTrialPrompt, buildMeditationPrompt, buildTransformPrompt, buildCoronationPrompt } = require('./lib/hero-prompts');
 
 // DeepSeek (primary) / Groq (fallback)
 let deepseek, groqSdk;
@@ -128,17 +128,41 @@ module.exports = async (req, res) => {
       if (journey && journey.step_state && journey.step_state.scenes) {
         return res.json({ journey, step_content: journey.step_state });
       }
+      // Если битва - тоже вернуть как есть
+      if (journey && journey.step_state && (journey.step_state.hero_hp !== undefined)) {
+        return res.json({ journey, step_content: journey.step_state });
+      }
 
-      // Генерируем контент для Шага 1 (Пробуждение)
       const darContent = loadDarContent();
       const dar = darContent[dar_code] || {};
       const fieldId = getFieldId(dar_code);
       const fieldConfig = FIELD_CONFIGS[fieldId] || FIELD_CONFIGS[9];
-
       const userName = user.real_first_name || user.first_name || '';
       const gender = user.gender || '';
 
-      const prompt = buildAwakeningPrompt(fieldId, dar, dar_code, userName, gender);
+      const currentStep = (journey && journey.step) || 1;
+
+      // Генерируем контент в зависимости от текущего шага
+      let prompt;
+      const choicesMade = journey?.step_state?.choices_made || [];
+      switch (currentStep) {
+        case 1: prompt = buildAwakeningPrompt(fieldId, dar, dar_code, userName, gender); break;
+        case 3: prompt = buildRiddlePrompt(fieldId, dar, dar_code, userName, gender, choicesMade); break;
+        case 4: prompt = buildTrialPrompt(fieldId, dar, dar_code, userName, gender); break;
+        case 5: prompt = buildMeditationPrompt(fieldId, dar, dar_code, userName, gender); break;
+        case 7: prompt = buildCoronationPrompt(fieldId, dar, dar_code, userName, gender, journey?.completed_steps); break;
+        default: prompt = buildAwakeningPrompt(fieldId, dar, dar_code, userName, gender); break;
+      }
+
+      // Шаги 2 и 6 - битвы, не нужна генерация сцен
+      if (currentStep === 2 || currentStep === 6) {
+        journey = await upsertHeroJourney(user.id, dar_code, {
+          step: currentStep,
+          step_state: { hero_hp: 100, shadow_hp: 100, round: 0, history: [], battle_started: false }
+        });
+        return res.json({ journey, step_content: journey.step_state });
+      }
+
       const aiResponse = await callAI(prompt, 'Сгенерируй квест.');
       const content = parseJSON(aiResponse);
 
@@ -155,9 +179,8 @@ module.exports = async (req, res) => {
       content.current_scene = 0;
       content.choices_made = [];
 
-      // Сохраняем
       journey = await upsertHeroJourney(user.id, dar_code, {
-        step: 1,
+        step: currentStep,
         step_state: content
       });
 
@@ -174,47 +197,52 @@ module.exports = async (req, res) => {
       }
 
       const state = journey.step_state || {};
+      const step = journey.step;
 
-      // ШАГ 1: Пробуждение - обработка выбора
-      if (journey.step === 1) {
+      // ШАГИ СО СЦЕНАМИ (1, 3, 4, 5, 7) - обработка выбора
+      if ([1, 3, 4, 5, 7].includes(step)) {
         const currentScene = state.current_scene || 0;
         const scenes = state.scenes || [];
 
         if (choice_index !== undefined && currentScene < scenes.length) {
-          // Запомнить выбор
           const choices = state.choices_made || [];
           choices.push(choice_index);
-
           const nextScene = currentScene + 1;
 
           if (nextScene >= scenes.length) {
-            // Все сцены пройдены! Завершаем Шаг 1
-            const reward = getReward('hero_awakening', user.access_level);
-            const newBalance = await addCrystals(user.id, reward, 'hero_awakening', { dar_code });
+            // Все сцены пройдены! Завершаем шаг
+            const rewardType = step === 1 ? 'hero_awakening' : step === 7 ? 'hero_journey_complete' : 'hero_step_complete';
+            const reward = getReward(rewardType, user.access_level);
+            const newBalance = await addCrystals(user.id, reward, rewardType, { dar_code, step });
 
-            const completedSteps = [...(journey.completed_steps || []), 1];
+            const completedSteps = [...(journey.completed_steps || [])];
+            if (!completedSteps.includes(step)) completedSteps.push(step);
 
-            // Подготавливаем Шаг 2 (Битва с Тенью)
+            const nextStep = step + 1;
+            const isJourneyComplete = step === 7;
+
+            // Подготавливаем следующий шаг
+            let nextState = {};
+            if (nextStep === 2 || nextStep === 6) {
+              // Битва
+              nextState = { hero_hp: 100, shadow_hp: 100, round: 0, history: [], battle_started: false };
+            }
+
             journey = await upsertHeroJourney(user.id, dar_code, {
-              step: 2,
-              step_state: {
-                hero_hp: 100,
-                shadow_hp: 100,
-                round: 0,
-                history: [],
-                battle_started: false
-              },
+              step: isJourneyComplete ? 7 : nextStep,
+              step_state: nextState,
               completed_steps: completedSteps,
-              crystals_earned: (journey.crystals_earned || 0) + reward
+              crystals_earned: (journey.crystals_earned || 0) + reward,
+              completed_at: isJourneyComplete ? new Date().toISOString() : null
             });
 
             return res.json({
-              result: 'step_complete',
-              victory_text: state.victory || 'Пробуждение завершено!',
+              result: isJourneyComplete ? 'journey_complete' : 'step_complete',
+              victory_text: state.victory || 'Шаг пройден!',
               reward,
               new_balance: newBalance,
               journey,
-              next_step: 2
+              next_step: isJourneyComplete ? null : nextStep
             });
           }
 
@@ -232,8 +260,8 @@ module.exports = async (req, res) => {
         }
       }
 
-      // ШАГ 2: Битва с Тенью
-      if (journey.step === 2) {
+      // ШАГИ-БИТВЫ (2, 6) - обработка ответа
+      if (step === 2 || step === 6) {
         if (!answer || answer.trim().length < 10) {
           return res.status(400).json({ error: 'Напиши более развёрнутый ответ (хотя бы 10 символов)' });
         }
@@ -247,12 +275,13 @@ module.exports = async (req, res) => {
         const heroHp = state.hero_hp || 100;
         const shadowHp = state.shadow_hp || 100;
         const history = state.history || [];
-
         const userName = user.real_first_name || user.first_name || '';
         const gender = user.gender || '';
 
-        // Вызов AI для оценки битвы
-        const prompt = buildBattlePrompt(fieldId, dar, dar_code, userName, gender, round, heroHp, shadowHp, answer, history);
+        // Шаг 6 использует более сложный промпт
+        const prompt = step === 6
+          ? buildTransformPrompt(fieldId, dar, dar_code, userName, gender, round, heroHp, shadowHp, answer, history)
+          : buildBattlePrompt(fieldId, dar, dar_code, userName, gender, round, heroHp, shadowHp, answer, history);
         const aiResponse = await callAI(prompt, null, 600);
         const battleResult = parseJSON(aiResponse);
 
@@ -260,7 +289,6 @@ module.exports = async (req, res) => {
           return res.status(500).json({ error: 'Тень молчит... Попробуй ещё раз.' });
         }
 
-        // Обновляем историю
         const newHistory = [
           ...history,
           { role: 'hero', text: answer },
@@ -272,28 +300,25 @@ module.exports = async (req, res) => {
         const battleOver = battleResult.battle_over || newShadowHp <= 0 || newHeroHp <= 0 || round >= 5;
         const heroWon = battleResult.hero_won || newShadowHp <= 0 || (round >= 5 && newShadowHp < newHeroHp);
 
-        // Если битва закончена
         if (battleOver) {
           let reward = 0;
           let newBalance = user.crystals;
 
           if (heroWon) {
             reward = getReward('hero_shadow_battle', user.access_level);
-            newBalance = await addCrystals(user.id, reward, 'hero_shadow_battle', { dar_code });
+            newBalance = await addCrystals(user.id, reward, 'hero_shadow_battle', { dar_code, step });
           }
 
           const completedSteps = [...(journey.completed_steps || [])];
-          if (!completedSteps.includes(2)) completedSteps.push(2);
+          if (!completedSteps.includes(step)) completedSteps.push(step);
+
+          const nextStep = step + 1;
 
           journey = await upsertHeroJourney(user.id, dar_code, {
-            step: 3, // Следующий шаг (пока заблокирован)
+            step: nextStep,
             step_state: {
-              hero_hp: newHeroHp,
-              shadow_hp: newShadowHp,
-              round,
-              history: newHistory,
-              battle_over: true,
-              hero_won: heroWon
+              hero_hp: newHeroHp, shadow_hp: newShadowHp, round,
+              history: newHistory, battle_over: true, hero_won: heroWon
             },
             completed_steps: completedSteps,
             crystals_earned: (journey.crystals_earned || 0) + reward
@@ -302,45 +327,30 @@ module.exports = async (req, res) => {
           return res.json({
             result: heroWon ? 'battle_won' : 'battle_lost',
             battle: battleResult,
-            hero_hp: newHeroHp,
-            shadow_hp: newShadowHp,
-            round,
-            reward,
-            new_balance: newBalance,
-            journey,
-            field_name: fieldConfig.name,
-            field_emoji: fieldConfig.emoji
+            hero_hp: newHeroHp, shadow_hp: newShadowHp, round,
+            reward, new_balance: newBalance, journey,
+            next_step: nextStep,
+            field_name: fieldConfig.name, field_emoji: fieldConfig.emoji
           });
         }
 
         // Битва продолжается
         journey = await upsertHeroJourney(user.id, dar_code, {
           step_state: {
-            hero_hp: newHeroHp,
-            shadow_hp: newShadowHp,
-            round,
-            history: newHistory,
-            battle_started: true
+            hero_hp: newHeroHp, shadow_hp: newShadowHp, round,
+            history: newHistory, battle_started: true
           }
         });
 
         return res.json({
           result: 'battle_continues',
           battle: battleResult,
-          hero_hp: newHeroHp,
-          shadow_hp: newShadowHp,
-          round,
-          journey,
-          field_name: fieldConfig.name,
-          field_emoji: fieldConfig.emoji
+          hero_hp: newHeroHp, shadow_hp: newShadowHp, round, journey,
+          field_name: fieldConfig.name, field_emoji: fieldConfig.emoji
         });
       }
 
-      // Шаги 3-7: пока заблокированы
-      return res.json({
-        result: 'locked',
-        message: 'Этот шаг пока не доступен. Скоро откроется!'
-      });
+      return res.status(400).json({ error: 'Неизвестный шаг: ' + step });
     }
 
     return res.status(400).json({ error: 'Неизвестное действие: ' + action });

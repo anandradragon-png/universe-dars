@@ -15,11 +15,11 @@ const HeroJourney = (function() {
   const STEPS = [
     { num: 1, name: 'Пробуждение', emoji: '🌅', unlocked: true },
     { num: 2, name: 'Встреча с Тенью', emoji: '⚔️', unlocked: true },
-    { num: 3, name: 'Загадка Зеркала', emoji: '🔮', unlocked: false },
-    { num: 4, name: 'Испытание Огнём', emoji: '💪', unlocked: false },
-    { num: 5, name: 'Погружение', emoji: '🌊', unlocked: false },
-    { num: 6, name: 'Трансформация', emoji: '⚡', unlocked: false },
-    { num: 7, name: 'Коронация', emoji: '👑', unlocked: false }
+    { num: 3, name: 'Загадка Зеркала', emoji: '🔮', unlocked: true },
+    { num: 4, name: 'Испытание Огнём', emoji: '💪', unlocked: true },
+    { num: 5, name: 'Погружение', emoji: '🌊', unlocked: true },
+    { num: 6, name: 'Трансформация', emoji: '⚡', unlocked: true },
+    { num: 7, name: 'Коронация', emoji: '👑', unlocked: true }
   ];
 
   // Названия механик для UI
@@ -62,12 +62,19 @@ const HeroJourney = (function() {
         return;
       }
 
-      if (currentJourney.step === 1 && currentContent && currentContent.scenes) {
-        renderAwakening();
-      } else if (currentJourney.step === 2) {
+      const step = currentJourney.step;
+      const hasScenes = currentContent && currentContent.scenes;
+      const hasBattle = currentContent && currentContent.hero_hp !== undefined;
+
+      if ([1, 3, 4, 5, 7].includes(step) && hasScenes) {
+        renderAwakening(); // Универсальный рендер для шагов со сценами
+      } else if ((step === 2 || step === 6) || hasBattle) {
         renderBattle();
-      } else if (currentJourney.step >= 3) {
-        renderCompleted();
+      } else if (currentJourney.completed_at) {
+        renderJourneyComplete();
+      } else {
+        // Нужно загрузить контент для шага
+        renderAwakening();
       }
     }).catch(err => {
       container.innerHTML = `<p style="text-align:center;padding:40px;color:#ff6b6b">${err.message || 'Ошибка загрузки'}</p>
@@ -207,6 +214,8 @@ const HeroJourney = (function() {
 
   function renderBattleResult(state) {
     const heroWon = state.hero_won;
+    const nextStep = currentJourney?.step;
+    const nextInfo = nextStep ? STEPS.find(s => s.num === nextStep) : null;
     return `
       <div class="hero-battle-result ${heroWon ? 'hero-won' : 'hero-lost'}">
         <div class="hero-result-emoji">${heroWon ? '🏆' : '💫'}</div>
@@ -215,39 +224,50 @@ const HeroJourney = (function() {
           ? 'Ты заглянул в свою тёмную сторону и не отвернулся. Тень стала частью твоей силы.'
           : 'Не страшно. Тень всегда будет ждать. Ты можешь вернуться, когда будешь готов.'
         }</p>
-        ${heroWon ? `<div class="hero-reward-badge">+${currentJourney?.crystals_earned || 0} кристаллов за путешествие</div>` : ''}
-        <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">
-          ${heroWon ? 'Завершить' : 'Вернуться'}
-        </button>
+        ${heroWon ? `<div class="hero-reward-badge">+${currentJourney?.crystals_earned || 0} кристаллов</div>` : ''}
+        ${heroWon && nextInfo ? `
+          <button class="hero-btn hero-btn-primary" onclick="HeroJourney.render('${currentDarCode}')">
+            ${nextInfo.emoji} Далее: ${nextInfo.name}
+          </button>
+        ` : `
+          <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">
+            ${heroWon ? 'Завершить' : 'Вернуться'}
+          </button>
+        `}
         ${!heroWon ? `<button class="hero-btn hero-btn-secondary" onclick="HeroJourney.retryBattle()">Попробовать снова</button>` : ''}
       </div>`;
   }
 
   // ---- ЗАВЕРШЁННОЕ ПУТЕШЕСТВИЕ ----
 
-  function renderCompleted() {
+  function renderJourneyComplete() {
     const container = getContainer();
+    if (!container) return;
+    container.style.display = 'block';
     const completed = currentJourney?.completed_steps || [];
+    const crystals = currentJourney?.crystals_earned || 0;
 
     container.innerHTML = `
       <div class="hero-journey-screen">
         <div class="hero-header">
           <button class="hero-back-btn" onclick="HeroJourney.close()">←</button>
-          <span>Путешествие</span>
+          <span>Путешествие завершено!</span>
         </div>
-        ${renderProgress(currentJourney?.step || 3, completed)}
-        <div class="hero-completed-info">
-          <p>Ты прошёл ${completed.length} из 7 шагов</p>
-          <p>Заработано кристаллов: ${currentJourney?.crystals_earned || 0}</p>
-          <div class="hero-locked-steps">
-            ${STEPS.filter(s => s.num > 2).map(s => `
-              <div class="hero-locked-step">
+        ${renderProgress(7, completed)}
+        <div class="hero-completed-info" style="text-align:center;padding:24px">
+          <div style="font-size:48px;margin-bottom:12px">👑</div>
+          <h3 style="color:var(--text);margin-bottom:8px">Путешествие пройдено!</h3>
+          <p style="color:#aaa;margin-bottom:16px">Ты прошёл все 7 шагов и раскрыл силу своего дара</p>
+          <div class="hero-reward-badge" style="margin-bottom:16px">💎 ${crystals} кристаллов заработано</div>
+          <div style="margin-bottom:16px">
+            ${STEPS.map(s => `
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 0;color:${completed.includes(s.num) ? '#4CAF50' : '#666'}">
+                <span>${completed.includes(s.num) ? '✓' : '○'}</span>
                 <span>${s.emoji} ${s.name}</span>
-                <span class="hero-soon-badge">скоро</span>
               </div>
             `).join('')}
           </div>
-          <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">Назад</button>
+          <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">Вернуться в Сокровищницу</button>
         </div>
       </div>`;
   }
@@ -269,13 +289,26 @@ const HeroJourney = (function() {
     DarAPI.journeyAction(currentDarCode, { choice_index: index }).then(data => {
       loading = false;
 
-      if (data.result === 'step_complete') {
-        // Показываем победный экран
+      if (data.result === 'step_complete' || data.result === 'journey_complete') {
         currentJourney = data.journey;
+        const nextStep = data.next_step;
+        const nextStepInfo = nextStep ? STEPS.find(s => s.num === nextStep) : null;
+        const btnText = data.result === 'journey_complete'
+          ? '👑 Путешествие завершено!'
+          : nextStepInfo
+            ? `${nextStepInfo.emoji} К шагу: ${nextStepInfo.name}`
+            : 'Далее';
+
         showVictory(data.victory_text, data.reward, () => {
-          // Переход к Шагу 2
-          renderBattle();
-        });
+          if (data.result === 'journey_complete') {
+            renderJourneyComplete();
+          } else if (nextStep === 2 || nextStep === 6) {
+            renderBattle();
+          } else {
+            // Загрузить контент для следующего шага
+            HeroJourney.render(currentDarCode);
+          }
+        }, btnText);
         return;
       }
 
@@ -344,17 +377,18 @@ const HeroJourney = (function() {
 
   // ---- АНИМАЦИИ ----
 
-  function showVictory(text, reward, onContinue) {
+  function showVictory(text, reward, onContinue, btnText) {
     const container = getContainer();
+    const stepInfo = STEPS.find(s => s.num === (currentJourney?.step - 1)) || {};
     const overlay = document.createElement('div');
     overlay.className = 'hero-victory-overlay animate-fade-in';
     overlay.innerHTML = `
       <div class="hero-victory-card">
-        <div class="hero-victory-emoji">🌅</div>
-        <h3>Пробуждение завершено!</h3>
+        <div class="hero-victory-emoji">${stepInfo.emoji || '✨'}</div>
+        <h3>${stepInfo.name || 'Шаг'} пройден!</h3>
         <p>${text || ''}</p>
         ${reward ? `<div class="hero-reward-badge">+${reward} 💎</div>` : ''}
-        <button class="hero-btn hero-btn-primary" id="hero-continue-btn">⚔️ К битве с Тенью</button>
+        <button class="hero-btn hero-btn-primary" id="hero-continue-btn">${btnText || 'Далее'}</button>
       </div>`;
     container.appendChild(overlay);
 

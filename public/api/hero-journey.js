@@ -7,10 +7,12 @@ const { FIELD_CONFIGS, buildAwakeningPrompt, buildBattlePrompt, buildRiddlePromp
 let deepseek, groqSdk;
 try { deepseek = require('./lib/deepseek'); } catch(e) {}
 
-async function callAI(systemPrompt, userMessage, maxTokens = 1200) {
-  // Пробуем DeepSeek
+async function callAI(systemPrompt, userMessage, maxTokens = 800) {
+  // Пробуем DeepSeek с таймаутом
   if (deepseek && deepseek.isDeepSeekConfigured()) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000); // 20 сек таймаут
       const result = await deepseek.chatCompletion({
         messages: [
           { role: 'system', content: systemPrompt },
@@ -19,8 +21,10 @@ async function callAI(systemPrompt, userMessage, maxTokens = 1200) {
         model: 'deepseek-chat',
         temperature: 0.85,
         max_tokens: maxTokens,
-        response_format: { type: 'json_object' }
+        response_format: { type: 'json_object' },
+        signal: controller.signal
       });
+      clearTimeout(timeout);
       return result.choices[0].message.content;
     } catch(e) {
       console.warn('[hero-journey] DeepSeek failed, trying Groq:', e.message);

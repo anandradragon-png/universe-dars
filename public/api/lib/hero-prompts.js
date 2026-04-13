@@ -85,8 +85,8 @@ function buildAwakeningPrompt(fieldId, darContent, darCode, userName, gender) {
 - Код: ${darCode}
 - Поле: ${field.name} (${field.element})
 - Мир: ${field.world}
-- Суть дара: ${(darContent.essence || '').slice(0, 500)}
-- Световая сила: ${(darContent.light_power || '').slice(0, 300)}
+- Суть дара: ${(darContent.essence || '').slice(0, 250)}
+- Световая сила: ${(darContent.light_power || '').slice(0, 150)}
 
 ИГРОК: ${userName || 'Путник'}, ${genderForm}
 
@@ -403,8 +403,8 @@ function buildBattlePrompt(fieldId, darContent, darCode, userName, gender, round
   return `Ты - Тень дара в игре "Путешествие Героя" (YupDar).
 Ты - тёмная сторона дара ${darCode}, поле ${field.name}.
 
-СУТЬ ДАРА: ${(darContent.essence || '').slice(0, 400)}
-ТЕНЬ ДАРА: ${(darContent.shadow || '').slice(0, 400)}
+СУТЬ ДАРА: ${(darContent.essence || '').slice(0, 200)}
+ТЕНЬ ДАРА: ${(darContent.shadow || '').slice(0, 200)}
 
 СТИЛЬ ТЕНИ: ${field.battleStyle}
 
@@ -473,8 +473,8 @@ function buildRiddlePrompt(fieldId, darContent, darCode, userName, gender, choic
 
 ДАННЫЕ ДАРА:
 - Код: ${darCode}
-- Суть: ${(darContent.essence || '').slice(0, 400)}
-- Световая сила: ${(darContent.light_power || '').slice(0, 300)}
+- Суть: ${(darContent.essence || '').slice(0, 200)}
+- Световая сила: ${(darContent.light_power || '').slice(0, 150)}
 
 Игрок: ${userName || 'Путник'} (${genderForm})
 ${choicesMade ? 'Предыдущие выборы: ' + JSON.stringify(choicesMade) : ''}
@@ -519,8 +519,8 @@ function buildTrialPrompt(fieldId, darContent, darCode, userName, gender) {
 
 ДАННЫЕ ДАРА:
 - Код: ${darCode}
-- Суть: ${(darContent.essence || '').slice(0, 400)}
-- Применение: ${(darContent.application || '').slice(0, 300)}
+- Суть: ${(darContent.essence || '').slice(0, 200)}
+- Применение: ${(darContent.application || '').slice(0, 150)}
 
 Игрок: ${userName || 'Путник'} (${genderForm})
 
@@ -566,8 +566,8 @@ function buildMeditationPrompt(fieldId, darContent, darCode, userName, gender) {
 
 ДАННЫЕ ДАРА:
 - Код: ${darCode}
-- Суть: ${(darContent.essence || '').slice(0, 400)}
-- Медитация: ${(darContent.meditation || '').slice(0, 300)}
+- Суть: ${(darContent.essence || '').slice(0, 200)}
+- Медитация: ${(darContent.meditation || '').slice(0, 150)}
 
 Игрок: ${userName || 'Путник'} (${genderForm})
 
@@ -614,8 +614,8 @@ function buildTransformPrompt(fieldId, darContent, darCode, userName, gender, ro
 Поле: ${field.name}. Стиль: ${field.battleStyle}
 
 ДАННЫЕ ДАРА:
-- Суть: ${(darContent.essence || '').slice(0, 300)}
-- Тень: ${(darContent.shadow || '').slice(0, 400)}
+- Суть: ${(darContent.essence || '').slice(0, 150)}
+- Тень: ${(darContent.shadow || '').slice(0, 200)}
 - Безопасность: ${(darContent.safety || '').slice(0, 200)}
 
 СОСТОЯНИЕ:
@@ -660,8 +660,8 @@ ${genderForm} прошёл${genderEnd} все 6 испытаний и готов
 
 ДАННЫЕ ДАРА:
 - Код: ${darCode}
-- Суть: ${(darContent.essence || '').slice(0, 400)}
-- Световая сила: ${(darContent.light_power || '').slice(0, 300)}
+- Суть: ${(darContent.essence || '').slice(0, 200)}
+- Световая сила: ${(darContent.light_power || '').slice(0, 150)}
 - Атрибуты: ${(darContent.attributes || '').slice(0, 200)}
 
 Игрок: ${userName || 'Путник'} (${genderForm})
@@ -718,7 +718,7 @@ ${genderForm} ${userName || 'Путник'} прошёл${genderEnd} Путеш�
 
 ДАННЫЕ ДАРА:
 - Поле: ${field.name} (${field.element})
-- Суть: ${(darContent.essence || '').slice(0, 400)}
+- Суть: ${(darContent.essence || '').slice(0, 200)}
 - Световая сила: ${(darContent.light_power || '').slice(0, 200)}
 - Тень: ${(darContent.shadow || '').slice(0, 200)}
 

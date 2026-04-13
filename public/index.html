@@ -450,7 +450,7 @@
   </div>
   <button id="btn-profile" onclick="openProfile()"></button>
   <div id="crystal-counter"><svg width="16" height="16" viewBox="0 0 24 24" fill="#D4AF37" stroke="none"><path d="M6 3h12l4 6-10 13L2 9z"/></svg> <span id="crystal-count">0</span></div>
-  <header><h1>YupDar</h1></header>
+  <header><h1 onclick="goHome()" style="cursor:pointer">YupDar</h1></header>
 
   <!-- Панель личного кабинета -->
   <div id="profile-overlay" onclick="closeProfile()"></div>
@@ -1505,6 +1505,15 @@
         if(saved){ const {gift} = JSON.parse(saved); wrap.innerHTML = `<div class="dar-placeholder">${gift.code}</div>`; }
       };
     }
+
+    function goHome() {
+      // Возврат на главный экран (Мой Дар + Оракул + Дневник)
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-calc').classList.add('active');
+      document.getElementById('app').scrollTop = 0;
+    }
+    window.goHome = goHome;
 
     function switchNav(name) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));

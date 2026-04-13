@@ -74,13 +74,8 @@ const DailyDar = (function() {
     return `
       <div id="daily-card-container" style="perspective:800px;width:200px;height:300px;margin:20px auto;cursor:pointer" onclick="DailyDar.pullCard()">
         <div id="daily-card-inner" style="position:relative;width:100%;height:100%;transition:transform 0.8s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d">
-          <div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;background:linear-gradient(135deg,#1a0533 0%,#0d0221 50%,#1a0533 100%);border:2px solid rgba(212,175,55,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(212,175,55,0.15)">
-            <div style="font-size:10px;color:rgba(212,175,55,0.4);letter-spacing:6px;margin-bottom:12px">&#10022; &#10022; &#10022;</div>
-            <div style="width:70px;height:70px;border:2px solid rgba(212,175,55,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center">
-              <div style="font-size:32px;color:rgba(212,175,55,0.6)">&#9764;</div>
-            </div>
-            <div style="font-size:11px;color:rgba(212,175,55,0.4);letter-spacing:4px;margin-top:12px">CARTA</div>
-            <div style="font-size:9px;color:rgba(212,175,55,0.3);letter-spacing:3px;margin-top:4px">SVETA</div>
+          <div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;overflow:hidden;border:2px solid rgba(212,175,55,0.4);box-shadow:0 4px 20px rgba(212,175,55,0.15)">
+            <img src="cards/card_back.jpg" style="width:100%;height:100%;object-fit:cover" alt="Карта"/>
           </div>
           <div id="daily-card-face" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;transform:rotateY(180deg);border-radius:16px;background:var(--card);border:2px solid rgba(212,175,55,0.5);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;box-shadow:0 4px 20px rgba(212,175,55,0.2)">
           </div>
@@ -192,7 +187,28 @@ const DailyDar = (function() {
 
   // --- Fallback: рендер из энциклопедии ---
   function renderFallbackBlock(code, content, contextTitle) {
-    if (!content || !content[code]) return '<div style="color:var(--text-muted);text-align:center;padding:16px">Описание недоступно</div>';
+    // Для интеграторов (9-x-x, x-9-x) собираем данные из полей
+    if (!content || !content[code]) {
+      const parts = code.split('-').map(Number);
+      const fieldNums = parts.filter(n => n >= 1 && n <= 9 && n !== 9);
+      if (fieldNums.length === 0) return '<div style="color:var(--text-muted);text-align:center;padding:16px">Описание недоступно</div>';
+      // Берём первое уникальное поле
+      const fieldContent = {};
+      for (const fn of fieldNums) {
+        const fCode = fn + '-' + fn + '-' + fn; // не сработает, ищем по полям
+        // Попробуем собрать хоть что-то из FIELDS
+        const fieldName = FIELDS[fn] || '';
+        if (fieldName) {
+          fieldContent.essence = fieldContent.essence || '';
+          fieldContent.essence += (fieldContent.essence ? ' ' : '') + 'Энергия поля ' + fieldName + ' усиливает твой день.';
+        }
+      }
+      const intName = window.INTEGRATORS?.[code] || code;
+      return `<div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">${contextTitle || '&#10024; Энергии дня:'}</div>
+        <div style="font-size:13px;color:#e0e0e0;line-height:1.7">Сегодня через тебя проходит энергия интегратора <strong style="color:#D4AF37">${intName}</strong>. Это мощная объединяющая сила полей ${parts.map(n => FIELDS[n] || n).join(', ')}. Позволь этим энергиям свободно течь через тебя.</div>
+      </div>`;
+    }
     const dar = content[code];
     let html = '';
 
@@ -356,17 +372,21 @@ const DailyDar = (function() {
   function renderDarCard(code, title, subtitle, showFormula) {
     const name = getDarName(code);
     const arch = getDarArchetype(code);
+    const isIntegrator = !!(window.INTEGRATORS && window.INTEGRATORS[code]);
+    const parts = code.split('-').map(Number);
+    const fieldNames = parts.map(n => FIELDS[n] || n).join(' + ');
     return `
       <div style="text-align:center;background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:24px 16px;margin-bottom:16px">
         ${title ? `<div style="font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:12px">${title}</div>` : ''}
-        ${renderDarImage(code, 100)}
+        <img src="cards/${code}.jpg" style="width:160px;height:auto;border-radius:12px;box-shadow:0 4px 20px rgba(212,175,55,0.2);display:block;margin:0 auto" onerror="this.style.display='none'"/>
         <div style="font-size:28px;letter-spacing:4px;color:var(--text);margin-top:14px;text-shadow:0 0 20px rgba(180,120,255,0.4)">${name}</div>
         ${arch ? `<div style="font-size:13px;color:#c4a0f0;font-style:italic;margin-top:6px">${arch}</div>` : ''}
+        ${isIntegrator ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px">${fieldNames}</div>` : ''}
         ${subtitle ? `<div style="font-size:12px;color:var(--text-dim);margin-top:8px">${subtitle}</div>` : ''}
-        <button onclick="DailyDar.openInBook('${code}')" style="margin-top:14px;padding:10px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px">
+        ${!isIntegrator ? `<button onclick="DailyDar.openInBook('${code}')" style="margin-top:14px;padding:10px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Georgia,serif;display:inline-flex;align-items:center;gap:6px">
           <span>&#128214;</span>
           <span>Читать в Книге Даров</span>
-        </button>
+        </button>` : ''}
       </div>`;
   }
 
@@ -559,13 +579,8 @@ const DailyDar = (function() {
     if (inner) {
       const face = document.getElementById('daily-card-face');
       if (face) {
-        const name = getDarName(_pulledCard);
-        const arch = getDarArchetype(_pulledCard);
-        face.innerHTML = `
-          ${renderDarImage(_pulledCard, 80)}
-          <div style="font-size:22px;letter-spacing:3px;color:var(--text);margin-top:10px;text-shadow:0 0 15px rgba(180,120,255,0.4)">${name}</div>
-          <div style="font-size:11px;color:var(--text-dim);letter-spacing:2px;margin-top:4px">${_pulledCard}</div>
-          ${arch ? `<div style="font-size:11px;color:#c4a0f0;font-style:italic;margin-top:4px">${arch}</div>` : ''}`;
+        face.style.padding = '0';
+        face.innerHTML = `<img src="cards/${_pulledCard}.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:14px" onerror="this.style.display='none'"/>`;
       }
       inner.style.transform = 'rotateY(180deg)';
       setTimeout(() => { _cardRevealed = true; renderTab(); }, 1000);

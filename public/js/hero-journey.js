@@ -39,6 +39,11 @@ const HeroJourney = (function() {
     return document.getElementById('hero-journey-container');
   }
 
+  function scrollToTop() {
+    const c = getContainer();
+    if (c) c.scrollTop = 0;
+  }
+
   // ---- ГЛАВНЫЙ РЕНДЕР ----
 
   function render(darCode, darName) {
@@ -52,6 +57,7 @@ const HeroJourney = (function() {
         <p>Открываю врата путешествия...</p>
       </div>`;
     container.style.display = 'block';
+    container.scrollTop = 0;
 
     DarAPI.startJourney(darCode).then(data => {
       currentJourney = data.journey;
@@ -135,6 +141,7 @@ const HeroJourney = (function() {
           </div>
         </div>
       </div>`;
+    scrollToTop();
   }
 
   // ---- ШАГ 2: БИТВА С ТЕНЬЮ ----
@@ -207,7 +214,8 @@ const HeroJourney = (function() {
         </div>
       </div>`;
 
-    // Скроллим к последнему сообщению
+    scrollToTop();
+    // Скроллим лог битвы к последнему сообщению
     const log = container.querySelector('.hero-battle-log');
     if (log) setTimeout(() => log.scrollTop = log.scrollHeight, 100);
   }
@@ -270,6 +278,7 @@ const HeroJourney = (function() {
           <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">Вернуться в Сокровищницу</button>
         </div>
       </div>`;
+    scrollToTop();
   }
 
   // ---- ДЕЙСТВИЯ ----
@@ -313,9 +322,9 @@ const HeroJourney = (function() {
       }
 
       if (data.result === 'next_scene') {
-        // Обновляем контент и рендерим следующую сцену
         currentJourney = data.journey;
         currentContent = data.journey.step_state;
+        scrollToTop();
         setTimeout(() => renderAwakening(), 300);
       }
     }).catch(err => {

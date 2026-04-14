@@ -191,8 +191,18 @@ module.exports = async (req, res) => {
           })
         });
 
-        const data = await resp.json();
-        if (!data.ok && !data.pay_tg_url) {
+        const respText = await resp.text();
+        console.log('[payment] YupPay response:', resp.status, respText);
+
+        let data;
+        try { data = JSON.parse(respText); } catch { data = {}; }
+
+        if (!resp.ok) {
+          console.error('[payment] YupPay HTTP error:', resp.status, respText);
+          throw new Error(data.message || data.error || `YupPay HTTP ${resp.status}`);
+        }
+
+        if (!data.ok && !data.pay_tg_url && !data.pay_url) {
           console.error('[payment] YupPay create_invoice failed:', data);
           throw new Error(data.error || data.message || 'YupPay error');
         }
@@ -205,7 +215,7 @@ module.exports = async (req, res) => {
         });
       } catch (e) {
         console.error('[payment] YupPay error:', e.message);
-        return res.status(500).json({ error: 'Не удалось создать платёж в DarAI. Попробуй позже.' });
+        return res.status(500).json({ error: 'Не удалось создать платёж в DarAI: ' + e.message });
       }
     }
 
@@ -241,9 +251,12 @@ module.exports = async (req, res) => {
           })
         });
 
-        const data = await resp.json();
-        if (!data.ok && !data.pay_tg_url) {
-          throw new Error(data.error || 'YupPay error');
+        const respText = await resp.text();
+        let data;
+        try { data = JSON.parse(respText); } catch { data = {}; }
+
+        if (!resp.ok || (!data.ok && !data.pay_tg_url && !data.pay_url)) {
+          throw new Error(data.error || data.message || 'YupPay error');
         }
 
         return res.json({
@@ -253,7 +266,7 @@ module.exports = async (req, res) => {
         });
       } catch (e) {
         console.error('[payment] YupPay donation error:', e.message);
-        return res.status(500).json({ error: 'Не удалось создать платёж. Попробуй позже.' });
+        return res.status(500).json({ error: 'Не удалось создать платёж: ' + e.message });
       }
     }
 

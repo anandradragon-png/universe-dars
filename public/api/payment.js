@@ -13,6 +13,10 @@
 const { requireUser } = require('./lib/auth');
 const { getOrCreateUser } = require('./lib/db');
 
+// YupPay (DarAI/NEAR) - Supabase Edge Function
+const YUPPAY_API_URL = 'https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api';
+const YUPPAY_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpramdwYmF3aHh0YWZtd3Nyc2ViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzMDA3NjgsImV4cCI6MjA3NTg3Njc2OH0.Il2w6Vd40hGnosvI0QJKn2bHlZNrNvnl7UZxB92_vAQ';
+
 // Цены (в Stars)
 const PRICES = {
   book_full_access: 500,  // ~$10 — полный доступ к Книге + Хранитель
@@ -172,11 +176,13 @@ module.exports = async (req, res) => {
       const DARAI_PRICE = '40000000000000000000000000';
 
       try {
-        const resp = await fetch('https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api', {
+        const resp = await fetch(YUPPAY_API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + yuppayKey
+            'apikey': YUPPAY_ANON_KEY,
+            'Authorization': 'Bearer ' + YUPPAY_ANON_KEY,
+            'x-yuppay-api-key': yuppayKey
           },
           body: JSON.stringify({
             action: 'create_invoice',
@@ -232,11 +238,13 @@ module.exports = async (req, res) => {
       }
 
       try {
-        const resp = await fetch('https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api', {
+        const resp = await fetch(YUPPAY_API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + yuppayKey
+            'apikey': YUPPAY_ANON_KEY,
+            'Authorization': 'Bearer ' + YUPPAY_ANON_KEY,
+            'x-yuppay-api-key': yuppayKey
           },
           body: JSON.stringify({
             action: 'create_invoice',

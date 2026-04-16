@@ -193,10 +193,34 @@ module.exports = async (req, res) => {
           }
         }
         try {
-          await updateUser(user.id, {
+          const updated = await updateUser(user.id, {
             leaderboard_name_type: name_type,
             leaderboard_custom_name: name_type === 'custom' ? (custom_name || '').trim().slice(0, 30) : ''
           });
+
+          // Сразу синхронизируем display_name в intuition_scores, иначе в
+          // рейтинге отображается старое имя до следующей игры.
+          // (Тестеры жаловались: сменил ник в настройках — в рейтинге без изменений.)
+          try {
+            const { getSupabase } = require('./lib/db');
+            const db = getSupabase();
+            let displayName;
+            if (name_type === 'custom') {
+              displayName = (custom_name || '').trim().slice(0, 40);
+            } else if (name_type === 'real' && updated.real_first_name) {
+              const last = updated.real_last_name || '';
+              displayName = (updated.real_first_name + (last ? ' ' + last.charAt(0) + '.' : '')).slice(0, 40);
+            } else {
+              const tg = (updated.first_name || '') + (updated.last_name ? ' ' + updated.last_name.charAt(0) + '.' : '');
+              displayName = (tg || 'Странник').slice(0, 40);
+            }
+            await db.from('intuition_scores')
+              .update({ display_name: displayName })
+              .eq('user_id', user.id);
+          } catch (syncErr) {
+            console.warn('[user.js] leaderboard display_name sync failed:', syncErr.message);
+          }
+
           return res.json({ success: true });
         } catch (dbErr) {
           console.error('save_leaderboard_name DB error:', dbErr.message);

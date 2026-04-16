@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a2e"/>
+      <stop offset="100%" stop-color="#0d1033"/>
+    </linearGradient>
+    <linearGradient id="pinkCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6"/>
+      <stop offset="50%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#67e8f9"/>
+    </linearGradient>
+    <linearGradient id="cyanPink" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="50%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#f472b6"/>
+    </linearGradient>
+    <linearGradient id="staffGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="50%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <linearGradient id="wingL" x1="100%" y1="50%" x2="0%" y2="50%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#67e8f9" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="wingR" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#f472b6" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="orbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0abfc"/>
+      <stop offset="100%" stop-color="#67e8f9"/>
+    </linearGradient>
+    <clipPath id="roundedSquare">
+      <rect x="16" y="16" width="480" height="480" rx="96" ry="96"/>
+    </clipPath>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="url(#bgGrad)"/>
+
+  <!-- Subtle outer border -->
+  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="none" stroke="#67e8f9" stroke-width="1" opacity="0.15"/>
+
+  <!-- Large decorative swirl behind (like YupSoul) -->
+  <g opacity="0.08" clip-path="url(#roundedSquare)">
+    <circle cx="256" cy="256" r="200" fill="none" stroke="url(#pinkCyan)" stroke-width="60"/>
+    <circle cx="256" cy="256" r="260" fill="none" stroke="url(#cyanPink)" stroke-width="30"/>
+  </g>
+
+  <!-- Central staff - clean geometric line -->
+  <line x1="256" y1="108" x2="256" y2="408" stroke="url(#staffGrad)" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Top orb -->
+  <circle cx="256" cy="105" r="12" fill="url(#orbGrad)" opacity="0.9"/>
+  <circle cx="256" cy="105" r="6" fill="#fff" opacity="0.3"/>
+
+  <!-- Wings - elegant geometric arcs -->
+  <path d="M244 128 C230 118, 190 105, 145 108 C175 118, 205 128, 235 135"
+        fill="none" stroke="url(#wingL)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M244 122 C225 110, 175 95, 125 100 C160 110, 195 122, 230 130"
+        fill="none" stroke="url(#wingL)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M244 134 C230 126, 200 118, 160 118 C185 125, 210 132, 238 138"
+        fill="none" stroke="url(#wingL)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+
+  <path d="M268 128 C282 118, 322 105, 367 108 C337 118, 307 128, 277 135"
+        fill="none" stroke="url(#wingR)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M268 122 C287 110, 337 95, 387 100 C352 110, 317 122, 282 130"
+        fill="none" stroke="url(#wingR)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M268 134 C282 126, 312 118, 352 118 C327 125, 302 132, 274 138"
+        fill="none" stroke="url(#wingR)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Left snake - smooth geometric spiral -->
+  <path d="M256 390
+           Q210 370, 195 340
+           Q178 305, 215 280
+           Q240 265, 256 258
+           Q210 245, 195 220
+           Q178 185, 215 162
+           Q235 148, 252 140"
+        fill="none" stroke="url(#pinkCyan)" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Right snake - smooth geometric spiral -->
+  <path d="M256 390
+           Q302 370, 317 340
+           Q334 305, 297 280
+           Q272 265, 256 258
+           Q302 245, 317 220
+           Q334 185, 297 162
+           Q277 148, 260 140"
+        fill="none" stroke="url(#cyanPink)" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Snake heads - small geometric dots -->
+  <circle cx="250" cy="138" r="5" fill="#f472b6" opacity="0.9"/>
+  <circle cx="262" cy="138" r="5" fill="#67e8f9" opacity="0.9"/>
+
+  <!-- Center diamond/flower at crossing points -->
+  <g transform="translate(256,258)" opacity="0.5">
+    <path d="M0,-10 L7,0 L0,10 L-7,0 Z" fill="url(#orbGrad)"/>
+  </g>
+  <g transform="translate(256,340)" opacity="0.35">
+    <path d="M0,-8 L5,0 L0,8 L-5,0 Z" fill="url(#orbGrad)"/>
+  </g>
+
+  <!-- Bottom orb -->
+  <circle cx="256" cy="408" r="8" fill="url(#orbGrad)" opacity="0.7"/>
+
+  <!-- Decorative dots at snake crossings -->
+  <circle cx="256" cy="258" r="3" fill="#fff" opacity="0.4"/>
+  <circle cx="256" cy="185" r="2" fill="#fff" opacity="0.25"/>
+  <circle cx="256" cy="340" r="2" fill="#fff" opacity="0.25"/>
+</svg>

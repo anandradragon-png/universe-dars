@@ -109,12 +109,14 @@ async function unlockSection(userId, darCode, sectionIndex) {
 async function addCrystals(userId, amount, reason, metadata = null) {
   const db = getSupabase();
 
-  // Записать в лог
+  // Записать в лог.
+  // Metadata сохраняем как объект — поле JSONB в Supabase, не делаем JSON.stringify
+  // (иначе сохранится как строка внутри jsonb и запросы вида metadata->key не работают).
   await db.from('crystal_log').insert({
     user_id: userId,
     amount,
     reason,
-    metadata: metadata ? JSON.stringify(metadata) : null
+    metadata: metadata && typeof metadata === 'object' ? metadata : null
   });
 
   // Обновить баланс

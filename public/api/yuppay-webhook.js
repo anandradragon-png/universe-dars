@@ -108,14 +108,15 @@ module.exports = async (req, res) => {
     const db = getSupabase();
 
     // Защита от дубликатов по invoice_id
+    // Используем ->> для текстового сравнения в JSONB
     if (data?.invoice_id) {
-      const { data: existing } = await db
+      const { data: existingList } = await db
         .from('crystal_log')
-        .select('id')
-        .or(`metadata->invoice_id.eq.${data.invoice_id}`)
-        .maybeSingle();
+        .select('id, metadata')
+        .eq('metadata->>invoice_id', String(data.invoice_id))
+        .limit(1);
 
-      if (existing) {
+      if (existingList && existingList.length > 0) {
         console.log('[yuppay-webhook] Duplicate invoice, skipping:', data.invoice_id);
         return res.status(200).json({ ok: true });
       }

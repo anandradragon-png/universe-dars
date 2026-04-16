@@ -181,9 +181,53 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Путешествие не найдено' });
       }
 
-      // Если анализ уже сохранён - вернуть из кэша
-      if (journey.step_state?.saved_analysis) {
-        return res.json({ analysis: journey.step_state.saved_analysis, path_log: journey.step_state?.path_log || [], cached: true });
+      // Нормализует AI-ответ: если пришёл JSON со служебными ключами вида
+      // "твой_путь", "точка_сборки" — склеиваем все значения в один текст без
+      // кавычек и спецсимволов (тестеры жаловались, что видят сырой JSON).
+      const cleanAnalysis = (raw) => {
+        if (!raw || typeof raw !== 'string') return raw || '';
+        let text = raw.trim();
+        // Убираем обрамление ```json ... ``` если есть
+        text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+        const firstBrace = text.indexOf('{');
+        const lastBrace = text.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
+          const jsonPart = text.slice(firstBrace, lastBrace + 1);
+          try {
+            const parsed = JSON.parse(jsonPart);
+            if (parsed && typeof parsed === 'object') {
+              if (typeof parsed.analysis === 'string') return parsed.analysis;
+              if (typeof parsed.text === 'string') return parsed.text;
+              // Склеиваем все значения JSON в абзацы в порядке ключей,
+              // сохраняя заголовки читабельными (твой_путь → Твой путь).
+              const titleMap = {
+                'твой_путь': '\u2728 Твой путь',
+                'точка_сборки': '\u2605 Точка сборки',
+                'тень_и_свет': '\u263D Тень и свет',
+                'прогноз_развития': '\u279C Прогноз развития',
+                'приглашение': '\u2764 Приглашение'
+              };
+              return Object.entries(parsed)
+                .filter(([, v]) => typeof v === 'string' && v.trim())
+                .map(([k, v]) => {
+                  const title = titleMap[k] || k.replace(/_/g, ' ');
+                  return title + '\n\n' + v.trim();
+                })
+                .join('\n\n');
+            }
+          } catch (e) {
+            // Не JSON — обрабатываем как текст ниже
+          }
+        }
+        // Не JSON — снимаем случайные кавычки вокруг ключей-строк
+        return text;
+      };
+
+      // Если анализ уже сохранён - вернуть из кэша (но ТОЛЬКО если он чистый;
+      // старые записи с JSON-символами регенерируем).
+      const saved = journey.step_state?.saved_analysis;
+      if (saved && typeof saved === 'string' && !/^\s*[{\[]/.test(saved) && !/"(твой_путь|точка_сборки|тень_и_свет)"/.test(saved)) {
+        return res.json({ analysis: saved, path_log: journey.step_state?.path_log || [], cached: true });
       }
 
       const pathLog = journey.step_state?.path_log || [];
@@ -198,16 +242,9 @@ module.exports = async (req, res) => {
       const gender = user.gender || '';
 
       const prompt = buildPathAnalysisPrompt(fieldId, dar, dar_code, userName, gender, pathLog);
-      const aiResponse = await callAI(prompt, 'Проанализируй путь.', 1000);
+      const aiResponse = await callAI(prompt, 'Проанализируй путь. Ответ верни как простой текст с абзацами, НЕ в формате JSON.', 1000);
 
-      // Ответ приходит как обычный текст, не JSON
-      let analysis = aiResponse;
-      try {
-        const parsed = JSON.parse(aiResponse);
-        analysis = parsed.analysis || parsed.text || aiResponse;
-      } catch(e) {
-        // Ожидаемо - ответ в виде текста
-      }
+      const analysis = cleanAnalysis(aiResponse);
 
       // Сохраняем анализ в step_state чтобы не генерировать повторно
       await upsertHeroJourney(user.id, dar_code, {
@@ -374,8 +411,11 @@ module.exports = async (req, res) => {
           { role: 'shadow', text: battleResult.shadow_response || '' }
         ];
 
-        const newHeroHp = battleResult.new_hero_hp ?? Math.max(0, heroHp - (battleResult.damage_to_hero || 18));
-        const newShadowHp = battleResult.new_shadow_hp ?? Math.max(0, shadowHp - (battleResult.damage_to_shadow || 20));
+        // Клэмпим HP в [0, 100] независимо от того, откуда пришло значение —
+        // AI может вернуть и отрицательное (у юзеров было -30 при оставшихся 5).
+        const clamp = (n) => Math.max(0, Math.min(100, Math.round(Number(n) || 0)));
+        const newHeroHp = clamp(battleResult.new_hero_hp ?? (heroHp - (battleResult.damage_to_hero || 18)));
+        const newShadowHp = clamp(battleResult.new_shadow_hp ?? (shadowHp - (battleResult.damage_to_shadow || 20)));
         const battleOver = battleResult.battle_over || newShadowHp <= 0 || newHeroHp <= 0 || round >= 5;
         const heroWon = battleResult.hero_won || newShadowHp <= 0 || (round >= 5 && newShadowHp < newHeroHp);
 

@@ -557,14 +557,12 @@ const IntuitionGame = (function() {
           ? 'border-color:rgba(212,175,55,0.8);box-shadow:0 0 12px rgba(212,175,55,0.4);background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%)'
           : '';
 
+        // Привычная обложка с Кадуцеем — logo-caduceus-v2.svg
         html += `
           <div class="game-card-back" onclick="IntuitionGame.selectCard(${i})"
-            style="background:linear-gradient(135deg,#0d0d0d 0%,#080808 50%,#0d0d0d 100%);border:2px solid rgba(212,175,55,0.3);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;${selStyle}">
-            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-bottom:4px">&#10022;</div>
-            <div style="width:28px;height:28px;border:1px solid rgba(212,175,55,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center">
-              <div style="font-size:14px;color:rgba(212,175,55,0.5)">${isSelected ? '&#10003;' : '&#10024;'}</div>
-            </div>
-            <div style="font-size:10px;color:rgba(212,175,55,0.3);letter-spacing:4px;margin-top:4px">&#10022;</div>
+            style="background:linear-gradient(135deg,#0a0a2e 0%,#0d1033 100%);border:2px solid rgba(212,175,55,0.3);border-radius:12px;padding:6px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;position:relative;overflow:hidden;${selStyle}">
+            <img src="logo-caduceus-v2.svg" alt="Карта" style="width:80%;height:auto;max-height:72px;object-fit:contain;opacity:${isSelected ? '1' : '0.85'};pointer-events:none" onerror="this.style.display='none'"/>
+            ${isSelected ? '<div style="position:absolute;top:4px;right:4px;font-size:14px;color:#D4AF37">&#10003;</div>' : ''}
           </div>`;
       }
     });
@@ -591,7 +589,18 @@ const IntuitionGame = (function() {
 
   // === ВЫБОР КАРТЫ ===
   function selectCard(index) {
-    if (allRevealed || selected.includes(index)) return;
+    if (allRevealed) return;
+
+    // Повторный тап по уже выбранной карте — снимаем выбор (в мультипоиске).
+    // Тестеры жаловались: "выбрано 4/4 - нельзя убрать выбор".
+    const alreadyIdx = selected.indexOf(index);
+    if (alreadyIdx !== -1) {
+      if (currentMode === 'classic') return; // в классике одна карта, отменять нечего
+      selected.splice(alreadyIdx, 1);
+      renderBoard();
+      return;
+    }
+
     if (selected.length >= maxOpens) return;
 
     selected.push(index);

@@ -152,15 +152,33 @@ module.exports = async (req, res) => {
     // Очистить от markdown-обёрток если есть
     rawText = rawText.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
 
+    // Постобработка текста от AI: убираем английские слова-паразиты, длинное тире,
+    // нестандартные символы. Тестеры жаловались на "seemingly", "seems" в русском тексте.
+    const russifyText = (s) => {
+      if (!s || typeof s !== 'string') return s;
+      return s
+        .replace(/\bseemingly\b/gi, 'словно')
+        .replace(/\bseems?\b/gi, 'кажется')
+        .replace(/\btruly\b/gi, 'поистине')
+        .replace(/\breally\b/gi, 'действительно')
+        .replace(/\bindeed\b/gi, 'действительно')
+        .replace(/\bactually\b/gi, 'на самом деле')
+        .replace(/\bperhaps\b/gi, 'возможно')
+        .replace(/\u2014/g, '-')
+        .replace(/\u2013/g, '-')
+        .replace(/\u00A0/g, ' ')
+        .replace(/\s{2,}/g, ' ');
+    };
+
     let content, questQuestion, questHint;
     try {
       const parsed = JSON.parse(rawText);
-      content = parsed.content || 'Контент генерируется...';
-      questQuestion = parsed.quest_question || 'Поделитесь своими мыслями об этом разделе.';
-      questHint = parsed.quest_hint || '';
+      content = russifyText(parsed.content || 'Контент генерируется...');
+      questQuestion = russifyText(parsed.quest_question || 'Поделитесь своими мыслями об этом разделе.');
+      questHint = russifyText(parsed.quest_hint || '');
     } catch (e) {
       // Если JSON не распарсился — используем весь текст как контент
-      content = rawText || 'Контент генерируется...';
+      content = russifyText(rawText || 'Контент генерируется...');
       questQuestion = 'Какие мысли и чувства вызвал у вас этот раздел? Поделитесь своим опытом.';
       questHint = 'Будьте честны с собой.';
     }

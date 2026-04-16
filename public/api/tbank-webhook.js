@@ -94,16 +94,16 @@ module.exports = async (req, res) => {
       return res.status(200).send('OK');
     }
 
-    // Проверяем дубликат (idempotency)
-    const { data: existing } = await db
+    // Проверяем дубликат (idempotency).
+    // Используем ->> для текстового сравнения значения внутри JSONB.
+    const { data: existingList } = await db
       .from('crystal_log')
       .select('id')
-      .eq('reason', 'purchase_book_tbank')
       .eq('user_id', user.id)
-      .like('metadata->PaymentId', String(body.PaymentId))
-      .maybeSingle();
+      .eq('metadata->>PaymentId', String(body.PaymentId))
+      .limit(1);
 
-    if (existing) {
+    if (existingList && existingList.length > 0) {
       console.log('[tbank-webhook] Duplicate payment, skipping:', body.PaymentId);
       return res.status(200).send('OK');
     }

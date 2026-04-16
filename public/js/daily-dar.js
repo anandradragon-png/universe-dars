@@ -74,8 +74,8 @@ const DailyDar = (function() {
     return `
       <div id="daily-card-container" style="perspective:800px;width:200px;height:300px;margin:20px auto;cursor:pointer" onclick="DailyDar.pullCard()">
         <div id="daily-card-inner" style="position:relative;width:100%;height:100%;transition:transform 0.8s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d">
-          <div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;overflow:hidden;border:2px solid rgba(212,175,55,0.4);box-shadow:0 4px 20px rgba(212,175,55,0.15)">
-            <img src="cards/card_back.jpg" style="width:100%;height:100%;object-fit:cover" alt="Карта"/>
+          <div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;overflow:hidden;border:2px solid rgba(212,175,55,0.4);box-shadow:0 4px 20px rgba(212,175,55,0.15);background:linear-gradient(135deg,#0a0a2e 0%,#0d1033 100%);display:flex;align-items:center;justify-content:center">
+            <img src="logo-caduceus-v2.svg" style="width:80%;height:80%;object-fit:contain" alt="Карта"/>
           </div>
           <div id="daily-card-face" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;transform:rotateY(180deg);border-radius:16px;background:var(--card);border:2px solid rgba(212,175,55,0.5);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;box-shadow:0 4px 20px rgba(212,175,55,0.2)">
           </div>

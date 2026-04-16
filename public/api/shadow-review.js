@@ -126,18 +126,27 @@ function buildSystemPrompt(quest_type, round_number, gender, canOfferClose) {
   if (round_number === 1) {
     roundGuidance = `ЭТО ПЕРВЫЙ РАУНД ДИАЛОГА.
 Человек только что написал первичную рефлексию. Твоя задача:
-- Услышать главное в его словах.
-- Задать ОДИН вопрос, который поможет перейти от общего к личной конкретике (или от мысли к чувству, или от внешнего к внутреннему).
-- Вопрос должен быть коротким и ясным, не двойным.
+- Услышать главное в его словах — процитируй конкретное слово или фразу, которую он сказал.
+- Задать ОДИН вопрос, который поможет перейти от общего к личной конкретике.
+- Вопрос должен быть коротким, ясным, не двойным.
+НЕ ПРЕДЛАГАЙ ЗАВЕРШИТЬ. Работа только началась.
 ДЕЙСТВИЕ: continue`;
   } else if (round_number === 2) {
     roundGuidance = `ЭТО ВТОРОЙ РАУНД ДИАЛОГА.
 Человек уже углубляется. Твоя задача:
-- Отразить то новое, что появилось в его ответе.
+- Отразить то новое, что появилось в его ответе (процитируй его слова).
 - Задать ОДИН вопрос, который ведёт глубже: к телу, к эмоции, к конкретному моменту.
 - Возможно самое время мягко спросить про тело.
+НЕ ПРЕДЛАГАЙ ЗАВЕРШИТЬ. Раздели с человеком его историю, он пришёл за глубиной.
 ДЕЙСТВИЕ: continue`;
-  } else if (round_number === 3 && canOfferClose) {
+  } else if (round_number === 3) {
+    roundGuidance = `ЭТО ТРЕТИЙ РАУНД ДИАЛОГА.
+Человек уже раскрывается. Твоя задача:
+- Отразить ключевое ощущение или образ, который появился.
+- Задать ОДИН углубляющий вопрос: про выбор, маленький шаг, или то, что изменилось внутри.
+НЕ ПРЕДЛАГАЙ ЗАВЕРШИТЬ. Это ещё рано — дай дойти до инсайта.
+ДЕЙСТВИЕ: continue`;
+  } else if (round_number === 4 && canOfferClose) {
     const exampleClose = gender === 'male'
       ? '"Чувствуешь ли ты, что получил то, что нужно было, или хочешь ещё побыть в этой теме?"'
       : gender === 'female'
@@ -288,7 +297,7 @@ module.exports = async (req, res) => {
     });
   }
 
-  const canOfferClose = roundNum >= 3;
+  const canOfferClose = roundNum >= 4;
   const contextBlock = buildContextBlock(body);
   const systemPrompt = buildSystemPrompt(quest_type, roundNum, gender, canOfferClose);
   const messages = buildDialogueMessages(systemPrompt, dialogue, trimmed, contextBlock);
@@ -383,10 +392,20 @@ module.exports = async (req, res) => {
           : parsed.action === 'accept' ? 'accept'
           : 'continue';
 
+    // Защита: если AI предлагает завершить раньше времени (жалобы тестеров —
+    // "наставник хочет завершить после 1-2 реплик"), принудительно продолжаем.
+    if (finalAction === 'offer_close' && roundNum < 4) {
+      console.log('[shadow-review] Forcing continue: AI tried offer_close too early at round', roundNum);
+      finalAction = 'continue';
+    }
+    if (finalAction === 'accept' && roundNum < 4) {
+      finalAction = 'continue';
+    }
+
     // ФОРСИРУЕМ offer_close если AI "залип" и не предлагает завершить
-    // Раунд 5+ и AI всё ещё continue → переводим в offer_close принудительно
-    // Это предотвращает бесконечные диалоги (тестировщик прошёл 8 раундов без кнопки)
-    if (finalAction === 'continue' && roundNum >= 5) {
+    // Раунд 6+ и AI всё ещё continue → переводим в offer_close принудительно
+    // Это предотвращает бесконечные диалоги
+    if (finalAction === 'continue' && roundNum >= 6) {
       console.log('[shadow-review] Forcing offer_close at round', roundNum, '(AI wanted continue)');
       finalAction = 'offer_close';
     }
@@ -397,11 +416,6 @@ module.exports = async (req, res) => {
       round_number: roundNum,
       can_offer_close: canOfferClose
     };
-
-    // Защита: если раундов мало, не позволяем AI завершать раньше времени
-    if (result.action === 'accept' && roundNum < 3) {
-      result.action = 'continue';
-    }
 
     return res.status(200).json(result);
   } catch (e) {

@@ -285,11 +285,17 @@ const BookReader = (function() {
         font-family:Manrope,sans-serif;
       "></div>
 
-      <!-- Навигация -->
+      <!-- Навигация. На последней главе кнопка "Вперёд" превращается в "В начало" -->
       <div id="book-nav" style="display:flex;gap:10px;padding:8px 16px 20px;align-items:center;justify-content:center">
         <button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.prevChapter()">&#8592; Назад</button>
         <div id="book-pos" style="text-align:center;min-width:100px;font-size:12px;color:var(--text-muted)"></div>
-        <button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.nextChapter()">Вперёд &#8594;</button>
+        ${(function(){
+          const currG = globalIndex(currentPartIdx, currentChapterIdx);
+          const isLast = currG >= totalChapters - 1;
+          return isLast
+            ? '<button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.goTo(0,0)">&uarr; В начало</button>'
+            : '<button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.nextChapter()">Вперёд &#8594;</button>';
+        })()}
       </div>
 
       ${!hasFullAccess() ? `
@@ -329,13 +335,28 @@ const BookReader = (function() {
     const gIdx = globalIndex(currentPartIdx, currentChapterIdx);
 
     if (!isChapterAccessible(gIdx)) {
+      // Правильное склонение числительных для "глава"
+      const glavPlural = (n) => {
+        const mod10 = n % 10, mod100 = n % 100;
+        if (mod10 === 1 && mod100 !== 11) return 'главу';
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'главы';
+        return 'глав';
+      };
+      // Пол из профиля (если есть)
+      let gender = '';
+      try {
+        const prof = JSON.parse(localStorage.getItem('_user_profile') || '{}');
+        gender = prof.gender || '';
+      } catch (e) {}
+      const readEnd = gender === 'male' ? '' : gender === 'female' ? 'а' : 'а';
+      const remaining = totalChapters - freeChapters;
       wrap.innerHTML = `
         <div style="text-align:center;padding:30px 10px">
           <div style="font-size:42px;margin-bottom:12px">&#128274;</div>
           <div style="font-size:17px;margin-bottom:8px">Эта глава доступна в полной версии</div>
           <div style="font-size:13px;opacity:0.7;line-height:1.6">
-            Ты прочитал${'а'} ${freeChapters} бесплатных глав.<br>
-            Введи промо-код, чтобы открыть ${totalChapters - freeChapters} ещё глав.
+            Ты прочитал${readEnd} ${freeChapters} ${glavPlural(freeChapters)} бесплатно.<br>
+            Введи промо-код, чтобы открыть ещё ${remaining} ${glavPlural(remaining)}.
           </div>
         </div>
       `;
@@ -349,6 +370,18 @@ const BookReader = (function() {
     let html = ch.html || '';
     html = html.replace(/<img\b[^>]*data-ref="([^"]+)"[^>]*>/g, function(_, filename) {
       return `<img class="book-img" src="/book-images/${filename}" alt="" />`;
+    });
+
+    // Кликабельность номеров банковских карт (тестеры жалуются: нельзя
+    // скопировать). Ищем 16 цифр подряд (с пробелами или без) и оборачиваем
+    // в интерактивный span-копировщик.
+    html = html.replace(/(\b\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\b)/g, function(match) {
+      const bare = match.replace(/\s+/g, '');
+      const shown = bare.replace(/(\d{4})(?=\d)/g, '$1 ');
+      return '<span class="copyable-card-number" data-number="' + bare + '" ' +
+        'onclick="BookReader.copyCardNumber(this)" ' +
+        'style="display:inline-block;cursor:pointer;padding:2px 8px;border-radius:6px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.35);color:#D4AF37;font-weight:600;letter-spacing:1px;user-select:all" ' +
+        'title="Нажми чтобы скопировать">' + shown + '</span>';
     });
 
     // Звёздочка закладки
@@ -564,9 +597,20 @@ const BookReader = (function() {
   // Выполняет поиск по всем главам, в которые юзер имеет доступ.
   // Ищет вхождение query (case-insensitive) в title или html главы.
   // Возвращает массив { partIdx, chapterIdx, title, snippet }
+  // Нормализация строки для поиска: убираем регистр, дефисы, ё→е, пунктуацию.
+  // Так "Ма-на", "МА-НА", "мана" и "мана!" считаются одним запросом.
+  function normalizeForSearch(s) {
+    return String(s || '')
+      .toLowerCase()
+      .replace(/ё/g, 'е')
+      .replace(/[\s\-_.,!?:;'"\u2013\u2014()]+/g, '');
+  }
+
   function searchBook(query) {
     if (!bookData || !query || query.trim().length < 2) return [];
-    const q = query.trim().toLowerCase();
+    const qOriginal = query.trim().toLowerCase();
+    const qNormalized = normalizeForSearch(query);
+    if (!qNormalized) return [];
     const results = [];
     for (let pIdx = 0; pIdx < bookData.parts.length; pIdx++) {
       const part = bookData.parts[pIdx];
@@ -575,20 +619,36 @@ const BookReader = (function() {
         const g = globalIndex(pIdx, cIdx);
         if (!isChapterAccessible(g)) continue;
         const titleLower = (ch.title || '').toLowerCase();
+        const darName = (ch.dar_name || '').toLowerCase();
+        const darCode = (ch.dar_code || '').toLowerCase();
         // Снимаем HTML теги для поиска по тексту
         const plainText = (ch.html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
         const textLower = plainText.toLowerCase();
-        const titleHit = titleLower.includes(q);
-        const textIdx = textLower.indexOf(q);
-        if (!titleHit && textIdx === -1) continue;
+
+        // Сначала ищем по исходному регистру (позволяет делать сниппеты)
+        const titleHit = titleLower.includes(qOriginal);
+        const textIdx = textLower.indexOf(qOriginal);
+
+        // Если не нашли — пробуем нормализованную версию (без дефисов, ё→е).
+        // Это решает жалобы тестеров: "Ма-на" теперь найдёт главу дара МА-НА,
+        // а имя дара и код дара тоже участвуют в поиске.
+        let normalizedHit = false;
+        if (!titleHit && textIdx === -1) {
+          const titleN = normalizeForSearch(titleLower);
+          const textN = normalizeForSearch(textLower);
+          const darN = normalizeForSearch(darName) + '|' + normalizeForSearch(darCode);
+          normalizedHit = titleN.includes(qNormalized) || textN.includes(qNormalized) || darN.includes(qNormalized);
+          if (!normalizedHit) continue;
+        }
+
         // Делаем сниппет: 50 символов до и 80 после совпадения
         let snippet = '';
         if (textIdx !== -1) {
           const start = Math.max(0, textIdx - 50);
-          const end = Math.min(plainText.length, textIdx + q.length + 80);
-          snippet = (start > 0 ? '…' : '') + plainText.slice(start, end) + (end < plainText.length ? '…' : '');
-        } else if (titleHit) {
-          snippet = plainText.slice(0, 130) + '…';
+          const end = Math.min(plainText.length, textIdx + qOriginal.length + 80);
+          snippet = (start > 0 ? '\u2026' : '') + plainText.slice(start, end) + (end < plainText.length ? '\u2026' : '');
+        } else {
+          snippet = plainText.slice(0, 130) + '\u2026';
         }
         results.push({
           partIdx: pIdx,
@@ -599,7 +659,7 @@ const BookReader = (function() {
           dar_name: ch.dar_name || null,
           kind: ch.kind,
           snippet,
-          titleHit
+          titleHit: titleHit || normalizedHit
         });
         if (results.length >= 50) return results; // лимит результатов
       }
@@ -839,12 +899,45 @@ const BookReader = (function() {
     }
   }
 
+  // Скопировать номер карты при клике (с фоллбэком на Telegram-API если оно есть).
+  function copyCardNumber(el) {
+    const number = el.getAttribute('data-number') || '';
+    const tg = window.Telegram?.WebApp;
+    const onCopied = () => {
+      const prev = el.innerHTML;
+      el.innerHTML = '\u2713 Скопировано';
+      el.style.background = 'rgba(46,204,113,0.15)';
+      setTimeout(() => {
+        el.innerHTML = prev;
+        el.style.background = 'rgba(212,175,55,0.12)';
+      }, 1500);
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(number).then(onCopied).catch(() => {
+          // Fallback: выделяем текст
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          try { document.execCommand('copy'); onCopied(); } catch (e) {}
+        });
+      } else if (tg && tg.showAlert) {
+        tg.showAlert('Скопируй номер карты вручную: ' + number);
+      }
+    } catch (e) {
+      try { if (tg?.showAlert) tg.showAlert(number); } catch (e2) {}
+    }
+  }
+
   return {
     init, render, renderChapter,
     nextChapter, prevChapter, goTo, goToDar, openInTreasury,
     toggleTOC, toggleSettings, toggleBookmarks, toggleSearch, runSearch,
     toggleBookmark, removeBookmark, clearBookmarks,
     setFontSize, setTheme,
-    submitPromo, showLocked
+    submitPromo, showLocked,
+    copyCardNumber
   };
 })();

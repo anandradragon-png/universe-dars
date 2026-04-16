@@ -8,16 +8,35 @@
   <link rel="stylesheet" href="yupself-design-system.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header / localStorage
+    // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
+      // Список админских Telegram ID — с ними синхронизирован ADMIN_TELEGRAM_IDS ниже
+      const ADMIN_IDS = [269932434];
+      function isAdminUser() {
+        try {
+          const tgId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+          if (tgId && ADMIN_IDS.includes(Number(tgId))) return true;
+          const devId = localStorage.getItem('_dev_telegram_id');
+          if (devId && ADMIN_IDS.includes(Number(devId))) return true;
+        } catch (e) {}
+        return false;
+      }
       try {
         const params = new URLSearchParams(location.search);
         const tgParam = (window.Telegram?.WebApp?.initDataUnsafe?.start_param) || '';
         if (params.get('debug') === '0') { localStorage.removeItem('_dar_debug'); return; }
-        const wantsDebug = params.get('debug') === '1' || tgParam === 'debug' || localStorage.getItem('_dar_debug') === '1';
-        if (wantsDebug) enableDebugMode();
+        // Разрешаем debug только админам, даже если флаг в localStorage (чтобы случайно оставшийся флаг
+        // у тестеров после прошлых сессий не показывал им шестерёнку)
+        const wantsDebug = (params.get('debug') === '1' || tgParam === 'debug' || localStorage.getItem('_dar_debug') === '1');
+        if (wantsDebug && isAdminUser()) {
+          enableDebugMode();
+        } else if (wantsDebug && !isAdminUser()) {
+          // Очищаем случайно включённый debug у не-админа
+          localStorage.removeItem('_dar_debug');
+        }
       } catch (e) {}
       function enableDebugMode() {
+        if (!isAdminUser()) return; // двойная защита
         if (window.__darDebug) return;
         localStorage.setItem('_dar_debug', '1');
         window.__darDebug = true;
@@ -27,12 +46,13 @@
         document.head.appendChild(s);
       }
       window.__enableDarDebug = enableDebugMode;
-      // Тройной тап на <header> включает debug
+      // Тройной тап на <header> — включает debug ТОЛЬКО если юзер админ
       document.addEventListener('DOMContentLoaded', function() {
         let taps = 0; let timer = null;
         const target = document.querySelector('header');
         if (!target) return;
         target.addEventListener('click', function() {
+          if (!isAdminUser()) return; // обычные юзеры не активируют debug
           taps++;
           clearTimeout(timer);
           timer = setTimeout(() => { taps = 0; }, 800);
@@ -607,34 +627,36 @@
         <p>Введи дату рождения  и получи послание о своей природе, силе и пути</p>
         <input type="hidden" id="dateInput"/>
         <div class="date-fields" id="dateFields">
-          <div class="date-field-group">
-            <input class="date-field" id="df-day" type="text" inputmode="numeric" maxlength="2" placeholder="ДД" autocomplete="off"
-              oninput="this.value=this.value.replace(/\D/g,'').slice(0,2);this.classList.toggle('filled',this.value.length>0);window._dfSync();if(this.value.length===2)document.getElementById('df-month').focus()"/>
-            <span class="date-dot">.</span>
-            <input class="date-field" id="df-month" type="text" inputmode="numeric" maxlength="2" placeholder="ММ" autocomplete="off"
-              oninput="this.value=this.value.replace(/\D/g,'').slice(0,2);this.classList.toggle('filled',this.value.length>0);window._dfSync();if(this.value.length===2)document.getElementById('df-year').focus()"
-              onkeydown="if(event.key==='Backspace'&&this.value==='')document.getElementById('df-day').focus()"/>
-            <span class="date-dot">.</span>
-            <input class="date-field df-year" id="df-year" type="text" inputmode="numeric" maxlength="4" placeholder="ГГГГ" autocomplete="off"
-              oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);this.classList.toggle('filled',this.value.length>0);window._dfSync()"
-              onkeydown="if(event.key==='Backspace'&&this.value==='')document.getElementById('df-month').focus()"/>
-          </div>
+          <input id="dateMasked" class="date-field" type="text" inputmode="numeric" maxlength="10"
+            placeholder="ДД.ММ.ГГГГ" autocomplete="off"
+            style="width:100%;max-width:280px;padding:14px 0;font-size:22px;letter-spacing:3px;text-align:center"
+            oninput="window._dateMaskInput(this,event)"
+            onkeydown="window._dateMaskKeydown(this,event)"
+            onblur="if(document.activeElement!==this){this.blur()}"/>
         </div>
         <script>
-          window._dfSync=function(){
-            var d=document.getElementById('df-day').value.padStart(2,'0');
-            var m=document.getElementById('df-month').value.padStart(2,'0');
-            var y=document.getElementById('df-year').value;
-            document.getElementById('dateInput').value=(d!=='00'&&m!=='00'&&y.length===4)?d+'.'+m+'.'+y:'';
-            var e=document.getElementById('errorMsg');if(e)e.textContent='';
+          // Единое поле с автоматической вставкой точек после 2-й и 5-й цифры.
+          // Заменяет 3 отдельных поля — тестеры жаловались, что на мобилке точки не появлялись.
+          window._dateMaskInput = function(el, ev) {
+            var digits = (el.value || '').replace(/\D/g,'').slice(0,8);
+            var formatted = digits;
+            if (digits.length >= 5) formatted = digits.slice(0,2) + '.' + digits.slice(2,4) + '.' + digits.slice(4);
+            else if (digits.length >= 3) formatted = digits.slice(0,2) + '.' + digits.slice(2);
+            el.value = formatted;
+            var hidden = document.getElementById('dateInput');
+            hidden.value = formatted.length === 10 ? formatted : '';
+            var err = document.getElementById('errorMsg'); if (err) err.textContent = '';
           };
-          window._syncDateFieldsFromHidden=function(){
-            var v=document.getElementById('dateInput').value;
-            if(v&&v.includes('.')){var p=v.split('.');
-              var a=document.getElementById('df-day'),b=document.getElementById('df-month'),c=document.getElementById('df-year');
-              a.value=p[0]||'';b.value=p[1]||'';c.value=p[2]||'';
-              a.classList.toggle('filled',a.value.length>0);b.classList.toggle('filled',b.value.length>0);c.classList.toggle('filled',c.value.length>0);
-            }
+          window._dateMaskKeydown = function(el, ev) {
+            // Backspace — дай системе отработать нормально, маска пересчитается в oninput
+            if (ev.key === 'Backspace' || ev.key === 'Delete') return;
+            // Enter закрывает клавиатуру
+            if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
+          };
+          window._syncDateFieldsFromHidden = function() {
+            var v = document.getElementById('dateInput').value;
+            var m = document.getElementById('dateMasked');
+            if (m && v) m.value = v;
           };
         </script>
         <div class="error-msg" id="errorMsg"></div>
@@ -651,7 +673,7 @@
           <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()"> Изменить дату</button>
         </div>
         <!-- Призыв к книге -->
-        <div id="book-cta" style="display:none;margin-top:14px;padding:16px;background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:16px;text-align:center;cursor:pointer" onclick="switchNav('book')">
+        <div id="book-cta" style="display:none;margin-top:14px;padding:16px;background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:16px;text-align:center;cursor:pointer" onclick="goToMyDarInBook()">
           <div style="font-size:15px;color:#D4AF37;margin-bottom:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Читай о своём даре в Книге Даров</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Полное описание, практики, медитации и техники безопасности для каждого дара</div>
         </div>
@@ -991,7 +1013,9 @@
       </div>
       <div style="margin-bottom:12px">
         <div class="psu-label">Время рождения (ЧЧ:ММ)</div>
-        <input id="psu-birth-time" type="text" placeholder="14:30" class="psu-input" maxlength="5" inputmode="numeric" oninput="psuMaskTime(this)">
+        <input id="psu-birth-time" type="text" placeholder="14:30" class="psu-input" maxlength="5" inputmode="numeric"
+          oninput="psuMaskTime(this);if(this.value.length===5){this.blur()}"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
         <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Если не знаешь точное время, укажи 12:00</div>
       </div>
       <div style="margin-bottom:16px;position:relative">
@@ -1057,14 +1081,20 @@
           if (vh && vh > 0) {
             document.documentElement.style.setProperty('--tg-viewport-height', vh + 'px');
           }
-          // Переотрисовка nav-bar: убираем и ставим класс, чтобы сбросить rendering-кеш
-          const nav = document.querySelector('.nav-bar');
-          if (nav) {
-            const prev = nav.style.display;
-            nav.style.display = 'none';
-            // force reflow
-            void nav.offsetHeight;
-            nav.style.display = prev || '';
+          // Переотрисовка nav-bar + #app + активный таб: после свёртки/разворота приложения
+          // у тестеров половина экрана становится белой, пока не переключить вкладку.
+          // Форсируем reflow контейнеров чтобы Android-вебвью перерисовал их.
+          ['.nav-bar', '#app', '.tab.active'].forEach(sel => {
+            const el = document.querySelector(sel);
+            if (!el) return;
+            const prev = el.style.display;
+            el.style.display = 'none';
+            void el.offsetHeight; // force reflow
+            el.style.display = prev || '';
+          });
+          // Если на экране Книга — перерисуем её (динамический контент внутри)
+          if (typeof BookReader !== 'undefined' && document.getElementById('tab-book')?.classList.contains('active')) {
+            try { BookReader.render(); } catch (e) {}
           }
         } catch(e) { console.warn('resyncViewport failed:', e); }
       }
@@ -1161,8 +1191,17 @@
     }
 
     function loadProfileData() {
-      // Имя
-      document.getElementById('profile-name').textContent = _userName;
+      // Имя — сначала проверяем localStorage (сохранённое в профиле имя пользователя),
+      // только если его нет — берём имя из Telegram. Это убирает "пляшущее" имя в ЛК
+      // (жалобы тестеров: сначала ТГ-ник, через секунду меняется на заданное).
+      let initialName = _userName;
+      try {
+        const localProf = JSON.parse(localStorage.getItem('_darProfile') || '{}');
+        if (localProf.real_first_name) {
+          initialName = localProf.real_first_name + (localProf.real_last_name ? ' ' + localProf.real_last_name : '');
+        }
+      } catch (e) {}
+      document.getElementById('profile-name').textContent = initialName;
 
       // Единый источник правды для кристаллов - CrystalsUI (в памяти),
       // он синхронизируется с сервером при init/setBalance
@@ -1412,23 +1451,22 @@
 
       status.innerHTML = '<span style="color:var(--text-dim)">Проверка...</span>';
       try {
-        const resp = await fetch(`${API_URL}/api/promo`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code })
-        });
-        const data = await resp.json();
+        // Используем DarAPI — он автоматически добавляет x-telegram-init-data заголовок
+        const data = await DarAPI.submitPromo(code);
         if (data.error) throw new Error(data.error);
         if (data.access_level) {
           _profileData.access_level = data.access_level;
           const nlv = LEVELS[data.access_level] || LEVELS.basic;
           status.innerHTML = `<span style="color:#2ecc71">Уровень повышен: ${nlv.name}!</span>`;
-          if (data.crystals_earned) {
-            status.innerHTML += `<br><span style="color:#D4AF37">+${data.crystals_earned} кристаллов</span>`;
-            if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(data.crystals_earned);
+          const bonus = data.crystals_bonus || data.crystals_earned;
+          if (bonus) {
+            status.innerHTML += `<br><span style="color:#D4AF37">+${bonus} кристаллов</span>`;
+            if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(bonus);
           }
           input.value = '';
           loadProfileData();
+          // Обновим счётчик кристаллов в шапке
+          if (typeof refreshCrystalsCounter === 'function') refreshCrystalsCounter();
         } else {
           status.innerHTML = '<span style="color:#f87171">Неверный код</span>';
         }
@@ -1535,6 +1573,44 @@
         if (typeof BookReader !== 'undefined') {
           BookReader.render();
         }
+        // После оплаты статус мог обновиться на сервере, но window.PROFILE ещё старый.
+        // Дёргаем профиль фоном и перерисовываем Книгу, если access_level изменился.
+        refreshAccessLevel();
+      }
+      if (name === 'treasury' || name === 'games' || name === 'base') {
+        // На других вкладках тоже обновляем тихо (кристаллы, уровень)
+        refreshAccessLevel(true);
+      }
+    }
+
+    // Тихое обновление access_level и баланса кристаллов с сервера.
+    // Используется при переключении вкладок чтобы подтягивать свежие данные
+    // после оплаты / начисления кристаллов / промокода без полной перезагрузки.
+    async function refreshAccessLevel(silent) {
+      try {
+        if (typeof DarAPI === 'undefined') return;
+        const data = await DarAPI.getProfile();
+        if (!data || !data.user) return;
+        const newLevel = data.user.access_level || 'basic';
+        const prevLevel = (window.PROFILE && window.PROFILE.access_level) || 'basic';
+        window.PROFILE = window.PROFILE || {};
+        window.PROFILE.access_level = newLevel;
+        window.PROFILE.crystals = data.user.crystals || 0;
+        try { localStorage.setItem('_access_level', newLevel); } catch(e) {}
+        // Синк кристаллов (CrystalsUI — единый источник правды)
+        if (typeof CrystalsUI !== 'undefined' && typeof data.user.crystals === 'number') {
+          CrystalsUI.setBalance(data.user.crystals);
+        }
+        // Если уровень изменился (оплата прошла) — перерисуем Книгу и покажем тост.
+        if (newLevel !== prevLevel) {
+          if (typeof BookReader !== 'undefined') BookReader.render();
+          if (!silent && newLevel !== 'basic') {
+            showToast('Доступ обновлён! ' + (newLevel === 'premium' ? 'Мастер' : 'Хранитель'), 'success');
+          }
+        }
+      } catch (e) {
+        // Тихо игнорируем — не прерываем UX из-за сетевой ошибки
+        console.warn('[refreshAccessLevel]', e.message);
       }
     }
 
@@ -2348,7 +2424,16 @@
       if(parent){
         parent.querySelectorAll('.accordion-header.open').forEach(h=>{h.classList.remove('open');h.nextElementSibling.classList.remove('open');});
       }
-      if(!isOpen){btn.classList.add('open');body.classList.add('open');}
+      if(!isOpen){
+        btn.classList.add('open');body.classList.add('open');
+        // Прокручиваем к заголовку секции чтобы первый абзац был виден.
+        // Тестеры жаловались: "первый абзац уходит вверх, приходится скролить обратно".
+        setTimeout(() => {
+          try {
+            btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } catch (e) {}
+        }, 120);
+      }
     }
 
     function backToDarsList(){
@@ -2371,6 +2456,28 @@
       } catch(e) { console.error('openDarInBook error:', e); }
     }
     window.openDarInBook = openDarInBook;
+
+    // "Читай о своём даре в Книге Даров" — должно вести к главе текущего дара,
+    // а не на главу 1 или главу 6 (жалобы тестеров).
+    function goToMyDarInBook() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        let darCode = null;
+        if (saved) {
+          try { darCode = (JSON.parse(saved).gift || {}).code; } catch(e) {}
+        }
+        if (darCode) {
+          openDarInBook(darCode);
+        } else {
+          // Нет рассчитанного дара — просто открываем Книгу
+          switchNav('book');
+        }
+      } catch(e) {
+        console.error('goToMyDarInBook error:', e);
+        switchNav('book');
+      }
+    }
+    window.goToMyDarInBook = goToMyDarInBook;
 
     function openHeroJourney(code, name) {
       try {
@@ -3956,6 +4063,53 @@
           this.value = v;
         });
       }
+
+      // ==== Глобальные фиксы клавиатуры на мобилках ====
+      // Жалобы тестеров: клавиатура не убирается после ввода времени, поиска,
+      // в Оракуле, перекрывает поля. Решение:
+      // 1) Тап вне input/textarea/кнопки — снимаем фокус (закрывает клавиатуру)
+      // 2) Enter в любом одностроковом input — тоже снимает фокус
+      // 3) При фокусе на input — прокручиваем его в видимую область
+
+      document.addEventListener('pointerdown', function(ev) {
+        const el = document.activeElement;
+        if (!el) return;
+        const tag = (el.tagName || '').toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea') return;
+        // Если тап произошёл вне активного элемента и не по кнопке-submit
+        if (ev.target === el) return;
+        if (ev.target.closest && ev.target.closest('button, .date-field-group, .date-fields')) {
+          // Клики по кнопкам и полям даты обрабатываются своими хендлерами
+          return;
+        }
+        try { el.blur(); } catch (e) {}
+      }, true);
+
+      // Enter → закрыть клавиатуру для любого input (кроме textarea, где Enter = новая строка)
+      document.addEventListener('keydown', function(ev) {
+        if (ev.key !== 'Enter') return;
+        const el = ev.target;
+        if (!el || el.tagName !== 'INPUT') return;
+        // Если поле в форме с submit — пусть форма отправится как обычно
+        const t = (el.type || '').toLowerCase();
+        if (t === 'submit' || t === 'button') return;
+        try { el.blur(); } catch (e) {}
+      });
+
+      // При фокусе на input — прокрутить его в зону видимости (клавиатура
+      // перекрывает нижнюю половину экрана в Telegram Mini App).
+      document.addEventListener('focusin', function(ev) {
+        const el = ev.target;
+        if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA')) return;
+        // Небольшая задержка чтобы клавиатура успела открыться, и скролл сработал в итоговую геометрию
+        setTimeout(() => {
+          try {
+            if (typeof el.scrollIntoView === 'function') {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          } catch (e) {}
+        }, 300);
+      });
     });
 
     // Проверяем при загрузке: если есть сохранённый дар, но нет профиля - показать напоминалку

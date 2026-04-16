@@ -337,13 +337,22 @@ const Treasury = (function() {
 
     html += '</div>';
 
-    // Если все квесты проработаны - баннер достижения
+    // Если все квесты проработаны - баннер достижения.
+    // Текст адаптируется под пол пользователя (из профиля).
     if (completedCount === totalQuests && totalQuests > 0) {
+      let gender = '';
+      try {
+        const prof = JSON.parse(localStorage.getItem('_user_profile') || '{}');
+        gender = prof.gender || '';
+      } catch (e) {}
+      const pass = gender === 'male' ? 'прошёл' : gender === 'female' ? 'прошла' : 'прошёл(а)';
+      const act  = gender === 'male' ? 'активировал' : gender === 'female' ? 'активировала' : 'активировал(а)';
+      const opened = gender === 'male' ? 'раскрылась в тебе' : gender === 'female' ? 'раскрылась в тебе' : 'раскрылась в тебе';
       html += `
         <div style="margin-top:18px;padding:18px;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.5);border-radius:14px;text-align:center">
           <div style="font-size:36px;margin-bottom:8px">&#11088;</div>
           <div style="font-size:15px;color:#D4AF37;margin-bottom:6px;letter-spacing:1px">Дар раскрыт и активирован</div>
-          <div style="font-size:12px;color:var(--text-dim);line-height:1.6">Ты прошла через все грани этого дара и активировала его через медитацию. Его светлая сила раскрылась в тебе.</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.6">Ты ${pass} через все грани этого дара и ${act} его через медитацию. Его светлая сила ${opened}.</div>
         </div>`;
     }
 
@@ -1132,7 +1141,20 @@ const Treasury = (function() {
     openDar(code);
   }
 
+  let _unlockRandomInProgress = false;
   async function unlockRandom() {
+    // Защита от двойного клика: пользователи жаловались, что открывалось 2 дара.
+    // Причина — медленный сервер + повторный тап по кнопке, оба запроса уходили.
+    if (_unlockRandomInProgress) return;
+    _unlockRandomInProgress = true;
+    const btn = document.getElementById('btn-unlock-random');
+    if (btn) btn.disabled = true;
+
+    const release = () => {
+      _unlockRandomInProgress = false;
+      if (btn) btn.disabled = false;
+    };
+
     const cost = 20;
     // Синхронизируем баланс с сервером ПЕРЕД проверкой - UI мог рассинхрониться
     try {
@@ -1144,9 +1166,13 @@ const Treasury = (function() {
 
     if (CrystalsUI.getBalance() < cost) {
       alert(`Недостаточно кристаллов! Нужно ${cost}, у тебя ${CrystalsUI.getBalance()}`);
+      release();
       return;
     }
-    if (!confirm(`Открыть случайный дар за ${cost} кристаллов?`)) return;
+    if (!confirm(`Открыть случайный дар за ${cost} кристаллов?`)) {
+      release();
+      return;
+    }
 
     try {
       const result = await DarAPI.unlockRandomDar();
@@ -1169,6 +1195,8 @@ const Treasury = (function() {
     } catch (e) {
       if (typeof showToast === 'function') showToast(e.message || 'Не удалось открыть случайный дар. Попробуй ещё раз.', 'error');
       else alert(e.message || 'Не удалось открыть случайный дар. Попробуй ещё раз.');
+    } finally {
+      release();
     }
   }
 

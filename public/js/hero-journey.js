@@ -143,13 +143,16 @@ const HeroJourney = (function() {
       const step = currentJourney.step;
       const hasScenes = currentContent && currentContent.scenes;
       const hasBattle = currentContent && currentContent.hero_hp !== undefined;
+      const completedSteps = currentJourney.completed_steps || [];
 
-      if ([1, 3, 4, 5, 7].includes(step) && hasScenes) {
+      // Сначала проверяем завершение путешествия, иначе после 7/7 снова
+      // показывается шаг 7 "Коронация" (клятвы) при повторном входе.
+      if (currentJourney.completed_at || completedSteps.length >= 7) {
+        renderJourneyComplete();
+      } else if ([1, 3, 4, 5, 7].includes(step) && hasScenes) {
         renderAwakening(); // Универсальный рендер для шагов со сценами
       } else if ((step === 2 || step === 6) || hasBattle) {
         renderBattle();
-      } else if (currentJourney.completed_at) {
-        renderJourneyComplete();
       } else {
         // Нужно загрузить контент для шага
         renderAwakening();
@@ -437,11 +440,16 @@ const HeroJourney = (function() {
         // Раскрываем скрытое название пути
         const labelEl = btn.querySelector('.hero-choice-label');
         if (labelEl) labelEl.classList.remove('hero-choice-hidden');
-        // Показываем "Твоя точка сборки..."
+        // Показываем "Твоя точка сборки..." — заметнее и крупнее,
+        // чтобы пользователь успел прочитать (было: мелкий серый текст внизу,
+        // который быстро пролистывался автопереходом).
         const label = btn.getAttribute('data-label') || '';
         const pathMsg = document.createElement('div');
         pathMsg.className = 'hero-path-msg animate-fade-in';
-        pathMsg.innerHTML = `<em>Твоя точка сборки: ${label}</em><br><span style="font-size:11px;color:#888">Это не хорошо и не плохо. Это то, где ты сейчас.</span>`;
+        pathMsg.style.cssText = 'margin-top:14px;padding:14px;border:1px solid rgba(212,175,55,0.35);border-radius:12px;background:rgba(212,175,55,0.06);text-align:center';
+        pathMsg.innerHTML = '<div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:6px">&#10022; ТВОЯ ТОЧКА СБОРКИ</div>' +
+          '<div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:6px">' + label + '</div>' +
+          '<div style="font-size:12px;color:#999;line-height:1.5">Это не хорошо и не плохо. Это то, где ты сейчас.</div>';
         btn.parentElement.after(pathMsg);
       } else {
         btn.classList.add('hero-choice-dimmed');
@@ -472,11 +480,17 @@ const HeroJourney = (function() {
       return;
     }
 
-    // Задержка чтобы юзер увидел свой выбор и осознал
-    setTimeout(() => {
-    DarAPI.journeyAction(currentDarCode, { choice_index: index }).then(data => {
-      loading = false;
+    // Фоном делаем API-запрос (чтобы не ждать сети после клика "Дальше"),
+    // но переход к следующей сцене/шагу показываем ТОЛЬКО после того, как
+    // пользователь сам нажмёт кнопку "Дальше →". Раньше был автопереход
+    // через 1.5 сек — люди не успевали прочитать "точку сборки" и сюжет.
+    let serverData = null;
+    let serverError = null;
+    let userReady = false;
 
+    const applyTransition = () => {
+      if (!serverData) return;
+      const data = serverData;
       if (data.result === 'step_complete' || data.result === 'journey_complete') {
         currentJourney = data.journey;
         const nextStep = data.next_step;
@@ -493,7 +507,6 @@ const HeroJourney = (function() {
           } else if (nextStep === 2 || nextStep === 6) {
             renderBattle();
           } else {
-            // Загрузить контент для следующего шага
             HeroJourney.render(currentDarCode);
           }
         }, btnText);
@@ -504,14 +517,61 @@ const HeroJourney = (function() {
         currentJourney = data.journey;
         currentContent = data.journey.step_state;
         scrollToTop();
-        setTimeout(() => renderAwakening(), 300);
+        renderAwakening();
+      }
+    };
+
+    // Добавляем кнопку "Дальше →" рядом с точкой сборки
+    const addContinueButton = () => {
+      if (document.getElementById('hero-continue-btn')) return;
+      const msg = document.querySelector('.hero-path-msg');
+      if (!msg) return;
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'text-align:center;margin-top:14px';
+      wrap.innerHTML = '<button id="hero-continue-btn" class="hero-btn hero-btn-primary" style="min-width:180px">Дальше &rarr;</button>';
+      msg.after(wrap);
+      const btn = document.getElementById('hero-continue-btn');
+      btn.addEventListener('click', () => {
+        userReady = true;
+        btn.disabled = true;
+        if (serverError) {
+          if (typeof showToast === 'function') showToast(serverError, 'error');
+          // Разблокируем выборы для повтора
+          buttons.forEach(b => b.disabled = false);
+          loading = false;
+          return;
+        }
+        if (serverData) {
+          applyTransition();
+        } else {
+          btn.textContent = 'Загрузка...';
+        }
+      });
+    };
+
+    // Показываем кнопку "Дальше" с небольшой задержкой чтобы юзер
+    // успел увидеть анимацию выбора и прочитать точку сборки
+    setTimeout(addContinueButton, 700);
+
+    DarAPI.journeyAction(currentDarCode, { choice_index: index }).then(data => {
+      loading = false;
+      serverData = data;
+      if (userReady) {
+        applyTransition();
+      } else {
+        const btn = document.getElementById('hero-continue-btn');
+        if (btn && btn.textContent === 'Загрузка...') btn.textContent = 'Дальше \u2192';
       }
     }).catch(err => {
       loading = false;
-      buttons.forEach(btn => btn.disabled = false);
-      if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
+      serverError = err.message || 'Ошибка';
+      const btn = document.getElementById('hero-continue-btn');
+      if (btn) { btn.textContent = 'Попробовать снова'; btn.disabled = false; }
+      if (userReady) {
+        if (typeof showToast === 'function') showToast(serverError, 'error');
+        buttons.forEach(btn => btn.disabled = false);
+      }
     });
-    }, 1500); // Задержка 1.5 сек чтобы увидеть свой выбор
   }
 
   function attack() {

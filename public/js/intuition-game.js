@@ -557,11 +557,15 @@ const IntuitionGame = (function() {
           ? 'border-color:rgba(212,175,55,0.8);box-shadow:0 0 12px rgba(212,175,55,0.4);background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%)'
           : '';
 
-        // Обложка карты с золотым Кадуцеем на чёрном фоне
+        // Обложка карты с золотым Кадуцеем на чёрном фоне.
+        // Если картинка не загрузилась (кэш браузера, 404) — показываем стилизованный fallback.
         html += `
           <div class="game-card-back" onclick="IntuitionGame.selectCard(${i})"
             style="background:#080808;border:2px solid rgba(212,175,55,0.35);border-radius:12px;padding:6px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;position:relative;overflow:hidden;box-shadow:inset 0 0 20px rgba(212,175,55,0.05);${selStyle}">
-            <img src="images/caduceus-gold.png" alt="Карта" style="width:70%;height:auto;max-height:72px;object-fit:contain;opacity:${isSelected ? '1' : '0.9'};pointer-events:none;filter:drop-shadow(0 0 8px rgba(212,175,55,0.25))" onerror="this.style.display='none'"/>
+            <div style="position:relative;width:70%;max-height:72px;display:flex;align-items:center;justify-content:center">
+              <img src="images/caduceus-gold.png" alt="" style="width:100%;height:auto;max-height:72px;object-fit:contain;opacity:${isSelected ? '1' : '0.9'};pointer-events:none;filter:drop-shadow(0 0 8px rgba(212,175,55,0.25))" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+              <div style="display:none;font-size:32px;color:#D4AF37;text-shadow:0 0 10px rgba(212,175,55,0.5);line-height:1">&#10016;</div>
+            </div>
             ${isSelected ? '<div style="position:absolute;top:4px;right:4px;font-size:14px;color:#D4AF37">&#10003;</div>' : ''}
           </div>`;
       }

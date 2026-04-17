@@ -502,6 +502,12 @@ const HeroJourney = (function() {
             ? `${nextStepInfo.emoji} К шагу: ${nextStepInfo.name}`
             : 'Далее';
 
+        // Убираем "нижнюю" кнопку "Дальше →" от addContinueButton, чтобы пользователь
+        // видел только одну кнопку перехода — внутри overlay победы.
+        // Без этого было две кнопки, тестеры жаловались что "кнопки перехода не работают".
+        const oldBtn = document.getElementById('hero-continue-btn');
+        if (oldBtn && oldBtn.parentElement) oldBtn.parentElement.remove();
+
         showVictory(data.victory_text, data.reward, () => {
           if (data.result === 'journey_complete') {
             renderJourneyComplete();

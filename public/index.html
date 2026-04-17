@@ -1183,7 +1183,15 @@
       premium: { name: 'Мастер', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#D4AF37" stroke="none" style="vertical-align:-3px"><path d="M2 4l3 12h14l3-12-5 4-5-6-5 6z"/><rect x="5" y="18" width="14" height="3" rx="1"/></svg>', css: 'level-premium', desc: 'Безлимитные расчёты, все секции, x2 кристаллы' }
     };
 
-    let _profileData = { crystals: 0, streak: 0, access_level: 'basic', dars: [] };
+    // Начальное состояние профиля — инициализируем access_level из localStorage,
+    // чтобы при открытии ЛК сразу показывать правильный уровень, а не "Странник"
+    // на полсекунды до ответа сервера (тестеры жаловались что "промокод слетает").
+    let _initialAccessLevel = 'basic';
+    try {
+      const cached = localStorage.getItem('_access_level');
+      if (cached && cached !== 'basic') _initialAccessLevel = cached;
+    } catch(e) {}
+    let _profileData = { crystals: 0, streak: 0, access_level: _initialAccessLevel, dars: [] };
 
     function openProfile() {
       document.getElementById('profile-overlay').style.display = 'block';
@@ -1276,11 +1284,12 @@
       document.getElementById('profile-level-info').innerHTML = `
         <div style="margin-bottom:8px"><span class="profile-level-badge ${lv.css}">${lv.icon} ${lv.name}</span></div>
         <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${lv.desc}</div>
-        ${level !== 'premium' ? `
-          <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
-            ${level === 'basic' ? `<button onclick="buyBookAccess()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11088; Полный доступ — 500 ⭐ (~$10)</button>` : ''}
-            <button onclick="openDonationModal()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif">💜 Поддержать проект</button>
-          </div>` : `<button onclick="openDonationModal()" style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif;margin-top:8px">💜 Поддержать проект</button>`}`;
+        ${level === 'basic' ? `<div style="margin-top:10px"><button onclick="buyBookAccess()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11088; Полный доступ — 500 ⭐ (~$10)</button></div>` : ''}
+        <!-- Кнопка "Поддержать проект" для ВСЕХ уровней (тестеры с Хранитель её не видели раньше) -->
+        <div style="margin-top:12px;padding:12px;background:linear-gradient(135deg,rgba(233,30,99,0.08),rgba(156,39,176,0.06));border:1px solid rgba(233,30,99,0.3);border-radius:12px;text-align:center">
+          <div style="font-size:12px;color:#e91e63;margin-bottom:8px;font-weight:600">💜 Нравится проект?</div>
+          <button onclick="openDonationModal()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#e91e63,#9c27b0);color:#fff;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600">Поддержать проект</button>
+        </div>`;
 
       // Прогресс из localStorage
       const crystals = parseInt(localStorage.getItem('_crystals_' + USER_ID) || '0');
@@ -2334,7 +2343,12 @@
       } else {
         const html = '<div style="padding:6px 0 4px;color:var(--text-dim);font-size:11px">Найдено: ' + matches.length + '</div>' +
           matches.slice(0, 30).map(m => {
-            const onclickAction = m.isIntegrator ? ('openIntegratorDetail(\'' + m.code + '\')') : ('openDarDetail(\'' + m.code + '\')');
+            // При клике из поиска — сначала сбрасываем поиск (показываем вкладку Дары),
+            // потом открываем детальный экран. Иначе детальный экран отрисуется
+            // внутри скрытого родителя (base-subtab-dars display:none) и юзер ничего не увидит.
+            const onclickAction = m.isIntegrator
+              ? ('baseSearchClear();switchBaseSubTab(\'dars\');openIntegratorDetail(\'' + m.code + '\')')
+              : ('baseSearchClear();switchBaseSubTab(\'dars\');openDarDetail(\'' + m.code + '\')');
             return '<div onclick="' + onclickAction + '" style="padding:12px 14px;margin:6px 0;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer">' +
               '<div style="font-size:16px;color:#D4AF37;letter-spacing:2px">' + m.name + '</div>' +
               '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">' + m.code + (m.fieldName ? ' · ' + m.fieldName : '') + (m.arch ? ' · ' + m.arch : '') + '</div>' +

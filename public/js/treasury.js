@@ -545,6 +545,10 @@ const Treasury = (function() {
       shadow = shadows[shadowArrayIdx];
     }
 
+    // Определяем, свой ли это дар пользователя.
+    // Если код совпадает с userDarCode — свой, иначе — чужой/изучаемый.
+    const isOwnDar = !!userDarCode && userDarCode === code;
+
     let review;
     try {
       review = await DarAPI.reviewShadow({
@@ -556,7 +560,8 @@ const Treasury = (function() {
         user_answer: answer,
         gender: getUserGender(),
         dialogue: historyBeforeNew,
-        round_number: dialogue.roundCount
+        round_number: dialogue.roundCount,
+        is_own_dar: isOwnDar
       });
     } catch (e) {
       console.warn('Coach review failed:', e.message);

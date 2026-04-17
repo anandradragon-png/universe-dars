@@ -90,7 +90,21 @@ const IntuitionGame = (function() {
   function getRandomDars(count) {
     const allCodes = Object.keys(window.DARS || {});
     const shuffled = allCodes.sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count).map(code => ({
+    // Фильтр зеркальных кодов: АР-МА (2-3-5) и РА-МА (3-2-5) — это РАЗНЫЕ дары,
+    // но визуально в раскладке игрок читает их как «одинаковые» (названия
+    // различаются только порядком первых двух букв, иконки тоже похожи).
+    // Поэтому в одной раскладке оставляем не более одной карты из каждой группы,
+    // где цифры кода те же, но порядок другой.
+    const signatures = new Set();
+    const picked = [];
+    for (const code of shuffled) {
+      const sig = code.split('-').slice().sort().join('');
+      if (signatures.has(sig)) continue;
+      signatures.add(sig);
+      picked.push(code);
+      if (picked.length >= count) break;
+    }
+    return picked.slice(0, count).map(code => ({
       code, name: window.DARS[code], archetype: window.DAR_ARCHETYPES?.[code] || ''
     }));
   }
@@ -257,12 +271,14 @@ const IntuitionGame = (function() {
     // Синхронизируем период с фокусом игры при первом открытии
     if (!leaderboardData) leaderboardPeriod = focusPeriod;
 
+    // @keyframes pulse вынесен в глобальный <style> в index.html — больше не
+    // подклеиваем <style> в innerHTML (иначе на каждое открытие лидерборда
+    // в DOM добавлялся новый stylesheet).
     container.innerHTML = `
       <div style="text-align:center;padding:40px 16px">
         <div style="font-size:32px;margin-bottom:12px;animation:pulse 1.5s infinite">&#127942;</div>
         <div style="color:var(--text-dim);font-size:14px">Загружаю рейтинг...</div>
       </div>
-      <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}</style>
     `;
     try {
       leaderboardData = await DarAPI.getLeaderboard(
@@ -485,7 +501,14 @@ const IntuitionGame = (function() {
     const target = getRandomDars(1)[0];
     targetDar = target;
     const needed = lvl.cards - lvl.targets - (lvl.hasBonus ? 1 : 0) - (lvl.hasTrap ? 1 : 0);
-    const pool = getRandomDars(needed + 10).filter(d => d.code !== target.code);
+    // Фильтруем и по code, и по «зеркалу» (см. getRandomDars): чтобы рядом с
+    // target 2-3-5 не оказался 3-2-5 — они визуально путаются.
+    const targetSig = target.code.split('-').slice().sort().join('');
+    const pool = getRandomDars(needed + 10).filter(d => {
+      if (d.code === target.code) return false;
+      const sig = d.code.split('-').slice().sort().join('');
+      return sig !== targetSig;
+    });
     let all = [];
 
     for (let i = 0; i < lvl.targets; i++) all.push({ ...target, type: 'target' });
@@ -583,7 +606,7 @@ const IntuitionGame = (function() {
           ${shadowBlock || '<div style="min-width:70px"></div>'}
         </div>
         ${!allRevealed && currentMode === 'multi' ? `
-          <div style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center">Выбрано: ${selected.length} / ${maxOpens}</div>
+          <div id="card-counter" style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center">Выбрано: ${selected.length} / ${maxOpens}</div>
         ` : ''}
       </div>
       <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;max-width:420px;margin:0 auto">
@@ -645,24 +668,29 @@ const IntuitionGame = (function() {
 
         // Обложка карты с золотым Кадуцеем на чёрном фоне.
         // Если картинка не загрузилась (кэш браузера, 404) — показываем стилизованный fallback.
+        // data-idx нужен чтобы updateSelectionUI() мог обновлять карту точечно без
+        // пересоздания всего board.innerHTML (иначе <img> пересоздаются на каждый тап
+        // и рамки моргают — см. баг мерцания на Android).
         html += `
-          <div class="game-card-back" onclick="IntuitionGame.selectCard(${i})"
+          <div class="game-card-back" data-idx="${i}" onclick="IntuitionGame.selectCard(${i})"
             style="background:#080808;border:2px solid rgba(212,175,55,0.35);border-radius:12px;padding:6px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;position:relative;overflow:hidden;box-shadow:inset 0 0 20px rgba(212,175,55,0.05);${selStyle}">
             <div style="position:relative;width:70%;max-height:72px;display:flex;align-items:center;justify-content:center">
               <img src="images/caduceus-gold.png" alt="" style="width:100%;height:auto;max-height:72px;object-fit:contain;opacity:${isSelected ? '1' : '0.9'};pointer-events:none;filter:drop-shadow(0 0 8px rgba(212,175,55,0.25))" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
               <div style="display:none;font-size:32px;color:#D4AF37;text-shadow:0 0 10px rgba(212,175,55,0.5);line-height:1">&#10016;</div>
             </div>
-            ${isSelected ? '<div style="position:absolute;top:4px;right:4px;font-size:14px;color:#D4AF37">&#10003;</div>' : ''}
+            <div class="card-check" style="position:absolute;top:4px;right:4px;font-size:14px;color:#D4AF37;display:${isSelected ? 'block' : 'none'}">&#10003;</div>
           </div>`;
       }
     });
 
     html += '</div>';
 
-    // Кнопка "Открыть карты" (только для мультипоиска когда все выбрано)
-    if (!allRevealed && selected.length >= maxOpens) {
+    // Кнопка "Открыть карты" — всегда в DOM (чтобы updateSelectionUI мог
+    // переключать видимость без перерисовки board.innerHTML).
+    if (!allRevealed) {
+      const showReveal = selected.length >= maxOpens;
       html += `
-        <div style="text-align:center;margin-top:16px">
+        <div id="reveal-btn-container" style="text-align:center;margin-top:16px;display:${showReveal ? 'block' : 'none'}">
           <button class="btn btn-secondary" style="width:auto;padding:12px 30px;margin:0" onclick="IntuitionGame.revealAll()">
             &#128302; Открыть карты
           </button>
@@ -687,7 +715,7 @@ const IntuitionGame = (function() {
     if (alreadyIdx !== -1) {
       if (currentMode === 'classic') return; // в классике одна карта, отменять нечего
       selected.splice(alreadyIdx, 1);
-      renderBoard();
+      updateSelectionUI();
       return;
     }
 
@@ -701,7 +729,43 @@ const IntuitionGame = (function() {
       return;
     }
 
-    renderBoard();
+    // В мультипоиске — обновляем только стили выбранных карт, не пересоздаём
+    // весь board.innerHTML (иначе <img> пересоздаются → мерцание на Android).
+    updateSelectionUI();
+  }
+
+  // Точечное обновление стиля выбранных карт, счётчика и кнопки "Открыть карты".
+  // НЕ трогает <img> и общую структуру — именно поэтому картинки не моргают.
+  function updateSelectionUI() {
+    const board = document.getElementById('game-board');
+    if (!board) return;
+
+    cards.forEach((_, i) => {
+      const el = board.querySelector('.game-card-back[data-idx="' + i + '"]');
+      if (!el) return;
+      const isSelected = selected.includes(i);
+      if (isSelected) {
+        el.style.borderColor = 'rgba(212,175,55,0.8)';
+        el.style.boxShadow = '0 0 12px rgba(212,175,55,0.4)';
+        el.style.background = 'linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%)';
+      } else {
+        el.style.borderColor = '';
+        el.style.boxShadow = 'inset 0 0 20px rgba(212,175,55,0.05)';
+        el.style.background = '#080808';
+      }
+      const check = el.querySelector('.card-check');
+      if (check) check.style.display = isSelected ? 'block' : 'none';
+      const img = el.querySelector('img');
+      if (img) img.style.opacity = isSelected ? '1' : '0.9';
+    });
+
+    const counter = document.getElementById('card-counter');
+    if (counter) counter.textContent = 'Выбрано: ' + selected.length + ' / ' + maxOpens;
+
+    const revealContainer = document.getElementById('reveal-btn-container');
+    if (revealContainer) {
+      revealContainer.style.display = selected.length >= maxOpens ? 'block' : 'none';
+    }
   }
 
   // === РАСКРЫТИЕ ВСЕХ КАРТ ===

@@ -74,8 +74,8 @@ const DailyDar = (function() {
     return `
       <div id="daily-card-container" style="perspective:800px;width:200px;height:300px;margin:20px auto;cursor:pointer" onclick="DailyDar.pullCard()">
         <div id="daily-card-inner" style="position:relative;width:100%;height:100%;transition:transform 0.8s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d">
-          <div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;overflow:hidden;border:2px solid rgba(212,175,55,0.4);box-shadow:0 4px 20px rgba(212,175,55,0.15);background:linear-gradient(135deg,#0a0a2e 0%,#0d1033 100%);display:flex;align-items:center;justify-content:center">
-            <img src="logo-caduceus-v2.svg" style="width:80%;height:80%;object-fit:contain" alt="Карта"/>
+          <div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;overflow:hidden;border:2px solid rgba(212,175,55,0.4);box-shadow:0 4px 20px rgba(212,175,55,0.15);background:#080808;display:flex;align-items:center;justify-content:center">
+            <img src="images/caduceus-gold.png" style="width:70%;height:70%;object-fit:contain;filter:drop-shadow(0 0 18px rgba(212,175,55,0.35))" alt="Карта"/>
           </div>
           <div id="daily-card-face" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;transform:rotateY(180deg);border-radius:16px;background:var(--card);border:2px solid rgba(212,175,55,0.5);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;box-shadow:0 4px 20px rgba(212,175,55,0.2)">
           </div>
@@ -368,10 +368,17 @@ const DailyDar = (function() {
     const isIntegrator = !!(window.INTEGRATORS && window.INTEGRATORS[code]);
     const parts = code.split('-').map(Number);
     const fieldNames = parts.map(n => FIELDS[n] || n).join(' + ');
+    // Вместо cards/CODE.jpg (там AI-картинки с возможными артефактами и неправильными
+    // названиями, например Zla-To вместо ЗИ-МА) показываем SVG-иконку дара золотом
+    // на чёрном фоне — стабильно, единообразно и в стиле приложения.
+    const darImageBlock = `
+      <div style="width:180px;height:240px;margin:0 auto;border-radius:16px;background:#080808;border:2px solid rgba(212,175,55,0.4);box-shadow:0 4px 22px rgba(212,175,55,0.18), inset 0 0 30px rgba(212,175,55,0.04);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+        ${renderDarImage(code, 130)}
+      </div>`;
     return `
       <div style="text-align:center;background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:24px 16px;margin-bottom:16px">
         ${title ? `<div style="font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:12px">${title}</div>` : ''}
-        <img src="cards/${code}.jpg" style="width:160px;height:auto;border-radius:12px;box-shadow:0 4px 20px rgba(212,175,55,0.2);display:block;margin:0 auto" onerror="this.style.display='none'"/>
+        ${darImageBlock}
         <div style="font-size:28px;letter-spacing:4px;color:var(--text);margin-top:14px;text-shadow:0 0 20px rgba(212,175,55,0.3)">${name}</div>
         ${arch ? `<div style="font-size:13px;color:#D4AF37;font-style:italic;margin-top:6px">${arch}</div>` : ''}
         ${isIntegrator ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px">${fieldNames}</div>` : ''}
@@ -572,8 +579,18 @@ const DailyDar = (function() {
     if (inner) {
       const face = document.getElementById('daily-card-face');
       if (face) {
+        // Лицо карты: чёрный фон + золотой дар + название.
+        // Раньше была AI-картинка из cards/CODE.jpg — с артефактами и
+        // иногда неправильными названиями (Zla-To вместо ЗИ-МА).
         face.style.padding = '0';
-        face.innerHTML = `<img src="cards/${_pulledCard}.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:14px" onerror="this.style.display='none'"/>`;
+        face.style.background = '#080808';
+        const name = getDarName(_pulledCard);
+        face.innerHTML =
+          '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">' +
+            renderDarImage(_pulledCard, 130) +
+            '<div style="font-size:22px;letter-spacing:3px;color:#D4AF37;margin-top:12px;text-shadow:0 0 18px rgba(212,175,55,0.45)">' + name + '</div>' +
+            '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">' + _pulledCard + '</div>' +
+          '</div>';
       }
       inner.style.transform = 'rotateY(180deg)';
       setTimeout(() => { _cardRevealed = true; renderTab(); }, 1000);

@@ -119,10 +119,18 @@ const Treasury = (function() {
 
         if (unlocked) {
           const sections = getUnlockedSections(d.code);
+          // В открытых ячейках вместо звёздочек — SVG-иконка самого дара золотого цвета.
+          // Файлы лежат в public/images/dars/<имя-в-нижнем-регистре>.svg
+          const base = String(d.name || '').toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '');
+          const imgHtml = base
+            ? '<img src="images/dars/' + base + '.svg" ' +
+              'style="width:34px;height:34px;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px rgba(212,175,55,0.4))" ' +
+              'onerror="this.outerHTML=&quot;<div style=\\&quot;font-size:22px;color:#D4AF37\\&quot;>\u2728</div>&quot;"/>'
+            : '<div style="font-size:22px;color:#D4AF37">\u2728</div>';
           html += `
             <div class="${cls}" onclick="Treasury.openDar('${d.code}')">
-              <div class="treasury-card-icon">${isOwn ? '&#11088;' : '&#10024;'}</div>
-              <div class="treasury-card-name">${d.name}</div>
+              <div class="treasury-card-icon" style="display:flex;align-items:center;justify-content:center;height:40px">${imgHtml}</div>
+              <div class="treasury-card-name" style="color:#D4AF37;text-shadow:0 0 8px rgba(212,175,55,0.25)">${d.name}</div>
               <div class="treasury-card-sections">${sections}/9</div>
             </div>`;
         } else {

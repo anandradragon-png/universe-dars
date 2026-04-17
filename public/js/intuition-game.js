@@ -557,11 +557,11 @@ const IntuitionGame = (function() {
           ? 'border-color:rgba(212,175,55,0.8);box-shadow:0 0 12px rgba(212,175,55,0.4);background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%)'
           : '';
 
-        // Привычная обложка с Кадуцеем — logo-caduceus-v2.svg
+        // Обложка карты с золотым Кадуцеем на чёрном фоне
         html += `
           <div class="game-card-back" onclick="IntuitionGame.selectCard(${i})"
-            style="background:linear-gradient(135deg,#0a0a2e 0%,#0d1033 100%);border:2px solid rgba(212,175,55,0.3);border-radius:12px;padding:6px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;position:relative;overflow:hidden;${selStyle}">
-            <img src="logo-caduceus-v2.svg" alt="Карта" style="width:80%;height:auto;max-height:72px;object-fit:contain;opacity:${isSelected ? '1' : '0.85'};pointer-events:none" onerror="this.style.display='none'"/>
+            style="background:#080808;border:2px solid rgba(212,175,55,0.35);border-radius:12px;padding:6px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;position:relative;overflow:hidden;box-shadow:inset 0 0 20px rgba(212,175,55,0.05);${selStyle}">
+            <img src="images/caduceus-gold.png" alt="Карта" style="width:70%;height:auto;max-height:72px;object-fit:contain;opacity:${isSelected ? '1' : '0.9'};pointer-events:none;filter:drop-shadow(0 0 8px rgba(212,175,55,0.25))" onerror="this.style.display='none'"/>
             ${isSelected ? '<div style="position:absolute;top:4px;right:4px;font-size:14px;color:#D4AF37">&#10003;</div>' : ''}
           </div>`;
       }

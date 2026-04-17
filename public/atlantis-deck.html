@@ -88,30 +88,45 @@
     width: 100%; height: 100%; object-fit: cover; display: block;
   }
   .phys-card .badge {
-    position: absolute; font-size: 9px; font-weight: 900; line-height: 1;
-    padding: 2px 4px; border-radius: 4px;
-    background: rgba(0,0,0,0.85); border: 1px solid currentColor;
-    text-shadow: 0 0 4px currentColor;
+    position: absolute; font-size: 10px; font-weight: 900; line-height: 1;
+    padding: 2px 5px; border-radius: 5px;
+    background: rgba(0,0,0,0.88); border: 1px solid currentColor;
+    text-shadow: 0 0 3px rgba(0,0,0,0.9);
+    white-space: nowrap;
+    z-index: 1;
   }
-  .phys-card .b-might { top: 3px; left: 3px; color: #ef4444; font-size: 10px; }
+  .phys-card .b-might { top: 3px; left: 3px; color: #ef4444; font-size: 11px; }
   .phys-card .b-magic { top: 3px; right: 3px; color: #c084fc; }
   .phys-card .b-life  { bottom: 18px; left: 3px; color: #4ade80; }
   .phys-card .b-power { bottom: 18px; right: 3px; color: #f59e0b; }
-  .phys-card .b-highlight { background: currentColor !important; color: #fff !important; transform: scale(1.2); z-index: 2; box-shadow: 0 0 6px currentColor; }
+  /* Подсветка выбранного параметра: не scale (обрезается overflow), а яркий
+     фон + белый шрифт + крупнее размер + сильное свечение. Цифра всегда читается. */
+  .phys-card .b-highlight {
+    color: #fff !important;
+    background: currentColor !important;
+    font-size: 13px !important;
+    padding: 3px 6px !important;
+    font-weight: 900 !important;
+    z-index: 3 !important;
+    box-shadow: 0 0 12px currentColor, 0 0 4px rgba(255,255,255,0.5);
+    text-shadow: 0 0 2px rgba(0,0,0,0.9);
+  }
   .phys-card .name-strip {
     position: absolute; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.9));
-    padding: 10px 4px 4px;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.95) 30%, rgba(0,0,0,1));
+    padding: 12px 4px 4px;
     text-align: center;
-    color: var(--gold);
-    font-size: 9px; font-weight: 700;
-    letter-spacing: 0.5px;
+    color: #ffd966;
+    font-size: 10px; font-weight: 900;
+    letter-spacing: 1px;
+    text-shadow: 0 0 4px rgba(212,175,55,0.9), 0 1px 2px rgba(0,0,0,1);
   }
   .phys-card.big {
     width: 110px;
   }
   .phys-card.big .badge { font-size: 12px; padding: 3px 6px; }
-  .phys-card.big .name-strip { font-size: 11px; padding: 14px 4px 6px; }
+  .phys-card.big .b-highlight { font-size: 15px !important; padding: 4px 7px !important; }
+  .phys-card.big .name-strip { font-size: 13px; padding: 16px 4px 6px; }
 
   .phys-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
   .phys-card.clickable:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(212,175,55,0.4); }

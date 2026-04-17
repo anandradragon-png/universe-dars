@@ -99,34 +99,38 @@
   .phys-card .b-magic { top: 3px; right: 3px; color: #c084fc; }
   .phys-card .b-life  { bottom: 18px; left: 3px; color: #4ade80; }
   .phys-card .b-power { bottom: 18px; right: 3px; color: #f59e0b; }
-  /* Подсветка выбранного параметра: цифра остаётся цветной (того же цвета
-     что параметр), становится крупнее и ярче. Фон тёмный для контраста. */
+  /* Подсветка выбранного параметра: чёткая цифра без размытия.
+     Фон чёрный, цифра — того же цвета что параметр, резкая рамка. */
   .phys-card .b-highlight {
-    background: rgba(0,0,0,0.95) !important;
+    background: #000 !important;
     font-size: 14px !important;
     padding: 3px 7px !important;
     font-weight: 900 !important;
     z-index: 3 !important;
     border: 2px solid currentColor !important;
-    box-shadow: 0 0 14px currentColor, inset 0 0 6px currentColor;
-    text-shadow: 0 0 6px currentColor;
+    box-shadow: 0 0 8px currentColor;
+    text-shadow: none !important;
+    letter-spacing: 0;
   }
   .phys-card .name-strip {
     position: absolute; bottom: 0; left: 0; right: 0;
     background: linear-gradient(180deg, transparent, rgba(0,0,0,0.95) 30%, rgba(0,0,0,1));
-    padding: 12px 4px 4px;
+    padding: 12px 2px 4px;
     text-align: center;
     color: #ffd966;
     font-size: 10px; font-weight: 900;
-    letter-spacing: 1px;
+    letter-spacing: 0.3px;
     text-shadow: 0 0 4px rgba(212,175,55,0.9), 0 1px 2px rgba(0,0,0,1);
+    white-space: nowrap;      /* не переносить имя на вторую строку */
+    overflow: hidden;
+    text-overflow: clip;
   }
   .phys-card.big {
     width: 110px;
   }
   .phys-card.big .badge { font-size: 12px; padding: 3px 6px; }
   .phys-card.big .b-highlight { font-size: 15px !important; padding: 4px 7px !important; }
-  .phys-card.big .name-strip { font-size: 13px; padding: 16px 4px 6px; }
+  .phys-card.big .name-strip { font-size: 12px; padding: 16px 2px 6px; letter-spacing: 0.5px; }
 
   .phys-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
   .phys-card.clickable:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(212,175,55,0.4); }

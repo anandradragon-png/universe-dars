@@ -528,7 +528,9 @@ const AtlantisGame = (function() {
       }
       // В awaiting_reveal — рубашки, в reveal/result — открытые мини-карты
       if (isAwaiting) return cards.map(() => renderCardBack('mini')).join('');
-      return cards.map(c => renderCardMini(c, state.currentParam)).join('');
+      // Сортируем по убыванию выбранного параметра — самая сильная слева
+      const sorted = p ? cards.slice().sort((a, b) => (b[p] || 0) - (a[p] || 0)) : cards;
+      return sorted.map(c => renderCardMini(c, state.currentParam)).join('');
     };
 
     const paramLbl = state.currentParam ? PARAM_LABELS[state.currentParam] : null;
@@ -543,10 +545,11 @@ const AtlantisGame = (function() {
       fSum = sumParam(state.played.forces, p);
       maxSum = Math.max(uSum, rSum, fSum);
       const winners = [];
-      if (uSum === maxSum) winners.push('Ты');
-      if (rSum === maxSum) winners.push('Противник');
-      if (fSum === maxSum) winners.push('Высшие');
-      winnerLabel = winners.length === 1 ? winners[0] + ' побеждает!' : '⚖️ Ничья';
+      // Правильные формы глагола: "Ты побеждаешь", "Противник побеждает", "Высшие побеждают"
+      if (uSum === maxSum) winners.push('Ты побеждаешь!');
+      if (rSum === maxSum) winners.push('Противник побеждает!');
+      if (fSum === maxSum) winners.push('Высшие побеждают!');
+      winnerLabel = winners.length === 1 ? winners[0] : '⚖️ Ничья';
     }
 
     const rowStyle = 'display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:4px';
@@ -619,16 +622,24 @@ const AtlantisGame = (function() {
     }
     const isLay = state.phase === 'lay_cards';
     const isTie = state.phase === 'tiebreaker';
-    const highlight = (isLay || isTie || state.phase === 'reveal') ? state.currentParam : null;
+    const highlight = (isLay || isTie || state.phase === 'reveal_result' || state.phase === 'awaiting_reveal') ? state.currentParam : null;
+
+    // Сортируем карты в руке по выбранному параметру (убывание), сохраняя
+    // настоящий индекс в исходной hand-массиве через data — чтобы клик работал
+    // правильно даже при визуальной сортировке.
+    const indexed = hand.map((c, i) => ({ c, i }));
+    if (highlight) {
+      indexed.sort((a, b) => (b.c[highlight] || 0) - (a.c[highlight] || 0));
+    }
 
     return `
       <div style="padding:10px;background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.3);border-radius:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:13px;color:#D4AF37;font-weight:700">🧙 Твои карты (${hand.length})</div>
+          <div style="font-size:13px;color:#D4AF37;font-weight:700">🧙 Твои карты (${hand.length})${highlight ? ' · сорт. по ' + PARAM_LABELS[highlight].icon : ''}</div>
           ${!state.exchangeUsed.user && state.phase === 'choose_param' ? '<button onclick="AtlantisGame.promptExchange()" style="font-size:10px;padding:4px 8px;border-radius:8px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;cursor:pointer">🔄 Обмен (1/партию)</button>' : ''}
         </div>
         <div style="display:flex;gap:6px;overflow-x:auto;padding:4px 0">
-          ${hand.map((c, i) => {
+          ${indexed.map(({ c, i }) => {
             const click = isLay ? 'AtlantisGame.layCard(' + i + ')'
               : isTie ? 'AtlantisGame.tiebreakerLay(' + i + ')'
               : '';

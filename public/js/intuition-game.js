@@ -514,7 +514,8 @@ const IntuitionGame = (function() {
     const nfc = raw.normalize('NFC').replace(/[^\u0400-\u04FFa-z]/g, '');
     const nfd = raw.normalize('NFD').replace(/[^\u0400-\u04FFa-z\u0300-\u036F]/g, '');
     const filterGold = 'invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px rgba(212,175,55,0.4))';
-    const filterRed  = 'invert(50%) sepia(95%) saturate(2000%) hue-rotate(-20deg) brightness(120%) contrast(120%) drop-shadow(0 0 8px rgba(255,80,80,0.6))';
+    // Максимально контрастный ярко-алый фильтр для карты Тени
+    const filterRed  = 'invert(40%) sepia(100%) saturate(5000%) hue-rotate(-15deg) brightness(130%) contrast(140%) drop-shadow(0 0 10px rgba(255,56,56,0.8))';
     const filter = tone === 'red' ? filterRed : filterGold;
     // Если NFC не загрузился — пробуем NFD; если и он не сработал — скрываем img
     const onerror = "if(!this.dataset.tried){this.dataset.tried='1';this.src='images/dars/" + nfd + ".svg'}else{this.style.display='none'}";
@@ -535,33 +536,35 @@ const IntuitionGame = (function() {
     const debuffCard = cards.find(c => c.type === 'debuff');
 
     // Блок "Свет / Искомая / Тень" — с картинками дара золотом (Свет, искомый)
-    // и красным (Тень), чтобы юзер мог сонастроиться визуально.
-    const ICON_SIZE = 54;
+    // и ярко-красным (Тень), чтобы юзер мог сонастроиться визуально.
+    const ICON_SIZE = 78; // было 54
+    const TARGET_ICON_SIZE = 92; // было 64
     let lightBlock = '';
     let shadowBlock = '';
     if (currentMode === 'multi' && buffCard) {
       lightBlock =
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px">' +
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;min-width:92px">' +
           '<div style="font-size:10px;color:#4ade80;letter-spacing:1px;font-weight:700;text-shadow:0 0 6px rgba(74,222,128,0.4)">⭐ СВЕТ ×2</div>' +
-          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:4px;border:1.5px solid rgba(74,222,128,0.6);border-radius:8px;background:rgba(74,222,128,0.1);box-sizing:border-box;box-shadow:0 0 10px rgba(74,222,128,0.2)">' +
+          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:6px;border:1.5px solid rgba(74,222,128,0.6);border-radius:10px;background:rgba(74,222,128,0.1);box-sizing:border-box;box-shadow:0 0 14px rgba(74,222,128,0.25)">' +
             renderDarIconHtml(buffCard.name, 'gold') +
           '</div>' +
           '<div style="font-size:12px;color:#4ade80;letter-spacing:1px;text-align:center;font-weight:600;text-shadow:0 0 6px rgba(74,222,128,0.3)">' + buffCard.name + '</div>' +
         '</div>';
     }
     if (currentMode === 'multi' && debuffCard) {
+      // Максимальная контрастность тени: ярко-алый цвет + более крупное свечение
       shadowBlock =
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px">' +
-          '<div style="font-size:10px;color:#ff6b6b;letter-spacing:1px;font-weight:700;text-shadow:0 0 6px rgba(255,107,107,0.4)">💥 ТЕНЬ</div>' +
-          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:4px;border:1.5px solid rgba(255,107,107,0.6);border-radius:8px;background:rgba(255,107,107,0.1);box-sizing:border-box;box-shadow:0 0 10px rgba(255,107,107,0.2)">' +
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;min-width:92px">' +
+          '<div style="font-size:11px;color:#ff3838;letter-spacing:1.5px;font-weight:900;text-shadow:0 0 8px rgba(255,56,56,0.7), 0 0 2px rgba(255,255,255,0.2)">💥 ТЕНЬ</div>' +
+          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:6px;border:2px solid #ff3838;border-radius:10px;background:rgba(255,56,56,0.18);box-sizing:border-box;box-shadow:0 0 16px rgba(255,56,56,0.5), inset 0 0 8px rgba(255,56,56,0.2)">' +
             renderDarIconHtml(debuffCard.name, 'red') +
           '</div>' +
-          '<div style="font-size:12px;color:#ff6b6b;letter-spacing:1px;text-align:center;font-weight:600;text-shadow:0 0 6px rgba(255,107,107,0.3)">' + debuffCard.name + '</div>' +
+          '<div style="font-size:13px;color:#ff3838;letter-spacing:1px;text-align:center;font-weight:800;text-shadow:0 0 8px rgba(255,56,56,0.6)">' + debuffCard.name + '</div>' +
         '</div>';
     }
 
     const targetIconHtml =
-      '<div style="width:64px;height:64px;padding:4px;border:1px solid rgba(212,175,55,0.5);border-radius:10px;background:rgba(212,175,55,0.06);box-sizing:border-box;box-shadow:0 0 12px rgba(212,175,55,0.25);margin:0 auto 6px">' +
+      '<div style="width:' + TARGET_ICON_SIZE + 'px;height:' + TARGET_ICON_SIZE + 'px;padding:6px;border:1.5px solid rgba(212,175,55,0.55);border-radius:12px;background:rgba(212,175,55,0.08);box-sizing:border-box;box-shadow:0 0 18px rgba(212,175,55,0.3);margin:0 auto 8px">' +
         renderDarIconHtml(targetDar.name, 'gold') +
       '</div>';
 

@@ -655,12 +655,15 @@ const AtlantisGame = (function() {
     const anyPlayed = state.played.user.length + state.played.rival.length + state.played.forces.length > 0;
     if (!anyPlayed) return '';
 
-    const renderStack = (cards) => {
+    // Карты противника/Высших закрыты на ВСЕХ стадиях раунда.
+    // Открываются только в reveal_result (после "Перевернуть").
+    // Свои карты юзер видит всегда.
+    const renderStack = (cards, isOwn) => {
       if (!cards.length) {
         return '<div style="font-size:9px;color:var(--text-muted);opacity:0.5;padding:20px 0">—</div>';
       }
-      // В awaiting_reveal — рубашки, в reveal/result — открытые мини-карты
-      if (isAwaiting) return cards.map(() => renderCardBack('mini')).join('');
+      const shouldHide = !isOwn && !isResult; // чужие — только при результате
+      if (shouldHide) return cards.map(() => renderCardBack('mini')).join('');
       // Сортируем по убыванию выбранного параметра — самая сильная слева
       const sorted = p ? cards.slice().sort((a, b) => (b[p] || 0) - (a[p] || 0)) : cards;
       return sorted.map(c => renderCardMini(c, state.currentParam)).join('');
@@ -707,9 +710,9 @@ const AtlantisGame = (function() {
           ${paramLbl ? `<div style="font-size:11px;color:${paramLbl.color};font-weight:700">${paramLbl.icon} ${paramLbl.ru}</div>` : ''}
           ${winnerLabel ? `<div style="font-size:11px;color:#4ade80;font-weight:700">${winnerLabel}</div>` : ''}
         </div>
-        ${makeRow('🧝', 'Противник', rSum, renderStack(state.played.rival), false)}
-        ${makeRow('✨', 'Высшие', fSum, renderStack(state.played.forces), false)}
-        ${makeRow('🧙', 'Ты', uSum, renderStack(state.played.user), true)}
+        ${makeRow('🧝', 'Противник', rSum, renderStack(state.played.rival, false), false)}
+        ${makeRow('✨', 'Высшие', fSum, renderStack(state.played.forces, false), false)}
+        ${makeRow('🧙', 'Ты', uSum, renderStack(state.played.user, true), true)}
 
         ${isAwaiting ? `
           <button onclick="AtlantisGame.flipCards()"

@@ -496,6 +496,14 @@ const IntuitionGame = (function() {
     cards = shuffle(all.slice(0, lvl.cards));
   }
 
+  // Склонение "карта" по количеству: 1 карту, 2-4 карты, 5+ карт
+  function _plCard(n) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return 'карту';
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'карты';
+    return 'карт';
+  }
+
   // Helper: SVG-иконка дара золотом (для искомой и Света) или красным (для Тени)
   function renderDarIconHtml(darName, tone) {
     if (!darName) return '';
@@ -553,7 +561,7 @@ const IntuitionGame = (function() {
     let html = `
       <div style="margin-bottom:12px">
         <div style="font-size:13px;color:var(--text);text-align:center;margin-bottom:8px">
-          ${currentMode === 'multi' ? `&#127183; Найди ${lvl.targets} карт:` : '&#128302; Найди дар:'}
+          ${currentMode === 'multi' ? `&#127183; Найди ${lvl.targets} ${_plCard(lvl.targets)}:` : '&#128302; Найди дар:'}
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px">
           ${lightBlock || '<div style="min-width:70px"></div>'}

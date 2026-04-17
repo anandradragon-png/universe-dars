@@ -59,7 +59,9 @@
     background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
   }
   .bf-row.winner { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.4); }
-  .bf-row .label { font-size: 11px; min-width: 95px; }
+  .bf-row .label { font-size: 11px; min-width: 80px; }
+  /* При Мощности карт больше — ещё компактнее, чтобы 3 карты помещались в ряд */
+  .bf-row.row-might .label { min-width: 70px; font-size: 10px; }
   .bf-cards { flex: 1; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 70px; }
 
   /* Физическая карта (рубашка) */
@@ -71,6 +73,9 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 0 10px rgba(212,175,55,0.1);
     background-image: url('images/caduceus-gold.png');
     background-size: 70%; background-repeat: no-repeat; background-position: center;
+  }
+  .card-back.mini {
+    width: 44px; border-radius: 6px; background-size: 75%;
   }
 
   /* Физическая карта (лицо) — показывает реальный JPG юпика */
@@ -131,6 +136,26 @@
   .phys-card.big .badge { font-size: 12px; padding: 3px 6px; }
   .phys-card.big .b-highlight { font-size: 15px !important; padding: 4px 7px !important; }
   .phys-card.big .name-strip { font-size: 12px; padding: 16px 2px 6px; letter-spacing: 0.5px; }
+
+  /* Компактный вариант — для Мощности (3 карты в ряд) на узких экранах */
+  .phys-card.small {
+    width: 56px;
+    border-width: 1.5px;
+    border-radius: 8px;
+  }
+  .phys-card.small .badge {
+    font-size: 8px; padding: 1px 3px; border-radius: 3px;
+  }
+  .phys-card.small .b-might { font-size: 9px; }
+  .phys-card.small .b-life, .phys-card.small .b-power { bottom: 16px; }
+  .phys-card.small .b-highlight {
+    font-size: 11px !important; padding: 2px 4px !important;
+    border-width: 1.5px !important;
+  }
+  .phys-card.small .name-strip {
+    font-size: 8px; padding: 10px 1px 3px;
+    letter-spacing: 0;
+  }
 
   .phys-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
   .phys-card.clickable:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(212,175,55,0.4); }
@@ -576,8 +601,9 @@ function renderCard(card, opts) {
   </div>`;
 }
 
-function renderCardBack() {
-  return `<div class="card-back"></div>`;
+function renderCardBack(size) {
+  const cls = size === 'mini' ? 'card-back mini' : 'card-back';
+  return `<div class="${cls}"></div>`;
 }
 
 function renderOpponents() {
@@ -625,12 +651,16 @@ function renderBattlefield() {
   // Карты ПРОТИВНИКА и ВЫСШИХ всегда закрыты во время раунда.
   // Открываются только после нажатия "Перевернуть" (фаза reveal_result).
   // Карты ЮЗЕРА всегда открыты — он знает что выложил.
+  // При Мощности (3 карты в ряд) используем компактный размер,
+  // чтобы все три помещались в одну строку даже на узких экранах.
+  const isMight = p === 'mightSum';
+  const cardSize = isMight ? 'small' : '';
   const renderStack = (cards, isOwn) => {
     if (!cards.length) return '<div style="font-size:9px;color:var(--text-muted);opacity:0.5;padding:20px 0">—</div>';
-    const shouldHide = !isOwn && !isRes; // чужие карты видны только на стадии результата
-    if (shouldHide) return cards.map(() => renderCardBack()).join('');
+    const shouldHide = !isOwn && !isRes;
+    if (shouldHide) return cards.map(() => renderCardBack(isMight ? 'mini' : '')).join('');
     const sorted = p ? cards.slice().sort((a, b) => (b[p] || 0) - (a[p] || 0)) : cards;
-    return sorted.map(c => renderCard(c, { highlight: p })).join('');
+    return sorted.map(c => renderCard(c, { highlight: p, size: cardSize })).join('');
   };
 
   const row = (icon, label, id, cards) => {
@@ -638,7 +668,8 @@ function renderBattlefield() {
     const isWinner = isRes && sum === maxSum && parts.includes(id);
     const sumShow = isRes && p ? ` · ${pLbl.icon}${sum}` : '';
     const star = isWinner ? ' <span style="color:#4ade80;font-weight:900">★</span>' : '';
-    const cls = isWinner ? 'bf-row winner' : 'bf-row';
+    let cls = isWinner ? 'bf-row winner' : 'bf-row';
+    if (isMight) cls += ' row-might';
     return `<div class="${cls}">
       <div class="label">${icon} ${label}${sumShow}${star}</div>
       <div class="bf-cards">${cards}</div>

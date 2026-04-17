@@ -306,8 +306,16 @@
     /* === Streak === */
     .streak-badge{font-size:12px;color:#f39c12;margin-left:6px}
 
+    /* Глобальный @keyframes pulse — используется в лоадерах по всему приложению.
+       Раньше объявлялся inline в intuition-game.js / daily-dar.js, теперь один раз тут. */
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
     /* === Игра на интуицию === */
-    .game-card-back:hover{border-color:rgba(212,175,55,0.6)!important;transform:translateY(-3px);box-shadow:0 4px 15px rgba(212,175,55,0.2)}
+    /* Hover только для устройств с реальной мышью — на сенсорных тачах оставлял "призрак hover"
+       и вызывал мерцание рамок при тапе на карту. */
+    @media (hover: hover) and (pointer: fine) {
+      .game-card-back:hover{border-color:rgba(212,175,55,0.6)!important;transform:translateY(-3px);box-shadow:0 4px 15px rgba(212,175,55,0.2)}
+    }
     .game-card-back:active{transform:scale(0.95)}
 
     /* === Путешествие Героя === */
@@ -1117,7 +1125,6 @@
         clearTimeout(_resyncTimer);
         _resyncTimer = setTimeout(() => {
           try {
-            if (tg.expand) tg.expand();
             const vh = tg.viewportStableHeight || tg.viewportHeight || window.innerHeight;
             if (!vh || vh <= 0) return;
             const delta = Math.abs(vh - _lastVh);
@@ -1125,7 +1132,10 @@
 
             // Делаем reflow только если высота реально изменилась
             // (меньше 30px — это уровень анимации клавиатуры, не надо трогать DOM)
+            // tg.expand() тоже вызывается только на реальное изменение — иначе он
+            // провоцировал repaint на каждый viewportChanged (мигание экрана).
             if (delta >= 30) {
+              if (tg.expand) tg.expand();
               _lastVh = vh;
               // Тихий reflow через transform — не вызывает мерцания как display:none
               const nav = document.querySelector('.nav-bar');

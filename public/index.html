@@ -822,13 +822,13 @@
             </div>
 
             <!-- Легенды Атлантиды -->
-            <div onclick="openGameMode('atlantis')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(212,175,55,0.06));border:1px solid rgba(46,204,113,0.3);border-radius:16px;cursor:pointer;transition:all 0.15s">
-              <div style="flex-shrink:0"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="14" height="20" rx="2"/><rect x="7" y="4" width="14" height="20" rx="2" fill="rgba(212,175,55,0.1)"/><line x1="10" y1="9" x2="18" y2="9"/><line x1="10" y1="13" x2="18" y2="13"/></svg></div>
+            <div onclick="openAtlantisGame()" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(212,175,55,0.06));border:1px solid rgba(46,204,113,0.4);border-radius:16px;cursor:pointer;transition:all 0.15s">
+              <div style="flex-shrink:0;font-size:36px">🏛</div>
               <div style="flex:1;min-width:0">
                 <div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:4px">Легенды Атлантиды</div>
-                <div style="font-size:11px;color:var(--text-dim);line-height:1.5">Карточные стратегии с Юпиками: Охотник, Парная охота, Рискованная ставка</div>
+                <div style="font-size:11px;color:var(--text-dim);line-height:1.5">Картёжная битва на Магию, Жизнь, Силу и Мощность. Ты против AI-противника и Высших Сил</div>
               </div>
-              <div style="color:var(--text-muted);font-size:11px;background:rgba(255,255,255,0.06);padding:4px 10px;border-radius:8px">Скоро</div>
+              <div style="color:#4ade80;font-size:18px">&#10095;</div>
             </div>
 
             <!-- Батлы с друзьями -->
@@ -1095,6 +1095,7 @@
   <script src="js/referral.js?v=2"></script>
   <script src="js/book-reader.js?v=12"></script>
   <script src="js/intuition-game.js?v=4"></script>
+  <script src="js/atlantis-game.js?v=1"></script>
   <script src="js/hero-journey.js?v=1"></script>
   <script src="js/share-card.js?v=1"></script>
   <script src="js/daily-dar.js?v=4"></script>
@@ -3034,12 +3035,20 @@
         hub.style.display = 'none';
         active.style.display = 'block';
         if (typeof IntuitionGame !== 'undefined') IntuitionGame.render();
-      } else if (mode === 'atlantis') {
-        if (typeof showToast === 'function') showToast('Легенды Атлантиды появятся скоро! Мы уже работаем над ними.', 'info');
       } else if (mode === 'pvp') {
         if (typeof showToast === 'function') showToast('Батлы с друзьями появятся скоро! Пока можно сразиться с AI-Юпиком.', 'info');
       }
     }
+
+    // Запуск Легенд Атлантиды
+    function openAtlantisGame() {
+      const hub = document.getElementById('games-hub');
+      const active = document.getElementById('game-active');
+      if (hub) hub.style.display = 'none';
+      if (active) active.style.display = 'block';
+      if (typeof AtlantisGame !== 'undefined') AtlantisGame.start();
+    }
+    window.openAtlantisGame = openAtlantisGame;
 
     function backToGamesHub() {
       document.getElementById('games-hub').style.display = 'block';

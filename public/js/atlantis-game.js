@@ -331,14 +331,23 @@ const AtlantisGame = (function() {
   }
 
   function checkEndGame() {
-    const totalCards = state.hands.user.length + state.hands.rival.length + state.hands.forces.length;
-    if (state.hands.user.length === 0 && state.hands.rival.length === 0 && state.hands.forces.length === 0) {
+    const h = state.hands;
+    const totalInHands = h.user.length + h.rival.length + h.forces.length;
+    const deckEmpty = state.deck.length === 0;
+    // Конец игры:
+    //   1) у всех 0 карт — никто не может играть
+    //   2) колода пуста И хотя бы у одного 0 карт (не может добрать)
+    //   3) общая сумма карт < минимально нужной для 1 раунда (3 штуки)
+    const someoneEmpty = h.user.length === 0 || h.rival.length === 0 || h.forces.length === 0;
+    if (totalInHands === 0) {
       state.phase = 'ended';
-      // Победитель — тот, кто в крайний раунд забрал все
       return;
     }
-    // Если на руках ни у кого нет карт и колода пуста — конец
-    if (totalCards === 0) {
+    if (deckEmpty && someoneEmpty) {
+      state.phase = 'ended';
+      return;
+    }
+    if (deckEmpty && totalInHands < 3) {
       state.phase = 'ended';
     }
   }
@@ -603,14 +612,101 @@ const AtlantisGame = (function() {
       forces: state.hands.forces.length
     };
     const max = Math.max(counts.user, counts.rival, counts.forces);
-    const winner = Object.keys(counts).find(k => counts[k] === max);
+    // Все с максимумом — возможны несколько победителей
+    const winners = Object.keys(counts).filter(k => counts[k] === max);
+    const isTie = winners.length > 1;
+    const userWon = winners.includes('user') && !isTie;
+    const userInTie = winners.includes('user') && isTie;
+
+    let titleText, titleColor, subtitle, emoji;
+    if (userWon) {
+      titleText = 'ТЫ ПОБЕДИЛ(А)!';
+      titleColor = '#4ade80';
+      subtitle = 'Поздравляю, маг Атлантиды! 🏆';
+      emoji = '🎉';
+    } else if (userInTie) {
+      titleText = 'НИЧЬЯ';
+      titleColor = '#D4AF37';
+      subtitle = 'Ты разделил(а) победу с другими';
+      emoji = '⚖️';
+    } else if (isTie) {
+      titleText = 'НИЧЬЯ (без тебя)';
+      titleColor = '#D4AF37';
+      subtitle = 'Соперники поделили победу';
+      emoji = '⚖️';
+    } else {
+      const w = winners[0];
+      titleText = PLAYERS[w].name.toUpperCase() + ' ПОБЕДИЛ' + (w === 'forces' ? 'И' : '');
+      titleColor = '#ff6b6b';
+      subtitle = 'В следующий раз! Удачи тебе, маг.';
+      emoji = '💫';
+    }
+
+    // Конфетти-частицы (20 штук, рандомные цвета и позиции)
+    const confettiColors = ['#E8C84A', '#4ade80', '#ff6b6b', '#c084fc', '#67e8f9', '#ff9800', '#e91e63'];
+    let confetti = '';
+    for (let i = 0; i < 30; i++) {
+      const left = Math.random() * 100;
+      const delay = Math.random() * 2;
+      const duration = 2 + Math.random() * 2;
+      const size = 6 + Math.random() * 8;
+      const color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+      const rotate = Math.random() * 720 - 360;
+      confetti += `<div style="position:absolute;left:${left}%;top:-10px;width:${size}px;height:${size}px;background:${color};border-radius:${Math.random() > 0.5 ? '50%' : '2px'};animation:atlConfetti ${duration}s ease-in ${delay}s infinite;transform:rotate(${rotate}deg);opacity:0.9;pointer-events:none"></div>`;
+    }
+
+    // Показываем бэкдроп-оверлей над полем
     return `
-      <div style="padding:20px;text-align:center;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(156,39,176,0.1));border:1px solid rgba(212,175,55,0.5);border-radius:16px;margin-bottom:12px">
-        <div style="font-size:40px;margin-bottom:8px">👑</div>
-        <div style="font-size:16px;color:#D4AF37;letter-spacing:2px;margin-bottom:8px;font-weight:700">ПАРТИЯ ЗАВЕРШЕНА</div>
-        <div style="font-size:14px;color:var(--text);margin-bottom:10px">Победитель: <b style="color:${PARAM_LABELS.magic.color}">${PLAYERS[winner].icon} ${PLAYERS[winner].name}</b></div>
-        <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Карты на руках: Ты ${counts.user} · Противник ${counts.rival} · Высшие ${counts.forces}</div>
-        <button onclick="AtlantisGame.start()" style="padding:10px 22px;background:linear-gradient(135deg,#E8C84A,#D4AF37);border:none;border-radius:10px;color:#080808;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif">Играть снова</button>
+      <div id="atlantis-finale" style="position:relative;padding:30px 16px;text-align:center;background:radial-gradient(ellipse at center,rgba(212,175,55,0.2),rgba(10,10,10,0.95));border:2px solid ${titleColor};border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:0 0 30px ${titleColor}55">
+        <!-- Салют -->
+        <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+          ${confetti}
+        </div>
+        <style>
+          @keyframes atlConfetti {
+            0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            80%  { opacity: 1; }
+            100% { transform: translateY(400px) rotate(720deg); opacity: 0; }
+          }
+          @keyframes atlTitle {
+            0%   { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+            60%  { transform: scale(1.15) rotate(3deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+          }
+          @keyframes atlShine {
+            0%,100% { filter: drop-shadow(0 0 20px ${titleColor}); }
+            50%     { filter: drop-shadow(0 0 40px ${titleColor}); }
+          }
+          .atl-emoji { animation: atlTitle 0.8s cubic-bezier(0.18,0.89,0.32,1.28), atlShine 2s ease-in-out 0.8s infinite; }
+        </style>
+
+        <div class="atl-emoji" style="font-size:64px;margin-bottom:8px;position:relative;z-index:2">${emoji}</div>
+        <div class="atl-emoji" style="font-size:22px;color:${titleColor};letter-spacing:3px;margin-bottom:8px;font-weight:900;text-shadow:0 0 20px ${titleColor};position:relative;z-index:2">${titleText}</div>
+        <div style="font-size:13px;color:var(--text);margin-bottom:16px;position:relative;z-index:2;font-style:italic">${subtitle}</div>
+
+        <div style="display:flex;justify-content:space-around;margin:12px 0;padding:12px;background:rgba(0,0,0,0.4);border-radius:12px;position:relative;z-index:2">
+          <div style="text-align:center;${userWon ? 'color:#4ade80;font-weight:800' : 'color:var(--text-dim)'}">
+            <div style="font-size:24px">🧙</div>
+            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ТЫ</div>
+            <div style="font-size:20px;font-weight:900;margin-top:2px">${counts.user}</div>
+            ${counts.user === max ? '<div style="font-size:9px;color:#4ade80;font-weight:700">★ топ</div>' : ''}
+          </div>
+          <div style="text-align:center;${winners.includes('rival') && !isTie ? 'color:#ff6b6b;font-weight:800' : 'color:var(--text-dim)'}">
+            <div style="font-size:24px">🧝</div>
+            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ПРОТИВНИК</div>
+            <div style="font-size:20px;font-weight:900;margin-top:2px">${counts.rival}</div>
+            ${counts.rival === max ? '<div style="font-size:9px;color:#ff6b6b;font-weight:700">★ топ</div>' : ''}
+          </div>
+          <div style="text-align:center;${winners.includes('forces') && !isTie ? 'color:#c084fc;font-weight:800' : 'color:var(--text-dim)'}">
+            <div style="font-size:24px">✨</div>
+            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ВЫСШИЕ</div>
+            <div style="font-size:20px;font-weight:900;margin-top:2px">${counts.forces}</div>
+            ${counts.forces === max ? '<div style="font-size:9px;color:#c084fc;font-weight:700">★ топ</div>' : ''}
+          </div>
+        </div>
+
+        <button onclick="AtlantisGame.start()" style="padding:14px 30px;background:linear-gradient(135deg,#E8C84A,#D4AF37,#9A7B1A);border:none;border-radius:12px;color:#080808;font-weight:900;cursor:pointer;font-family:Manrope,sans-serif;font-size:15px;letter-spacing:2px;box-shadow:0 4px 20px rgba(212,175,55,0.4);position:relative;z-index:2">🔄 СЫГРАТЬ ЕЩЁ</button>
+        <button onclick="AtlantisGame.quit()" style="margin-left:8px;padding:14px 20px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:12px;color:var(--text-dim);cursor:pointer;font-family:Manrope,sans-serif;font-size:13px;position:relative;z-index:2">← К играм</button>
       </div>
     `;
   }

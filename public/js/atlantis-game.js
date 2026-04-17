@@ -199,7 +199,9 @@ const AtlantisGame = (function() {
   }
 
   function revealAndCompare() {
-    state.phase = 'reveal';
+    // Переходим в фазу reveal_result — карты открыты, показываем результат,
+    // но не забираем карты до нажатия "Далее". Юзер может рассмотреть карты противников.
+    state.phase = 'reveal_result';
     const p = state.currentParam;
     const u = sumParam(state.played.user, p);
     const r = sumParam(state.played.rival, p);
@@ -211,22 +213,36 @@ const AtlantisGame = (function() {
     if (f === max) winners.push('forces');
 
     if (winners.length === 1) {
-      // Победа одного — забирает ВСЕ сыгранные карты себе в руку
-      const winner = winners[0];
+      state._pendingWinner = winners[0];
+      state._pendingTie = false;
+      state.log.push(`${PLAYERS[winners[0]].name}: ${state.currentParam === 'mightSum' ? 'Мощность' : PARAM_LABELS[p].ru}=${winners[0] === 'user' ? u : winners[0] === 'rival' ? r : f}`);
+    } else {
+      state._pendingWinner = null;
+      state._pendingTie = true;
+      state.log.push('Ничья! После "Далее" — добор по карте.');
+    }
+    render();
+  }
+
+  // Пользователь нажал "Далее" после раскрытия — применяем результат раунда
+  function continueAfterReveal() {
+    if (state.phase !== 'reveal_result') return;
+    if (state._pendingTie) {
+      // Ничья → tiebreaker
+      state.phase = 'tiebreaker';
+      state._pendingTie = false;
+      render();
+      return;
+    }
+    const winner = state._pendingWinner;
+    if (winner) {
       const allCards = [...state.played.user, ...state.played.rival, ...state.played.forces];
       state.hands[winner].push(...allCards);
-      state.log.push(`${PLAYERS[winner].name} побеждает (+${allCards.length} карт)`);
+      state.log.push(`${PLAYERS[winner].name} забирает ${allCards.length} карт`);
       state.played = { user: [], rival: [], forces: [] };
-      // Проверка конца партии
+      state._pendingWinner = null;
       checkEndGame();
-      if (state.phase !== 'ended') {
-        state.phase = 'choose_param';
-      }
-      render();
-    } else {
-      // Ничья — выкладывают ещё по 1 карте в том же порядке
-      state.log.push('Ничья! Выкладываем ещё по карте.');
-      state.phase = 'tiebreaker';
+      if (state.phase !== 'ended') state.phase = 'choose_param';
       render();
     }
   }
@@ -330,11 +346,45 @@ const AtlantisGame = (function() {
     `;
   }
 
-  function renderCardBack() {
+  function renderCardBack(size) {
+    // size: 'normal' (для руки) | 'mini' (для игрового поля)
+    const isMini = size === 'mini';
+    const w = isMini ? 50 : 110;
+    const ar = isMini ? 0.75 : 0.72;
     return `
-      <div style="background:#080808;border:2px solid rgba(212,175,55,0.35);border-radius:14px;min-width:110px;max-width:130px;aspect-ratio:0.72;display:flex;align-items:center;justify-content:center;padding:6px;box-shadow:inset 0 0 20px rgba(212,175,55,0.05)">
-        <img src="images/caduceus-gold.png" style="width:70%;opacity:0.8;filter:drop-shadow(0 0 8px rgba(212,175,55,0.25))" onerror="this.style.display='none'"/>
+      <div style="background:#080808;border:${isMini ? '1.5px' : '2px'} solid rgba(212,175,55,0.35);border-radius:${isMini ? '8px' : '14px'};width:${w}px;aspect-ratio:${ar};display:flex;align-items:center;justify-content:center;padding:4px;box-shadow:inset 0 0 12px rgba(212,175,55,0.05)">
+        <img src="images/caduceus-gold.png" style="width:${isMini ? '80%' : '70%'};opacity:0.85;filter:drop-shadow(0 0 6px rgba(212,175,55,0.3))" onerror="this.style.display='none'"/>
       </div>`;
+  }
+
+  // Компактная версия карты (для игрового поля, чтобы уместить 3 ряда)
+  function renderCardMini(card, highlight) {
+    if (!card) return '';
+    const raw = String(card.name).toLowerCase();
+    const nfc = raw.normalize('NFC').replace(/[^\u0400-\u04FFa-z]/g, '');
+    const nfd = raw.normalize('NFD').replace(/[^\u0400-\u04FFa-z\u0300-\u036F]/g, '');
+    const onerror = "if(!this.dataset.tried){this.dataset.tried='1';this.src='images/dars/" + nfd + ".svg'}else{this.style.display='none'}";
+
+    // Показываем только выбранный параметр крупно
+    let mainVal = '';
+    let mainColor = '#D4AF37';
+    let mainLabel = '';
+    if (highlight && PARAM_LABELS[highlight]) {
+      const lbl = PARAM_LABELS[highlight];
+      mainVal = card[highlight];
+      mainColor = lbl.color;
+      mainLabel = lbl.icon;
+    }
+
+    return `
+      <div style="position:relative;background:linear-gradient(135deg,#0a0a0a,#111);border:1.5px solid ${mainColor};border-radius:10px;padding:4px;width:60px;box-shadow:0 0 10px ${mainColor}55">
+        ${mainLabel ? `<div style="position:absolute;top:-8px;right:-6px;font-size:13px;font-weight:900;color:#fff;background:${mainColor};border-radius:8px;padding:1px 6px;line-height:1.2;box-shadow:0 0 6px ${mainColor}">${mainLabel}${mainVal}</div>` : ''}
+        <div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center">
+          <img src="images/dars/${nfc}.svg" style="width:90%;height:90%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px rgba(212,175,55,0.5))" onerror="${onerror}"/>
+        </div>
+        <div style="text-align:center;font-size:9px;color:#D4AF37;font-weight:700;letter-spacing:0.5px;margin-top:2px">${card.name}</div>
+      </div>
+    `;
   }
 
   // Компактная строка: иконка + имя + количество карт. Без декоративных рубашек.
@@ -410,63 +460,81 @@ const AtlantisGame = (function() {
     `;
   }
 
-  // Игровое поле — показывает карты всех игроков (закрытые в awaiting_reveal,
-  // открытые в reveal/tiebreaker). Центральная зона экрана.
+  // Игровое поле — показывает карты всех игроков в 3 компактных ряда.
+  // Все ряды видны на экране без прокрутки. Мини-карты 60px.
   function renderBattlefield() {
     const isReveal = state.phase === 'reveal' || state.phase === 'tiebreaker';
     const isAwaiting = state.phase === 'awaiting_reveal';
+    const isResult = state.phase === 'reveal_result'; // карты открыты, ждут "Далее"
     const anyPlayed = state.played.user.length + state.played.rival.length + state.played.forces.length > 0;
     if (!anyPlayed) return '';
 
-    const renderStack = (cards, ownerId, accentColor) => {
+    const renderStack = (cards) => {
       if (!cards.length) {
-        return '<div style="font-size:10px;color:var(--text-muted);opacity:0.5;padding:30px 0">—</div>';
+        return '<div style="font-size:9px;color:var(--text-muted);opacity:0.5;padding:20px 0">—</div>';
       }
-      return cards.map(c => isReveal
-        ? renderCard(c, { highlight: state.currentParam })
-        : renderCardBack()
-      ).join('');
+      // В awaiting_reveal — рубашки, в reveal/result — открытые мини-карты
+      if (isAwaiting) return cards.map(() => renderCardBack('mini')).join('');
+      return cards.map(c => renderCardMini(c, state.currentParam)).join('');
     };
 
     const paramLbl = state.currentParam ? PARAM_LABELS[state.currentParam] : null;
+    const p = state.currentParam;
+
+    // Для reveal_result — подсвечиваем победителя
+    let uSum = 0, rSum = 0, fSum = 0, maxSum = 0;
+    let winnerLabel = '';
+    if (isResult && p) {
+      uSum = sumParam(state.played.user, p);
+      rSum = sumParam(state.played.rival, p);
+      fSum = sumParam(state.played.forces, p);
+      maxSum = Math.max(uSum, rSum, fSum);
+      const winners = [];
+      if (uSum === maxSum) winners.push('Ты');
+      if (rSum === maxSum) winners.push('Противник');
+      if (fSum === maxSum) winners.push('Высшие');
+      winnerLabel = winners.length === 1 ? winners[0] + ' побеждает!' : '⚖️ Ничья';
+    }
+
+    const rowStyle = 'display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:4px';
+
+    const makeRow = (iconName, label, sum, cards, isMe) => {
+      const winBadge = (isResult && sum === maxSum) ? '<span style="color:#4ade80;font-weight:900;font-size:11px;margin-left:4px">★</span>' : '';
+      const sumShow = isResult && p ? ` · ${paramLbl.icon}${sum}` : '';
+      const bg = isResult && sum === maxSum ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.02)';
+      const border = isResult && sum === maxSum ? '1px solid rgba(74,222,128,0.4)' : '1px solid rgba(255,255,255,0.06)';
+      return `
+        <div style="${rowStyle};background:${bg};border:${border}">
+          <div style="font-size:11px;color:${isMe ? '#D4AF37' : 'var(--text)'};min-width:95px;font-weight:${isMe ? 700 : 500}">${iconName} ${label}${sumShow}${winBadge}</div>
+          <div style="flex:1;display:flex;gap:4px;justify-content:center;flex-wrap:wrap">${cards}</div>
+        </div>
+      `;
+    };
 
     return `
-      <div style="padding:10px 8px;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(212,175,55,0.04));border:1.5px solid rgba(212,175,55,0.35);border-radius:14px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;font-weight:700">⚔️ ИГРОВОЕ ПОЛЕ</div>
+      <div style="padding:10px;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(212,175,55,0.04));border:1.5px solid rgba(212,175,55,0.35);border-radius:12px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;font-weight:700">⚔️ ПОЛЕ</div>
           ${paramLbl ? `<div style="font-size:11px;color:${paramLbl.color};font-weight:700">${paramLbl.icon} ${paramLbl.ru}</div>` : ''}
+          ${winnerLabel ? `<div style="font-size:11px;color:#4ade80;font-weight:700">${winnerLabel}</div>` : ''}
         </div>
-
-        <!-- Противник -->
-        <div style="margin-bottom:10px">
-          <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">🧝 Противник выложил:</div>
-          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:100px">
-            ${renderStack(state.played.rival)}
-          </div>
-        </div>
-
-        <!-- Высшие Силы -->
-        <div style="margin-bottom:10px">
-          <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">✨ Высшие Силы выложили:</div>
-          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:100px">
-            ${renderStack(state.played.forces)}
-          </div>
-        </div>
-
-        <!-- Ты -->
-        <div style="margin-bottom:10px">
-          <div style="font-size:10px;color:#D4AF37;margin-bottom:4px;font-weight:600">🧙 Ты выложил(а):</div>
-          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:100px">
-            ${renderStack(state.played.user)}
-          </div>
-        </div>
+        ${makeRow('🧝', 'Противник', rSum, renderStack(state.played.rival), false)}
+        ${makeRow('✨', 'Высшие', fSum, renderStack(state.played.forces), false)}
+        ${makeRow('🧙', 'Ты', uSum, renderStack(state.played.user), true)}
 
         ${isAwaiting ? `
           <button onclick="AtlantisGame.flipCards()"
-            style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#E8C84A,#D4AF37);color:#080808;font-size:15px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;box-shadow:0 0 16px rgba(212,175,55,0.35);animation:pulse 1.5s ease-in-out infinite">
+            style="width:100%;margin-top:8px;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#E8C84A,#D4AF37);color:#080808;font-size:14px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;box-shadow:0 0 14px rgba(212,175,55,0.35);animation:atlPulse 1.5s ease-in-out infinite">
             🔄 ПЕРЕВЕРНУТЬ КАРТЫ
           </button>
-          <style>@keyframes pulse{0%,100%{box-shadow:0 0 16px rgba(212,175,55,0.35)}50%{box-shadow:0 0 24px rgba(212,175,55,0.7)}}</style>
+          <style>@keyframes atlPulse{0%,100%{box-shadow:0 0 14px rgba(212,175,55,0.35)}50%{box-shadow:0 0 22px rgba(212,175,55,0.7)}}</style>
+        ` : ''}
+
+        ${isResult ? `
+          <button onclick="AtlantisGame.continueAfterReveal()"
+            style="width:100%;margin-top:8px;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#4ade80,#22c55e);color:#080808;font-size:14px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;box-shadow:0 0 12px rgba(74,222,128,0.4)">
+            Далее →
+          </button>
         ` : ''}
       </div>
     `;
@@ -541,7 +609,7 @@ const AtlantisGame = (function() {
       if (state.phase === 'choose_param') topInfo = renderChooseParam();
       else if (state.phase === 'lay_cards') topInfo = renderLayPhase();
       else if (state.phase === 'tiebreaker') topInfo = renderTiebreakerPhase();
-      else if (state.phase === 'reveal') topInfo = renderRevealPhase();
+      // В awaiting_reveal и reveal_result результаты показываются прямо в battlefield
     }
 
     container.innerHTML = `
@@ -606,6 +674,7 @@ const AtlantisGame = (function() {
     chooseParam,
     layCard,
     flipCards,
+    continueAfterReveal,
     tiebreakerLay,
     promptExchange,
     _doExchange,

@@ -946,10 +946,9 @@ const AtlantisGame = (function() {
 
     container.innerHTML = `
       <div style="padding:10px 10px 40px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:6px">
-          <button onclick="AtlantisGame.quit()" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:10px;cursor:pointer;flex-shrink:0">← Все игры</button>
-          <div style="font-size:15px;color:#D4AF37;letter-spacing:2px;font-weight:700;flex:1;text-align:center">🏛 АТЛАНТИДА</div>
-          <button onclick="AtlantisGame.showRules()" style="padding:5px 10px;border-radius:8px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;flex-shrink:0" title="Правила">📜</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px">
+          <div style="font-size:15px;color:#D4AF37;letter-spacing:2px;font-weight:700;flex:1">🏛 АТЛАНТИДА</div>
+          <button onclick="AtlantisGame.showRules()" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(212,175,55,0.55);background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.08));color:#D4AF37;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;box-shadow:0 0 8px rgba(212,175,55,0.2)">📜 Правила</button>
           <div style="font-size:10px;color:var(--text-dim);flex-shrink:0">🎴 ${state.deck.length}</div>
         </div>
         ${renderOpponentRow('rival')}

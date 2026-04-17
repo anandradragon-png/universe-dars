@@ -99,17 +99,17 @@
   .phys-card .b-magic { top: 3px; right: 3px; color: #c084fc; }
   .phys-card .b-life  { bottom: 18px; left: 3px; color: #4ade80; }
   .phys-card .b-power { bottom: 18px; right: 3px; color: #f59e0b; }
-  /* Подсветка выбранного параметра: не scale (обрезается overflow), а яркий
-     фон + белый шрифт + крупнее размер + сильное свечение. Цифра всегда читается. */
+  /* Подсветка выбранного параметра: цифра остаётся цветной (того же цвета
+     что параметр), становится крупнее и ярче. Фон тёмный для контраста. */
   .phys-card .b-highlight {
-    color: #fff !important;
-    background: currentColor !important;
-    font-size: 13px !important;
-    padding: 3px 6px !important;
+    background: rgba(0,0,0,0.95) !important;
+    font-size: 14px !important;
+    padding: 3px 7px !important;
     font-weight: 900 !important;
     z-index: 3 !important;
-    box-shadow: 0 0 12px currentColor, 0 0 4px rgba(255,255,255,0.5);
-    text-shadow: 0 0 2px rgba(0,0,0,0.9);
+    border: 2px solid currentColor !important;
+    box-shadow: 0 0 14px currentColor, inset 0 0 6px currentColor;
+    text-shadow: 0 0 6px currentColor;
   }
   .phys-card .name-strip {
     position: absolute; bottom: 0; left: 0; right: 0;

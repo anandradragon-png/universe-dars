@@ -38,11 +38,12 @@ const AtlantisGame = (function() {
     state = {
       deck: [],                 // общая колода для добора
       hands: { user: [], rival: [], forces: [] },
-      tablesUsed: 0,            // сколько партий сыграно
+      tablesUsed: 0,
       exchangeUsed: { user: false, rival: false },
-      phase: 'setup',           // setup | choose_param | lay_cards | tiebreaker | reveal | ended
+      phase: 'setup',
       currentParam: null,
       played: { user: [], rival: [], forces: [] },
+      tieParticipants: [],      // участники текущего спора (при ничьей)
       log: []
     };
   }
@@ -233,23 +234,34 @@ const AtlantisGame = (function() {
     // но не забираем карты до нажатия "Далее". Юзер может рассмотреть карты противников.
     state.phase = 'reveal_result';
     const p = state.currentParam;
-    const u = sumParam(state.played.user, p);
-    const r = sumParam(state.played.rival, p);
-    const f = sumParam(state.played.forces, p);
-    const max = Math.max(u, r, f);
-    const winners = [];
-    if (u === max) winners.push('user');
-    if (r === max) winners.push('rival');
-    if (f === max) winners.push('forces');
+    // Учитываем ТОЛЬКО участников спора (tieParticipants) если идёт переигрывание —
+    // те кто не в споре не меняют свои суммы по этому параметру в повторных раундах.
+    // При первом раунде tieParticipants пуст, сравниваем всех.
+    const participants = state.tieParticipants && state.tieParticipants.length
+      ? state.tieParticipants.slice()
+      : ['user', 'rival', 'forces'];
+
+    const sums = {
+      user: sumParam(state.played.user, p),
+      rival: sumParam(state.played.rival, p),
+      forces: sumParam(state.played.forces, p)
+    };
+    const relevantSums = participants.map(id => sums[id]);
+    const max = Math.max.apply(null, relevantSums);
+    const winners = participants.filter(id => sums[id] === max);
 
     if (winners.length === 1) {
       state._pendingWinner = winners[0];
       state._pendingTie = false;
-      state.log.push(`${PLAYERS[winners[0]].name}: ${state.currentParam === 'mightSum' ? 'Мощность' : PARAM_LABELS[p].ru}=${winners[0] === 'user' ? u : winners[0] === 'rival' ? r : f}`);
+      state._pendingTieParticipants = null;
+      state.log.push(`${PLAYERS[winners[0]].name}: ${PARAM_LABELS[p].ru}=${sums[winners[0]]}`);
     } else {
+      // Новая ничья — участвуют ТОЛЬКО те у кого максимум
       state._pendingWinner = null;
       state._pendingTie = true;
-      state.log.push('Ничья! После "Далее" — добор по карте.');
+      state._pendingTieParticipants = winners;
+      const names = winners.map(w => PLAYERS[w].name).join(' + ');
+      state.log.push(`Спор: ${names} (${PARAM_LABELS[p].ru}=${max})`);
     }
     render();
   }
@@ -258,9 +270,11 @@ const AtlantisGame = (function() {
   function continueAfterReveal() {
     if (state.phase !== 'reveal_result') return;
     if (state._pendingTie) {
-      // Ничья → tiebreaker
+      // Ничья → tiebreaker. Сохраняем список спорящих (только они докладывают).
       state.phase = 'tiebreaker';
+      state.tieParticipants = state._pendingTieParticipants || [];
       state._pendingTie = false;
+      state._pendingTieParticipants = null;
       render();
       return;
     }
@@ -271,10 +285,9 @@ const AtlantisGame = (function() {
       state.log.push(`${PLAYERS[winner].name} забирает ${allCards.length} карт`);
       state.played = { user: [], rival: [], forces: [] };
       state._pendingWinner = null;
+      state.tieParticipants = []; // спор завершён
       checkEndGame();
       if (state.phase !== 'ended') {
-        // Высшие Силы уравнивают: всем у кого меньше 4 карт — добирают до 4
-        // из общей колоды перед новым раундом. У кого 4+ — ничего не добавляют.
         replenishHandsTo4();
         state.phase = 'choose_param';
       }
@@ -300,32 +313,60 @@ const AtlantisGame = (function() {
     }
   }
 
+  // В споре добавляют по ОДНОЙ карте только участники ничьей.
+  // Остальные игроки наблюдают и карт больше не подкладывают.
   function tiebreakerLay(handIdx) {
     if (state.phase !== 'tiebreaker') return;
+    const participants = state.tieParticipants || [];
+    if (!participants.includes('user')) return; // юзер не в споре — кликать нельзя
+
     const card = state.hands.user[handIdx];
     if (!card) return;
     state.hands.user.splice(handIdx, 1);
     state.played.user.push(card);
 
-    // AI и Силы тоже по 1
-    if (state.hands.rival.length === 0 && state.deck.length > 0) state.hands.rival.push(state.deck.pop());
-    if (state.hands.rival.length > 0) {
-      const rcard = rivalChooseCardFor(state.currentParam, { player: 'rival' });
-      if (rcard) {
-        const idx = state.hands.rival.indexOf(rcard);
-        if (idx >= 0) state.hands.rival.splice(idx, 1);
-        state.played.rival.push(rcard);
+    _tiebreakAnswer();
+  }
+
+  // Наблюдение: если юзер не в споре, по кнопке "Смотрю спор →" —
+  // спорящие сами выкладывают свои карты, переход в awaiting_reveal.
+  function watchTiebreaker() {
+    if (state.phase !== 'tiebreaker') return;
+    const participants = state.tieParticipants || [];
+    if (participants.includes('user')) return; // юзер в споре, не должен использовать эту кнопку
+    _tiebreakAnswer();
+  }
+
+  function _tiebreakAnswer() {
+    const participants = state.tieParticipants || [];
+
+    if (participants.includes('rival')) {
+      if (state.hands.rival.length === 0 && state.deck.length > 0) {
+        state.hands.rival.push(state.deck.pop());
+      }
+      if (state.hands.rival.length > 0) {
+        const rcard = rivalChooseCardFor(state.currentParam, { player: 'rival' });
+        if (rcard) {
+          const idx = state.hands.rival.indexOf(rcard);
+          if (idx >= 0) state.hands.rival.splice(idx, 1);
+          state.played.rival.push(rcard);
+        }
       }
     }
-    if (state.hands.forces.length === 0 && state.deck.length > 0) state.hands.forces.push(state.deck.pop());
-    if (state.hands.forces.length > 0) {
-      const shuffled = shuffle(state.hands.forces);
-      const fcard = shuffled[0];
-      const idx = state.hands.forces.indexOf(fcard);
-      if (idx >= 0) state.hands.forces.splice(idx, 1);
-      state.played.forces.push(fcard);
+
+    if (participants.includes('forces')) {
+      if (state.hands.forces.length === 0 && state.deck.length > 0) {
+        state.hands.forces.push(state.deck.pop());
+      }
+      if (state.hands.forces.length > 0) {
+        const shuffled = shuffle(state.hands.forces);
+        const fcard = shuffled[0];
+        const idx = state.hands.forces.indexOf(fcard);
+        if (idx >= 0) state.hands.forces.splice(idx, 1);
+        state.played.forces.push(fcard);
+      }
     }
-    // Карты выложены в закрытую — ждём "Перевернуть"
+
     state.phase = 'awaiting_reveal';
     render();
   }
@@ -496,9 +537,25 @@ const AtlantisGame = (function() {
 
   function renderTiebreakerPhase() {
     const paramLbl = PARAM_LABELS[state.currentParam];
+    const participants = state.tieParticipants || [];
+    const userInDispute = participants.includes('user');
+    const names = participants.map(id => PLAYERS[id].icon + ' ' + PLAYERS[id].name).join(' ⚔ ');
+
+    if (userInDispute) {
+      return `
+        <div style="padding:12px;background:rgba(255,152,0,0.08);border:1px solid rgba(255,152,0,0.4);border-radius:12px;margin-bottom:10px;text-align:center">
+          <div style="font-size:13px;color:#ff9800;font-weight:700;margin-bottom:4px">⚖️ СПОР: ${names}</div>
+          <div style="font-size:11px;color:var(--text-dim)">Выложи ещё одну карту (${paramLbl.icon} ${paramLbl.ru})</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Остальные участники наблюдают и карт не подкладывают</div>
+        </div>
+      `;
+    }
+    // Юзер не в споре — наблюдает
     return `
-      <div style="padding:12px;background:rgba(255,152,0,0.08);border:1px solid rgba(255,152,0,0.4);border-radius:12px;margin-bottom:10px;text-align:center">
-        <div style="font-size:14px;color:#ff9800;font-weight:700">⚖️ НИЧЬЯ — выложи ещё карту (${paramLbl.ru})</div>
+      <div style="padding:12px;background:rgba(156,39,176,0.08);border:1px solid rgba(156,39,176,0.4);border-radius:12px;margin-bottom:10px;text-align:center">
+        <div style="font-size:13px;color:#c084fc;font-weight:700;margin-bottom:6px">⚖️ СПОР БЕЗ ТЕБЯ: ${names}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Твои карты больше не подкладываются. Наблюдай за спором.</div>
+        <button onclick="AtlantisGame.watchTiebreaker()" style="padding:10px 20px;background:linear-gradient(135deg,#c084fc,#9c27b0);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;font-size:13px">👁 Смотреть спор →</button>
       </div>
     `;
   }
@@ -728,18 +785,22 @@ const AtlantisGame = (function() {
       indexed.sort((a, b) => (b.c[highlight] || 0) - (a.c[highlight] || 0));
     }
 
+    // В tiebreaker если юзер не участвует в споре — клики по картам не активны
+    const userInTieDispute = isTie && (state.tieParticipants || []).includes('user');
+    const tieDim = isTie && !userInTieDispute;
+
     return `
       <div style="padding:10px;background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.3);border-radius:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div style="font-size:13px;color:#D4AF37;font-weight:700">🧙 Твои карты (${hand.length})${highlight ? ' · сорт. по ' + PARAM_LABELS[highlight].icon : ''}</div>
           ${!state.exchangeUsed.user && state.phase === 'choose_param' ? '<button onclick="AtlantisGame.promptExchange()" style="font-size:10px;padding:4px 8px;border-radius:8px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;cursor:pointer">🔄 Обмен (1/партию)</button>' : ''}
         </div>
-        <div style="display:flex;gap:6px;overflow-x:auto;padding:4px 0">
+        <div style="display:flex;gap:6px;overflow-x:auto;padding:4px 0;opacity:${tieDim ? '0.5' : '1'}">
           ${indexed.map(({ c, i }) => {
             const click = isLay ? 'AtlantisGame.layCard(' + i + ')'
-              : isTie ? 'AtlantisGame.tiebreakerLay(' + i + ')'
+              : (isTie && userInTieDispute) ? 'AtlantisGame.tiebreakerLay(' + i + ')'
               : '';
-            return renderCard(c, { highlight, onClick: click });
+            return renderCard(c, { highlight, onClick: click, dim: tieDim });
           }).join('')}
         </div>
       </div>
@@ -836,6 +897,7 @@ const AtlantisGame = (function() {
     flipCards,
     continueAfterReveal,
     tiebreakerLay,
+    watchTiebreaker,
     promptExchange,
     _doExchange,
     _closeExchangeModal

@@ -147,9 +147,18 @@ const AtlantisGame = (function() {
       return;
     }
 
-    // Пользователь выложил все нужные. AI-противник и Высшие Силы отвечают
+    // Пользователь выложил все нужные. AI-противник и Высшие Силы отвечают —
+    // выкладывают карты в закрытую. Переход в фазу ожидания переворота:
+    // юзер видит поле с закрытыми картами и жмёт "Перевернуть".
     answerRival();
     answerForces();
+    state.phase = 'awaiting_reveal';
+    render();
+  }
+
+  // Кнопка "Перевернуть" — открываем карты и сравниваем
+  function flipCards() {
+    if (state.phase !== 'awaiting_reveal') return;
     revealAndCompare();
   }
 
@@ -247,7 +256,9 @@ const AtlantisGame = (function() {
       if (idx >= 0) state.hands.forces.splice(idx, 1);
       state.played.forces.push(fcard);
     }
-    revealAndCompare();
+    // Карты выложены в закрытую — ждём "Перевернуть"
+    state.phase = 'awaiting_reveal';
+    render();
   }
 
   function checkEndGame() {
@@ -326,25 +337,14 @@ const AtlantisGame = (function() {
       </div>`;
   }
 
-  function renderOpponentBlock(playerId) {
+  // Компактная строка: иконка + имя + количество карт. Без декоративных рубашек.
+  function renderOpponentRow(playerId) {
     const p = PLAYERS[playerId];
     const hand = state.hands[playerId];
-    const played = state.played[playerId];
-    const isReveal = state.phase === 'reveal' || state.phase === 'tiebreaker' || state.phase === 'ended';
     return `
-      <div style="padding:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <div style="font-size:13px;color:var(--text)">${p.icon} <b>${p.name}</b></div>
-          <div style="font-size:11px;color:var(--text-dim)">Карт на руках: ${hand.length}</div>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:50px">
-          ${hand.map(() => '<div style="width:22px;height:32px;background:#0a0a0a;border:1px solid rgba(212,175,55,0.3);border-radius:4px"></div>').join('')}
-        </div>
-        ${played.length > 0 ? `
-          <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
-            ${played.map(c => isReveal ? renderCard(c, { highlight: state.currentParam, dim: false }) : renderCardBack()).join('')}
-          </div>
-        ` : ''}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;margin-bottom:6px">
+        <div style="font-size:12px;color:var(--text)">${p.icon} <b>${p.name}</b></div>
+        <div style="font-size:11px;color:var(--text-dim)">🎴 ${hand.length}</div>
       </div>
     `;
   }
@@ -352,16 +352,16 @@ const AtlantisGame = (function() {
   function renderChooseParam() {
     const params = ['magic', 'life', 'power', 'mightSum'];
     return `
-      <div style="padding:14px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(156,39,176,0.05));border:1px solid rgba(212,175,55,0.3);border-radius:14px;margin-bottom:10px">
-        <div style="font-size:13px;color:#D4AF37;text-align:center;margin-bottom:10px;letter-spacing:1px">🎴 ВЫБЕРИ ПАРАМЕТР ДЛЯ СРАЖЕНИЯ</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="padding:8px 10px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.3);border-radius:10px;margin-bottom:8px">
+        <div style="font-size:11px;color:#D4AF37;text-align:center;margin-bottom:6px;letter-spacing:1px">🎴 ВЫБЕРИ ПАРАМЕТР</div>
+        <div style="display:flex;gap:6px;justify-content:center">
           ${params.map(p => {
             const lbl = PARAM_LABELS[p];
-            return `<button onclick="AtlantisGame.chooseParam('${p}')"
-              style="padding:14px 8px;border-radius:12px;border:1.5px solid ${lbl.color};background:rgba(255,255,255,0.04);color:${lbl.color};font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;display:flex;flex-direction:column;gap:4px;align-items:center">
-              <div style="font-size:22px">${lbl.icon}</div>
-              <div>${lbl.ru}</div>
-              ${p === 'mightSum' ? '<div style="font-size:9px;color:var(--text-dim);font-weight:400">3 карты, сумма</div>' : ''}
+            const isMight = p === 'mightSum';
+            return `<button onclick="AtlantisGame.chooseParam('${p}')" title="${lbl.ru}${isMight ? ' (3 карты, сумма)' : ''}"
+              style="flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid ${lbl.color};background:rgba(255,255,255,0.04);color:${lbl.color};font-size:11px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;display:flex;flex-direction:column;gap:2px;align-items:center;min-width:0">
+              <span style="font-size:16px">${lbl.icon}</span>
+              <span>${lbl.ru}${isMight ? ' ×3' : ''}</span>
             </button>`;
           }).join('')}
         </div>
@@ -406,6 +406,68 @@ const AtlantisGame = (function() {
           <div style="color:${r === max ? '#4ade80' : 'var(--text-dim)'};font-weight:${r === max ? 800 : 500}">Против.: ${r}${r === max ? ' ★' : ''}</div>
           <div style="color:${f === max ? '#4ade80' : 'var(--text-dim)'};font-weight:${f === max ? 800 : 500}">Высшие: ${f}${f === max ? ' ★' : ''}</div>
         </div>
+      </div>
+    `;
+  }
+
+  // Игровое поле — показывает карты всех игроков (закрытые в awaiting_reveal,
+  // открытые в reveal/tiebreaker). Центральная зона экрана.
+  function renderBattlefield() {
+    const isReveal = state.phase === 'reveal' || state.phase === 'tiebreaker';
+    const isAwaiting = state.phase === 'awaiting_reveal';
+    const anyPlayed = state.played.user.length + state.played.rival.length + state.played.forces.length > 0;
+    if (!anyPlayed) return '';
+
+    const renderStack = (cards, ownerId, accentColor) => {
+      if (!cards.length) {
+        return '<div style="font-size:10px;color:var(--text-muted);opacity:0.5;padding:30px 0">—</div>';
+      }
+      return cards.map(c => isReveal
+        ? renderCard(c, { highlight: state.currentParam })
+        : renderCardBack()
+      ).join('');
+    };
+
+    const paramLbl = state.currentParam ? PARAM_LABELS[state.currentParam] : null;
+
+    return `
+      <div style="padding:10px 8px;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(212,175,55,0.04));border:1.5px solid rgba(212,175,55,0.35);border-radius:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;font-weight:700">⚔️ ИГРОВОЕ ПОЛЕ</div>
+          ${paramLbl ? `<div style="font-size:11px;color:${paramLbl.color};font-weight:700">${paramLbl.icon} ${paramLbl.ru}</div>` : ''}
+        </div>
+
+        <!-- Противник -->
+        <div style="margin-bottom:10px">
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">🧝 Противник выложил:</div>
+          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:100px">
+            ${renderStack(state.played.rival)}
+          </div>
+        </div>
+
+        <!-- Высшие Силы -->
+        <div style="margin-bottom:10px">
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">✨ Высшие Силы выложили:</div>
+          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:100px">
+            ${renderStack(state.played.forces)}
+          </div>
+        </div>
+
+        <!-- Ты -->
+        <div style="margin-bottom:10px">
+          <div style="font-size:10px;color:#D4AF37;margin-bottom:4px;font-weight:600">🧙 Ты выложил(а):</div>
+          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:100px">
+            ${renderStack(state.played.user)}
+          </div>
+        </div>
+
+        ${isAwaiting ? `
+          <button onclick="AtlantisGame.flipCards()"
+            style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#E8C84A,#D4AF37);color:#080808;font-size:15px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;box-shadow:0 0 16px rgba(212,175,55,0.35);animation:pulse 1.5s ease-in-out infinite">
+            🔄 ПЕРЕВЕРНУТЬ КАРТЫ
+          </button>
+          <style>@keyframes pulse{0%,100%{box-shadow:0 0 16px rgba(212,175,55,0.35)}50%{box-shadow:0 0 24px rgba(212,175,55,0.7)}}</style>
+        ` : ''}
       </div>
     `;
   }
@@ -472,26 +534,27 @@ const AtlantisGame = (function() {
     if (!container) return;
     if (!state) { container.innerHTML = ''; return; }
 
-    let main = '';
+    let topInfo = '';
     if (state.phase === 'ended') {
-      main = renderEndGame();
+      topInfo = renderEndGame();
     } else {
-      if (state.phase === 'choose_param') main += renderChooseParam();
-      else if (state.phase === 'lay_cards') main += renderLayPhase();
-      else if (state.phase === 'tiebreaker') main += renderTiebreakerPhase();
-      else if (state.phase === 'reveal') main += renderRevealPhase();
+      if (state.phase === 'choose_param') topInfo = renderChooseParam();
+      else if (state.phase === 'lay_cards') topInfo = renderLayPhase();
+      else if (state.phase === 'tiebreaker') topInfo = renderTiebreakerPhase();
+      else if (state.phase === 'reveal') topInfo = renderRevealPhase();
     }
 
     container.innerHTML = `
-      <div style="padding:12px 12px 40px">
-        <button onclick="AtlantisGame.quit()" style="margin-bottom:10px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:11px;cursor:pointer">← Все игры</button>
-        <div style="text-align:center;margin-bottom:12px">
-          <div style="font-size:20px;color:#D4AF37;letter-spacing:3px;font-weight:700">🏛 ЛЕГЕНДЫ АТЛАНТИДЫ</div>
-          <div style="font-size:10px;color:var(--text-dim);margin-top:2px">Колода: ${state.deck.length} · Ход по параметрам</div>
+      <div style="padding:10px 10px 40px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <button onclick="AtlantisGame.quit()" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:10px;cursor:pointer">← Все игры</button>
+          <div style="font-size:15px;color:#D4AF37;letter-spacing:2px;font-weight:700">🏛 АТЛАНТИДА</div>
+          <div style="font-size:10px;color:var(--text-dim)">🎴 ${state.deck.length}</div>
         </div>
-        ${renderOpponentBlock('rival')}
-        ${renderOpponentBlock('forces')}
-        ${main}
+        ${renderOpponentRow('rival')}
+        ${renderOpponentRow('forces')}
+        ${renderBattlefield()}
+        ${topInfo}
         ${renderMyHand()}
         ${renderLog()}
       </div>
@@ -542,6 +605,7 @@ const AtlantisGame = (function() {
     quit,
     chooseParam,
     layCard,
+    flipCards,
     tiebreakerLay,
     promptExchange,
     _doExchange,

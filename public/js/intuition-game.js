@@ -595,10 +595,10 @@ const IntuitionGame = (function() {
 
         const imgBase = card.name.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'');
         html += `
-          <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:8px 4px;text-align:center;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;${isSelected ? 'box-shadow:0 0 10px rgba(212,175,55,0.3)' : ''}">
-            <div style="width:32px;height:32px;margin-bottom:3px;display:flex;align-items:center;justify-content:center" id="gc-${i}"></div>
-            <div style="font-size:11px;color:var(--text);letter-spacing:1px;font-weight:bold">${card.name}</div>
-            <div style="font-size:8px;color:var(--text-muted)">${card.code}</div>
+          <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:10px 4px;text-align:center;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;${isSelected ? 'box-shadow:0 0 10px rgba(212,175,55,0.3)' : ''}">
+            <div style="width:48px;height:48px;margin-bottom:5px;display:flex;align-items:center;justify-content:center" id="gc-${i}"></div>
+            <div style="font-size:12px;color:var(--text);letter-spacing:1px;font-weight:bold">${card.name}</div>
+            <div style="font-size:11px;color:#D4AF37;font-weight:600;margin-top:2px;letter-spacing:1px">${card.code}</div>
             ${badge}
           </div>`;
         setTimeout(() => {

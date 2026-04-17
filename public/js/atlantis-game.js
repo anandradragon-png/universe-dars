@@ -124,7 +124,38 @@ const AtlantisGame = (function() {
     state.played = { user: [], rival: [], forces: [] };
     state.phase = 'lay_cards';
     state.log.push(`Выбран параметр: ${PARAM_LABELS[param].ru}`);
+    // Если на руках меньше карт чем нужно (особенно актуально для Мощности
+    // когда нужно 3 карты), Высшие Силы добирают недостающие из колоды СРАЗУ
+    // на стол (в played), не в руку. Юзер видит что карты уже выложены.
+    autofillFromDeck('user');
+    // Если после автодобора у юзера всё ещё 0 своих карт для выкладки
+    // (т.к. все недостающие уже легли), переходим к ответам противников.
+    const need = needCardsPerPlayer();
+    if (state.played.user.length >= need) {
+      answerRival();
+      answerForces();
+      state.phase = 'awaiting_reveal';
+    }
     render();
+  }
+
+  // Автодобор из колоды прямо на стол (played), если карт на руках < need
+  function autofillFromDeck(playerId) {
+    const need = needCardsPerPlayer();
+    const inHand = state.hands[playerId].length;
+    const alreadyPlayed = state.played[playerId].length;
+    const still = need - alreadyPlayed; // сколько ещё нужно выложить
+    const fromHand = Math.min(still, inHand);
+    const fromDeck = Math.max(0, still - fromHand);
+    if (fromDeck > 0) {
+      for (let i = 0; i < fromDeck && state.deck.length > 0; i++) {
+        const card = state.deck.pop();
+        state.played[playerId].push(card);
+      }
+      if (fromDeck > 0) {
+        state.log.push(`Высшие Силы дают ${PLAYERS[playerId].name} ${fromDeck} карт из колоды на стол`);
+      }
+    }
   }
 
   // ===== ВЫКЛАДЫВАНИЕ КАРТ =====
@@ -164,33 +195,32 @@ const AtlantisGame = (function() {
 
   function answerRival() {
     const need = needCardsPerPlayer();
-    // Если у противника меньше карт чем нужно — добор из колоды
-    while (state.hands.rival.length < need && state.deck.length > 0) {
-      state.hands.rival.push(state.deck.pop());
-    }
-    // Выбор "лучших" карт (AI-логика)
-    for (let i = 0; i < need; i++) {
+    // Выкладываем из руки что есть (по AI-логике выбирая лучшие)
+    const available = Math.min(need, state.hands.rival.length);
+    for (let i = 0; i < available; i++) {
       const card = rivalChooseCardFor(state.currentParam, { player: 'rival' });
       if (!card) break;
       const idx = state.hands.rival.indexOf(card);
       if (idx >= 0) state.hands.rival.splice(idx, 1);
       state.played.rival.push(card);
     }
+    // Недостающие — сразу из колоды на стол
+    autofillFromDeck('rival');
   }
 
   function answerForces() {
-    // Высшие Силы: случайно из своих карт, или добор если не хватает
     const need = needCardsPerPlayer();
-    while (state.hands.forces.length < need && state.deck.length > 0) {
-      state.hands.forces.push(state.deck.pop());
-    }
+    // Выкладываем из руки случайно
     const shuffled = shuffle(state.hands.forces);
-    for (let i = 0; i < need && shuffled.length > 0; i++) {
-      const card = shuffled.shift();
+    const available = Math.min(need, shuffled.length);
+    for (let i = 0; i < available; i++) {
+      const card = shuffled[i];
       const idx = state.hands.forces.indexOf(card);
       if (idx >= 0) state.hands.forces.splice(idx, 1);
       state.played.forces.push(card);
     }
+    // Недостающие — сразу из колоды на стол
+    autofillFromDeck('forces');
   }
 
   // ===== ОТКРЫТИЕ И СРАВНЕНИЕ =====
@@ -242,8 +272,31 @@ const AtlantisGame = (function() {
       state.played = { user: [], rival: [], forces: [] };
       state._pendingWinner = null;
       checkEndGame();
-      if (state.phase !== 'ended') state.phase = 'choose_param';
+      if (state.phase !== 'ended') {
+        // Высшие Силы уравнивают: всем у кого меньше 4 карт — добирают до 4
+        // из общей колоды перед новым раундом. У кого 4+ — ничего не добавляют.
+        replenishHandsTo4();
+        state.phase = 'choose_param';
+      }
       render();
+    }
+  }
+
+  // Добор карт до 4 у всех участников из общей колоды (между раундами).
+  // У кого 4+ карт на руках — ничего не добавляется.
+  function replenishHandsTo4() {
+    const TARGET = 4;
+    const added = { user: 0, rival: 0, forces: 0 };
+    ['user', 'rival', 'forces'].forEach(id => {
+      while (state.hands[id].length < TARGET && state.deck.length > 0) {
+        state.hands[id].push(state.deck.pop());
+        added[id]++;
+      }
+    });
+    const summary = Object.entries(added).filter(([, n]) => n > 0)
+      .map(([id, n]) => PLAYERS[id].name + ' +' + n).join(', ');
+    if (summary) {
+      state.log.push('Высшие Силы добирают карты: ' + summary);
     }
   }
 

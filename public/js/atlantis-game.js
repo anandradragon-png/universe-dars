@@ -98,26 +98,25 @@ const AtlantisGame = (function() {
     startRound();
   }
 
-  // Начало нового раунда: если ходит юзер — показываем выбор параметра,
-  // иначе AI автоматически выбирает параметр и выкладывает свою карту.
+  // Начало нового раунда.
+  // ВАЖНО: currentTurn = только 'user' или 'rival'. Высшие Силы — банк,
+  // не ходят, только докладывают карты в раунд.
   function startRound() {
     state.played = { user: [], rival: [], forces: [] };
     state.tieParticipants = [];
     state.currentParam = null;
+    if (state.currentTurn === 'forces') state.currentTurn = 'user'; // safety
     if (state.currentTurn === 'user') {
       state.phase = 'choose_param';
       render();
       return;
     }
-    // AI ходит: выбирает параметр + выкладывает свои карты
-    const id = state.currentTurn;
-    const p = aiChooseParam(id);
+    // Ход противника: AI выбирает параметр + выкладывает свою карту
+    const p = aiChooseParam('rival');
     state.currentParam = p;
-    state.log.push(`${PLAYERS[id].name} выбирает параметр: ${PARAM_LABELS[p].ru}`);
-    if (id === 'rival') answerRival();
-    else if (id === 'forces') answerForces();
+    state.log.push(`Противник выбирает параметр: ${PARAM_LABELS[p].ru}`);
+    answerRival();
     state.phase = 'lay_cards';
-    // Юзер может не иметь карт для выкладки (автодобор при Мощности)
     autofillFromDeck('user');
     if (state.played.user.length >= needCardsPerPlayer()) {
       if (state.played.rival.length < needCardsPerPlayer()) answerRival();
@@ -125,6 +124,10 @@ const AtlantisGame = (function() {
       state.phase = 'awaiting_reveal';
     }
     render();
+  }
+
+  function switchTurnToOther() {
+    state.currentTurn = state.currentTurn === 'user' ? 'rival' : 'user';
   }
 
   // AI выбирает параметр: ищет в руке наибольшее среднее по параметру
@@ -318,22 +321,33 @@ const AtlantisGame = (function() {
       return;
     }
     const winner = state._pendingWinner;
-    if (winner) {
-      const allCards = [...state.played.user, ...state.played.rival, ...state.played.forces];
+    if (!winner) return;
+    const allCards = [...state.played.user, ...state.played.rival, ...state.played.forces];
+
+    if (winner === 'forces') {
+      // Высшие Силы = банк. Их "победа" — карты ОБРАТНО в общую колоду
+      // (перемешиваются). Никто не забирает себе. Право хода переходит
+      // к ДРУГОМУ игроку (не тому кто ходил в раунде).
+      state.deck = shuffle(state.deck.concat(allCards));
+      state.log.push(`✨ Высшие забирают все ${allCards.length} карт в общую колоду. Ход переходит.`);
+      switchTurnToOther();
+    } else {
+      // Юзер или противник — забирает все карты себе
       state.hands[winner].push(...allCards);
       state.log.push(`${PLAYERS[winner].name} забирает ${allCards.length} карт — следующий ход его`);
-      state.played = { user: [], rival: [], forces: [] };
-      state._pendingWinner = null;
-      state.tieParticipants = []; // спор завершён
-      // Право следующего хода — у победителя
       state.currentTurn = winner;
-      checkEndGame();
-      if (state.phase !== 'ended') {
-        replenishHandsTo4();
-        startRound();
-      } else {
-        render();
-      }
+    }
+
+    state.played = { user: [], rival: [], forces: [] };
+    state._pendingWinner = null;
+    state.tieParticipants = [];
+
+    checkEndGame();
+    if (state.phase !== 'ended') {
+      replenishHandsTo4();
+      startRound();
+    } else {
+      render();
     }
   }
 
@@ -532,16 +546,20 @@ const AtlantisGame = (function() {
     `;
   }
 
-  // Компактная строка: иконка + имя + количество карт. Без декоративных рубашек.
+  // Компактная строка: иконка + имя + количество карт.
+  // Высшие Силы — не ходят (банк), у них всегда бейдж "БАНК".
   function renderOpponentRow(playerId) {
     const p = PLAYERS[playerId];
     const hand = state.hands[playerId];
-    const turnBadge = state.currentTurn === playerId
-      ? '<span style="font-size:9px;color:#ff9800;background:rgba(255,152,0,0.15);border:1px solid rgba(255,152,0,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">▶ ХОДИТ</span>'
-      : '';
+    let badge = '';
+    if (playerId === 'rival' && state.currentTurn === 'rival') {
+      badge = '<span style="font-size:9px;color:#ff9800;background:rgba(255,152,0,0.15);border:1px solid rgba(255,152,0,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">▶ ХОДИТ</span>';
+    } else if (playerId === 'forces') {
+      badge = '<span style="font-size:9px;color:#c084fc;background:rgba(156,39,176,0.15);border:1px solid rgba(156,39,176,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">БАНК</span>';
+    }
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;margin-bottom:6px">
-        <div style="font-size:12px;color:var(--text)">${p.icon} <b>${p.name}</b>${turnBadge}</div>
+        <div style="font-size:12px;color:var(--text)">${p.icon} <b>${p.name}</b>${badge}</div>
         <div style="font-size:11px;color:var(--text-dim)">🎴 ${hand.length}</div>
       </div>
     `;
@@ -573,7 +591,7 @@ const AtlantisGame = (function() {
     const paramLbl = PARAM_LABELS[state.currentParam];
     const turnInfo = state.currentTurn === 'user'
       ? '<div style="font-size:10px;color:#4ade80;letter-spacing:1px;font-weight:700;margin-bottom:4px">▶ ТВОЙ ХОД</div>'
-      : `<div style="font-size:10px;color:#ff9800;letter-spacing:1px;font-weight:700;margin-bottom:4px">▶ ХОДИТ ${PLAYERS[state.currentTurn].icon} ${PLAYERS[state.currentTurn].name.toUpperCase()} — ОТВЕТЬ</div>`;
+      : '<div style="font-size:10px;color:#ff9800;letter-spacing:1px;font-weight:700;margin-bottom:4px">▶ ХОДИТ 🧝 ПРОТИВНИК — ОТВЕТЬ</div>';
     return `
       <div style="padding:12px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.3);border-radius:12px;margin-bottom:10px;text-align:center">
         ${turnInfo}
@@ -717,36 +735,26 @@ const AtlantisGame = (function() {
       rival: state.hands.rival.length,
       forces: state.hands.forces.length
     };
-    const max = Math.max(counts.user, counts.rival, counts.forces);
-    // Все с максимумом — возможны несколько победителей
-    const winners = Object.keys(counts).filter(k => counts[k] === max);
-    const isTie = winners.length > 1;
-    const userWon = winners.includes('user') && !isTie;
-    const userInTie = winners.includes('user') && isTie;
-
+    // Победитель финала — ТОЛЬКО между юзером и противником.
+    // Высшие Силы — банк, они не соревнуются за победу.
     let titleText, titleColor, subtitle, emoji;
-    if (userWon) {
+    if (counts.user > counts.rival) {
       titleText = 'ТЫ ПОБЕДИЛ(А)!';
       titleColor = '#4ade80';
       subtitle = 'Поздравляю, маг Атлантиды! 🏆';
       emoji = '🎉';
-    } else if (userInTie) {
-      titleText = 'НИЧЬЯ';
-      titleColor = '#D4AF37';
-      subtitle = 'Ты разделил(а) победу с другими';
-      emoji = '⚖️';
-    } else if (isTie) {
-      titleText = 'НИЧЬЯ (без тебя)';
-      titleColor = '#D4AF37';
-      subtitle = 'Соперники поделили победу';
-      emoji = '⚖️';
-    } else {
-      const w = winners[0];
-      titleText = PLAYERS[w].name.toUpperCase() + ' ПОБЕДИЛ' + (w === 'forces' ? 'И' : '');
+    } else if (counts.rival > counts.user) {
+      titleText = 'ПРОТИВНИК ПОБЕДИЛ';
       titleColor = '#ff6b6b';
       subtitle = 'В следующий раз! Удачи тебе, маг.';
       emoji = '💫';
+    } else {
+      titleText = 'НИЧЬЯ';
+      titleColor = '#D4AF37';
+      subtitle = 'Силы равны — всё решится в следующей партии';
+      emoji = '⚖️';
     }
+    const max = Math.max(counts.user, counts.rival);
 
     // Конфетти-частицы (20 штук, рандомные цвета и позиции)
     const confettiColors = ['#E8C84A', '#4ade80', '#ff6b6b', '#c084fc', '#67e8f9', '#ff9800', '#e91e63'];
@@ -791,23 +799,22 @@ const AtlantisGame = (function() {
         <div style="font-size:13px;color:var(--text);margin-bottom:16px;position:relative;z-index:2;font-style:italic">${subtitle}</div>
 
         <div style="display:flex;justify-content:space-around;margin:12px 0;padding:12px;background:rgba(0,0,0,0.4);border-radius:12px;position:relative;z-index:2">
-          <div style="text-align:center;${userWon ? 'color:#4ade80;font-weight:800' : 'color:var(--text-dim)'}">
+          <div style="text-align:center;${counts.user > counts.rival ? 'color:#4ade80;font-weight:800' : 'color:var(--text-dim)'}">
             <div style="font-size:24px">🧙</div>
             <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ТЫ</div>
             <div style="font-size:20px;font-weight:900;margin-top:2px">${counts.user}</div>
-            ${counts.user === max ? '<div style="font-size:9px;color:#4ade80;font-weight:700">★ топ</div>' : ''}
+            ${counts.user > counts.rival ? '<div style="font-size:9px;color:#4ade80;font-weight:700">★ победитель</div>' : ''}
           </div>
-          <div style="text-align:center;${winners.includes('rival') && !isTie ? 'color:#ff6b6b;font-weight:800' : 'color:var(--text-dim)'}">
+          <div style="text-align:center;${counts.rival > counts.user ? 'color:#ff6b6b;font-weight:800' : 'color:var(--text-dim)'}">
             <div style="font-size:24px">🧝</div>
             <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ПРОТИВНИК</div>
             <div style="font-size:20px;font-weight:900;margin-top:2px">${counts.rival}</div>
-            ${counts.rival === max ? '<div style="font-size:9px;color:#ff6b6b;font-weight:700">★ топ</div>' : ''}
+            ${counts.rival > counts.user ? '<div style="font-size:9px;color:#ff6b6b;font-weight:700">★ победитель</div>' : ''}
           </div>
-          <div style="text-align:center;${winners.includes('forces') && !isTie ? 'color:#c084fc;font-weight:800' : 'color:var(--text-dim)'}">
+          <div style="text-align:center;color:#c084fc;opacity:0.8">
             <div style="font-size:24px">✨</div>
-            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ВЫСШИЕ</div>
+            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ВЫСШИЕ (БАНК)</div>
             <div style="font-size:20px;font-weight:900;margin-top:2px">${counts.forces}</div>
-            ${counts.forces === max ? '<div style="font-size:9px;color:#c084fc;font-weight:700">★ топ</div>' : ''}
           </div>
         </div>
 

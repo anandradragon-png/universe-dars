@@ -293,35 +293,37 @@ function start() {
   startRound();
 }
 
-// Начало нового раунда: если ходит юзер — показываем выбор параметра,
-// иначе AI автоматически выбирает параметр и выкладывает карту, юзер отвечает.
+// Начало нового раунда.
+// ВАЖНО: currentTurn может быть ТОЛЬКО 'user' или 'rival'.
+// Высшие Силы — это банк, они не ходят, только докладывают карты в раунд.
 function startRound() {
   state.played = { user: [], rival: [], forces: [] };
   state.tieParticipants = [];
   state.currentParam = null;
+  if (state.currentTurn === 'forces') state.currentTurn = 'user'; // safety
   if (state.currentTurn === 'user') {
     state.phase = 'choose_param';
     render();
-  } else {
-    // AI ходит: выбирает параметр и делает первую выкладку
-    const id = state.currentTurn;
-    const p = aiChooseParam(id);
-    state.currentParam = p;
-    state.log.push(`${PLAYERS[id].name} выбирает параметр: ${PARAM_LABELS[p].ru}`);
-    // Ходящий AI выкладывает свои карты в played
-    if (id === 'rival') answerRival();
-    else if (id === 'forces') answerForces();
-    state.phase = 'lay_cards';
-    // Если Мощность и у юзера 0 карт — автодобор, может не потребоваться ввод
-    autofillFromDeck('user');
-    if (state.played.user.length >= needCardsPerPlayer()) {
-      // Юзеру уже всё автодобрано — оставшиеся AI докладывают
-      if (state.played.rival.length < needCardsPerPlayer()) answerRival();
-      if (state.played.forces.length < needCardsPerPlayer()) answerForces();
-      state.phase = 'awaiting_reveal';
-    }
-    render();
+    return;
   }
+  // Ход противника (rival) — AI выбирает параметр и выкладывает
+  const p = aiChooseParam('rival');
+  state.currentParam = p;
+  state.log.push(`Противник выбирает параметр: ${PARAM_LABELS[p].ru}`);
+  answerRival();
+  state.phase = 'lay_cards';
+  autofillFromDeck('user');
+  if (state.played.user.length >= needCardsPerPlayer()) {
+    if (state.played.rival.length < needCardsPerPlayer()) answerRival();
+    if (state.played.forces.length < needCardsPerPlayer()) answerForces();
+    state.phase = 'awaiting_reveal';
+  }
+  render();
+}
+
+// Переключить ход "другому" игроку (только между user и rival — Высшие не ходят)
+function switchTurnToOther() {
+  state.currentTurn = state.currentTurn === 'user' ? 'rival' : 'user';
 }
 
 // AI выбирает параметр: ищет в своей руке наибольшее среднее по параметру
@@ -458,21 +460,34 @@ function continueAfterReveal() {
     return;
   }
   const w = state._pendingWinner;
-  if (w) {
-    const all = [...state.played.user, ...state.played.rival, ...state.played.forces];
-    state.hands[w].push(...all);
-    state.log.push(`${PLAYERS[w].name} забирает ${all.length} карт — следующий ход ${PLAYERS[w].name === 'Ты' ? 'твой' : 'его'}`);
+  if (!w) return;
+
+  const all = [...state.played.user, ...state.played.rival, ...state.played.forces];
+
+  if (w === 'forces') {
+    // Высшие Силы — банк. Их "победа" — все карты со стола уходят ОБРАТНО
+    // в общую колоду (с перемешиванием), никто их не забирает себе.
+    // Право хода переходит к ДРУГОМУ игроку (не тому кто ходил в раунде).
+    state.deck = shuffle(state.deck.concat(all));
+    state.log.push(`✨ Высшие забирают все ${all.length} карт в общую колоду. Ход переходит.`);
     state.played = { user: [], rival: [], forces: [] };
     state.tieParticipants = [];
-    // Право следующего хода — у победителя
-    state.currentTurn = w;
-    checkEnd();
-    if (state.phase !== 'ended') {
-      replenishTo4();
-      startRound();
-    } else {
-      render();
-    }
+    switchTurnToOther();
+  } else {
+    // Юзер или противник выиграл — забирает все карты себе
+    state.hands[w].push(...all);
+    state.log.push(`${PLAYERS[w].name} забирает ${all.length} карт — следующий ход ${w === 'user' ? 'твой' : 'его'}`);
+    state.played = { user: [], rival: [], forces: [] };
+    state.tieParticipants = [];
+    state.currentTurn = w; // право хода — победителю
+  }
+
+  checkEnd();
+  if (state.phase !== 'ended') {
+    replenishTo4();
+    startRound();
+  } else {
+    render();
   }
 }
 
@@ -563,10 +578,15 @@ function renderCardBack() {
 
 function renderOpponents() {
   return Object.entries(PLAYERS).filter(([id]) => id !== 'user').map(([id, p]) => {
-    const turnBadge = state.currentTurn === id
-      ? '<span style="font-size:9px;color:#ff9800;background:rgba(255,152,0,0.15);border:1px solid rgba(255,152,0,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">▶ ХОДИТ</span>'
-      : '';
-    return `<div class="opponent-row"><div class="name">${p.icon} <b>${p.name}</b>${turnBadge}</div><div class="count">🎴 ${state.hands[id].length}</div></div>`;
+    // "▶ ХОДИТ" — только для противника. Высшие Силы = банк, они не ходят,
+    // только докладывают карты в раунд. Для них добавляем пометку "банк".
+    let badge = '';
+    if (id === 'rival' && state.currentTurn === 'rival') {
+      badge = '<span style="font-size:9px;color:#ff9800;background:rgba(255,152,0,0.15);border:1px solid rgba(255,152,0,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">▶ ХОДИТ</span>';
+    } else if (id === 'forces') {
+      badge = '<span style="font-size:9px;color:#c084fc;background:rgba(156,39,176,0.15);border:1px solid rgba(156,39,176,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">БАНК</span>';
+    }
+    return `<div class="opponent-row"><div class="name">${p.icon} <b>${p.name}</b>${badge}</div><div class="count">🎴 ${state.hands[id].length}</div></div>`;
   }).join('');
 }
 
@@ -665,7 +685,7 @@ function renderLay() {
   const pLbl = PARAM_LABELS[state.currentParam];
   const turnInfo = state.currentTurn === 'user'
     ? '<div style="font-size:10px;color:#4ade80;letter-spacing:1px;margin-bottom:4px">▶ ТВОЙ ХОД — ты задаёшь параметр</div>'
-    : `<div style="font-size:10px;color:#ff9800;letter-spacing:1px;margin-bottom:4px">▶ ХОДИТ ${PLAYERS[state.currentTurn].icon} ${PLAYERS[state.currentTurn].name.toUpperCase()} — ОТВЕТЬ</div>`;
+    : '<div style="font-size:10px;color:#ff9800;letter-spacing:1px;margin-bottom:4px">▶ ХОДИТ 🧝 ПРОТИВНИК — ОТВЕТЬ</div>';
   return `<div style="padding:10px;background:rgba(212,175,55,0.05);border:1px solid var(--border);border-radius:10px;text-align:center;margin-bottom:10px">
     ${turnInfo}
     <div style="font-size:11px;color:var(--text-dim)">Параметр сражения</div>
@@ -693,14 +713,16 @@ function renderTieInfo() {
 
 function renderEnd() {
   const counts = { user: state.hands.user.length, rival: state.hands.rival.length, forces: state.hands.forces.length };
-  const max = Math.max(counts.user, counts.rival, counts.forces);
-  const winners = Object.keys(counts).filter(k => counts[k] === max);
-  const isTie = winners.length > 1;
-
+  // В финале соревнуются ТОЛЬКО юзер и противник (Высшие — банк).
+  // Победитель — у кого больше карт на руках среди двоих.
   let titleText, titleColor, emoji, subtitle;
-  if (!isTie && winners[0] === 'user') { titleText = 'ТЫ ПОБЕДИЛ(А)!'; titleColor = '#4ade80'; emoji = '🎉'; subtitle = 'Поздравляю, маг Атлантиды! 🏆'; }
-  else if (isTie) { titleText = 'НИЧЬЯ'; titleColor = '#D4AF37'; emoji = '⚖️'; subtitle = 'Силы равны.'; }
-  else { const w = winners[0]; titleText = PLAYERS[w].name.toUpperCase() + ' ПОБЕДИЛ' + (w === 'forces' ? 'И' : ''); titleColor = '#ff6b6b'; emoji = '💫'; subtitle = 'В следующий раз! Удачи.'; }
+  if (counts.user > counts.rival) {
+    titleText = 'ТЫ ПОБЕДИЛ(А)!'; titleColor = '#4ade80'; emoji = '🎉'; subtitle = 'Поздравляю, маг Атлантиды! 🏆';
+  } else if (counts.rival > counts.user) {
+    titleText = 'ПРОТИВНИК ПОБЕДИЛ'; titleColor = '#ff6b6b'; emoji = '💫'; subtitle = 'В следующий раз! Удачи.';
+  } else {
+    titleText = 'НИЧЬЯ'; titleColor = '#D4AF37'; emoji = '⚖️'; subtitle = 'Силы равны — в следующей партии всё решится.';
+  }
 
   let confetti = '';
   for (let i = 0; i < 30; i++) {
@@ -717,12 +739,14 @@ function renderEnd() {
     <div style="display:flex;justify-content:space-around;margin:12px 0;padding:12px;background:rgba(0,0,0,0.4);border-radius:12px;position:relative;z-index:2">
       ${['user','rival','forces'].map(id => {
         const p = PLAYERS[id];
-        const is = counts[id] === max;
-        return `<div style="text-align:center;color:${is ? (id==='user'?'#4ade80':'#ff6b6b') : 'var(--text-dim)'}">
+        const maxHuman = Math.max(counts.user, counts.rival);
+        const isWin = id !== 'forces' && counts[id] === maxHuman && counts.user !== counts.rival;
+        const isBank = id === 'forces';
+        return `<div style="text-align:center;color:${isWin ? (id==='user'?'#4ade80':'#ff6b6b') : isBank ? '#c084fc' : 'var(--text-dim)'}">
           <div style="font-size:24px">${p.icon}</div>
-          <div style="font-size:10px">${p.name.toUpperCase()}</div>
+          <div style="font-size:10px">${p.name.toUpperCase()}${isBank ? ' (БАНК)' : ''}</div>
           <div style="font-size:18px;font-weight:900">${counts[id]}</div>
-          ${is ? '<div style="font-size:9px;font-weight:700">★ топ</div>' : ''}
+          ${isWin ? '<div style="font-size:9px;font-weight:700">★ победитель</div>' : ''}
         </div>`;
       }).join('')}
     </div>

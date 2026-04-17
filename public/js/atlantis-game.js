@@ -88,6 +88,7 @@ const AtlantisGame = (function() {
 
   // ===== ЗАПУСК =====
   function start() {
+    injectStyles();
     resetState();
     state.deck = shuffle(buildDeck());
     state.hands.user = drawCards(4);
@@ -465,85 +466,132 @@ const AtlantisGame = (function() {
   }
 
   // ===== РЕНДЕР =====
+  // Инъекция CSS для физических юпик-карт (выполняется один раз)
+  let _stylesInjected = false;
+  function injectStyles() {
+    if (_stylesInjected) return;
+    _stylesInjected = true;
+    const css = `
+      .phys-card {
+        position: relative;
+        width: 70px; aspect-ratio: 0.7;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid #D4AF37;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 12px rgba(212,175,55,0.2);
+        background: #000;
+        flex-shrink: 0;
+      }
+      .phys-card img.card-art {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+      }
+      .phys-card .badge {
+        position: absolute; font-size: 10px; font-weight: 900; line-height: 1;
+        padding: 2px 5px; border-radius: 5px;
+        background: rgba(0,0,0,0.88); border: 1px solid currentColor;
+        text-shadow: 0 0 3px rgba(0,0,0,0.9);
+        white-space: nowrap; z-index: 1;
+      }
+      .phys-card .b-might { top: 3px; left: 3px; color: #ef4444; font-size: 11px; }
+      .phys-card .b-magic { top: 3px; right: 3px; color: #c084fc; }
+      .phys-card .b-life  { bottom: 18px; left: 3px; color: #4ade80; }
+      .phys-card .b-power { bottom: 18px; right: 3px; color: #f59e0b; }
+      .phys-card .b-highlight {
+        background: #000 !important;
+        font-size: 14px !important;
+        padding: 3px 7px !important;
+        font-weight: 900 !important;
+        z-index: 3 !important;
+        border: 2px solid currentColor !important;
+        box-shadow: 0 0 8px currentColor;
+        text-shadow: none !important;
+        letter-spacing: 0;
+      }
+      .phys-card .name-strip {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        background: linear-gradient(180deg, transparent, rgba(0,0,0,0.95) 30%, rgba(0,0,0,1));
+        padding: 12px 2px 4px;
+        text-align: center;
+        color: #ffd966;
+        font-size: 10px; font-weight: 900;
+        letter-spacing: 0.3px;
+        text-shadow: 0 0 4px rgba(212,175,55,0.9), 0 1px 2px rgba(0,0,0,1);
+        white-space: nowrap; overflow: hidden;
+      }
+      .phys-card.big { width: 110px; }
+      .phys-card.big .badge { font-size: 12px; padding: 3px 6px; }
+      .phys-card.big .b-highlight { font-size: 15px !important; padding: 4px 7px !important; }
+      .phys-card.big .name-strip { font-size: 12px; padding: 16px 2px 6px; letter-spacing: 0.5px; }
+      .phys-card.small {
+        width: 56px; border-width: 1.5px; border-radius: 8px;
+      }
+      .phys-card.small .badge { font-size: 8px; padding: 1px 3px; border-radius: 3px; }
+      .phys-card.small .b-might { font-size: 9px; }
+      .phys-card.small .b-life, .phys-card.small .b-power { bottom: 16px; }
+      .phys-card.small .b-highlight { font-size: 11px !important; padding: 2px 4px !important; border-width: 1.5px !important; }
+      .phys-card.small .name-strip { font-size: 8px; padding: 10px 1px 3px; letter-spacing: 0; }
+      .phys-card.clickable { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+      .phys-card.clickable:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(212,175,55,0.4); }
+      .phys-card.selected { transform: translateY(-8px); box-shadow: 0 8px 25px rgba(212,175,55,0.7); border-color: #E8C84A; }
+      .phys-card.dim { opacity: 0.5; }
+      .atl-card-back {
+        width: 52px; aspect-ratio: 0.7;
+        background: linear-gradient(135deg, #0a0a2e 0%, #1a0a3e 100%);
+        border: 1.5px solid #D4AF37; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center; padding: 3px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 0 10px rgba(212,175,55,0.1);
+        background-image: url('images/caduceus-gold.png');
+        background-size: 70%; background-repeat: no-repeat; background-position: center;
+        flex-shrink: 0;
+      }
+      .atl-card-back.mini {
+        width: 44px; border-radius: 6px; background-size: 75%;
+      }
+    `;
+    const style = document.createElement('style');
+    style.setAttribute('data-atlantis', '1');
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
+  function escapeHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  // Физическая карта с JPG юпика и параметрами в углах
   function renderCard(card, opts) {
     opts = opts || {};
     if (!card) return '';
-    // SVG-иконка дара золотом
-    const raw = String(card.name).toLowerCase();
-    const nfc = raw.normalize('NFC').replace(/[^\u0400-\u04FFa-z]/g, '');
-    const nfd = raw.normalize('NFD').replace(/[^\u0400-\u04FFa-z\u0300-\u036F]/g, '');
-    const onerror = "if(!this.dataset.tried){this.dataset.tried='1';this.src='images/dars/" + nfd + ".svg'}else{this.style.display='none'}";
-    const highlight = opts.highlight || null; // 'magic' | 'life' | 'power' | 'mightSum'
-    const hlColor = highlight && PARAM_LABELS[highlight] ? PARAM_LABELS[highlight].color : '#D4AF37';
-    const borderColor = opts.selected ? '#D4AF37' : opts.dim ? 'rgba(255,255,255,0.1)' : 'rgba(212,175,55,0.4)';
-    const onClick = opts.onClick || '';
+    const highlight = opts.highlight || null;
+    const size = opts.size || 'big'; // 'big' | 'small'
+    const extraCls = (opts.onClick ? ' clickable' : '') + (opts.selected ? ' selected' : '') + (opts.dim ? ' dim' : '');
+    const onClick = opts.onClick ? ' onclick="' + opts.onClick + '"' : '';
 
-    // В углах — треугольник параметров (Магия / Жизнь / Сила), в центре мощность
-    const paramBadge = (val, param, pos) => {
-      const isHl = highlight === param;
-      const color = PARAM_LABELS[param].color;
-      return `<div style="position:absolute;${pos};font-size:11px;color:${isHl ? '#fff' : color};font-weight:${isHl ? 800 : 700};background:${isHl ? color : 'rgba(0,0,0,0.7)'};border:1px solid ${color};border-radius:6px;padding:1px 5px;line-height:1.2;min-width:16px;text-align:center;box-shadow:${isHl ? '0 0 8px ' + color : 'none'}">${val}</div>`;
-    };
-    const mightBadge = () => {
-      const isHl = highlight === 'mightSum';
-      return `<div style="position:absolute;top:4px;left:4px;font-size:10px;color:${isHl ? '#fff' : '#ef4444'};font-weight:${isHl ? 900 : 700};background:${isHl ? '#ef4444' : 'rgba(239,68,68,0.15)'};border:1px solid #ef4444;border-radius:6px;padding:2px 6px;line-height:1.1;box-shadow:${isHl ? '0 0 8px #ef4444' : 'none'}">💥 ${card.mightSum}</div>`;
+    const badge = (param, val) => {
+      const lbl = PARAM_LABELS[param];
+      const paramCls = param === 'mightSum' ? 'might' : param;
+      const hlCls = highlight === param ? ' b-highlight' : '';
+      return '<div class="badge b-' + paramCls + hlCls + '">' + lbl.icon + val + '</div>';
     };
 
-    return `
-      <div class="atlantis-card" ${onClick ? 'onclick="' + onClick + '"' : ''}
-        style="position:relative;background:linear-gradient(135deg,#0a0a0a,#111);border:2px solid ${borderColor};border-radius:14px;padding:10px 8px 8px;min-width:110px;max-width:130px;aspect-ratio:0.72;box-shadow:${opts.selected ? '0 0 16px rgba(212,175,55,0.5)' : '0 2px 6px rgba(0,0,0,0.3)'};cursor:${onClick ? 'pointer' : 'default'};opacity:${opts.dim ? '0.6' : '1'};transition:transform .15s">
-        ${mightBadge()}
-        ${paramBadge(card.magic, 'magic', 'top:4px;right:4px')}
-        ${paramBadge(card.life, 'life', 'bottom:28px;left:4px')}
-        ${paramBadge(card.power, 'power', 'bottom:28px;right:4px')}
-        <div style="width:54px;height:54px;margin:14px auto 4px;display:flex;align-items:center;justify-content:center">
-          <img src="images/dars/${nfc}.svg" style="width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px rgba(212,175,55,0.5))" onerror="${onerror}"/>
-        </div>
-        <div style="text-align:center;font-size:11px;color:#D4AF37;font-weight:700;letter-spacing:1px">${card.name}</div>
-        <div style="text-align:center;font-size:9px;color:var(--text-muted)">${card.code}</div>
-      </div>
-    `;
+    return '<div class="phys-card ' + size + extraCls + '"' + onClick + '>' +
+      '<img class="card-art" src="cards/' + card.code + '.jpg" ' +
+        'onerror="this.style.background=\'linear-gradient(135deg,#0a0a2e,#1a0a3e)\';this.removeAttribute(\'src\')" ' +
+        'alt="' + escapeHtml(card.name) + '">' +
+      badge('mightSum', card.mightSum) +
+      badge('magic', card.magic) +
+      badge('life', card.life) +
+      badge('power', card.power) +
+      '<div class="name-strip">' + escapeHtml(card.name) + '</div>' +
+    '</div>';
   }
 
   function renderCardBack(size) {
-    // size: 'normal' (для руки) | 'mini' (для игрового поля)
-    const isMini = size === 'mini';
-    const w = isMini ? 50 : 110;
-    const ar = isMini ? 0.75 : 0.72;
-    return `
-      <div style="background:#080808;border:${isMini ? '1.5px' : '2px'} solid rgba(212,175,55,0.35);border-radius:${isMini ? '8px' : '14px'};width:${w}px;aspect-ratio:${ar};display:flex;align-items:center;justify-content:center;padding:4px;box-shadow:inset 0 0 12px rgba(212,175,55,0.05)">
-        <img src="images/caduceus-gold.png" style="width:${isMini ? '80%' : '70%'};opacity:0.85;filter:drop-shadow(0 0 6px rgba(212,175,55,0.3))" onerror="this.style.display='none'"/>
-      </div>`;
+    const cls = size === 'mini' ? 'atl-card-back mini' : 'atl-card-back';
+    return '<div class="' + cls + '"></div>';
   }
 
-  // Компактная версия карты (для игрового поля, чтобы уместить 3 ряда)
+  // В основной игре renderCardMini оставляем как обёртку для совместимости
   function renderCardMini(card, highlight) {
-    if (!card) return '';
-    const raw = String(card.name).toLowerCase();
-    const nfc = raw.normalize('NFC').replace(/[^\u0400-\u04FFa-z]/g, '');
-    const nfd = raw.normalize('NFD').replace(/[^\u0400-\u04FFa-z\u0300-\u036F]/g, '');
-    const onerror = "if(!this.dataset.tried){this.dataset.tried='1';this.src='images/dars/" + nfd + ".svg'}else{this.style.display='none'}";
-
-    // Показываем только выбранный параметр крупно
-    let mainVal = '';
-    let mainColor = '#D4AF37';
-    let mainLabel = '';
-    if (highlight && PARAM_LABELS[highlight]) {
-      const lbl = PARAM_LABELS[highlight];
-      mainVal = card[highlight];
-      mainColor = lbl.color;
-      mainLabel = lbl.icon;
-    }
-
-    return `
-      <div style="position:relative;background:linear-gradient(135deg,#0a0a0a,#111);border:1.5px solid ${mainColor};border-radius:10px;padding:4px;width:60px;box-shadow:0 0 10px ${mainColor}55">
-        ${mainLabel ? `<div style="position:absolute;top:-8px;right:-6px;font-size:13px;font-weight:900;color:#fff;background:${mainColor};border-radius:8px;padding:1px 6px;line-height:1.2;box-shadow:0 0 6px ${mainColor}">${mainLabel}${mainVal}</div>` : ''}
-        <div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center">
-          <img src="images/dars/${nfc}.svg" style="width:90%;height:90%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px rgba(212,175,55,0.5))" onerror="${onerror}"/>
-        </div>
-        <div style="text-align:center;font-size:9px;color:#D4AF37;font-weight:700;letter-spacing:0.5px;margin-top:2px">${card.name}</div>
-      </div>
-    `;
+    return renderCard(card, { highlight, size: 'small' });
   }
 
   // Компактная строка: иконка + имя + количество карт.
@@ -655,22 +703,23 @@ const AtlantisGame = (function() {
     const anyPlayed = state.played.user.length + state.played.rival.length + state.played.forces.length > 0;
     if (!anyPlayed) return '';
 
+    const paramLbl = state.currentParam ? PARAM_LABELS[state.currentParam] : null;
+    const p = state.currentParam;
+    const isMight = p === 'mightSum';
+    const cardSize = isMight ? 'small' : '';
+
     // Карты противника/Высших закрыты на ВСЕХ стадиях раунда.
     // Открываются только в reveal_result (после "Перевернуть").
-    // Свои карты юзер видит всегда.
+    // Свои карты юзер видит всегда. При Мощности — компактные карты.
     const renderStack = (cards, isOwn) => {
       if (!cards.length) {
         return '<div style="font-size:9px;color:var(--text-muted);opacity:0.5;padding:20px 0">—</div>';
       }
-      const shouldHide = !isOwn && !isResult; // чужие — только при результате
-      if (shouldHide) return cards.map(() => renderCardBack('mini')).join('');
-      // Сортируем по убыванию выбранного параметра — самая сильная слева
+      const shouldHide = !isOwn && !isResult;
+      if (shouldHide) return cards.map(() => renderCardBack(isMight ? 'mini' : '')).join('');
       const sorted = p ? cards.slice().sort((a, b) => (b[p] || 0) - (a[p] || 0)) : cards;
-      return sorted.map(c => renderCardMini(c, state.currentParam)).join('');
+      return sorted.map(c => renderCard(c, { highlight: p, size: cardSize || 'small' })).join('');
     };
-
-    const paramLbl = state.currentParam ? PARAM_LABELS[state.currentParam] : null;
-    const p = state.currentParam;
 
     // Для reveal_result — подсвечиваем победителя
     let uSum = 0, rSum = 0, fSum = 0, maxSum = 0;
@@ -695,9 +744,12 @@ const AtlantisGame = (function() {
       const sumShow = isResult && p ? ` · ${paramLbl.icon}${sum}` : '';
       const bg = isResult && sum === maxSum ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.02)';
       const border = isResult && sum === maxSum ? '1px solid rgba(74,222,128,0.4)' : '1px solid rgba(255,255,255,0.06)';
+      // При Мощности (3 карты в ряд) — компактный лейбл чтобы всё помещалось
+      const labelMinW = isMight ? 70 : 95;
+      const labelFs = isMight ? 10 : 11;
       return `
         <div style="${rowStyle};background:${bg};border:${border}">
-          <div style="font-size:11px;color:${isMe ? '#D4AF37' : 'var(--text)'};min-width:95px;font-weight:${isMe ? 700 : 500}">${iconName} ${label}${sumShow}${winBadge}</div>
+          <div style="font-size:${labelFs}px;color:${isMe ? '#D4AF37' : 'var(--text)'};min-width:${labelMinW}px;font-weight:${isMe ? 700 : 500}">${iconName} ${label}${sumShow}${winBadge}</div>
           <div style="flex:1;display:flex;gap:4px;justify-content:center;flex-wrap:wrap">${cards}</div>
         </div>
       `;
@@ -859,7 +911,7 @@ const AtlantisGame = (function() {
             const click = isLay ? 'AtlantisGame.layCard(' + i + ')'
               : (isTie && userInTieDispute) ? 'AtlantisGame.tiebreakerLay(' + i + ')'
               : '';
-            return renderCard(c, { highlight, onClick: click, dim: tieDim });
+            return renderCard(c, { highlight, onClick: click, dim: tieDim, size: 'big' });
           }).join('')}
         </div>
       </div>
@@ -930,7 +982,7 @@ const AtlantisGame = (function() {
         <div style="font-size:14px;color:#D4AF37;font-weight:700;text-align:center;margin-bottom:10px">🔄 Какую свою карту обменять?</div>
         <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:12px">Противник даст случайную взамен</div>
         <div style="display:flex;gap:6px;overflow-x:auto;padding:4px 0">
-          ${state.hands.user.map((c, i) => renderCard(c, { onClick: 'AtlantisGame._doExchange(' + i + ')' })).join('')}
+          ${state.hands.user.map((c, i) => renderCard(c, { onClick: 'AtlantisGame._doExchange(' + i + ')', size: 'big' })).join('')}
         </div>
         <button onclick="AtlantisGame._closeExchangeModal()" style="margin-top:10px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);cursor:pointer">Отмена</button>
       </div>

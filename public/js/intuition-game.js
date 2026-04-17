@@ -504,17 +504,23 @@ const IntuitionGame = (function() {
     return 'карт';
   }
 
-  // Helper: SVG-иконка дара золотом (для искомой и Света) или красным (для Тени)
+  // Helper: SVG-иконка дара золотом (для искомой и Света) или красным (для Тени).
+  // FS у автора хранит часть файлов в NFD (й = и + комбинирующая бреве), а JS по
+  // умолчанию генерирует имена в NFC — поэтому при ошибке пробуем альтернативную
+  // нормализацию (fallback: NFC → NFD, и наоборот).
   function renderDarIconHtml(darName, tone) {
     if (!darName) return '';
-    const base = String(darName).toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '');
+    const raw = String(darName).toLowerCase();
+    const nfc = raw.normalize('NFC').replace(/[^\u0400-\u04FFa-z]/g, '');
+    const nfd = raw.normalize('NFD').replace(/[^\u0400-\u04FFa-z\u0300-\u036F]/g, '');
     const filterGold = 'invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px rgba(212,175,55,0.4))';
-    // Более контрастный красный фильтр — тестеры жаловались, что плохо читается
     const filterRed  = 'invert(50%) sepia(95%) saturate(2000%) hue-rotate(-20deg) brightness(120%) contrast(120%) drop-shadow(0 0 8px rgba(255,80,80,0.6))';
     const filter = tone === 'red' ? filterRed : filterGold;
-    return '<img src="images/dars/' + base + '.svg" ' +
+    // Если NFC не загрузился — пробуем NFD; если и он не сработал — скрываем img
+    const onerror = "if(!this.dataset.tried){this.dataset.tried='1';this.src='images/dars/" + nfd + ".svg'}else{this.style.display='none'}";
+    return '<img src="images/dars/' + nfc + '.svg" ' +
       'style="width:100%;height:100%;object-fit:contain;filter:' + filter + '" ' +
-      'onerror="this.style.display=\'none\'"/>';
+      'onerror="' + onerror + '"/>';
   }
 
   // === РЕНДЕР ДОСКИ ===
@@ -602,7 +608,9 @@ const IntuitionGame = (function() {
           bg = 'rgba(255,255,255,0.08)'; border = 'rgba(255,255,255,0.2)';
         }
 
-        const imgBase = card.name.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'');
+        const rawLower = card.name.toLowerCase();
+        const imgBaseNFC = rawLower.normalize('NFC').replace(/[^\u0400-\u04FFa-z]/g,'');
+        const imgBaseNFD = rawLower.normalize('NFD').replace(/[^\u0400-\u04FFa-z\u0300-\u036F]/g,'');
         html += `
           <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:12px 6px;text-align:center;min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;${isSelected ? 'box-shadow:0 0 10px rgba(212,175,55,0.3)' : ''}">
             <div style="width:72px;height:72px;margin-bottom:6px;display:flex;align-items:center;justify-content:center" id="gc-${i}"></div>
@@ -612,7 +620,19 @@ const IntuitionGame = (function() {
           </div>`;
         setTimeout(() => {
           const w = document.getElementById('gc-'+i);
-          if(w && imgBase){ const img=new Image(); img.src='images/dars/'+imgBase+'.svg'; img.style='width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px #D4AF37)'; img.onload=()=>w.appendChild(img); img.onerror=()=>{}; }
+          if(w && imgBaseNFC){
+            const img = new Image();
+            img.style = 'width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px #D4AF37)';
+            img.onload = () => w.appendChild(img);
+            img.onerror = () => {
+              // Fallback: некоторые файлы хранятся в NFD (й = и + бреве)
+              if (img.dataset.tried !== '1' && imgBaseNFD !== imgBaseNFC) {
+                img.dataset.tried = '1';
+                img.src = 'images/dars/' + imgBaseNFD + '.svg';
+              }
+            };
+            img.src = 'images/dars/' + imgBaseNFC + '.svg';
+          }
         }, 50);
       } else {
         // ЗАКРЫТАЯ КАРТА (рубашка)

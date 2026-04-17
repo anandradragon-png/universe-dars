@@ -946,10 +946,11 @@ const AtlantisGame = (function() {
 
     container.innerHTML = `
       <div style="padding:10px 10px 40px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <button onclick="AtlantisGame.quit()" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:10px;cursor:pointer">← Все игры</button>
-          <div style="font-size:15px;color:#D4AF37;letter-spacing:2px;font-weight:700">🏛 АТЛАНТИДА</div>
-          <div style="font-size:10px;color:var(--text-dim)">🎴 ${state.deck.length}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:6px">
+          <button onclick="AtlantisGame.quit()" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:10px;cursor:pointer;flex-shrink:0">← Все игры</button>
+          <div style="font-size:15px;color:#D4AF37;letter-spacing:2px;font-weight:700;flex:1;text-align:center">🏛 АТЛАНТИДА</div>
+          <button onclick="AtlantisGame.showRules()" style="padding:5px 10px;border-radius:8px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;flex-shrink:0" title="Правила">📜</button>
+          <div style="font-size:10px;color:var(--text-dim);flex-shrink:0">🎴 ${state.deck.length}</div>
         </div>
         ${renderOpponentRow('rival')}
         ${renderOpponentRow('forces')}
@@ -1000,6 +1001,101 @@ const AtlantisGame = (function() {
     exchangeCard(idx);
   }
 
+  // ===== ПРАВИЛА ИГРЫ =====
+  function showRules() {
+    injectStyles();
+    const modalId = 'atlantis-rules-modal';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = modalId;
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(4px);z-index:9500;display:flex;align-items:center;justify-content:center;padding:12px;overflow-y:auto';
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div style="position:relative;background:linear-gradient(135deg,#0a0a0a,#141414);border:2px solid rgba(212,175,55,0.5);border-radius:18px;padding:20px 18px 16px;max-width:440px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 0 30px rgba(212,175,55,0.3)">
+        <button onclick="AtlantisGame.closeRules()" style="position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:32px;margin-bottom:6px">🏛</div>
+          <div style="font-size:18px;color:#D4AF37;letter-spacing:2px;font-weight:800">ЛЕГЕНДЫ АТЛАНТИДЫ</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:3px;font-style:italic">Правила игры</div>
+        </div>
+
+        <div style="font-size:13px;color:var(--text);line-height:1.7">
+
+          <div style="margin-bottom:14px;padding:10px;background:rgba(212,175,55,0.06);border-left:3px solid #D4AF37;border-radius:8px">
+            <b style="color:#D4AF37">🎯 Цель:</b> набрать больше карт на руках, чем противник.
+          </div>
+
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">🎴 Колода и игроки</b></div>
+          <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
+            • 64 карты, каждая — один из даров-юпиков<br>
+            • Играют трое: <b style="color:#4ade80">Ты</b>, <b style="color:#ff9800">Противник</b> и <b style="color:#c084fc">Высшие Силы (банк)</b><br>
+            • На старте у каждого по 4 карты
+          </div>
+
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">💎 Параметры каждой карты</b></div>
+          <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
+            • <span style="color:#c084fc">🔮 Магия</span> — первая цифра кода<br>
+            • <span style="color:#4ade80">💚 Жизнь</span> — вторая цифра<br>
+            • <span style="color:#f59e0b">⚡ Сила</span> — третья цифра<br>
+            • <span style="color:#ef4444">💥 Мощность</span> — сумма всех трёх
+          </div>
+
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">▶ Ход игры</b></div>
+          <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
+            1. <b>Ходящий</b> выбирает параметр сражения (Магия / Жизнь / Сила / Мощность)<br>
+            2. Все трое выкладывают карту закрытой рубашкой<br>
+            3. Нажимаешь <b>«Перевернуть»</b> — карты раскрываются<br>
+            4. У кого значение выбранного параметра выше — <b>забирает все карты со стола</b> себе<br>
+            5. <b>Право следующего хода</b> переходит к победителю раунда
+          </div>
+
+          <div style="margin-bottom:10px"><b style="color:#ef4444">💥 Особый ход — Мощность</b></div>
+          <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
+            Каждый выкладывает <b>3 карты сразу</b>. Считается сумма Мощности всех трёх. Если карт не хватает — Высшие добирают из колоды сразу на стол.
+          </div>
+
+          <div style="margin-bottom:10px"><b style="color:#c084fc">✨ Высшие Силы — банк</b></div>
+          <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
+            Они не ходят как игрок, только докладывают карту в каждый раунд.<br>
+            <b>Если побеждают Высшие</b> — все карты со стола уходят обратно в общую колоду, а право хода переходит <b>к другому игроку</b> (не к тому, кто ходил).
+          </div>
+
+          <div style="margin-bottom:10px"><b style="color:#ff9800">⚖️ Ничья — спор</b></div>
+          <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
+            Если у двоих одинаковый максимум — они <b>спорят</b>: докладывают ещё по одной карте. Остальные только наблюдают и карт больше не подкладывают. Победитель спора забирает <b>все</b> карты со стола.
+          </div>
+
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">🔄 Обмен картами</b></div>
+          <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
+            Раз за партию можешь обменять свою карту на случайную карту противника.
+          </div>
+
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">🎴 Добор</b></div>
+          <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
+            Между раундами Высшие Силы добирают из колоды карты всем, у кого на руках <b>меньше 4</b> — чтобы все вошли в новый раунд равными.
+          </div>
+
+          <div style="margin-top:16px;padding:10px;background:rgba(74,222,128,0.06);border-left:3px solid #4ade80;border-radius:8px">
+            <b style="color:#4ade80">👑 Конец партии</b><br>
+            <span style="font-size:12px;color:var(--text-dim)">Когда в колоде и на руках не остаётся достаточно карт для следующего раунда. Выигрывает тот из двоих (Ты или Противник), у кого больше карт на руках. Высшие Силы не участвуют в определении победителя.</span>
+          </div>
+
+        </div>
+
+        <button onclick="AtlantisGame.closeRules()" style="margin-top:14px;width:100%;padding:12px;background:linear-gradient(135deg,#E8C84A,#D4AF37);border:none;border-radius:10px;color:#080808;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;font-size:14px">Понятно, играю!</button>
+      </div>
+    `;
+    modal.style.display = 'flex';
+  }
+
+  function closeRules() {
+    const m = document.getElementById('atlantis-rules-modal');
+    if (m) m.style.display = 'none';
+  }
+
   return {
     start,
     quit,
@@ -1010,6 +1106,8 @@ const AtlantisGame = (function() {
     tiebreakerLay,
     watchTiebreaker,
     promptExchange,
+    showRules,
+    closeRules,
     _doExchange,
     _closeExchangeModal
   };

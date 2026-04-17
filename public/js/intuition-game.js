@@ -496,6 +496,18 @@ const IntuitionGame = (function() {
     cards = shuffle(all.slice(0, lvl.cards));
   }
 
+  // Helper: SVG-иконка дара золотом (для искомой и Света) или красным (для Тени)
+  function renderDarIconHtml(darName, tone) {
+    if (!darName) return '';
+    const base = String(darName).toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '');
+    const filterGold = 'invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px rgba(212,175,55,0.4))';
+    const filterRed  = 'invert(35%) sepia(90%) saturate(600%) hue-rotate(-10deg) brightness(95%) drop-shadow(0 0 6px rgba(231,76,60,0.4))';
+    const filter = tone === 'red' ? filterRed : filterGold;
+    return '<img src="images/dars/' + base + '.svg" ' +
+      'style="width:100%;height:100%;object-fit:contain;filter:' + filter + '" ' +
+      'onerror="this.style.display=\'none\'"/>';
+  }
+
   // === РЕНДЕР ДОСКИ ===
   function renderBoard() {
     const board = document.getElementById('game-board');
@@ -503,15 +515,57 @@ const IntuitionGame = (function() {
     const lvl = MODES[currentMode].levels[currentLevel];
     const cols = cards.length <= 3 ? 3 : cards.length <= 6 ? 3 : cards.length <= 9 ? 3 : 4;
 
+    // Ищем Свет и Тень в текущей раскладке — их дары заранее известны
+    const buffCard = cards.find(c => c.type === 'buff');
+    const debuffCard = cards.find(c => c.type === 'debuff');
+
+    // Блок "Свет / Искомая / Тень" — с картинками дара золотом (Свет, искомый)
+    // и красным (Тень), чтобы юзер мог сонастроиться визуально.
+    const ICON_SIZE = 54;
+    let lightBlock = '';
+    let shadowBlock = '';
+    if (currentMode === 'multi' && buffCard) {
+      lightBlock =
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px">' +
+          '<div style="font-size:9px;color:#2ecc71;letter-spacing:1px;font-weight:600">⭐ СВЕТ ×2</div>' +
+          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:4px;border:1px solid rgba(46,204,113,0.4);border-radius:8px;background:rgba(46,204,113,0.06);box-sizing:border-box">' +
+            renderDarIconHtml(buffCard.name, 'gold') +
+          '</div>' +
+          '<div style="font-size:11px;color:#2ecc71;letter-spacing:1px;text-align:center">' + buffCard.name + '</div>' +
+        '</div>';
+    }
+    if (currentMode === 'multi' && debuffCard) {
+      shadowBlock =
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px">' +
+          '<div style="font-size:9px;color:#e74c3c;letter-spacing:1px;font-weight:600">💥 ТЕНЬ</div>' +
+          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:4px;border:1px solid rgba(231,76,60,0.4);border-radius:8px;background:rgba(231,76,60,0.06);box-sizing:border-box">' +
+            renderDarIconHtml(debuffCard.name, 'red') +
+          '</div>' +
+          '<div style="font-size:11px;color:#e74c3c;letter-spacing:1px;text-align:center">' + debuffCard.name + '</div>' +
+        '</div>';
+    }
+
+    const targetIconHtml =
+      '<div style="width:64px;height:64px;padding:4px;border:1px solid rgba(212,175,55,0.5);border-radius:10px;background:rgba(212,175,55,0.06);box-sizing:border-box;box-shadow:0 0 12px rgba(212,175,55,0.25);margin:0 auto 6px">' +
+        renderDarIconHtml(targetDar.name, 'gold') +
+      '</div>';
+
     let html = `
-      <div style="text-align:center;margin-bottom:12px">
-        <div style="font-size:13px;color:var(--text);margin-bottom:4px">
+      <div style="margin-bottom:12px">
+        <div style="font-size:13px;color:var(--text);text-align:center;margin-bottom:8px">
           ${currentMode === 'multi' ? `&#127183; Найди ${lvl.targets} карт:` : '&#128302; Найди дар:'}
         </div>
-        <div style="font-size:20px;color:#D4AF37;letter-spacing:2px">${targetDar.name}</div>
-        <div style="font-size:11px;color:var(--text-dim);font-style:italic">${targetDar.archetype}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px">
+          ${lightBlock || '<div style="min-width:70px"></div>'}
+          <div style="flex:1;text-align:center">
+            ${targetIconHtml}
+            <div style="font-size:20px;color:#D4AF37;letter-spacing:2px">${targetDar.name}</div>
+            <div style="font-size:11px;color:var(--text-dim);font-style:italic">${targetDar.archetype}</div>
+          </div>
+          ${shadowBlock || '<div style="min-width:70px"></div>'}
+        </div>
         ${!allRevealed && currentMode === 'multi' ? `
-          <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Выбрано: ${selected.length} / ${maxOpens}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center">Выбрано: ${selected.length} / ${maxOpens}</div>
         ` : ''}
       </div>
       <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;max-width:420px;margin:0 auto">

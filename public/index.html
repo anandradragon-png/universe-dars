@@ -4272,16 +4272,24 @@
         try { el.blur(); } catch (e) {}
       });
 
-      // При фокусе на input — прокрутить его в зону видимости (клавиатура
-      // перекрывает нижнюю половину экрана в Telegram Mini App).
+      // При фокусе на input — прокручиваем ТОЛЬКО если он частично скрыт.
+      // Жалобы тестеров: в Наставнике и битве поле прыгало туда-сюда при каждом
+      // фокусе. Теперь:
+      //   1) block:'nearest' — не двигает если уже видно
+      //   2) пропускаем элементы внутри автоскролл-контейнеров (coach-messages, hero-battle-log)
+      //   3) одинокий scroll только если bounding rect ниже viewport.height - 50
       document.addEventListener('focusin', function(ev) {
         const el = ev.target;
         if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA')) return;
-        // Небольшая задержка чтобы клавиатура успела открыться, и скролл сработал в итоговую геометрию
+        // Пропускаем textarea Наставника — там свой управляемый скролл
+        if (el.id === 'coach-input' || el.closest('#coach-messages, .hero-battle-log')) return;
         setTimeout(() => {
           try {
-            if (typeof el.scrollIntoView === 'function') {
-              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const rect = el.getBoundingClientRect();
+            const vh = window.innerHeight || 600;
+            // Только если нижний край элемента глубоко под viewport — тогда скроллим
+            if (rect.bottom > vh - 40 || rect.top < 10) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
           } catch (e) {}
         }, 300);

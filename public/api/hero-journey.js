@@ -40,6 +40,33 @@ function parseJSON(text) {
   }
 }
 
+// Кэш сгенерированных сцен в памяти процесса (живёт пока жив Vercel-function-инстанс).
+// Ключ: dar_code|step — одинаковый контент для всех юзеров этого дара на этом шаге.
+// Это ускоряет повторные запуски: первый юзер ждёт AI, остальные получают мгновенно.
+const sceneCache = new Map();
+const SCENE_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 часов
+
+function getSceneCached(darCode, step) {
+  const key = darCode + '|' + step;
+  const entry = sceneCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > SCENE_CACHE_TTL) {
+    sceneCache.delete(key);
+    return null;
+  }
+  return entry.content;
+}
+
+function setSceneCached(darCode, step, content) {
+  const key = darCode + '|' + step;
+  sceneCache.set(key, { ts: Date.now(), content });
+  // Ограничиваем размер — не более 200 ключей
+  if (sceneCache.size > 200) {
+    const firstKey = sceneCache.keys().next().value;
+    sceneCache.delete(firstKey);
+  }
+}
+
 // Загрузка данных даров
 let darContentCache = null;
 let fieldsCache = null;
@@ -150,11 +177,19 @@ module.exports = async (req, res) => {
         return res.json({ journey, step_content: journey.step_state });
       }
 
-      const aiResponse = await callAI(prompt, 'Сгенерируй квест.');
-      const content = parseJSON(aiResponse);
-
-      if (!content || !content.scenes) {
-        return res.status(500).json({ error: 'Не удалось сгенерировать квест. Попробуй ещё раз.' });
+      // Пробуем взять контент из memory-кэша (первый юзер для этого дара+шага
+      // ждёт AI ~30-60 сек, остальным отдаём мгновенно)
+      let content = getSceneCached(dar_code, currentStep);
+      if (!content) {
+        const aiResponse = await callAI(prompt, 'Сгенерируй квест.');
+        content = parseJSON(aiResponse);
+        if (!content || !content.scenes) {
+          return res.status(500).json({ error: 'Не удалось сгенерировать квест. Попробуй ещё раз.' });
+        }
+        setSceneCached(dar_code, currentStep, content);
+      } else {
+        // Возвращаем копию, чтобы юзерская модификация не портила общий кэш
+        content = JSON.parse(JSON.stringify(content));
       }
 
       // Добавляем мета-информацию

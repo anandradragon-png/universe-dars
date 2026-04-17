@@ -5,6 +5,7 @@
 
 const CrystalsUI = (function() {
   let currentBalance = 0;
+  let lastLocalChange = 0; // timestamp последней локальной модификации (animateEarn/Spend)
 
   function init(balance) {
     currentBalance = balance || 0;
@@ -16,8 +17,19 @@ const CrystalsUI = (function() {
     if (el) el.textContent = currentBalance;
   }
 
+  // Синк с сервером: если пришло значение меньше текущего И был локальный
+  // инкремент в последние 5 секунд — игнорируем (сервер ещё не успел обновиться).
+  // Это защита от "прыжков" 83→62→69: сервер возвращает старое значение,
+  // пока addCrystals там только-только записался.
   function setBalance(newBalance) {
-    currentBalance = newBalance;
+    const n = Number(newBalance);
+    if (!isFinite(n)) return;
+    const sinceChange = Date.now() - lastLocalChange;
+    if (n < currentBalance && sinceChange < 5000) {
+      console.log('[CrystalsUI] Ignoring stale server value', n, 'local is', currentBalance, 'sinceChange', sinceChange);
+      return;
+    }
+    currentBalance = n;
     updateDisplay();
   }
 
@@ -28,6 +40,7 @@ const CrystalsUI = (function() {
   function animateEarn(amount) {
     if (amount <= 0) return;
     currentBalance += amount;
+    lastLocalChange = Date.now();
     updateDisplay();
 
     const counter = document.getElementById('crystal-counter');
@@ -53,6 +66,7 @@ const CrystalsUI = (function() {
     if (amount <= 0) return;
     currentBalance -= amount;
     if (currentBalance < 0) currentBalance = 0;
+    lastLocalChange = Date.now();
     updateDisplay();
 
     const counter = document.getElementById('crystal-counter');

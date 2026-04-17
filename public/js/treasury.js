@@ -485,16 +485,21 @@ const Treasury = (function() {
       const placeholder = isFirstMsg
         ? 'Поделись своими мыслями, не торопясь...'
         : 'Твой ответ...';
+      // STICKY INPUT: поле ввода прилипает к нижнему краю контейнера,
+      // чтобы при открытой клавиатуре оставаться на виду (жалобы тестеров
+      // "клавиатура закрывает текст ответа").
       html += `
-        <textarea id="coach-input" rows="3" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;resize:vertical;line-height:1.6" placeholder="${placeholder}"></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-          <span style="font-size:11px;color:var(--text-muted)">Мин. ${minLen} символов</span>
-          <span style="font-size:11px;color:#D4AF37">Раунд ${dialogue.roundCount + 1}${dialogue.roundCount >= 3 ? ' (наставник скоро предложит завершить)' : ''}</span>
+        <div class="coach-input-sticky" style="position:sticky;bottom:0;background:linear-gradient(180deg,rgba(46,204,113,0) 0%,rgba(15,15,15,0.96) 15%,rgba(15,15,15,1) 100%);padding:10px 0 4px;margin-top:8px;z-index:5">
+          <textarea id="coach-input" rows="3" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;resize:none;line-height:1.6;box-sizing:border-box" placeholder="${placeholder}" onfocus="Treasury._onCoachFocus()"></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+            <span style="font-size:11px;color:var(--text-muted)">Мин. ${minLen} символов</span>
+            <span style="font-size:11px;color:#D4AF37">Раунд ${dialogue.roundCount + 1}${dialogue.roundCount >= 3 ? ' (скоро завершим)' : ''}</span>
+          </div>
+          <button class="btn btn-secondary" id="coach-send-btn" style="margin-top:8px;width:100%" onclick="Treasury.coachSend('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">Отправить</button>
+          ${dialogue.roundCount >= 3 ? `
+            <button class="btn btn-ghost" style="margin-top:6px;font-size:12px;padding:8px;opacity:0.7;width:100%" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">Хочу завершить диалог</button>
+          ` : ''}
         </div>
-        <button class="btn btn-secondary" id="coach-send-btn" style="margin-top:10px" onclick="Treasury.coachSend('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">Отправить</button>
-        ${dialogue.roundCount >= 3 ? `
-          <button class="btn btn-ghost" style="margin-top:6px;font-size:12px;padding:8px;opacity:0.7" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">Хочу завершить диалог</button>
-        ` : ''}
       `;
     }
 
@@ -1240,13 +1245,25 @@ const Treasury = (function() {
     }
   }
 
+  // При фокусе на coach-input — скроллим textarea в видимую область через ~400мс,
+  // когда клавиатура уже открылась. Используем scrollIntoView с блоком 'end'
+  // чтобы текстовая область оказалась прямо над клавиатурой.
+  function _onCoachFocus() {
+    setTimeout(() => {
+      try {
+        const ta = document.getElementById('coach-input');
+        if (!ta) return;
+        ta.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      } catch (e) {}
+    }, 350);
+  }
+
   return {
     init, render, openDar, openInBook, startHeroJourney,
     openEssenceQuest, openShadowQuest, openMeditationQuest,
-    // Старые submit-функции для обратной совместимости
     submitShadowQuest, submitMeditationQuest,
-    // Новый коучинг-чат
     coachSend, coachFinish, coachContinue, resetCoachDialogue,
-    unlockRandom
+    unlockRandom,
+    _onCoachFocus
   };
 })();

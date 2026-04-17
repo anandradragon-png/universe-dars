@@ -236,13 +236,26 @@ const HeroJourney = (function() {
         choicesArea.innerHTML = '<div class="hero-timer-block" id="hero-timer-block"><div style="text-align:center;padding:20px"><div style="font-size:14px;color:var(--text);margin-bottom:8px">🔥 Задание выполняется...</div><div id="hero-timer" style="font-size:32px;color:#FF4500;font-weight:bold;font-family:monospace"></div><p style="color:#888;font-size:12px;margin-top:8px">Вернись когда выполнишь задание</p></div></div>';
         startTimerCountdown(timerEnd);
       } else {
+        // Перемешивание карт — чтобы "карта силы" не всегда была под №1.
+        // Раньше порядок был фиксирован: тестеры заметили что они подсознательно
+        // запоминали позицию и теряли резонанс. Теперь на каждой сцене — новый порядок.
+        // Mapping (displayIdx → originalIdx) сохраняем в data-original-idx для
+        // корректной отправки на сервер.
+        const choices = scene?.choices || [];
+        const displayOrder = choices.map((_, i) => i);
+        for (let k = displayOrder.length - 1; k > 0; k--) {
+          const r = Math.floor(Math.random() * (k + 1));
+          [displayOrder[k], displayOrder[r]] = [displayOrder[r], displayOrder[k]];
+        }
         let btns = '';
-        (scene?.choices || []).forEach(function(c, i) {
+        displayOrder.forEach(function(origI, displayI) {
+          const c = choices[origI];
           const timerMin = c.timer_minutes || 0;
           const timerLabel = timerMin >= 1440 ? '1 день' : timerMin >= 60 ? Math.round(timerMin/60) + ' ч' : timerMin > 0 ? timerMin + ' мин' : '';
           const crystalReward = timerMin >= 1440 ? 25 : timerMin >= 60 ? 15 : timerMin > 0 ? 5 : 0;
           const labelEsc = (c.label || '').replace(/"/g, '&quot;');
-          btns += '<button class="hero-choice-btn" onclick="HeroJourney.choose(' + i + ')" data-label="' + labelEsc + '" data-timer="' + timerMin + '" data-reward="' + crystalReward + '"' + (loading ? ' disabled' : '') + '>';
+          // onclick передаёт displayI, а data-original-idx хранит реальный индекс для сервера
+          btns += '<button class="hero-choice-btn" onclick="HeroJourney.choose(' + displayI + ')" data-label="' + labelEsc + '" data-original-idx="' + origI + '" data-timer="' + timerMin + '" data-reward="' + crystalReward + '">';
           btns += '<span class="hero-choice-label hero-choice-hidden">' + (c.label || c) + '</span>';
           btns += '<span class="hero-choice-desc">' + (c.desc || c.label || '') + '</span>';
           if (isFireTrial) {
@@ -256,8 +269,16 @@ const HeroJourney = (function() {
         choicesArea.innerHTML = '<div class="hero-choices">' + btns + '</div>';
       }
     }
+    // Сбрасываем состояние выбора для новой сцены
+    _pendingChoiceIdx = null;
+    _choiceConfirmed = false;
     scrollToTop();
   }
+
+  // Состояние выбора внутри текущей сцены (для возможности менять выбор
+  // до нажатия "Дальше"). После подтверждения (overlay победы или переход) — блокируется.
+  let _pendingChoiceIdx = null;
+  let _choiceConfirmed = false;
 
   // ---- ШАГ 2: БИТВА С ТЕНЬЮ ----
 
@@ -392,6 +413,18 @@ const HeroJourney = (function() {
             </div>
           </div>
 
+          <!-- История пройденного пути: сворачиваемый блок с каждым шагом и выборами -->
+          <div id="hero-path-history" style="margin:16px 0;border:1px solid rgba(212,175,55,0.25);border-radius:12px;overflow:hidden">
+            <button id="hero-path-history-toggle" onclick="HeroJourney.togglePathHistory()"
+              style="width:100%;padding:14px;background:rgba(212,175,55,0.06);border:none;color:#D4AF37;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;display:flex;align-items:center;justify-content:space-between;text-align:left">
+              <span>📜 История пройденного пути</span>
+              <span id="hero-path-history-arrow" style="transition:transform 0.3s">▼</span>
+            </button>
+            <div id="hero-path-history-body" style="display:none;padding:14px;background:rgba(0,0,0,0.15);max-height:500px;overflow-y:auto">
+              <div style="text-align:center;color:var(--text-dim);font-size:12px;padding:20px">Загружаю историю...</div>
+            </div>
+          </div>
+
           <div style="margin:16px 0">
             ${STEPS.map(s => `
               <div style="display:flex;align-items:center;gap:8px;padding:6px 0;color:${completed.includes(s.num) ? '#4CAF50' : '#666'}">
@@ -407,7 +440,7 @@ const HeroJourney = (function() {
       </div>`;
     scrollToTop();
 
-    // Загружаем AI-анализ пути
+    // Загружаем AI-анализ пути + детальную историю шагов
     DarAPI.getJourneyAnalysis(darCode).then(data => {
       const area = document.getElementById('hero-analysis-area');
       if (area && data.analysis) {
@@ -420,6 +453,36 @@ const HeroJourney = (function() {
             <div style="font-size:14px;color:var(--text);line-height:1.7">${paragraphs}</div>
           </div>`;
       }
+      // Заполняем детальную историю: для каждого шага — выборы и ответы пользователя
+      const historyBody = document.getElementById('hero-path-history-body');
+      const pathLog = (data && data.path_log) || [];
+      if (historyBody) {
+        if (pathLog.length === 0) {
+          historyBody.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:20px">История пути пуста</div>';
+        } else {
+          historyBody.innerHTML = pathLog.map((entry, idx) => {
+            const stepInfo = STEPS.find(s => s.num === entry.step) || {};
+            let bodyHtml = '';
+            if (entry.choices && entry.choices.length) {
+              bodyHtml = '<div style="margin-top:8px"><div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Твои выборы:</div>' +
+                entry.choices.map((c, i) => '<div style="padding:6px 10px;background:rgba(212,175,55,0.08);border-left:3px solid #D4AF37;border-radius:6px;margin-bottom:4px;font-size:13px;color:var(--text)">Сцена ' + (i+1) + ': <em>' + escapeHtmlSimple(c) + '</em></div>').join('') +
+                '</div>';
+            }
+            if (entry.answers && entry.answers.length) {
+              bodyHtml = '<div style="margin-top:8px"><div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Твои ответы (раундов: ' + (entry.rounds || entry.answers.length) + ', результат: ' + (entry.result || '—') + '):</div>' +
+                entry.answers.map((a, i) => '<div style="padding:8px 10px;background:rgba(212,175,55,0.06);border-left:3px solid rgba(212,175,55,0.4);border-radius:6px;margin-bottom:4px;font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap">' + escapeHtmlSimple(a) + '</div>').join('') +
+                '</div>';
+            }
+            return '<div style="padding:14px 0;' + (idx > 0 ? 'border-top:1px solid rgba(212,175,55,0.15);' : '') + '">' +
+              '<div style="font-size:14px;color:#D4AF37;font-weight:600;display:flex;align-items:center;gap:8px">' +
+                '<span>' + (stepInfo.emoji || '✨') + '</span>' +
+                '<span>' + (stepInfo.name || entry.name || ('Шаг ' + entry.step)) + '</span>' +
+              '</div>' +
+              bodyHtml +
+            '</div>';
+          }).join('');
+        }
+      }
     }).catch(() => {
       const area = document.getElementById('hero-analysis-area');
       if (area) area.innerHTML = '<p style="color:#666;text-align:center;font-size:13px">Не удалось загрузить анализ пути</p>';
@@ -429,65 +492,107 @@ const HeroJourney = (function() {
   // ---- ДЕЙСТВИЯ ----
 
   function choose(index) {
+    // Если карта уже "раскрыта" (нажата "Дальше" и идёт переход) — больше менять нельзя
+    if (_choiceConfirmed) return;
     if (loading) return;
-    loading = true;
 
-    // Визуально отмечаем выбор и раскрываем название пути
+    // Сохраняем текущий выбор, но без блокировки кнопок —
+    // пользователь может поменять выбор, пока не нажал "Дальше".
+    _pendingChoiceIdx = index;
     const buttons = document.querySelectorAll('.hero-choice-btn');
+
     buttons.forEach((btn, i) => {
-      btn.disabled = true;
+      btn.classList.remove('hero-choice-selected', 'hero-choice-dimmed');
+      const labelEl = btn.querySelector('.hero-choice-label');
       if (i === index) {
         btn.classList.add('hero-choice-selected');
-        // Раскрываем скрытое название пути
-        const labelEl = btn.querySelector('.hero-choice-label');
-        if (labelEl) labelEl.classList.remove('hero-choice-hidden');
-        // Показываем "Твоя точка сборки..." — заметнее и крупнее,
-        // чтобы пользователь успел прочитать (было: мелкий серый текст внизу,
-        // который быстро пролистывался автопереходом).
-        const label = btn.getAttribute('data-label') || '';
-        const pathMsg = document.createElement('div');
-        pathMsg.className = 'hero-path-msg animate-fade-in';
-        pathMsg.style.cssText = 'margin-top:14px;padding:14px;border:1px solid rgba(212,175,55,0.35);border-radius:12px;background:rgba(212,175,55,0.06);text-align:center';
-        pathMsg.innerHTML = '<div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:6px">&#10022; ТВОЯ ТОЧКА СБОРКИ</div>' +
-          '<div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:6px">' + label + '</div>' +
-          '<div style="font-size:12px;color:#999;line-height:1.5">Это не хорошо и не плохо. Это то, где ты сейчас.</div>';
-        btn.parentElement.after(pathMsg);
+        if (labelEl) { labelEl.classList.remove('hero-choice-hidden'); labelEl.style.opacity = '1'; }
       } else {
         btn.classList.add('hero-choice-dimmed');
-        // Раскрываем названия и у остальных (чтобы видеть что было)
-        const labelEl = btn.querySelector('.hero-choice-label');
         if (labelEl) { labelEl.classList.remove('hero-choice-hidden'); labelEl.style.opacity = '0.5'; }
       }
     });
 
-    // Для Испытания Огнём - запускаем таймер
-    const step = currentJourney?.step || 1;
+    // Обновляем блок "ТВОЯ ТОЧКА СБОРКИ" — удаляем старый, создаём новый
+    const oldMsg = document.querySelector('.hero-path-msg');
+    if (oldMsg) oldMsg.remove();
+    const oldBtnWrap = document.getElementById('hero-continue-btn');
+    if (oldBtnWrap && oldBtnWrap.parentElement) oldBtnWrap.parentElement.remove();
+
     const selectedBtn = buttons[index];
+    const label = selectedBtn.getAttribute('data-label') || '';
+    const pathMsg = document.createElement('div');
+    pathMsg.className = 'hero-path-msg animate-fade-in';
+    pathMsg.style.cssText = 'margin-top:14px;padding:14px;border:1px solid rgba(212,175,55,0.35);border-radius:12px;background:rgba(212,175,55,0.06);text-align:center';
+    pathMsg.innerHTML = '<div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:6px">&#10022; ТВОЯ ТОЧКА СБОРКИ</div>' +
+      '<div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:6px">' + label + '</div>' +
+      '<div style="font-size:12px;color:#999;line-height:1.5">Можешь выбрать другую карту пока не нажал "Дальше"</div>';
+    selectedBtn.parentElement.after(pathMsg);
+
+    // Для Испытания Огнём — таймер: здесь выбор окончательный (нельзя отменить после старта таймера)
+    const step = currentJourney?.step || 1;
     const timerMinutes = parseInt(selectedBtn?.getAttribute('data-timer') || '0');
+    const originalIdx = parseInt(selectedBtn.getAttribute('data-original-idx') || String(index));
 
     if (step === 4 && timerMinutes > 0) {
-      // Сохраняем таймер на сервер и показываем обратный отсчёт
-      const timerEnd = Date.now() + timerMinutes * 60 * 1000;
-      DarAPI.journeyAction(currentDarCode, { choice_index: index, timer_end: timerEnd }).then(data => {
-        loading = false;
-        currentJourney = data.journey;
-        currentContent = data.journey?.step_state;
-        renderAwakening(); // Перерисует с таймером
-        startTimerCountdown(timerEnd);
-      }).catch(err => {
-        loading = false;
-        if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
-      });
+      // Таймер стартует при нажатии "Дальше"
+      _addContinueButtonFire(pathMsg, originalIdx, timerMinutes, buttons);
       return;
     }
 
-    // Фоном делаем API-запрос (чтобы не ждать сети после клика "Дальше"),
-    // но переход к следующей сцене/шагу показываем ТОЛЬКО после того, как
-    // пользователь сам нажмёт кнопку "Дальше →". Раньше был автопереход
-    // через 1.5 сек — люди не успевали прочитать "точку сборки" и сюжет.
+    // Обычная сцена — показываем кнопку "Дальше" и отправляем на сервер только по её нажатию
+    _addContinueButton(pathMsg, originalIdx, buttons);
+  }
+
+  // Кнопка "Дальше" для Огненного Испытания (запускает таймер и сервер)
+  function _addContinueButtonFire(pathMsg, originalIdx, timerMinutes, buttons) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'text-align:center;margin-top:14px';
+    wrap.innerHTML = '<button id="hero-continue-btn" class="hero-btn hero-btn-primary" style="min-width:180px">Дальше &rarr; (старт таймера)</button>';
+    pathMsg.after(wrap);
+    document.getElementById('hero-continue-btn').addEventListener('click', () => {
+      if (_choiceConfirmed) return;
+      _choiceConfirmed = true;
+      loading = true;
+      buttons.forEach(b => b.disabled = true);
+      const timerEnd = Date.now() + timerMinutes * 60 * 1000;
+      DarAPI.journeyAction(currentDarCode, { choice_index: originalIdx, timer_end: timerEnd }).then(data => {
+        loading = false;
+        currentJourney = data.journey;
+        currentContent = data.journey?.step_state;
+        renderAwakening();
+        startTimerCountdown(timerEnd);
+      }).catch(err => {
+        loading = false;
+        _choiceConfirmed = false;
+        buttons.forEach(b => b.disabled = false);
+        if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
+      });
+    });
+  }
+
+  // Кнопка "Дальше" для обычной сцены (отправка на сервер + overlay перехода)
+  function _addContinueButton(pathMsg, originalIdx, buttons) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'text-align:center;margin-top:14px';
+    wrap.innerHTML = '<button id="hero-continue-btn" class="hero-btn hero-btn-primary" style="min-width:180px">Дальше &rarr;</button>';
+    pathMsg.after(wrap);
+    const btn = document.getElementById('hero-continue-btn');
+    btn.addEventListener('click', () => {
+      if (_choiceConfirmed) return;
+      _choiceConfirmed = true;
+      loading = true;
+      buttons.forEach(b => b.disabled = true);
+      btn.disabled = true;
+      btn.textContent = 'Загрузка...';
+      _sendChoiceAndTransition(originalIdx, buttons, btn);
+    });
+  }
+
+  function _sendChoiceAndTransition(originalIdx, buttons, btn) {
     let serverData = null;
     let serverError = null;
-    let userReady = false;
+    let userReady = true; // пользователь уже нажал "Дальше" — сразу применяем когда придёт
 
     const applyTransition = () => {
       if (!serverData) return;
@@ -528,56 +633,17 @@ const HeroJourney = (function() {
       }
     };
 
-    // Добавляем кнопку "Дальше →" рядом с точкой сборки
-    const addContinueButton = () => {
-      if (document.getElementById('hero-continue-btn')) return;
-      const msg = document.querySelector('.hero-path-msg');
-      if (!msg) return;
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'text-align:center;margin-top:14px';
-      wrap.innerHTML = '<button id="hero-continue-btn" class="hero-btn hero-btn-primary" style="min-width:180px">Дальше &rarr;</button>';
-      msg.after(wrap);
-      const btn = document.getElementById('hero-continue-btn');
-      btn.addEventListener('click', () => {
-        userReady = true;
-        btn.disabled = true;
-        if (serverError) {
-          if (typeof showToast === 'function') showToast(serverError, 'error');
-          // Разблокируем выборы для повтора
-          buttons.forEach(b => b.disabled = false);
-          loading = false;
-          return;
-        }
-        if (serverData) {
-          applyTransition();
-        } else {
-          btn.textContent = 'Загрузка...';
-        }
-      });
-    };
-
-    // Показываем кнопку "Дальше" с небольшой задержкой чтобы юзер
-    // успел увидеть анимацию выбора и прочитать точку сборки
-    setTimeout(addContinueButton, 700);
-
-    DarAPI.journeyAction(currentDarCode, { choice_index: index }).then(data => {
+    DarAPI.journeyAction(currentDarCode, { choice_index: originalIdx }).then(data => {
       loading = false;
       serverData = data;
-      if (userReady) {
-        applyTransition();
-      } else {
-        const btn = document.getElementById('hero-continue-btn');
-        if (btn && btn.textContent === 'Загрузка...') btn.textContent = 'Дальше \u2192';
-      }
+      applyTransition();
     }).catch(err => {
       loading = false;
+      _choiceConfirmed = false;
       serverError = err.message || 'Ошибка';
-      const btn = document.getElementById('hero-continue-btn');
       if (btn) { btn.textContent = 'Попробовать снова'; btn.disabled = false; }
-      if (userReady) {
-        if (typeof showToast === 'function') showToast(serverError, 'error');
-        buttons.forEach(btn => btn.disabled = false);
-      }
+      buttons.forEach(b => b.disabled = false);
+      if (typeof showToast === 'function') showToast(serverError, 'error');
     });
   }
 
@@ -713,6 +779,21 @@ const HeroJourney = (function() {
     });
   }
 
+  // Вспомогательная: экранирование HTML
+  function escapeHtmlSimple(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // Сворачивание/разворачивание блока "История пройденного пути"
+  function togglePathHistory() {
+    const body = document.getElementById('hero-path-history-body');
+    const arrow = document.getElementById('hero-path-history-arrow');
+    if (!body) return;
+    const isHidden = body.style.display === 'none';
+    body.style.display = isHidden ? 'block' : 'none';
+    if (arrow) arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0)';
+  }
+
   return {
     render,
     choose,
@@ -720,6 +801,7 @@ const HeroJourney = (function() {
     retryBattle,
     restart,
     completeFireTrial,
+    togglePathHistory,
     close
   };
 })();

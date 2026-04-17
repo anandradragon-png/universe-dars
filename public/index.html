@@ -1096,32 +1096,41 @@
       tg.expand();
       tg.ready();
 
-      // Фикс нижней панели при сворачивании/разворачивании бота в Telegram:
-      // Android иногда меняет viewport после свёртки, и position:fixed у .nav-bar
-      // ломается. Принудительно переэкспандим + обновляем CSS-переменную.
+      // Фикс нижней панели при сворачивании/разворачивании бота в Telegram.
+      // Мерцание у тестеров было от агрессивного display:none/display:''.
+      // Теперь:
+      //   1) reflow через transform trick без скрытия элементов
+      //   2) debounce viewportChanged (срабатывает 1 раз за 200мс, не на каждый пиксель)
+      //   3) реальный reflow только если viewport реально изменился (>= 30px)
+      let _lastVh = 0;
+      let _resyncTimer = null;
       function resyncViewport() {
-        try {
-          if (tg.expand) tg.expand();
-          const vh = tg.viewportStableHeight || tg.viewportHeight || window.innerHeight;
-          if (vh && vh > 0) {
+        clearTimeout(_resyncTimer);
+        _resyncTimer = setTimeout(() => {
+          try {
+            if (tg.expand) tg.expand();
+            const vh = tg.viewportStableHeight || tg.viewportHeight || window.innerHeight;
+            if (!vh || vh <= 0) return;
+            const delta = Math.abs(vh - _lastVh);
             document.documentElement.style.setProperty('--tg-viewport-height', vh + 'px');
-          }
-          // Переотрисовка nav-bar + #app + активный таб: после свёртки/разворота приложения
-          // у тестеров половина экрана становится белой, пока не переключить вкладку.
-          // Форсируем reflow контейнеров чтобы Android-вебвью перерисовал их.
-          ['.nav-bar', '#app', '.tab.active'].forEach(sel => {
-            const el = document.querySelector(sel);
-            if (!el) return;
-            const prev = el.style.display;
-            el.style.display = 'none';
-            void el.offsetHeight; // force reflow
-            el.style.display = prev || '';
-          });
-          // Если на экране Книга — перерисуем её (динамический контент внутри)
-          if (typeof BookReader !== 'undefined' && document.getElementById('tab-book')?.classList.contains('active')) {
-            try { BookReader.render(); } catch (e) {}
-          }
-        } catch(e) { console.warn('resyncViewport failed:', e); }
+
+            // Делаем reflow только если высота реально изменилась
+            // (меньше 30px — это уровень анимации клавиатуры, не надо трогать DOM)
+            if (delta >= 30) {
+              _lastVh = vh;
+              // Тихий reflow через transform — не вызывает мерцания как display:none
+              const nav = document.querySelector('.nav-bar');
+              if (nav) {
+                nav.style.transform = 'translateZ(0)';
+                requestAnimationFrame(() => { nav.style.transform = ''; });
+              }
+              // Книгу перерисовываем ТОЛЬКО на большое изменение viewport
+              if (delta >= 100 && typeof BookReader !== 'undefined' && document.getElementById('tab-book')?.classList.contains('active')) {
+                try { BookReader.render(); } catch (e) {}
+              }
+            }
+          } catch(e) { console.warn('resyncViewport failed:', e); }
+        }, 200);
       }
 
       try {
@@ -1285,10 +1294,11 @@
         <div style="margin-bottom:8px"><span class="profile-level-badge ${lv.css}">${lv.icon} ${lv.name}</span></div>
         <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${lv.desc}</div>
         ${level === 'basic' ? `<div style="margin-top:10px"><button onclick="buyBookAccess()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11088; Полный доступ — 500 ⭐ (~$10)</button></div>` : ''}
-        <!-- Кнопка "Поддержать проект" для ВСЕХ уровней (тестеры с Хранитель её не видели раньше) -->
-        <div style="margin-top:12px;padding:12px;background:linear-gradient(135deg,rgba(233,30,99,0.08),rgba(156,39,176,0.06));border:1px solid rgba(233,30,99,0.3);border-radius:12px;text-align:center">
-          <div style="font-size:12px;color:#e91e63;margin-bottom:8px;font-weight:600">💜 Нравится проект?</div>
-          <button onclick="openDonationModal()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#e91e63,#9c27b0);color:#fff;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600">Поддержать проект</button>
+        <!-- Кнопка "Поддержать проект" — доступна всем уровням без исключений -->
+        <div style="margin-top:14px;padding:14px;background:linear-gradient(135deg,rgba(233,30,99,0.1),rgba(156,39,176,0.08));border:1px solid rgba(233,30,99,0.4);border-radius:14px;text-align:center;box-shadow:0 0 14px rgba(233,30,99,0.12)">
+          <div style="font-size:13px;color:#e91e63;margin-bottom:10px;font-weight:600">💜 Нравится проект?</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">Твоя поддержка помогает развивать YupDar — новые дары, фичи и контент</div>
+          <button onclick="openDonationModal()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#e91e63,#9c27b0);color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;letter-spacing:0.5px;box-shadow:0 2px 10px rgba(233,30,99,0.25)">Поддержать проект</button>
         </div>`;
 
       // Прогресс из localStorage

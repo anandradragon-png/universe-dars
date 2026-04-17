@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Легенды Атлантиды — колода Юпиков (прототип)</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --card-bg: #111;
+    --gold: #D4AF37;
+    --border: rgba(212,175,55,0.35);
+    --text: #f5f5f5;
+    --text-dim: rgba(245,245,245,0.6);
+    --text-muted: rgba(245,245,245,0.4);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #080808; color: var(--text); font-family: 'Manrope', -apple-system, sans-serif; }
+  body { min-height: 100vh; padding: 16px; padding-bottom: 40px; max-width: 560px; margin: 0 auto; }
+
+  .prototype-banner {
+    background: linear-gradient(135deg, rgba(255,152,0,0.15), rgba(212,175,55,0.1));
+    border: 1px solid rgba(255,152,0,0.4);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: #ff9800;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+  h1 { font-size: 18px; color: var(--gold); letter-spacing: 2px; text-align: center; margin: 0 0 4px; }
+  .subtitle { font-size: 11px; color: var(--text-dim); text-align: center; margin-bottom: 14px; }
+
+  /* Игроки */
+  .opponent-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 12px; background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 6px;
+  }
+  .opponent-row .name { font-size: 12px; }
+  .opponent-row .count { font-size: 11px; color: var(--text-dim); }
+
+  /* Игровое поле */
+  .battlefield {
+    padding: 10px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.4), rgba(212,175,55,0.04));
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+  .battlefield-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--gold); letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 700;
+  }
+  .bf-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 8px; margin-bottom: 4px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+  }
+  .bf-row.winner { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.4); }
+  .bf-row .label { font-size: 11px; min-width: 95px; }
+  .bf-cards { flex: 1; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 70px; }
+
+  /* Физическая карта (рубашка) */
+  .card-back {
+    width: 52px; aspect-ratio: 0.7;
+    background: linear-gradient(135deg, #0a0a2e 0%, #1a0a3e 100%);
+    border: 1.5px solid var(--gold); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; padding: 3px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 0 10px rgba(212,175,55,0.1);
+    background-image: url('images/caduceus-gold.png');
+    background-size: 70%; background-repeat: no-repeat; background-position: center;
+  }
+
+  /* Физическая карта (лицо) — показывает реальный JPG юпика */
+  .phys-card {
+    position: relative;
+    width: 70px; aspect-ratio: 0.7;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid var(--gold);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 12px rgba(212,175,55,0.2);
+    background: #000;
+    flex-shrink: 0;
+  }
+  .phys-card img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .phys-card .badge {
+    position: absolute; font-size: 9px; font-weight: 900; line-height: 1;
+    padding: 2px 4px; border-radius: 4px;
+    background: rgba(0,0,0,0.85); border: 1px solid currentColor;
+    text-shadow: 0 0 4px currentColor;
+  }
+  .phys-card .b-might { top: 3px; left: 3px; color: #ef4444; font-size: 10px; }
+  .phys-card .b-magic { top: 3px; right: 3px; color: #c084fc; }
+  .phys-card .b-life  { bottom: 18px; left: 3px; color: #4ade80; }
+  .phys-card .b-power { bottom: 18px; right: 3px; color: #f59e0b; }
+  .phys-card .b-highlight { background: currentColor !important; color: #fff !important; transform: scale(1.2); z-index: 2; box-shadow: 0 0 6px currentColor; }
+  .phys-card .name-strip {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.9));
+    padding: 10px 4px 4px;
+    text-align: center;
+    color: var(--gold);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .phys-card.big {
+    width: 110px;
+  }
+  .phys-card.big .badge { font-size: 12px; padding: 3px 6px; }
+  .phys-card.big .name-strip { font-size: 11px; padding: 14px 4px 6px; }
+
+  .phys-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  .phys-card.clickable:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(212,175,55,0.4); }
+  .phys-card.selected { transform: translateY(-8px); box-shadow: 0 8px 25px rgba(212,175,55,0.7); border-color: #E8C84A; }
+  .phys-card.dim { opacity: 0.5; }
+
+  /* Выбор параметра */
+  .param-chooser {
+    padding: 10px; background: rgba(212,175,55,0.05);
+    border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px;
+  }
+  .param-title { font-size: 11px; color: var(--gold); text-align: center; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .param-row { display: flex; gap: 6px; }
+  .param-btn {
+    flex: 1; padding: 10px 4px; border-radius: 8px; cursor: pointer;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid currentColor;
+    font-family: inherit; font-weight: 700; font-size: 11px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .param-btn .ico { font-size: 18px; }
+  .p-magic { color: #c084fc; }
+  .p-life  { color: #4ade80; }
+  .p-power { color: #f59e0b; }
+  .p-might { color: #ef4444; }
+
+  /* Кнопки */
+  .btn {
+    display: inline-block; padding: 12px 24px; border: none; border-radius: 10px;
+    font-family: inherit; font-weight: 700; cursor: pointer; font-size: 14px;
+    letter-spacing: 1px; transition: transform 0.15s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.primary { background: linear-gradient(135deg, #E8C84A, #D4AF37); color: #080808; box-shadow: 0 0 14px rgba(212,175,55,0.35); }
+  .btn.primary.pulse { animation: pulse 1.5s ease-in-out infinite; }
+  .btn.success { background: linear-gradient(135deg, #4ade80, #22c55e); color: #080808; }
+  .btn.secondary { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-dim); font-weight: 500; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 14px rgba(212,175,55,0.35); } 50% { box-shadow: 0 0 24px rgba(212,175,55,0.8); } }
+
+  /* Моя рука */
+  .my-hand {
+    padding: 10px; background: rgba(212,175,55,0.04);
+    border: 1px solid var(--border); border-radius: 12px;
+  }
+  .hand-title { font-size: 12px; color: var(--gold); font-weight: 700; margin-bottom: 8px; }
+  .hand-cards { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; }
+
+  .log {
+    margin-top: 10px; padding: 10px;
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+  }
+  .log-title { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 4px; }
+  .log-item { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+
+  .finale {
+    position: relative;
+    padding: 30px 16px; text-align: center;
+    background: radial-gradient(ellipse at center, rgba(212,175,55,0.2), rgba(10,10,10,0.95));
+    border: 2px solid var(--gold); border-radius: 18px;
+    margin-bottom: 12px; overflow: hidden;
+    box-shadow: 0 0 30px rgba(212,175,55,0.4);
+  }
+  .finale .title { font-size: 24px; font-weight: 900; letter-spacing: 3px; margin: 8px 0; text-shadow: 0 0 20px currentColor; }
+
+  .top-bar {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+  }
+  .app-link {
+    font-size: 10px; color: var(--text-dim); text-decoration: none;
+    padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="prototype-banner">⚡ ПРОТОТИП — не финальная версия. Посмотри и скажи нравится ли.</div>
+
+<div class="top-bar">
+  <a href="/" class="app-link">← В приложение</a>
+  <div style="font-size:10px;color:var(--text-dim)" id="deck-count">🎴 64</div>
+</div>
+
+<h1>🏛 Легенды Атлантиды</h1>
+<div class="subtitle">Колода с юпик-картами · прототип</div>
+
+<div id="opponents"></div>
+<div id="battlefield"></div>
+<div id="top-info"></div>
+<div id="my-hand-container"></div>
+<div id="log-container"></div>
+
+<script>
+// ===== ДАННЫЕ =====
+const DARS = {"4-6-1":"ЖАР","3-7-1":"И-СТОК","2-8-1":"ЛА-ДА","8-2-1":"ЛЕ-ЛИ","7-3-1":"ПРИ-ТОК","6-4-1":"СВЕ-ТО","5-5-1":"ТЕ-ЛО","1-1-2":"БРА-МА","3-8-2":"ГО-РА","4-7-2":"ГУ-НА","8-3-2":"МЕ-РУ","7-4-2":"РО-ДА","5-6-2":"СО-НА","6-5-2":"У-МА","8-4-3":"АНАН-Д-РА","2-1-3":"ВИ-РА","1-2-3":"ЛИ-РА","7-5-3":"МА-ТА","5-7-3":"МАТ-КА","6-6-3":"ПА-РА","4-8-3":"СИ-ЛА","1-3-4":"АР-КА","6-7-4":"ВОС-ХА","2-2-4":"ЗИ-МА","3-1-4":"ЛА-НА","7-6-4":"МА-АТ","5-8-4":"РО-СА","8-5-4":"СЕ-МА","8-6-5":"А-МА","2-3-5":"АР-МА","7-7-5":"ЖИ-ВА","1-4-5":"ЖИ-МА","3-2-5":"РА-МА","4-1-5":"РИ-МА","6-8-5":"ТРО-НА","1-5-6":"КУ-НА","5-1-6":"ЛУ-НА","8-7-6":"СО-ХА","7-8-6":"ТА-РА","2-4-6":"ТО-ТА","3-3-6":"ТУ-РА","4-2-6":"Э-МА","4-3-7":"АР-ХЕЙ","2-5-7":"БРА-Х-МА","3-4-7":"ГРАД","1-6-7":"З-МАН","6-1-7":"МА-НА","5-2-7":"НИ-РА","8-8-7":"ПРА-НА","6-2-8":"БИ-МА","1-7-8":"БИ-РА","5-3-8":"ЗЛА-ТО","3-5-8":"КО-ДА","4-4-8":"ЛИ-КО","7-1-8":"МИ-ДА","2-6-8":"СО-ЛАР","3-6-9":"ИРИЙ","5-4-9":"МИ-РА","1-8-9":"РАЙ","8-1-9":"РОЙ","7-2-9":"ТО-РА","6-3-9":"ТОТ","2-7-9":"ФА-НА","4-5-9":"ШИ-ВА"};
+
+const PLAYERS = {
+  user: { name: 'Ты', icon: '🧙' },
+  rival: { name: 'Противник', icon: '🧝' },
+  forces: { name: 'Высшие Силы', icon: '✨' }
+};
+
+const PARAM_LABELS = {
+  magic:    { ru: 'Магия',    icon: '🔮', color: '#c084fc', cls: 'p-magic' },
+  life:     { ru: 'Жизнь',    icon: '💚', color: '#4ade80', cls: 'p-life' },
+  power:    { ru: 'Сила',     icon: '⚡', color: '#f59e0b', cls: 'p-power' },
+  mightSum: { ru: 'Мощность', icon: '💥', color: '#ef4444', cls: 'p-might' }
+};
+
+// ===== СОСТОЯНИЕ =====
+let state = null;
+
+function resetState() {
+  state = {
+    deck: [],
+    hands: { user: [], rival: [], forces: [] },
+    played: { user: [], rival: [], forces: [] },
+    phase: 'setup',
+    currentParam: null,
+    tieParticipants: [],
+    log: [],
+    _pendingWinner: null,
+    _pendingTie: false,
+    _pendingTieParticipants: null,
+    exchangeUsed: { user: false }
+  };
+}
+
+function buildDeck() {
+  return Object.entries(DARS).map(([code, name]) => {
+    const [ma, zhi, kun] = code.split('-').map(Number);
+    return { code, name, magic: ma, life: zhi, power: kun, mightSum: ma + zhi + kun };
+  });
+}
+
+function shuffle(a) {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
+
+function drawN(n) {
+  const out = [];
+  for (let i = 0; i < n && state.deck.length; i++) out.push(state.deck.pop());
+  return out;
+}
+
+function sumParam(cards, p) { return cards.reduce((s, c) => s + (c[p] || 0), 0); }
+function needCardsPerPlayer() { return state.currentParam === 'mightSum' ? 3 : 1; }
+
+// ===== ИГРА =====
+function start() {
+  resetState();
+  state.deck = shuffle(buildDeck());
+  state.hands.user = drawN(4);
+  state.hands.rival = drawN(4);
+  state.hands.forces = drawN(4);
+  state.phase = 'choose_param';
+  state.log.push('🎴 Партия началась. У каждого по 4 карты.');
+  render();
+}
+
+function chooseParam(p) {
+  if (state.phase !== 'choose_param') return;
+  state.currentParam = p;
+  state.played = { user: [], rival: [], forces: [] };
+  state.phase = 'lay_cards';
+  state.log.push(`Выбран параметр: ${PARAM_LABELS[p].ru}`);
+  autofillFromDeck('user');
+  if (state.played.user.length >= needCardsPerPlayer()) {
+    answerRival(); answerForces();
+    state.phase = 'awaiting_reveal';
+  }
+  render();
+}
+
+function autofillFromDeck(id) {
+  const need = needCardsPerPlayer();
+  const has = state.hands[id].length;
+  const played = state.played[id].length;
+  const still = need - played;
+  const fromHand = Math.min(still, has);
+  const fromDeck = Math.max(0, still - fromHand);
+  for (let i = 0; i < fromDeck && state.deck.length; i++) {
+    state.played[id].push(state.deck.pop());
+  }
+  if (fromDeck > 0) state.log.push(`🎴 Высшие дают ${PLAYERS[id].name} ${fromDeck} карт из колоды`);
+}
+
+function layCard(idx) {
+  if (state.phase !== 'lay_cards') return;
+  const need = needCardsPerPlayer();
+  if (state.played.user.length >= need) return;
+  const card = state.hands.user[idx];
+  if (!card) return;
+  state.hands.user.splice(idx, 1);
+  state.played.user.push(card);
+  if (state.played.user.length < need) { render(); return; }
+  answerRival(); answerForces();
+  state.phase = 'awaiting_reveal';
+  render();
+}
+
+function rivalChoose() {
+  const hand = state.hands.rival;
+  if (!hand.length) return null;
+  const sorted = hand.slice().sort((a, b) => b[state.currentParam] - a[state.currentParam]);
+  if (state.currentParam === 'mightSum') return sorted[0];
+  if (sorted.length === 1) return sorted[0];
+  return Math.random() < 0.6 ? sorted[0] : sorted[1];
+}
+
+function answerRival() {
+  const need = needCardsPerPlayer();
+  const avail = Math.min(need, state.hands.rival.length);
+  for (let i = 0; i < avail; i++) {
+    const c = rivalChoose();
+    if (!c) break;
+    const ix = state.hands.rival.indexOf(c);
+    if (ix >= 0) state.hands.rival.splice(ix, 1);
+    state.played.rival.push(c);
+  }
+  autofillFromDeck('rival');
+}
+
+function answerForces() {
+  const need = needCardsPerPlayer();
+  const shuf = shuffle(state.hands.forces);
+  const avail = Math.min(need, shuf.length);
+  for (let i = 0; i < avail; i++) {
+    const c = shuf[i];
+    const ix = state.hands.forces.indexOf(c);
+    if (ix >= 0) state.hands.forces.splice(ix, 1);
+    state.played.forces.push(c);
+  }
+  autofillFromDeck('forces');
+}
+
+function flipCards() {
+  if (state.phase !== 'awaiting_reveal') return;
+  reveal();
+}
+
+function reveal() {
+  state.phase = 'reveal_result';
+  const p = state.currentParam;
+  const parts = state.tieParticipants && state.tieParticipants.length
+    ? state.tieParticipants.slice() : ['user', 'rival', 'forces'];
+  const sums = { user: sumParam(state.played.user, p), rival: sumParam(state.played.rival, p), forces: sumParam(state.played.forces, p) };
+  const relevant = parts.map(id => sums[id]);
+  const max = Math.max(...relevant);
+  const winners = parts.filter(id => sums[id] === max);
+
+  if (winners.length === 1) {
+    state._pendingWinner = winners[0];
+    state._pendingTie = false;
+    state._pendingTieParticipants = null;
+    state.log.push(`${PLAYERS[winners[0]].name}: ${PARAM_LABELS[p].ru}=${sums[winners[0]]}`);
+  } else {
+    state._pendingWinner = null;
+    state._pendingTie = true;
+    state._pendingTieParticipants = winners;
+    state.log.push('⚖️ Спор: ' + winners.map(w => PLAYERS[w].name).join(' + '));
+  }
+  render();
+}
+
+function continueAfterReveal() {
+  if (state.phase !== 'reveal_result') return;
+  if (state._pendingTie) {
+    state.phase = 'tiebreaker';
+    state.tieParticipants = state._pendingTieParticipants || [];
+    state._pendingTie = false;
+    render();
+    return;
+  }
+  const w = state._pendingWinner;
+  if (w) {
+    const all = [...state.played.user, ...state.played.rival, ...state.played.forces];
+    state.hands[w].push(...all);
+    state.log.push(`${PLAYERS[w].name} забирает ${all.length} карт`);
+    state.played = { user: [], rival: [], forces: [] };
+    state.tieParticipants = [];
+    checkEnd();
+    if (state.phase !== 'ended') {
+      replenishTo4();
+      state.phase = 'choose_param';
+    }
+    render();
+  }
+}
+
+function replenishTo4() {
+  ['user', 'rival', 'forces'].forEach(id => {
+    while (state.hands[id].length < 4 && state.deck.length) {
+      state.hands[id].push(state.deck.pop());
+    }
+  });
+}
+
+function checkEnd() {
+  const h = state.hands;
+  const total = h.user.length + h.rival.length + h.forces.length;
+  const deckEmpty = state.deck.length === 0;
+  const someEmpty = h.user.length === 0 || h.rival.length === 0 || h.forces.length === 0;
+  if (total === 0 || (deckEmpty && someEmpty) || (deckEmpty && total < 3)) state.phase = 'ended';
+}
+
+function tiebreakerLay(idx) {
+  if (state.phase !== 'tiebreaker') return;
+  if (!state.tieParticipants.includes('user')) return;
+  const c = state.hands.user[idx];
+  if (!c) return;
+  state.hands.user.splice(idx, 1);
+  state.played.user.push(c);
+  tieAnswer();
+}
+
+function watchTie() {
+  if (state.phase !== 'tiebreaker') return;
+  if (state.tieParticipants.includes('user')) return;
+  tieAnswer();
+}
+
+function tieAnswer() {
+  if (state.tieParticipants.includes('rival')) {
+    if (!state.hands.rival.length && state.deck.length) state.hands.rival.push(state.deck.pop());
+    if (state.hands.rival.length) {
+      const c = rivalChoose();
+      if (c) { state.hands.rival.splice(state.hands.rival.indexOf(c), 1); state.played.rival.push(c); }
+    }
+  }
+  if (state.tieParticipants.includes('forces')) {
+    if (!state.hands.forces.length && state.deck.length) state.hands.forces.push(state.deck.pop());
+    if (state.hands.forces.length) {
+      const c = shuffle(state.hands.forces)[0];
+      state.hands.forces.splice(state.hands.forces.indexOf(c), 1);
+      state.played.forces.push(c);
+    }
+  }
+  state.phase = 'awaiting_reveal';
+  render();
+}
+
+// ===== РЕНДЕР =====
+function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function cardImage(card) {
+  // Используем JPG из public/cards/{code}.jpg — это реальные арт-карты с юпиками
+  return `cards/${card.code}.jpg`;
+}
+
+function renderCard(card, opts) {
+  opts = opts || {};
+  const hl = opts.highlight || '';
+  const size = opts.size || '';
+  const badge = (param, val) => {
+    const lbl = PARAM_LABELS[param];
+    const hlCls = hl === param ? ' b-highlight' : '';
+    return `<div class="badge b-${param === 'mightSum' ? 'might' : param}${hlCls}">${lbl.icon}${val}</div>`;
+  };
+  const clickable = opts.onClick ? ' clickable' : '';
+  const dim = opts.dim ? ' dim' : '';
+  return `<div class="phys-card${size ? ' ' + size : ''}${clickable}${dim}" ${opts.onClick ? 'onclick="' + opts.onClick + '"' : ''}>
+    <img src="${cardImage(card)}" onerror="this.style.background='linear-gradient(135deg,#0a0a2e,#1a0a3e)';this.removeAttribute('src')" alt="${escapeHtml(card.name)}">
+    ${badge('mightSum', card.mightSum)}
+    ${badge('magic', card.magic)}
+    ${badge('life', card.life)}
+    ${badge('power', card.power)}
+    <div class="name-strip">${escapeHtml(card.name)}</div>
+  </div>`;
+}
+
+function renderCardBack() {
+  return `<div class="card-back"></div>`;
+}
+
+function renderOpponents() {
+  return Object.entries(PLAYERS).filter(([id]) => id !== 'user').map(([id, p]) => {
+    return `<div class="opponent-row"><div class="name">${p.icon} <b>${p.name}</b></div><div class="count">🎴 ${state.hands[id].length}</div></div>`;
+  }).join('');
+}
+
+function renderBattlefield() {
+  const isAw = state.phase === 'awaiting_reveal';
+  const isRes = state.phase === 'reveal_result';
+  const isTie = state.phase === 'tiebreaker';
+  const any = state.played.user.length + state.played.rival.length + state.played.forces.length;
+  if (!any && !isTie) return '';
+
+  const p = state.currentParam;
+  const pLbl = p ? PARAM_LABELS[p] : null;
+
+  const sums = { user: sumParam(state.played.user, p), rival: sumParam(state.played.rival, p), forces: sumParam(state.played.forces, p) };
+  const parts = isRes && state.tieParticipants.length ? state.tieParticipants : ['user', 'rival', 'forces'];
+  const relevant = parts.map(id => sums[id]);
+  const maxSum = isRes ? Math.max(...relevant, 0) : 0;
+
+  let winnerLabel = '';
+  if (isRes && p) {
+    const winners = parts.filter(id => sums[id] === maxSum);
+    if (winners.length === 1) {
+      const w = winners[0];
+      winnerLabel = w === 'user' ? 'Ты побеждаешь!'
+        : w === 'rival' ? 'Противник побеждает!'
+        : 'Высшие побеждают!';
+    } else {
+      winnerLabel = '⚖️ Ничья';
+    }
+  }
+
+  const renderStack = (cards) => {
+    if (!cards.length) return '<div style="font-size:9px;color:var(--text-muted);opacity:0.5;padding:20px 0">—</div>';
+    if (isAw) return cards.map(() => renderCardBack()).join('');
+    const sorted = p ? cards.slice().sort((a, b) => (b[p] || 0) - (a[p] || 0)) : cards;
+    return sorted.map(c => renderCard(c, { highlight: p })).join('');
+  };
+
+  const row = (icon, label, id, cards) => {
+    const sum = sums[id];
+    const isWinner = isRes && sum === maxSum && parts.includes(id);
+    const sumShow = isRes && p ? ` · ${pLbl.icon}${sum}` : '';
+    const star = isWinner ? ' <span style="color:#4ade80;font-weight:900">★</span>' : '';
+    const cls = isWinner ? 'bf-row winner' : 'bf-row';
+    return `<div class="${cls}">
+      <div class="label">${icon} ${label}${sumShow}${star}</div>
+      <div class="bf-cards">${cards}</div>
+    </div>`;
+  };
+
+  let actionBtn = '';
+  if (isAw) actionBtn = `<button class="btn primary pulse" style="width:100%;margin-top:8px" onclick="flipCards()">🔄 ПЕРЕВЕРНУТЬ КАРТЫ</button>`;
+  if (isRes) actionBtn = `<button class="btn success" style="width:100%;margin-top:8px" onclick="continueAfterReveal()">Далее →</button>`;
+
+  return `<div class="battlefield">
+    <div class="battlefield-header">
+      <span>⚔️ ПОЛЕ</span>
+      ${pLbl ? `<span style="color:${pLbl.color}">${pLbl.icon} ${pLbl.ru}</span>` : ''}
+      ${winnerLabel ? `<span style="color:#4ade80">${winnerLabel}</span>` : ''}
+    </div>
+    ${row('🧝', 'Противник', 'rival', renderStack(state.played.rival))}
+    ${row('✨', 'Высшие', 'forces', renderStack(state.played.forces))}
+    ${row('🧙', 'Ты', 'user', renderStack(state.played.user))}
+    ${actionBtn}
+  </div>`;
+}
+
+function renderTopInfo() {
+  const p = state.phase;
+  if (p === 'ended') return renderEnd();
+  if (p === 'choose_param') return renderChooseParam();
+  if (p === 'lay_cards') return renderLay();
+  if (p === 'tiebreaker') return renderTieInfo();
+  return '';
+}
+
+function renderChooseParam() {
+  const params = ['magic','life','power','mightSum'];
+  return `<div class="param-chooser">
+    <div class="param-title">🎴 ВЫБЕРИ ПАРАМЕТР</div>
+    <div class="param-row">
+      ${params.map(p => {
+        const lbl = PARAM_LABELS[p];
+        return `<button class="param-btn ${lbl.cls}" onclick="chooseParam('${p}')">
+          <span class="ico">${lbl.icon}</span>
+          <span>${lbl.ru}${p === 'mightSum' ? ' ×3' : ''}</span>
+        </button>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function renderLay() {
+  const need = needCardsPerPlayer();
+  const laid = state.played.user.length;
+  const pLbl = PARAM_LABELS[state.currentParam];
+  return `<div style="padding:10px;background:rgba(212,175,55,0.05);border:1px solid var(--border);border-radius:10px;text-align:center;margin-bottom:10px">
+    <div style="font-size:11px;color:var(--text-dim)">Параметр сражения</div>
+    <div style="font-size:16px;color:${pLbl.color};font-weight:800;letter-spacing:2px;margin-top:2px">${pLbl.icon} ${pLbl.ru.toUpperCase()}</div>
+    <div style="font-size:11px;color:var(--text);margin-top:4px">Выложи карту ${laid}/${need}</div>
+  </div>`;
+}
+
+function renderTieInfo() {
+  const parts = state.tieParticipants;
+  const userIn = parts.includes('user');
+  const names = parts.map(id => PLAYERS[id].icon + ' ' + PLAYERS[id].name).join(' ⚔ ');
+  const pLbl = PARAM_LABELS[state.currentParam];
+  if (userIn) {
+    return `<div style="padding:10px;background:rgba(255,152,0,0.08);border:1px solid rgba(255,152,0,0.4);border-radius:10px;text-align:center;margin-bottom:10px">
+      <div style="font-size:12px;color:#ff9800;font-weight:700">⚖️ СПОР: ${names}</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:3px">Выложи ещё карту (${pLbl.icon} ${pLbl.ru})</div>
+    </div>`;
+  }
+  return `<div style="padding:10px;background:rgba(156,39,176,0.08);border:1px solid rgba(156,39,176,0.4);border-radius:10px;text-align:center;margin-bottom:10px">
+    <div style="font-size:12px;color:#c084fc;font-weight:700;margin-bottom:5px">⚖️ СПОР БЕЗ ТЕБЯ: ${names}</div>
+    <button class="btn" style="background:linear-gradient(135deg,#c084fc,#9c27b0);color:#fff;padding:8px 18px;font-size:12px" onclick="watchTie()">👁 Смотреть спор →</button>
+  </div>`;
+}
+
+function renderEnd() {
+  const counts = { user: state.hands.user.length, rival: state.hands.rival.length, forces: state.hands.forces.length };
+  const max = Math.max(counts.user, counts.rival, counts.forces);
+  const winners = Object.keys(counts).filter(k => counts[k] === max);
+  const isTie = winners.length > 1;
+
+  let titleText, titleColor, emoji, subtitle;
+  if (!isTie && winners[0] === 'user') { titleText = 'ТЫ ПОБЕДИЛ(А)!'; titleColor = '#4ade80'; emoji = '🎉'; subtitle = 'Поздравляю, маг Атлантиды! 🏆'; }
+  else if (isTie) { titleText = 'НИЧЬЯ'; titleColor = '#D4AF37'; emoji = '⚖️'; subtitle = 'Силы равны.'; }
+  else { const w = winners[0]; titleText = PLAYERS[w].name.toUpperCase() + ' ПОБЕДИЛ' + (w === 'forces' ? 'И' : ''); titleColor = '#ff6b6b'; emoji = '💫'; subtitle = 'В следующий раз! Удачи.'; }
+
+  let confetti = '';
+  for (let i = 0; i < 30; i++) {
+    const colors = ['#E8C84A','#4ade80','#ff6b6b','#c084fc','#67e8f9'];
+    const color = colors[Math.floor(Math.random()*colors.length)];
+    confetti += `<div style="position:absolute;left:${Math.random()*100}%;top:-10px;width:${6+Math.random()*6}px;height:${6+Math.random()*6}px;background:${color};border-radius:50%;animation:fall ${2+Math.random()*2}s ease-in ${Math.random()*2}s infinite;opacity:0.9"></div>`;
+  }
+  return `<div class="finale">
+    <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">${confetti}</div>
+    <style>@keyframes fall { 0% { transform: translateY(0) rotate(0); opacity:1 } 100% { transform: translateY(400px) rotate(720deg); opacity:0 } }</style>
+    <div style="font-size:60px">${emoji}</div>
+    <div class="title" style="color:${titleColor}">${titleText}</div>
+    <div style="font-size:13px;color:var(--text);margin-bottom:16px;position:relative;z-index:2;font-style:italic">${subtitle}</div>
+    <div style="display:flex;justify-content:space-around;margin:12px 0;padding:12px;background:rgba(0,0,0,0.4);border-radius:12px;position:relative;z-index:2">
+      ${['user','rival','forces'].map(id => {
+        const p = PLAYERS[id];
+        const is = counts[id] === max;
+        return `<div style="text-align:center;color:${is ? (id==='user'?'#4ade80':'#ff6b6b') : 'var(--text-dim)'}">
+          <div style="font-size:24px">${p.icon}</div>
+          <div style="font-size:10px">${p.name.toUpperCase()}</div>
+          <div style="font-size:18px;font-weight:900">${counts[id]}</div>
+          ${is ? '<div style="font-size:9px;font-weight:700">★ топ</div>' : ''}
+        </div>`;
+      }).join('')}
+    </div>
+    <button class="btn primary" onclick="start()">🔄 СЫГРАТЬ ЕЩЁ</button>
+  </div>`;
+}
+
+function renderMyHand() {
+  const h = state.hands.user;
+  if (!h.length) return '<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">У тебя нет карт на руках</div>';
+  const isLay = state.phase === 'lay_cards';
+  const isTie = state.phase === 'tiebreaker';
+  const hl = (isLay || isTie || state.phase === 'reveal_result' || state.phase === 'awaiting_reveal') ? state.currentParam : null;
+  const userInTie = isTie && state.tieParticipants.includes('user');
+  const dim = isTie && !userInTie;
+
+  const indexed = h.map((c, i) => ({ c, i }));
+  if (hl) indexed.sort((a, b) => (b.c[hl] || 0) - (a.c[hl] || 0));
+
+  return `<div class="my-hand">
+    <div class="hand-title">🧙 Твои карты (${h.length})${hl ? ' · сорт. по ' + PARAM_LABELS[hl].icon : ''}</div>
+    <div class="hand-cards" style="opacity:${dim ? 0.5 : 1}">
+      ${indexed.map(({ c, i }) => {
+        const click = isLay ? `layCard(${i})` : (isTie && userInTie ? `tiebreakerLay(${i})` : '');
+        return renderCard(c, { highlight: hl, onClick: click, size: 'big', dim });
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function renderLog() {
+  if (!state.log.length) return '';
+  const last = state.log.slice(-5).reverse();
+  return `<div class="log">
+    <div class="log-title">📜 Ход игры</div>
+    ${last.map(m => `<div class="log-item">· ${escapeHtml(m)}</div>`).join('')}
+  </div>`;
+}
+
+function render() {
+  document.getElementById('opponents').innerHTML = renderOpponents();
+  document.getElementById('battlefield').innerHTML = renderBattlefield();
+  document.getElementById('top-info').innerHTML = renderTopInfo();
+  document.getElementById('my-hand-container').innerHTML = renderMyHand();
+  document.getElementById('log-container').innerHTML = renderLog();
+  document.getElementById('deck-count').textContent = '🎴 ' + state.deck.length;
+}
+
+// Глобальные функции для onclick
+window.chooseParam = chooseParam;
+window.layCard = layCard;
+window.flipCards = flipCards;
+window.continueAfterReveal = continueAfterReveal;
+window.tiebreakerLay = tiebreakerLay;
+window.watchTie = watchTie;
+window.start = start;
+
+// Старт
+start();
+</script>
+
+</body>
+</html>

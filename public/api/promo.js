@@ -1,5 +1,5 @@
 const { getUser } = require('./lib/auth');
-const { getOrCreateUser, updateUser, addCrystals } = require('./lib/db');
+const { getOrCreateUser, updateUser, addCrystals, getSupabase } = require('./lib/db');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -59,18 +59,43 @@ module.exports = async (req, res) => {
 
     const inputCode = code.trim().toUpperCase();
 
+    // Проверка: промокод уже был активирован этим пользователем?
+    // Тестеры жаловались: при повторном вводе UNIVERSE777 снова давали +20 кристаллов.
+    // Ищем в crystal_log запись с reason='promo_*' и metadata.code=inputCode
+    const db = getSupabase();
+    const { data: existingClaim } = await db
+      .from('crystal_log')
+      .select('id, amount, reason, metadata')
+      .eq('user_id', user.id)
+      .in('reason', ['promo_extended', 'promo_premium'])
+      .eq('metadata->>code', inputCode)
+      .limit(1);
+
+    if (existingClaim && existingClaim.length > 0) {
+      // Уже активирован — кристаллы не даём, но сообщаем что уровень есть
+      return res.json({
+        success: true,
+        access_level: user.access_level,
+        crystals_bonus: 0,
+        message: 'Промо-код уже активирован ранее',
+        already_claimed: true
+      });
+    }
+
     if (premiumCodes.includes(inputCode)) {
       await updateUser(user.id, { access_level: 'premium' });
-      await addCrystals(user.id, 50, 'promo_premium');
+      await addCrystals(user.id, 50, 'promo_premium', { code: inputCode });
       return res.json({ success: true, access_level: 'premium', crystals_bonus: 50 });
     }
 
     if (extendedCodes.includes(inputCode)) {
       if (user.access_level === 'premium') {
-        return res.json({ success: true, message: 'Already premium', access_level: 'premium' });
+        // Уровень уже выше — просто фиксируем что код активирован (без повторного начисления)
+        await addCrystals(user.id, 0, 'promo_extended', { code: inputCode });
+        return res.json({ success: true, message: 'Already premium', access_level: 'premium', crystals_bonus: 0 });
       }
       await updateUser(user.id, { access_level: 'extended' });
-      await addCrystals(user.id, 20, 'promo_extended');
+      await addCrystals(user.id, 20, 'promo_extended', { code: inputCode });
       return res.json({ success: true, access_level: 'extended', crystals_bonus: 20 });
     }
 

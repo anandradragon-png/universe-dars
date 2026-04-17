@@ -480,6 +480,26 @@ const BookReader = (function() {
     if (!el) return;
     const gIdx = globalIndex(currentPartIdx, currentChapterIdx) + 1;
     el.textContent = gIdx + ' / ' + totalChapters;
+
+    // Обновляем кнопку "Вперёд" / "В начало" при листании.
+    // render() рисует её один раз при входе на вкладку, но prev/nextChapter
+    // вызывают только renderChapter() — без обновления нав-бара.
+    // Тестеры жаловались: на 94/94 оставалась кнопка "Вперёд" вместо "В начало".
+    const nav = document.getElementById('book-nav');
+    if (nav) {
+      const nextBtn = nav.querySelector('button[onclick*="nextChapter"], button[onclick*="goTo(0,0)"]');
+      if (nextBtn) {
+        const currG = globalIndex(currentPartIdx, currentChapterIdx);
+        const isLast = currG >= totalChapters - 1;
+        if (isLast) {
+          nextBtn.setAttribute('onclick', 'BookReader.goTo(0,0)');
+          nextBtn.innerHTML = '&uarr; В начало';
+        } else {
+          nextBtn.setAttribute('onclick', 'BookReader.nextChapter()');
+          nextBtn.innerHTML = 'Вперёд &#8594;';
+        }
+      }
+    }
   }
 
   function updateProgressBar() {

@@ -1045,7 +1045,7 @@
       </div>
       <div style="margin-bottom:16px;position:relative">
         <div class="psu-label">Место рождения (город)</div>
-        <input id="psu-birth-place" type="text" placeholder="Начни вводить город..." class="psu-input" maxlength="100" autocomplete="off" oninput="psuSearchCity(this.value)" onblur="setTimeout(()=>document.getElementById('psu-city-suggest').style.display='none',200)">
+        <input id="psu-birth-place" type="text" placeholder="Начни вводить город..." class="psu-input" maxlength="100" autocomplete="off" oninput="psuSearchCity(this.value)" onblur="setTimeout(()=>{var s=document.getElementById('psu-city-suggest');if(s&&!s.dataset.sticky)s.style.display='none'},400)">
         <div id="psu-city-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:10;background:#0d0d0d;border:1px solid rgba(212,175,55,0.3);border-top:none;border-radius:0 0 12px 12px;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.5)"></div>
         <div id="psu-city-coords" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
       </div>
@@ -1479,6 +1479,12 @@
         // Используем DarAPI — он автоматически добавляет x-telegram-init-data заголовок
         const data = await DarAPI.submitPromo(code);
         if (data.error) throw new Error(data.error);
+        if (data.already_claimed) {
+          // Повторный ввод того же промокода — не даём кристаллы снова
+          status.innerHTML = '<span style="color:#D4AF37">Этот промо-код уже активирован ранее</span>';
+          input.value = '';
+          return;
+        }
         if (data.access_level) {
           _profileData.access_level = data.access_level;
           const nlv = LEVELS[data.access_level] || LEVELS.basic;
@@ -1490,7 +1496,6 @@
           }
           input.value = '';
           loadProfileData();
-          // Обновим счётчик кристаллов в шапке
           if (typeof refreshCrystalsCounter === 'function') refreshCrystalsCounter();
         } else {
           status.innerHTML = '<span style="color:#f87171">Неверный код</span>';
@@ -3145,7 +3150,10 @@
         const shortName = parts[0] || '';
         // Регион/страна для подсказки - последние 2 части
         const region = parts.length > 1 ? parts.slice(-2).join(', ') : '';
-        return `<div class="psu-city-item" data-idx="${i}" data-lat="${lat}" data-lon="${lon}" data-short="${escapeAdminHtml(shortName)}" data-full="${name}" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:var(--text);transition:background .2s" onmousedown="psuSelectCity(this)">
+        // Используем pointerdown (работает и для мыши, и для touch) +
+        // touchstart для надёжности на Android-WebView. Тестеры на мобилках
+        // выбирали подсказку, но input терял фокус раньше и данные не сохранялись.
+        return `<div class="psu-city-item" data-idx="${i}" data-lat="${lat}" data-lon="${lon}" data-short="${escapeAdminHtml(shortName)}" data-full="${name}" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:var(--text);transition:background .2s" onpointerdown="event.preventDefault();psuSelectCity(this)" ontouchstart="event.preventDefault();psuSelectCity(this)" onclick="psuSelectCity(this)">
           <div style="color:var(--text);font-weight:600">${escapeAdminHtml(shortName)}</div>
           <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${escapeAdminHtml(region)}</div>
         </div>`;

@@ -11,15 +11,16 @@ const HeroJourney = (function() {
   let currentDarCode = null;
   let loading = false;
 
-  // Названия шагов
+  // Названия шагов + форма "пройден/пройдена/пройдено" с корректным родом.
+  // (Жалобы тестеров: "Пробуждение пройден" — неправильно, должно быть "пройдено")
   const STEPS = [
-    { num: 1, name: 'Пробуждение', emoji: '🌅', unlocked: true },
-    { num: 2, name: 'Встреча с Тенью', emoji: '⚔️', unlocked: true },
-    { num: 3, name: 'Загадка Зеркала', emoji: '🔮', unlocked: true },
-    { num: 4, name: 'Испытание Огнём', emoji: '💪', unlocked: true },
-    { num: 5, name: 'Погружение', emoji: '🌊', unlocked: true },
-    { num: 6, name: 'Трансформация', emoji: '⚡', unlocked: true },
-    { num: 7, name: 'Коронация', emoji: '👑', unlocked: true }
+    { num: 1, name: 'Пробуждение',       emoji: '🌅', unlocked: true, passed: 'пройдено' },
+    { num: 2, name: 'Встреча с Тенью',   emoji: '⚔️', unlocked: true, passed: 'пройдена' },
+    { num: 3, name: 'Загадка Зеркала',   emoji: '🔮', unlocked: true, passed: 'пройдена' },
+    { num: 4, name: 'Испытание Огнём',   emoji: '💪', unlocked: true, passed: 'пройдено' },
+    { num: 5, name: 'Погружение',        emoji: '🌊', unlocked: true, passed: 'пройдено' },
+    { num: 6, name: 'Трансформация',     emoji: '⚡', unlocked: true, passed: 'пройдена' },
+    { num: 7, name: 'Коронация',         emoji: '👑', unlocked: true, passed: 'пройдена' }
   ];
 
   // Названия механик для UI
@@ -634,20 +635,26 @@ const HeroJourney = (function() {
     overlay.innerHTML = `
       <div class="hero-victory-card">
         <div class="hero-victory-emoji">${stepInfo.emoji || '✨'}</div>
-        <h3>${stepInfo.name || 'Шаг'} пройден!</h3>
+        <h3>${stepInfo.name || 'Шаг'} ${stepInfo.passed || 'пройден'}!</h3>
         <p>${text || ''}</p>
         ${reward ? `<div class="hero-reward-badge">+${reward} 💎</div>` : ''}
-        <button class="hero-btn hero-btn-primary" id="hero-continue-btn">${btnText || 'Далее'}</button>
+        <button class="hero-btn hero-btn-primary hero-victory-continue-btn">${btnText || 'Далее'}</button>
       </div>`;
     container.appendChild(overlay);
 
-    document.getElementById('hero-continue-btn').addEventListener('click', () => {
-      overlay.remove();
-      if (onContinue) onContinue();
-      // Скроллим к контейнеру чтобы битва была видна
-      const c = getContainer();
-      if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+    // Ищем кнопку ВНУТРИ overlay (используем класс, а не id —
+    // на экране уже может быть кнопка "Дальше" с id='hero-continue-btn' от applyTransition,
+    // и getElementById находил ту старую кнопку, из-за чего клик по victory-кнопке
+    // не срабатывал и переход Пробуждение → Битва с Тенью "зависал".
+    const btn = overlay.querySelector('.hero-victory-continue-btn');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        overlay.remove();
+        if (onContinue) onContinue();
+        const c = getContainer();
+        if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
   }
 
   function animateBattleHit(data, onDone) {

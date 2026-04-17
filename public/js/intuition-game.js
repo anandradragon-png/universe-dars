@@ -509,7 +509,8 @@ const IntuitionGame = (function() {
     if (!darName) return '';
     const base = String(darName).toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '');
     const filterGold = 'invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px rgba(212,175,55,0.4))';
-    const filterRed  = 'invert(35%) sepia(90%) saturate(600%) hue-rotate(-10deg) brightness(95%) drop-shadow(0 0 6px rgba(231,76,60,0.4))';
+    // Более контрастный красный фильтр — тестеры жаловались, что плохо читается
+    const filterRed  = 'invert(50%) sepia(95%) saturate(2000%) hue-rotate(-20deg) brightness(120%) contrast(120%) drop-shadow(0 0 8px rgba(255,80,80,0.6))';
     const filter = tone === 'red' ? filterRed : filterGold;
     return '<img src="images/dars/' + base + '.svg" ' +
       'style="width:100%;height:100%;object-fit:contain;filter:' + filter + '" ' +
@@ -535,21 +536,21 @@ const IntuitionGame = (function() {
     if (currentMode === 'multi' && buffCard) {
       lightBlock =
         '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px">' +
-          '<div style="font-size:9px;color:#2ecc71;letter-spacing:1px;font-weight:600">⭐ СВЕТ ×2</div>' +
-          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:4px;border:1px solid rgba(46,204,113,0.4);border-radius:8px;background:rgba(46,204,113,0.06);box-sizing:border-box">' +
+          '<div style="font-size:10px;color:#4ade80;letter-spacing:1px;font-weight:700;text-shadow:0 0 6px rgba(74,222,128,0.4)">⭐ СВЕТ ×2</div>' +
+          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:4px;border:1.5px solid rgba(74,222,128,0.6);border-radius:8px;background:rgba(74,222,128,0.1);box-sizing:border-box;box-shadow:0 0 10px rgba(74,222,128,0.2)">' +
             renderDarIconHtml(buffCard.name, 'gold') +
           '</div>' +
-          '<div style="font-size:11px;color:#2ecc71;letter-spacing:1px;text-align:center">' + buffCard.name + '</div>' +
+          '<div style="font-size:12px;color:#4ade80;letter-spacing:1px;text-align:center;font-weight:600;text-shadow:0 0 6px rgba(74,222,128,0.3)">' + buffCard.name + '</div>' +
         '</div>';
     }
     if (currentMode === 'multi' && debuffCard) {
       shadowBlock =
         '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px">' +
-          '<div style="font-size:9px;color:#e74c3c;letter-spacing:1px;font-weight:600">💥 ТЕНЬ</div>' +
-          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:4px;border:1px solid rgba(231,76,60,0.4);border-radius:8px;background:rgba(231,76,60,0.06);box-sizing:border-box">' +
+          '<div style="font-size:10px;color:#ff6b6b;letter-spacing:1px;font-weight:700;text-shadow:0 0 6px rgba(255,107,107,0.4)">💥 ТЕНЬ</div>' +
+          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:4px;border:1.5px solid rgba(255,107,107,0.6);border-radius:8px;background:rgba(255,107,107,0.1);box-sizing:border-box;box-shadow:0 0 10px rgba(255,107,107,0.2)">' +
             renderDarIconHtml(debuffCard.name, 'red') +
           '</div>' +
-          '<div style="font-size:11px;color:#e74c3c;letter-spacing:1px;text-align:center">' + debuffCard.name + '</div>' +
+          '<div style="font-size:12px;color:#ff6b6b;letter-spacing:1px;text-align:center;font-weight:600;text-shadow:0 0 6px rgba(255,107,107,0.3)">' + debuffCard.name + '</div>' +
         '</div>';
     }
 
@@ -603,10 +604,10 @@ const IntuitionGame = (function() {
 
         const imgBase = card.name.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'');
         html += `
-          <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:10px 4px;text-align:center;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;${isSelected ? 'box-shadow:0 0 10px rgba(212,175,55,0.3)' : ''}">
-            <div style="width:48px;height:48px;margin-bottom:5px;display:flex;align-items:center;justify-content:center" id="gc-${i}"></div>
-            <div style="font-size:12px;color:var(--text);letter-spacing:1px;font-weight:bold">${card.name}</div>
-            <div style="font-size:11px;color:#D4AF37;font-weight:600;margin-top:2px;letter-spacing:1px">${card.code}</div>
+          <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:12px 6px;text-align:center;min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;${isSelected ? 'box-shadow:0 0 10px rgba(212,175,55,0.3)' : ''}">
+            <div style="width:72px;height:72px;margin-bottom:6px;display:flex;align-items:center;justify-content:center" id="gc-${i}"></div>
+            <div style="font-size:13px;color:var(--text);letter-spacing:1px;font-weight:bold">${card.name}</div>
+            <div style="font-size:12px;color:#D4AF37;font-weight:700;margin-top:3px;letter-spacing:1px">${card.code}</div>
             ${badge}
           </div>`;
         setTimeout(() => {

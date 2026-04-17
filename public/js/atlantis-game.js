@@ -42,6 +42,7 @@ const AtlantisGame = (function() {
       exchangeUsed: { user: false, rival: false },
       phase: 'setup',
       currentParam: null,
+      currentTurn: 'user',      // кто сейчас ходит (имеет право выбирать параметр)
       played: { user: [], rival: [], forces: [] },
       tieParticipants: [],      // участники текущего спора (при ничьей)
       log: []
@@ -92,9 +93,54 @@ const AtlantisGame = (function() {
     state.hands.user = drawCards(4);
     state.hands.rival = drawCards(4);
     state.hands.forces = drawCards(4);
-    state.phase = 'choose_param';
-    state.log.push('Партия началась. У каждого по 4 карты.');
+    state.currentTurn = 'user'; // первая партия — ходит юзер
+    state.log.push('Партия началась. Первый ход твой.');
+    startRound();
+  }
+
+  // Начало нового раунда: если ходит юзер — показываем выбор параметра,
+  // иначе AI автоматически выбирает параметр и выкладывает свою карту.
+  function startRound() {
+    state.played = { user: [], rival: [], forces: [] };
+    state.tieParticipants = [];
+    state.currentParam = null;
+    if (state.currentTurn === 'user') {
+      state.phase = 'choose_param';
+      render();
+      return;
+    }
+    // AI ходит: выбирает параметр + выкладывает свои карты
+    const id = state.currentTurn;
+    const p = aiChooseParam(id);
+    state.currentParam = p;
+    state.log.push(`${PLAYERS[id].name} выбирает параметр: ${PARAM_LABELS[p].ru}`);
+    if (id === 'rival') answerRival();
+    else if (id === 'forces') answerForces();
+    state.phase = 'lay_cards';
+    // Юзер может не иметь карт для выкладки (автодобор при Мощности)
+    autofillFromDeck('user');
+    if (state.played.user.length >= needCardsPerPlayer()) {
+      if (state.played.rival.length < needCardsPerPlayer()) answerRival();
+      if (state.played.forces.length < needCardsPerPlayer()) answerForces();
+      state.phase = 'awaiting_reveal';
+    }
     render();
+  }
+
+  // AI выбирает параметр: ищет в руке наибольшее среднее по параметру
+  function aiChooseParam(playerId) {
+    const hand = state.hands[playerId];
+    if (!hand.length) return 'magic';
+    const params = ['magic', 'life', 'power'];
+    let best = params[0];
+    let bestAvg = -1;
+    params.forEach(p => {
+      const avg = hand.reduce((s, c) => s + c[p], 0) / hand.length;
+      if (avg > bestAvg) { bestAvg = avg; best = p; }
+    });
+    // 20% шанс выбрать Мощность если рука позволяет
+    if (hand.length >= 3 && Math.random() < 0.2) best = 'mightSum';
+    return best;
   }
 
   function quit() {
@@ -121,20 +167,15 @@ const AtlantisGame = (function() {
   // ===== ВЫБОР ПАРАМЕТРА =====
   function chooseParam(param) {
     if (state.phase !== 'choose_param') return;
+    if (state.currentTurn !== 'user') return; // только когда ходит юзер
     state.currentParam = param;
-    state.played = { user: [], rival: [], forces: [] };
     state.phase = 'lay_cards';
-    state.log.push(`Выбран параметр: ${PARAM_LABELS[param].ru}`);
-    // Если на руках меньше карт чем нужно (особенно актуально для Мощности
-    // когда нужно 3 карты), Высшие Силы добирают недостающие из колоды СРАЗУ
-    // на стол (в played), не в руку. Юзер видит что карты уже выложены.
+    state.log.push(`Ты выбираешь параметр: ${PARAM_LABELS[param].ru}`);
     autofillFromDeck('user');
-    // Если после автодобора у юзера всё ещё 0 своих карт для выкладки
-    // (т.к. все недостающие уже легли), переходим к ответам противников.
     const need = needCardsPerPlayer();
     if (state.played.user.length >= need) {
-      answerRival();
-      answerForces();
+      if (state.played.rival.length < need) answerRival();
+      if (state.played.forces.length < need) answerForces();
       state.phase = 'awaiting_reveal';
     }
     render();
@@ -179,11 +220,9 @@ const AtlantisGame = (function() {
       return;
     }
 
-    // Пользователь выложил все нужные. AI-противник и Высшие Силы отвечают —
-    // выкладывают карты в закрытую. Переход в фазу ожидания переворота:
-    // юзер видит поле с закрытыми картами и жмёт "Перевернуть".
-    answerRival();
-    answerForces();
+    // Отвечают только те AI, кто ещё не сыграл (ходящий уже сыграл)
+    if (state.played.rival.length < need) answerRival();
+    if (state.played.forces.length < need) answerForces();
     state.phase = 'awaiting_reveal';
     render();
   }
@@ -282,16 +321,19 @@ const AtlantisGame = (function() {
     if (winner) {
       const allCards = [...state.played.user, ...state.played.rival, ...state.played.forces];
       state.hands[winner].push(...allCards);
-      state.log.push(`${PLAYERS[winner].name} забирает ${allCards.length} карт`);
+      state.log.push(`${PLAYERS[winner].name} забирает ${allCards.length} карт — следующий ход его`);
       state.played = { user: [], rival: [], forces: [] };
       state._pendingWinner = null;
       state.tieParticipants = []; // спор завершён
+      // Право следующего хода — у победителя
+      state.currentTurn = winner;
       checkEndGame();
       if (state.phase !== 'ended') {
         replenishHandsTo4();
-        state.phase = 'choose_param';
+        startRound();
+      } else {
+        render();
       }
-      render();
     }
   }
 
@@ -494,9 +536,12 @@ const AtlantisGame = (function() {
   function renderOpponentRow(playerId) {
     const p = PLAYERS[playerId];
     const hand = state.hands[playerId];
+    const turnBadge = state.currentTurn === playerId
+      ? '<span style="font-size:9px;color:#ff9800;background:rgba(255,152,0,0.15);border:1px solid rgba(255,152,0,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">▶ ХОДИТ</span>'
+      : '';
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;margin-bottom:6px">
-        <div style="font-size:12px;color:var(--text)">${p.icon} <b>${p.name}</b></div>
+        <div style="font-size:12px;color:var(--text)">${p.icon} <b>${p.name}</b>${turnBadge}</div>
         <div style="font-size:11px;color:var(--text-dim)">🎴 ${hand.length}</div>
       </div>
     `;
@@ -506,7 +551,7 @@ const AtlantisGame = (function() {
     const params = ['magic', 'life', 'power', 'mightSum'];
     return `
       <div style="padding:8px 10px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.3);border-radius:10px;margin-bottom:8px">
-        <div style="font-size:11px;color:#D4AF37;text-align:center;margin-bottom:6px;letter-spacing:1px">🎴 ВЫБЕРИ ПАРАМЕТР</div>
+        <div style="font-size:11px;color:#4ade80;text-align:center;margin-bottom:6px;letter-spacing:1px;font-weight:700">▶ ТВОЙ ХОД · ВЫБЕРИ ПАРАМЕТР</div>
         <div style="display:flex;gap:6px;justify-content:center">
           ${params.map(p => {
             const lbl = PARAM_LABELS[p];
@@ -526,11 +571,15 @@ const AtlantisGame = (function() {
     const need = needCardsPerPlayer();
     const laid = state.played.user.length;
     const paramLbl = PARAM_LABELS[state.currentParam];
+    const turnInfo = state.currentTurn === 'user'
+      ? '<div style="font-size:10px;color:#4ade80;letter-spacing:1px;font-weight:700;margin-bottom:4px">▶ ТВОЙ ХОД</div>'
+      : `<div style="font-size:10px;color:#ff9800;letter-spacing:1px;font-weight:700;margin-bottom:4px">▶ ХОДИТ ${PLAYERS[state.currentTurn].icon} ${PLAYERS[state.currentTurn].name.toUpperCase()} — ОТВЕТЬ</div>`;
     return `
       <div style="padding:12px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.3);border-radius:12px;margin-bottom:10px;text-align:center">
+        ${turnInfo}
         <div style="font-size:12px;color:var(--text-dim);margin-bottom:3px">Параметр сражения</div>
         <div style="font-size:18px;color:${paramLbl.color};font-weight:800;letter-spacing:2px">${paramLbl.icon} ${paramLbl.ru.toUpperCase()}</div>
-        <div style="font-size:11px;color:var(--text);margin-top:4px">Выложи карту ${laid}/${need}</div>
+        <div style="font-size:11px;color:var(--text);margin-top:4px">${laid >= need ? 'Все выложили' : 'Выложи карту ' + laid + '/' + need}</div>
       </div>
     `;
   }

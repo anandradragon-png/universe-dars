@@ -20,7 +20,7 @@ const BookReader = (function() {
   const DEFAULTS = { fontSize: 16, theme: 'dark', lineHeight: 1.75 };
   let settings = Object.assign({}, DEFAULTS);
 
-  const YUPSOUL_URL = 'https://www.yupsoul.ru/partners.html?ref=S3IHU4&utm_source=partners&utm_medium=partner_referral&utm_campaign=partner';
+  const YUPSOUL_URL = 'https://t.me/Yup_Soul_bot?start=ref_YUPDAR';
 
   // -------- Настройки --------
   function loadSettings() {

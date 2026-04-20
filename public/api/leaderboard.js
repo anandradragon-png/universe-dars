@@ -125,8 +125,14 @@ module.exports = async (req, res) => {
                           : period === 'monthly' ? keys.month
                           : keys.day;
 
-      // Подтянуть топ игроков в текущем периоде
-      const { data: scores, error } = await db
+      // Подтянуть топ игроков в текущем периоде.
+      // Если миграция supabase-migration-leaderboard-period-wins.sql не запущена
+      // (колонки games_won_daily/weekly/monthly не существуют) — фолбэк на
+      // старое общее games_won. Иначе Supabase вернёт ошибку и рейтинг
+      // перестанет загружаться у всех.
+      let scores = null;
+      let winsFieldActual = winsField;
+      let firstTry = await db
         .from('intuition_scores')
         .select('user_id, display_name, ' + scoreField + ', ' + periodField + ', ' + winsField)
         .eq(periodField, currentPeriod)
@@ -134,7 +140,27 @@ module.exports = async (req, res) => {
         .order(scoreField, { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
+      if (firstTry.error) {
+        const msg = (firstTry.error.message || '').toLowerCase();
+        const missingColumn = msg.includes('column') && (msg.includes('does not exist') || msg.includes('not found'));
+        if (missingColumn) {
+          console.warn('[leaderboard] per-period wins columns missing, falling back to games_won. Run migration: supabase-migration-leaderboard-period-wins.sql');
+          winsFieldActual = 'games_won';
+          const fallback = await db
+            .from('intuition_scores')
+            .select('user_id, display_name, ' + scoreField + ', ' + periodField + ', games_won')
+            .eq(periodField, currentPeriod)
+            .gt(scoreField, 0)
+            .order(scoreField, { ascending: false })
+            .limit(limit);
+          if (fallback.error) throw fallback.error;
+          scores = fallback.data;
+        } else {
+          throw firstTry.error;
+        }
+      } else {
+        scores = firstTry.data;
+      }
 
       // Позиция текущего пользователя (если есть авторизация)
       let myRank = null;
@@ -171,8 +197,8 @@ module.exports = async (req, res) => {
           rank: i + 1,
           display_name: row.display_name || 'Странник',
           score: row[scoreField] || 0,
-          // Побед именно в выбранном периоде (daily/weekly/monthly)
-          games_won: row[winsField] || 0,
+          // Побед: в выбранном периоде если миграция накачена; иначе общее games_won.
+          games_won: row[winsFieldActual] || 0,
           is_me: (tgUser && tgUser.id) && row.user_id === (tgUser.id ? undefined : null) // fallback
         })),
         me: (tgUser && tgUser.id) ? { rank: myRank, score: myScore } : null
@@ -244,10 +270,23 @@ module.exports = async (req, res) => {
         if (updates.score_daily_expert === undefined) updates.score_daily_expert = 0;
       }
 
-      const { error: updErr } = await db
+      let updErr;
+      ({ error: updErr } = await db
         .from('intuition_scores')
         .update(updates)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id));
+
+      // Фолбэк: если per-period колонок ещё нет в БД — повторяем без них.
+      if (updErr && /column.*(does not exist|not found)/i.test(updErr.message || '')) {
+        console.warn('[leaderboard] missing per-period wins columns on update, falling back');
+        delete updates.games_won_daily;
+        delete updates.games_won_weekly;
+        delete updates.games_won_monthly;
+        ({ error: updErr } = await db
+          .from('intuition_scores')
+          .update(updates)
+          .eq('user_id', user.id));
+      }
 
       if (updErr) {
         console.error('Leaderboard update error:', updErr.message);

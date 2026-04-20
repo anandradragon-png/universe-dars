@@ -459,8 +459,13 @@ body {
 .aurora-blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(120px);
+    /* blur(120px) + infinite animation на трёх блобах давало постоянную
+       GPU-нагрузку и "мерцание" на Android (Алина, Алекс, Настя в чате).
+       Сократили radius, добавили will-change для layer promotion,
+       на мобильных отключаем анимацию совсем. */
+    filter: blur(80px);
     opacity: 0.15;
+    will-change: transform;
     animation: ds-aurora-drift 20s ease-in-out infinite alternate;
 }
 .aurora-blob:nth-child(1) {
@@ -486,6 +491,14 @@ body {
     33%  { transform: translate(60px, -40px) scale(1.1); }
     66%  { transform: translate(-40px, 30px) scale(0.95); }
     100% { transform: translate(20px, -20px) scale(1.05); }
+}
+
+/* Мобильные и устройства без hover — убираем дорогую анимацию, оставляем статичный фон */
+@media (max-width: 768px), (prefers-reduced-motion: reduce), (hover: none) {
+    .aurora-blob {
+        animation: none;
+        filter: blur(60px);
+    }
 }
 
 /* ── Fade-up Animation ────────────────────────────────────────────── */

@@ -704,6 +704,11 @@
           <div style="font-size:15px;color:#D4AF37;margin-bottom:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Создать карточку для соцсетей</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Красивая картинка с твоим даром для Instagram, VK, Telegram</div>
         </div>
+        <!-- Подробная карточка дара — для платных (А4 PNG, полное описание) -->
+        <div id="share-info-cta" style="display:none;margin-top:10px;padding:14px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:16px;text-align:center;cursor:pointer" onclick="shareMyDarInfo()">
+          <div style="font-size:15px;color:#D4AF37;margin-bottom:4px">📄 Подробная карточка дара (A4)</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Распечатать или подарить близкому на день рождения</div>
+        </div>
         <div id="share-section" style="display:none"></div>
         <div id="full-description-block" style="display:none">
           <div id="full-description-content"></div>
@@ -1818,6 +1823,10 @@
       // Показать кнопку карточки для шейринга
       const shareCardCta = document.getElementById('share-card-cta');
       if (shareCardCta) shareCardCta.style.display = 'block';
+      // Показать кнопку "Подробная карточка дара" — она сама проверит access_level
+      // и покажет пэйволл если юзер basic.
+      const shareInfoCta = document.getElementById('share-info-cta');
+      if (shareInfoCta) shareInfoCta.style.display = 'block';
       // Показать ежедневные активности
       const dailyBlock = document.getElementById('daily-activities');
       if (dailyBlock) dailyBlock.style.display = 'block';
@@ -3011,6 +3020,17 @@
     }
 
     // Создать карточку дара для шейринга
+    function shareMyDarInfo() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return;
+        const { gift } = JSON.parse(saved);
+        if (gift && gift.code && typeof ShareCard !== 'undefined' && ShareCard.openInfoCard) {
+          ShareCard.openInfoCard(gift.code);
+        }
+      } catch(e) { console.warn('shareMyDarInfo error:', e); }
+    }
+
     function shareMyDar() {
       try {
         const saved = localStorage.getItem(STORAGE_KEY);

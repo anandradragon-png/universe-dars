@@ -115,6 +115,11 @@ module.exports = async (req, res) => {
       const periodField = period === 'weekly' ? 'period_week'
                         : period === 'monthly' ? 'period_month'
                         : 'period_day';
+      // Побед за текущий период (раньше возвращалось общее games_won,
+      // из-за чего в Маге Дня/Недели/Месяца цифра побед была одинаковая).
+      const winsField = period === 'weekly' ? 'games_won_weekly'
+                      : period === 'monthly' ? 'games_won_monthly'
+                      : 'games_won_daily';
       const keys = periodKeys();
       const currentPeriod = period === 'weekly' ? keys.week
                           : period === 'monthly' ? keys.month
@@ -123,7 +128,7 @@ module.exports = async (req, res) => {
       // Подтянуть топ игроков в текущем периоде
       const { data: scores, error } = await db
         .from('intuition_scores')
-        .select('user_id, display_name, ' + scoreField + ', ' + periodField + ', games_won')
+        .select('user_id, display_name, ' + scoreField + ', ' + periodField + ', ' + winsField)
         .eq(periodField, currentPeriod)
         .gt(scoreField, 0)
         .order(scoreField, { ascending: false })
@@ -166,7 +171,8 @@ module.exports = async (req, res) => {
           rank: i + 1,
           display_name: row.display_name || 'Странник',
           score: row[scoreField] || 0,
-          games_won: row.games_won || 0,
+          // Побед именно в выбранном периоде (daily/weekly/monthly)
+          games_won: row[winsField] || 0,
           is_me: (tgUser && tgUser.id) && row.user_id === (tgUser.id ? undefined : null) // fallback
         })),
         me: (tgUser && tgUser.id) ? { rank: myRank, score: myScore } : null
@@ -195,6 +201,13 @@ module.exports = async (req, res) => {
         Object.assign(row, resetUpdates);
       }
 
+      // Базы побед по периодам: если период сменился — начинаем с 0,
+      // иначе продолжаем существующий счётчик.
+      const wonInc = won ? 1 : 0;
+      const baseWonDaily   = resetUpdates.period_day   !== undefined ? 0 : (row.games_won_daily   || 0);
+      const baseWonWeekly  = resetUpdates.period_week  !== undefined ? 0 : (row.games_won_weekly  || 0);
+      const baseWonMonthly = resetUpdates.period_month !== undefined ? 0 : (row.games_won_monthly || 0);
+
       // Обновить очки (общие + по сложности для дневных)
       const updates = Object.assign({}, resetUpdates, {
         score_daily: (row.score_daily || 0) + addPoints,
@@ -202,7 +215,10 @@ module.exports = async (req, res) => {
         score_monthly: (row.score_monthly || 0) + addPoints,
         score_alltime: (row.score_alltime || 0) + addPoints,
         games_played: (row.games_played || 0) + 1,
-        games_won: (row.games_won || 0) + (won ? 1 : 0),
+        games_won: (row.games_won || 0) + wonInc,
+        games_won_daily:   baseWonDaily   + wonInc,
+        games_won_weekly:  baseWonWeekly  + wonInc,
+        games_won_monthly: baseWonMonthly + wonInc,
         best_streak: Math.max(row.best_streak || 0, parseInt(streak, 10) || 0),
         display_name: getDisplayName(user),
         last_played_at: new Date().toISOString(),

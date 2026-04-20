@@ -206,9 +206,14 @@ const HeroJourney = (function() {
     const step = currentJourney?.step || 1;
     const isFireTrial = step === 4;
 
-    // Проверяем активный таймер
+    // Проверяем активный таймер.
+    // timerExpired = таймер был запущен и уже истёк — значит испытание фактически
+    // выполнено, пользователю надо показать кнопку "Готово", а НЕ экран выбора
+    // заново. Раньше из-за этого пользователи (Алина, Алекс) жаловались что "зашла
+    // через день — испытание пришлось начинать заново".
     const timerEnd = state.timer_end;
     const timerActive = timerEnd && Date.now() < timerEnd;
+    const timerExpired = timerEnd && Date.now() >= timerEnd;
 
     container.innerHTML = `
       <div class="hero-journey-screen" style="--field-color: ${color}">
@@ -235,6 +240,10 @@ const HeroJourney = (function() {
       if (timerActive) {
         choicesArea.innerHTML = '<div class="hero-timer-block" id="hero-timer-block"><div style="text-align:center;padding:20px"><div style="font-size:14px;color:var(--text);margin-bottom:8px">🔥 Задание выполняется...</div><div id="hero-timer" style="font-size:32px;color:#FF4500;font-weight:bold;font-family:monospace"></div><p style="color:#888;font-size:12px;margin-top:8px">Вернись когда выполнишь задание</p></div></div>';
         startTimerCountdown(timerEnd);
+      } else if (timerExpired) {
+        // Таймер уже истёк, пользователь вернулся позже — сразу кнопка "Готово",
+        // а не экран выбора испытания заново.
+        choicesArea.innerHTML = '<div class="hero-timer-block" id="hero-timer-block"><div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🔥</div><div style="font-size:14px;color:#4CAF50;margin-bottom:12px">Время вышло! Задание выполнено?</div><button class="hero-btn hero-btn-primary" onclick="HeroJourney.completeFireTrial()">✅ Да, выполнено!</button><button class="hero-btn hero-btn-secondary" onclick="HeroJourney.completeFireTrial()" style="margin-top:8px">Пропустить</button></div></div>';
       } else {
         // Перемешивание карт — чтобы "карта силы" не всегда была под №1.
         // Раньше порядок был фиксирован: тестеры заметили что они подсознательно

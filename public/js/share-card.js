@@ -98,7 +98,7 @@ const ShareCard = (function() {
   function drawDecorStars(ctx, w, h, positions, color) {
     ctx.save();
     ctx.fillStyle = color || 'rgba(212, 175, 55, 0.8)';
-    ctx.font = '36px 'Manrope', sans-serif';
+    ctx.font = "36px 'Manrope', sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const p of positions) {
@@ -219,7 +219,7 @@ const ShareCard = (function() {
     // Заголовок "МОЙ ДАР"
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-    ctx.font = '32px 'Manrope', sans-serif';
+    ctx.font = "32px 'Manrope', sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText('М О Й   Д А Р', w / 2, isVertical ? 200 : 140);
@@ -461,5 +461,217 @@ const ShareCard = (function() {
     if (modal) modal.style.display = 'none';
   }
 
-  return { openModal, closeModal, download, switchTab };
+  // === ПОДРОБНАЯ КАРТОЧКА ДАРА (A4, только для платных) ===
+
+  function getAccessLevel() {
+    try {
+      if (window.PROFILE && window.PROFILE.access_level) return window.PROFILE.access_level;
+      return (localStorage.getItem('_access_level') || 'basic').toLowerCase();
+    } catch (e) { return 'basic'; }
+  }
+
+  function isPaidAccess() {
+    const lvl = getAccessLevel();
+    return lvl === 'extended' || lvl === 'premium';
+  }
+
+  // Рендерит многострочный текст с переносом. Возвращает итоговую Y-позицию.
+  function drawParagraph(ctx, text, x, y, maxWidth, lineHeight) {
+    if (!text) return y;
+    const words = String(text).split(/\s+/);
+    let line = '';
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        ctx.fillText(line, x, y);
+        y += lineHeight;
+        line = word;
+      } else {
+        line = test;
+      }
+    }
+    if (line) { ctx.fillText(line, x, y); y += lineHeight; }
+    return y;
+  }
+
+  async function generateInfoCard(darCode) {
+    // A4 портрет при 150 dpi ≈ 1240×1754. Чуть выше — 1240×1900 для запаса.
+    const w = 1240, h = 1900;
+    const pad = 80;
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+
+    // Фон — тот же космический градиент что у обычной карточки
+    const bg = ctx.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, '#0a0118');
+    bg.addColorStop(0.4, '#0d0d0d');
+    bg.addColorStop(0.7, '#2d0e5e');
+    bg.addColorStop(1, '#080808');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+    drawStars(ctx, w, h, 200, darCode.charCodeAt(0) * 23 + 77);
+
+    // Заголовок
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.font = "30px 'Manrope', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('П О Д Р О Б Н А Я   К А Р Т О Ч К А   Д А Р А', w / 2, 60);
+
+    // Иконка
+    const imgPath = getDarImagePath(darCode);
+    let darImg = null;
+    if (imgPath) { try { darImg = await loadImage(imgPath); } catch (e) {} }
+    const iconSize = 240;
+    const iconY = 130;
+    if (darImg) {
+      ctx.save();
+      const glowGrad = ctx.createRadialGradient(w/2, iconY+iconSize/2, 0, w/2, iconY+iconSize/2, iconSize);
+      glowGrad.addColorStop(0, 'rgba(212,175,55,0.35)');
+      glowGrad.addColorStop(1, 'rgba(212,175,55,0)');
+      ctx.fillStyle = glowGrad;
+      ctx.fillRect(w/2-iconSize, iconY-iconSize/2, iconSize*2, iconSize*2);
+      ctx.filter = 'invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(115%) drop-shadow(0 0 20px rgba(212,175,55,0.7))';
+      ctx.drawImage(darImg, w/2-iconSize/2, iconY, iconSize, iconSize);
+      ctx.restore();
+    }
+
+    // Название + код
+    const darName = (window.DARS && window.DARS[darCode]) || darCode;
+    const darArchetype = (window.DAR_ARCHETYPES && window.DAR_ARCHETYPES[darCode]) || '';
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = "bold 84px 'Manrope', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.fillText(darName, w / 2, iconY + iconSize + 30);
+    ctx.fillStyle = 'rgba(212,175,55,0.7)';
+    ctx.font = "34px 'Manrope', sans-serif";
+    ctx.fillText(darCode, w / 2, iconY + iconSize + 130);
+    if (darArchetype) {
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = "italic 36px 'Manrope', sans-serif";
+      ctx.fillText(darArchetype, w / 2, iconY + iconSize + 180);
+    }
+
+    // Разделитель
+    let cursorY = iconY + iconSize + 260;
+    ctx.strokeStyle = 'rgba(212,175,55,0.5)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(w*0.2, cursorY); ctx.lineTo(w*0.8, cursorY); ctx.stroke();
+    cursorY += 40;
+
+    // Секции из dar-content.json
+    const content = (window.DAR_CONTENT && window.DAR_CONTENT[darCode]) || {};
+    const sections = [
+      { title: 'СУТЬ ДАРА', body: content.essence },
+      { title: 'СИЛА В СВЕТЕ', body: content.light_power },
+      { title: 'АКТИВАЦИЯ', body: content.activation }
+    ];
+
+    ctx.textAlign = 'left';
+    for (const s of sections) {
+      if (!s.body) continue;
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = "bold 28px 'Manrope', sans-serif";
+      ctx.fillText(s.title, pad, cursorY);
+      cursorY += 42;
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      ctx.font = "24px 'Manrope', sans-serif";
+      // Режем слишком длинные секции до ~1200 символов
+      const body = String(s.body).slice(0, 1200);
+      cursorY = drawParagraph(ctx, body, pad, cursorY, w - pad*2, 34);
+      cursorY += 30;
+      if (cursorY > h - 160) break; // не вылезаем за подвал
+    }
+
+    // Подвал
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(212,175,55,0.85)';
+    ctx.font = "26px 'Manrope', sans-serif";
+    ctx.fillText('#ВселеннаяДаров   #YupDar', w/2, h - 90);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = "22px 'Manrope', sans-serif";
+    ctx.fillText('Y u p D a r   ·   t.me/YupDarBot', w/2, h - 45);
+
+    return canvas;
+  }
+
+  function showPaywallModal() {
+    let modal = document.getElementById('share-card-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'share-card-modal';
+      modal.style.cssText = 'position:fixed;inset:0;z-index:10200;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto';
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+      document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    modal.innerHTML = '<div style="position:relative;background:linear-gradient(135deg,#080808,#0d0d0d);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:44px 24px 24px;max-width:440px;width:100%;text-align:center">' +
+      '<button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer">&#10005;</button>' +
+      '<div style="font-size:40px;margin-bottom:10px">📄</div>' +
+      '<div style="font-size:18px;color:#D4AF37;margin-bottom:10px;font-weight:700">Подробная карточка дара</div>' +
+      '<div style="font-size:13px;color:var(--text-dim);line-height:1.55;margin-bottom:18px">Большое изображение A4 со всей ключевой информацией о твоём даре — можно распечатать, поставить на рабочий стол или подарить близкому в его день рождения.</div>' +
+      '<div style="font-size:12px;color:#D4AF37;margin-bottom:16px;font-style:italic">Доступно на уровне Хранитель и выше</div>' +
+      '<button id="sc-paywall-buy" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3)">&#11088; Открыть за 500 ⭐ (~$10)</button>' +
+      '</div>';
+    const buyBtn = document.getElementById('sc-paywall-buy');
+    if (buyBtn) buyBtn.addEventListener('click', () => {
+      closeModal();
+      if (typeof window.buyBookAccess === 'function') window.buyBookAccess();
+    });
+  }
+
+  async function openInfoCard(darCode) {
+    if (!darCode) return;
+    if (!isPaidAccess()) { showPaywallModal(); return; }
+
+    let modal = document.getElementById('share-card-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'share-card-modal';
+      modal.style.cssText = 'position:fixed;inset:0;z-index:10200;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto';
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+      document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    modal.innerHTML = '<div style="position:relative;background:linear-gradient(135deg,#080808,#0d0d0d);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 22px 22px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto">' +
+      '<button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer">&#10005;</button>' +
+      '<div style="text-align:center;padding:30px 10px"><div style="font-size:36px;margin-bottom:14px;animation:pulse 1.5s ease-in-out infinite">📄</div><div style="font-size:14px;color:#D4AF37">Собираю подробную карточку...</div></div></div>';
+
+    let canvas;
+    try {
+      canvas = await generateInfoCard(darCode);
+    } catch (e) {
+      console.error('[ShareCard] info card failed:', e);
+      modal.querySelector('div div').innerHTML = '<div style="font-size:36px;margin-bottom:14px">&#9888;&#65039;</div><div style="font-size:14px;color:#f87171">Не удалось создать карточку</div>';
+      return;
+    }
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const darName = (window.DARS && window.DARS[darCode]) || darCode;
+    const safeFileBase = ('yupdar-info-' + darName.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '') + '-' + darCode).replace(/--+/g, '-');
+
+    modal.innerHTML = '<div style="position:relative;background:linear-gradient(135deg,#080808,#0d0d0d);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 22px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto">' +
+      '<button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer">&#10005;</button>' +
+      '<div style="text-align:center;margin-bottom:14px"><div style="font-size:13px;color:#D4AF37;letter-spacing:1.5px">📄 ПОДРОБНАЯ КАРТОЧКА ДАРА</div></div>' +
+      '<div style="text-align:center;margin-bottom:14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:10px">' +
+        '<img src="' + dataUrl + '" style="max-width:100%;max-height:60vh;border-radius:8px;display:block;margin:0 auto"/>' +
+      '</div>' +
+      '<button id="sc-info-download" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11015; Скачать PNG (A4)</button>' +
+      '<div style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.5;margin-top:10px">Можно распечатать, поставить на рабочий стол или подарить близкому на день рождения.</div>' +
+      '</div>';
+
+    const btn = document.getElementById('sc-info-download');
+    if (btn) btn.addEventListener('click', async () => {
+      try {
+        await downloadCanvas(canvas, safeFileBase + '.png');
+        if (typeof showToast === 'function') showToast('\u2728 Подробная карточка скачана', 'success');
+      } catch (e) {
+        if (typeof showToast === 'function') showToast('Не удалось скачать: ' + e.message, 'error');
+      }
+    });
+  }
+
+  return { openModal, closeModal, download, switchTab, openInfoCard };
 })();

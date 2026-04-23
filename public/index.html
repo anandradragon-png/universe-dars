@@ -1324,27 +1324,41 @@
         <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${lv.desc}</div>
         ${level === 'basic' ? `<div style="margin-top:10px"><button onclick="buyBookAccess()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11088; Полный доступ — 500 ⭐ (~$10)</button></div>` : ''}
 
-        <!-- Тарифы: прозрачный прайс-лист со всеми уровнями -->
+        <!-- Тарифы: прозрачный прайс-лист со всеми уровнями, виден всегда -->
         <div style="margin-top:14px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px">
           <div style="font-size:13px;color:#D4AF37;margin-bottom:10px;font-weight:600;letter-spacing:0.5px">⭐ ТАРИФЫ</div>
           <div style="display:grid;gap:6px">
-            <div style="padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:8px;font-size:12px;line-height:1.5">
-              <div style="color:#aaa;font-weight:600">Странник — <span style="color:#2ecc71">Бесплатно</span></div>
+
+            <div style="padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:8px;font-size:12px;line-height:1.5;${level === 'basic' ? 'border:2px solid #2ecc71;box-shadow:0 0 10px rgba(46,204,113,0.3)' : 'border:1px solid transparent'}">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+                <div style="color:#aaa;font-weight:600">Странник — <span style="color:#2ecc71">Бесплатно</span></div>
+                ${level === 'basic' ? '<span style="font-size:9px;background:#2ecc71;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ТВОЙ</span>' : ''}
+              </div>
               <div style="color:var(--text-dim);font-size:11px">свой дар, 1 послание Оракула в день, тренажёр</div>
             </div>
-            <div style="padding:8px 10px;background:rgba(212,175,55,0.05);border-radius:8px;font-size:12px;line-height:1.5">
+
+            <div style="padding:8px 10px;background:rgba(212,175,55,0.05);border-radius:8px;font-size:12px;line-height:1.5;border:1px solid transparent">
               <div style="color:#D4AF37;font-weight:600">📖 Книга Даров — 490 ₽</div>
               <div style="color:var(--text-dim);font-size:11px">полная Книга (94 главы) + PDF, доступ навсегда</div>
             </div>
-            <div style="padding:8px 10px;background:rgba(212,175,55,0.08);border-radius:8px;font-size:12px;line-height:1.5">
-              <div style="color:#D4AF37;font-weight:600">🛡 Хранитель — 990 ₽</div>
+
+            <div style="padding:8px 10px;background:rgba(212,175,55,0.08);border-radius:8px;font-size:12px;line-height:1.5;${level === 'extended' ? 'border:2px solid #D4AF37;box-shadow:0 0 10px rgba(212,175,55,0.4)' : 'border:1px solid transparent'}">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+                <div style="color:#D4AF37;font-weight:600">🛡 Хранитель — 990 ₽</div>
+                ${level === 'extended' ? '<span style="font-size:9px;background:#D4AF37;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ТВОЙ</span>' : ''}
+              </div>
               <div style="color:var(--text-dim);font-size:11px">всё из Книги + безлимит Оракула + AI-наставник + совместимость</div>
             </div>
-            <div style="padding:8px 10px;background:rgba(212,175,55,0.14);border-radius:8px;font-size:12px;line-height:1.5;border:1px solid rgba(212,175,55,0.3)">
-              <div style="color:#D4AF37;font-weight:700">⭐ Мастер — 990 ₽ / месяц</div>
+
+            <div style="padding:8px 10px;background:rgba(212,175,55,0.14);border-radius:8px;font-size:12px;line-height:1.5;${level === 'premium' ? 'border:2px solid #D4AF37;box-shadow:0 0 14px rgba(212,175,55,0.5)' : 'border:1px solid rgba(212,175,55,0.3)'}">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+                <div style="color:#D4AF37;font-weight:700">⭐ Мастер — 990 ₽ / месяц</div>
+                ${level === 'premium' ? '<span style="font-size:9px;background:#D4AF37;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ТВОЙ</span>' : ''}
+              </div>
               <div style="color:var(--text-dim);font-size:11px">всё из Хранителя + безлимит AI + Дневник Дара с AI-анализом + приоритет</div>
               <div style="color:#aaa;font-size:10px;margin-top:4px;font-style:italic">Подписка с автопродлением. Можно отменить в любой момент.</div>
             </div>
+
           </div>
           <div style="margin-top:10px;font-size:11px;color:var(--text-dim);text-align:center;line-height:1.4">
             Подробнее на <a href="https://public-yup-land1.vercel.app/index-landing" target="_blank" style="color:#D4AF37;text-decoration:none">сайте YupDar</a>

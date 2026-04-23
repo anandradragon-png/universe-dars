@@ -7,9 +7,6 @@ try {
   console.error('Groq init error:', e);
 }
 
-// Кэш сгенерированных секций (в памяти + Supabase)
-// Ключ: "dar_code:section_index"
-
 const SECTION_NAMES = [
   'Суть Дара',
   'Энергетический Рисунок',
@@ -34,7 +31,6 @@ const SECTION_PROMPTS = {
   9: 'Опиши атрибуты и якоря дара: цвета, камни, символы, стихии, предметы-талисманы.'
 };
 
-// Данные полей для контекста генерации
 const FIELD_DATA = {
   1: { name: 'ЛОГОС', element: 'Земля внутренняя', body: 'ноги, стопы, копчик', pattern: 'треугольник', essence: 'Структура, иерархия, фундамент реальности' },
   2: { name: 'НИМА', element: 'Воздух внутренний', body: 'таз, нижний живот', pattern: 'расходящиеся лучи', essence: 'Пространство, бесконечность, все векторы судьбы' },
@@ -69,9 +65,8 @@ module.exports = async (req, res) => {
     const idx = parseInt(section_index);
     if (idx < 1 || idx > 9) return res.status(400).json({ error: 'section_index must be 1-9' });
 
-    // Проверить кэш в Supabase
     try {
-      const { getSupabase } = require('./lib/db');
+      const { getSupabase } = require('../db');
       const db = getSupabase();
       const { data: cached } = await db
         .from('dar_sections_cache')
@@ -94,18 +89,14 @@ module.exports = async (req, res) => {
           cached: true
         });
       }
-    } catch (e) {
-      // Таблица кэша может не существовать — продолжаем без кэша
-    }
+    } catch (e) {}
 
-    // Разобрать код дара
     const parts = dar_code.split('-');
     const ma = parseInt(parts[0]);
     const zhi = parseInt(parts[1]);
     const kun = parseInt(parts[2]);
     const field = FIELD_DATA[kun] || {};
 
-    // Типы заданий по секциям
     const QUEST_TYPES = {
       1: { type: 'reflection', min_length: 30, crystals: 3 },
       2: { type: 'body_practice', min_length: 30, crystals: 5 },
@@ -141,7 +132,7 @@ module.exports = async (req, res) => {
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
-        { role: 'system', content: 'Ты мудрый духовный наставник. Отвечай ТОЛЬКО валидным JSON без markdown-обёрток. Пиши на русском.\n\nЭТИЧЕСКИЕ ПРАВИЛА (ОБЯЗАТЕЛЬНЫ):\n- НИКОГДА не используй слова: манипулировать, манипуляция, контролировать, подчинять, управлять людьми, власть над, подавлять, заставлять, принуждать, использовать людей\n- Вместо \"управлять реальностью\" пиши \"со-творять реальность\", \"гармонизировать\", \"настраивать\"\n- Вместо \"манипулировать\" пиши \"взаимодействовать\", \"направлять\", \"гармонизировать\", \"настраивать поток\"\n- Вместо \"контролировать\" пиши \"осознавать\", \"наблюдать\", \"быть в ладу с\"\n- Тон: уважительный, бережный, вдохновляющий. Дары — это инструменты со-творения, а не контроля.\n- Все практики должны быть безопасными, экологичными, уважающими свободную волю каждого.' },
+        { role: 'system', content: 'Ты мудрый духовный наставник. Отвечай ТОЛЬКО валидным JSON без markdown-обёрток. Пиши на русском.\n\nЭТИЧЕСКИЕ ПРАВИЛА (ОБЯЗАТЕЛЬНЫ):\n- НИКОГДА не используй слова: манипулировать, манипуляция, контролировать, подчинять, управлять людьми, власть над, подавлять, заставлять, принуждать, использовать людей\n- Вместо "управлять реальностью" пиши "со-творять реальность", "гармонизировать", "настраивать"\n- Вместо "манипулировать" пиши "взаимодействовать", "направлять", "гармонизировать", "настраивать поток"\n- Вместо "контролировать" пиши "осознавать", "наблюдать", "быть в ладу с"\n- Тон: уважительный, бережный, вдохновляющий. Дары — это инструменты со-творения, а не контроля.\n- Все практики должны быть безопасными, экологичными, уважающими свободную волю каждого.' },
         { role: 'user', content: prompt }
       ],
       temperature: 0.75,
@@ -149,11 +140,8 @@ module.exports = async (req, res) => {
     });
 
     let rawText = completion.choices[0]?.message?.content?.trim() || '';
-    // Очистить от markdown-обёрток если есть
     rawText = rawText.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
 
-    // Постобработка текста от AI: убираем английские слова-паразиты, длинное тире,
-    // нестандартные символы. Тестеры жаловались на "seemingly", "seems" в русском тексте.
     const russifyText = (s) => {
       if (!s || typeof s !== 'string') return s;
       return s
@@ -177,15 +165,13 @@ module.exports = async (req, res) => {
       questQuestion = russifyText(parsed.quest_question || 'Поделитесь своими мыслями об этом разделе.');
       questHint = russifyText(parsed.quest_hint || '');
     } catch (e) {
-      // Если JSON не распарсился — используем весь текст как контент
       content = russifyText(rawText || 'Контент генерируется...');
       questQuestion = 'Какие мысли и чувства вызвал у вас этот раздел? Поделитесь своим опытом.';
       questHint = 'Будьте честны с собой.';
     }
 
-    // Сохранить в кэш (если таблица существует)
     try {
-      const { getSupabase } = require('./lib/db');
+      const { getSupabase } = require('../db');
       const db = getSupabase();
       await db.from('dar_sections_cache').upsert({
         dar_code,
@@ -195,9 +181,7 @@ module.exports = async (req, res) => {
         quest_hint: questHint,
         created_at: new Date().toISOString()
       }, { onConflict: 'dar_code,section_index' });
-    } catch (e) {
-      // Кэш не критичен
-    }
+    } catch (e) {}
 
     return res.json({
       title: SECTION_NAMES[idx - 1],
@@ -212,7 +196,7 @@ module.exports = async (req, res) => {
       cached: false
     });
   } catch (e) {
-    console.error('section.js error:', e);
+    console.error('section error:', e);
     return res.status(500).json({ error: e.message });
   }
 };

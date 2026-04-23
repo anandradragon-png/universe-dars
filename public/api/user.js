@@ -1,8 +1,22 @@
+/**
+ * Консолидированный user endpoint:
+ *  - action=profile (default)  — существующая user API (GET/POST)
+ *  - action=relatives          — управление списком близких (GET/POST/DELETE)
+ *  - action=verify             — проверка промо-кода без авторизации
+ *  - action=promo              — активация промо-кода (с мягкой авторизацией)
+ *
+ * Роутинг по req.query.action или URL (через rewrites).
+ */
+
 const { getUser, requireUser } = require('./lib/auth');
-const { getOrCreateUser, updateUser, getUserDars, addCrystals, unlockDar } = require('./lib/db');
+const { getOrCreateUser, updateUser, getUserDars, addCrystals, unlockDar, getSupabase } = require('./lib/db');
 const { getReward, getStreakBonus } = require('./lib/crystals');
 
-module.exports = async (req, res) => {
+// =====================================================================
+// ========== PROFILE (default) ========================================
+// =====================================================================
+
+async function handleProfile(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-telegram-init-data, x-telegram-id');
@@ -202,7 +216,6 @@ module.exports = async (req, res) => {
           // рейтинге отображается старое имя до следующей игры.
           // (Тестеры жаловались: сменил ник в настройках — в рейтинге без изменений.)
           try {
-            const { getSupabase } = require('./lib/db');
             const db = getSupabase();
             let displayName;
             if (name_type === 'custom') {
@@ -239,4 +252,377 @@ module.exports = async (req, res) => {
     console.error('user.js error:', e);
     return res.status(500).json({ error: e.message });
   }
+}
+
+// =====================================================================
+// ========== RELATIVES (близкие) ======================================
+// =====================================================================
+
+const SLOT_LIMITS = {
+  basic: 0,
+  extended: 3,
+  premium: Infinity
+};
+
+const VALID_RELATIONSHIPS = [
+  'mother', 'father', 'son', 'daughter',
+  'grandson', 'granddaughter',
+  'partner', 'friend', 'sibling', 'other'
+];
+
+// --- Расчёт дара по дате рождения (DD.MM.YYYY или YYYY-MM-DD) ---
+function reduce(n) {
+  while (n > 9) n = String(n).split('').reduce((s, d) => s + parseInt(d), 0);
+  return n;
+}
+
+function calcDarCode(birthDate) {
+  // Принимаем форматы DD.MM.YYYY, DD/MM/YYYY, YYYY-MM-DD
+  let d, m, y;
+  let s = String(birthDate || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    [y, m, d] = s.split('-').map(Number);
+  } else {
+    s = s.replace(/[\/\-\\]/g, '.');
+    const parts = s.split('.');
+    if (parts.length !== 3) return null;
+    [d, m, y] = parts.map(Number);
+  }
+  if (!d || !m || !y || d < 1 || d > 31 || m < 1 || m > 12 || y < 1900 || y > 2100) return null;
+  const ma = reduce(d + m);
+  const zhi = reduce(String(y).split('').reduce((s, c) => s + parseInt(c), 0));
+  const kun = reduce(ma + zhi);
+  return `${ma}-${zhi}-${kun}`;
+}
+
+// --- Нормализация даты в DD.MM.YYYY для хранения ---
+function normalizeDate(birthDate) {
+  let s = String(birthDate || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y, m, d] = s.split('-');
+    return `${d.padStart(2, '0')}.${m.padStart(2, '0')}.${y}`;
+  }
+  s = s.replace(/[\/\-\\]/g, '.');
+  const parts = s.split('.');
+  if (parts.length === 3) {
+    return `${parts[0].padStart(2, '0')}.${parts[1].padStart(2, '0')}.${parts[2]}`;
+  }
+  return s;
+}
+
+async function handleRelatives(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-telegram-init-data, x-telegram-id');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  try {
+    const tgUser = requireUser(req, res);
+    if (!tgUser) return;
+
+    const db = getSupabase();
+    const user = await getOrCreateUser(tgUser);
+    const accessLevel = user.access_level || 'basic';
+    const slotLimit = SLOT_LIMITS[accessLevel] !== undefined ? SLOT_LIMITS[accessLevel] : 0;
+
+    // ========== GET: список близких + лимиты ==========
+    if (req.method === 'GET') {
+      let relatives = [];
+      try {
+        const { data, error } = await db
+          .from('user_relatives')
+          .select('id, name, relationship, birth_date, gender, dar_code, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
+        if (error) {
+          console.warn('relatives GET error:', error.message);
+          // Если таблица не создана - возвращаем пустой список, не ломаем UI
+          return res.status(200).json({
+            relatives: [],
+            slot_limit: slotLimit,
+            slot_used: 0,
+            access_level: accessLevel,
+            note: 'Таблица user_relatives не создана. Запусти supabase-migration-relatives.sql'
+          });
+        }
+        relatives = data || [];
+      } catch (e) {
+        console.warn('relatives GET threw:', e.message);
+        return res.status(200).json({
+          relatives: [],
+          slot_limit: slotLimit,
+          slot_used: 0,
+          access_level: accessLevel
+        });
+      }
+
+      return res.status(200).json({
+        relatives,
+        slot_limit: slotLimit === Infinity ? null : slotLimit,
+        slot_used: relatives.length,
+        access_level: accessLevel
+      });
+    }
+
+    // ========== POST: добавить близкого ==========
+    if (req.method === 'POST') {
+      // Проверка лимита
+      if (slotLimit === 0) {
+        return res.status(403).json({
+          error: 'Чтобы добавлять близких, нужен уровень Хранитель или выше. Получи его через промо-код или открой все 64 дара.'
+        });
+      }
+
+      const { name, birth_date, relationship, gender } = req.body || {};
+
+      // Валидация
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ error: 'Укажи имя близкого человека.' });
+      }
+      const cleanName = name.trim().slice(0, 50);
+      if (cleanName.length < 2) {
+        return res.status(400).json({ error: 'Имя должно быть не короче 2 символов.' });
+      }
+
+      if (!birth_date) {
+        return res.status(400).json({ error: 'Укажи дату рождения.' });
+      }
+      const dar_code = calcDarCode(birth_date);
+      if (!dar_code) {
+        return res.status(400).json({ error: 'Неверная дата рождения. Формат: ДД.ММ.ГГГГ' });
+      }
+      const normalizedDate = normalizeDate(birth_date);
+
+      if (!relationship || !VALID_RELATIONSHIPS.includes(relationship)) {
+        return res.status(400).json({ error: 'Укажи тип связи (мама/папа/сын/дочь/партнёр/друг/брат-сестра/другое).' });
+      }
+
+      const cleanGender = (gender === 'male' || gender === 'female') ? gender : null;
+
+      // Проверка текущего количества (повторно, на случай race condition)
+      const { count: currentCount } = await db
+        .from('user_relatives')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      if (currentCount !== null && slotLimit !== Infinity && currentCount >= slotLimit) {
+        return res.status(403).json({
+          error: `У тебя уже ${currentCount} из ${slotLimit} слотов занято. Удали кого-то или повысь уровень доступа.`,
+          slot_limit: slotLimit,
+          slot_used: currentCount
+        });
+      }
+
+      // Вставка
+      try {
+        const { data, error } = await db
+          .from('user_relatives')
+          .insert({
+            user_id: user.id,
+            name: cleanName,
+            birth_date: normalizedDate,
+            relationship,
+            gender: cleanGender,
+            dar_code
+          })
+          .select()
+          .single();
+
+        if (error) {
+          // Нарушение UNIQUE - такой человек уже есть
+          if (error.code === '23505') {
+            return res.status(409).json({ error: 'Этот человек уже добавлен в твой список.' });
+          }
+          // Таблица не создана
+          if (error.message && error.message.includes('relation') && error.message.includes('does not exist')) {
+            return res.status(503).json({ error: 'Функция временно недоступна. База данных обновляется. Попробуй позже.' });
+          }
+          console.error('relatives POST error:', error);
+          return res.status(500).json({ error: 'Не удалось сохранить. Попробуй ещё раз.' });
+        }
+
+        return res.status(200).json({
+          success: true,
+          relative: data
+        });
+      } catch (e) {
+        console.error('relatives POST threw:', e.message);
+        return res.status(500).json({ error: 'Не удалось сохранить. Попробуй ещё раз.' });
+      }
+    }
+
+    // ========== DELETE: ЗАПРЕЩЕНО ==========
+    // Удаление близких полностью отключено как защита от абуза
+    // (иначе юзер мог бы удалять и добавлять разных людей в один слот,
+    // используя слоты как "одноразовые проверки совместимости").
+    // После сохранения близкий привязан навсегда. См. также проверку в POST.
+    if (req.method === 'DELETE') {
+      return res.status(403).json({
+        error: 'Удаление близких отключено. Близкий, которого ты добавила, привязан к твоему аккаунту навсегда — это защита от подмены и злоупотреблений.'
+      });
+    }
+
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (e) {
+    console.error('relatives.js fatal:', e.message);
+    return res.status(500).json({ error: 'Что-то пошло не так. Попробуй ещё раз.' });
+  }
+}
+
+// =====================================================================
+// ========== VERIFY-CODE (без авторизации) ============================
+// =====================================================================
+
+async function handleVerifyCode(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') { res.status(204).end(); return; }
+  if (req.method !== 'POST') { res.status(405).end(); return; }
+
+  const { code } = req.body;
+  if (!code || typeof code !== 'string') {
+    res.status(400).json({ valid: false, error: 'Код не передан' });
+    return;
+  }
+
+  const validCodes = (process.env.PROMO_CODES || '')
+    .split(',')
+    .map(c => c.trim().toLowerCase())
+    .filter(Boolean);
+
+  const isValid = validCodes.includes(code.trim().toLowerCase());
+
+  res.status(200).json({ valid: isValid, error: isValid ? null : 'Неверный промо-код' });
+}
+
+// =====================================================================
+// ========== PROMO (активация) =========================================
+// =====================================================================
+
+async function handlePromo(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-telegram-init-data, x-telegram-id');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  try {
+    // Мягкая авторизация (как в payment.js) — initData может быть expired
+    let tgUser = getUser(req);
+    let user = null;
+
+    if (tgUser && tgUser.id) {
+      try {
+        user = await getOrCreateUser(tgUser);
+      } catch (e) {
+        console.warn('[promo] getOrCreateUser failed:', e.message);
+      }
+    }
+
+    // Fallback: парсим user из initData без валидации hash
+    if (!user) {
+      try {
+        const initData = req.headers['x-telegram-init-data'] || '';
+        if (initData) {
+          const params = new URLSearchParams(initData);
+          const userJson = params.get('user');
+          if (userJson) {
+            const parsed = JSON.parse(userJson);
+            if (parsed.id) {
+              tgUser = parsed;
+              user = await getOrCreateUser(parsed);
+              console.log('[promo] Using unvalidated user fallback:', parsed.id);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[promo] fallback auth failed:', e.message);
+      }
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: 'Не удалось авторизоваться. Закрой и открой приложение заново.' });
+    }
+    const { code } = req.body;
+
+    if (!code) return res.status(400).json({ error: 'code required' });
+
+    // Коды из env: PROMO_CODES_EXTENDED (дают extended доступ), PROMO_CODES_PREMIUM
+    // Хардкод-коды всегда активны, env-коды дополняют
+    const hardcodedExtended = ['DARBOOK2024', 'UNIVERSE777', 'СЕМЬЯ2026'];
+    const envExtended = (process.env.PROMO_CODES_EXTENDED || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+    const extendedCodes = [...new Set([...hardcodedExtended, ...envExtended])];
+    const premiumCodes = (process.env.PROMO_CODES_PREMIUM || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+
+    const inputCode = code.trim().toUpperCase();
+
+    // Проверка: промокод уже был активирован этим пользователем?
+    // Тестеры жаловались: при повторном вводе UNIVERSE777 снова давали +20 кристаллов.
+    // Ищем в crystal_log запись с reason='promo_*' и metadata.code=inputCode
+    const db = getSupabase();
+    const { data: existingClaim } = await db
+      .from('crystal_log')
+      .select('id, amount, reason, metadata')
+      .eq('user_id', user.id)
+      .in('reason', ['promo_extended', 'promo_premium'])
+      .eq('metadata->>code', inputCode)
+      .limit(1);
+
+    if (existingClaim && existingClaim.length > 0) {
+      // Уже активирован — кристаллы не даём, но сообщаем что уровень есть
+      return res.json({
+        success: true,
+        access_level: user.access_level,
+        crystals_bonus: 0,
+        message: 'Промо-код уже активирован ранее',
+        already_claimed: true
+      });
+    }
+
+    if (premiumCodes.includes(inputCode)) {
+      await updateUser(user.id, { access_level: 'premium' });
+      await addCrystals(user.id, 50, 'promo_premium', { code: inputCode });
+      return res.json({ success: true, access_level: 'premium', crystals_bonus: 50 });
+    }
+
+    if (extendedCodes.includes(inputCode)) {
+      if (user.access_level === 'premium') {
+        // Уровень уже выше — просто фиксируем что код активирован (без повторного начисления)
+        await addCrystals(user.id, 0, 'promo_extended', { code: inputCode });
+        return res.json({ success: true, message: 'Already premium', access_level: 'premium', crystals_bonus: 0 });
+      }
+      await updateUser(user.id, { access_level: 'extended' });
+      await addCrystals(user.id, 20, 'promo_extended', { code: inputCode });
+      return res.json({ success: true, access_level: 'extended', crystals_bonus: 20 });
+    }
+
+    return res.json({ success: false, message: 'Invalid code' });
+  } catch (e) {
+    console.error('promo.js error:', e);
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+// =====================================================================
+// ========== MAIN ROUTER ==============================================
+// =====================================================================
+
+module.exports = async (req, res) => {
+  const action = (req.query && req.query.action) || '';
+  const url = req.url || '';
+
+  if (action === 'relatives' || url.includes('/relatives')) {
+    return handleRelatives(req, res);
+  }
+  if (action === 'verify' || url.includes('/verify-code')) {
+    return handleVerifyCode(req, res);
+  }
+  if (action === 'promo' || url.includes('/promo')) {
+    return handlePromo(req, res);
+  }
+
+  // default — профиль (существующий user API)
+  return handleProfile(req, res);
 };

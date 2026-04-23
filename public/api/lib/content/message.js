@@ -1,5 +1,5 @@
 const Groq = require('groq-sdk');
-const fieldsData = require('../fields.json');
+const fieldsData = require('../../../fields.json');
 
 const FIELDS_DB = {};
 fieldsData.fields.forEach(f => { FIELDS_DB[f.id] = f; });
@@ -38,7 +38,6 @@ module.exports = async (req, res) => {
   const isIntegrator = !!INTEGRATORS[giftCode];
   const darName = isIntegrator ? INTEGRATORS[giftCode] : (DARS_DB[giftCode] || 'Дар');
 
-  // Нормализация имени для поиска SVG-файла (NFC для совместимости с macOS/Windows)
   const rawName  = DARS_DB[giftCode] || '';
   const fileName = rawName.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '');
   const imageUrl = fileName ? `/images/dars/${fileName}.svg` : '';
@@ -54,7 +53,6 @@ module.exports = async (req, res) => {
     else                      intPhrase = 'Твоё состояние становится актом целостного творения.';
   }
 
-  // Полный профиль каждого поля с механикой энергии
   const maData  = { name: maF.name,  essence: maF.essence,  pattern: maF.pattern||'', flow: maF.flow||'', body: maF.body||'', shadow: maF.shadow_ma,  harmony: maF.harmony_key, risks: (maF.risk_zones||[]).join(', ') };
   const zhiData = { name: zhiF.name, essence: zhiF.essence, pattern: zhiF.pattern||'', flow: zhiF.flow||'', body: zhiF.body||'', shadow: zhiF.shadow_zhi, harmony: zhiF.harmony_key, risks: (zhiF.risk_zones||[]).join(', ') };
   const kunData = { name: kunF.name, essence: kunF.essence, pattern: kunF.pattern||'', flow: kunF.flow||'', body: kunF.body||'', shadow: kunF.shadow_kun, harmony: kunF.harmony_key, risks: (kunF.risk_zones||[]).join(', ') };
@@ -69,19 +67,6 @@ module.exports = async (req, res) => {
 
 ГЛАВНОЕ ПРАВИЛО — ПЕРЕВОД МЕХАНИКИ В ХАРАКТЕР:
 Используй данные о механике энергии ТОЛЬКО как основу для метафор о личности.
-
-Примеры правильного перевода:
-✗ "В поле Тума энергия течёт волнообразно."
-✓ "Вы чувствуете ритм жизни как собственный пульс. Ваша сила — в умении доверять потоку событий, не пытаясь контролировать каждую секунду."
-
-✗ "Рисунок энергии — треугольник, поток сверху вниз."
-✓ "Внутри вас есть непоколебимый стержень. Вы видите структуру там, где другие видят хаос. Ваша уверенность передаётся окружающим, создавая ощущение надёжности."
-
-✗ "Рисунок — насос, вдох-выдох."
-✓ "Вы — природный коммуникатор. Ваше слово связывает миры. Вы умеете и слушать, и говорить так, что вас слышат все."
-
-✗ "Энергия закручивается спиралью."
-✓ "Вы притягиваете людей и события, словно обладаете невидимым магнитом. Рядом с вами всё само собой складывается в нужный узор."
 
 КАЖДЫЙ РАЗДЕЛ ДОЛЖЕН ОТВЕЧАТЬ НА ВОПРОСЫ:
 — Какая СИЛА заложена в этом человеке?
@@ -153,7 +138,6 @@ ${intPhrase ? `Особое послание: "${intPhrase}"` : ''}
     const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
     console.log('Generating for:', giftCode, darName);
 
-    // Пробуем сначала мощную модель, при ошибке — быструю
     let completion;
     try {
       completion = await groq.chat.completions.create({
@@ -166,7 +150,6 @@ ${intPhrase ? `Особое послание: "${intPhrase}"` : ''}
         max_tokens: 2000
       });
     } catch (modelErr) {
-      console.log('70b failed, trying 8b:', modelErr.message);
       completion = await groq.chat.completions.create({
         messages: [
           { role: 'system', content: systemMsg },
@@ -179,28 +162,17 @@ ${intPhrase ? `Особое послание: "${intPhrase}"` : ''}
     }
 
     const raw = completion.choices[0]?.message?.content || '';
-    console.log('Response length:', raw.length);
-
-    // Надёжная очистка
     const start = raw.indexOf('{');
     const end   = raw.lastIndexOf('}');
     if (start === -1 || end === -1) throw new Error('JSON не найден в ответе AI');
     const clean = raw.slice(start, end + 1);
 
     let parsed;
-    try {
-      parsed = JSON.parse(clean);
-    } catch (parseErr) {
-      console.error('Parse error:', parseErr.message, '| First 300:', clean.substring(0, 300));
-      throw new Error('Ошибка разбора JSON');
-    }
+    try { parsed = JSON.parse(clean); }
+    catch (parseErr) { throw new Error('Ошибка разбора JSON'); }
 
-    // Проверка минимальной длины
     const totalLen = JSON.stringify(parsed).length;
-    console.log('Parsed JSON length:', totalLen);
-    if (totalLen < 800) {
-      throw new Error('Ответ слишком короткий (' + totalLen + ' символов)');
-    }
+    if (totalLen < 800) throw new Error('Ответ слишком короткий (' + totalLen + ' символов)');
 
     res.status(200).json({ data: parsed, imageUrl });
   } catch (e) {

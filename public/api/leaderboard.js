@@ -1,8 +1,20 @@
+/**
+ * Консолидированный leaderboard endpoint:
+ *  - mode=leaderboard (default)   — рейтинг интуиции + отправка очков
+ *  - mode=hall-of-fame            — зал славы (лавры за периоды)
+ *
+ * Роутинг по req.query.mode или URL.
+ */
+
 const { getUser, requireUser } = require('./lib/auth');
 const { getSupabase, getOrCreateUser, updateUser, addCrystals } = require('./lib/db');
 
+// =====================================================================
+// ========== LEADERBOARD HELPERS ======================================
+// =====================================================================
+
 // Helper: возвращает ключи текущих периодов (локальные даты, YYYY-MM-DD)
-function periodKeys() {
+function periodKeysLeaderboard() {
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -10,7 +22,7 @@ function periodKeys() {
   const day = `${y}-${m}-${d}`;
 
   // Неделя: понедельник как первый день
-  const dow = now.getDay(); // 0=вс, 1=пн...
+  const dow = now.getDay();
   const mondayOffset = dow === 0 ? -6 : 1 - dow;
   const monday = new Date(now);
   monday.setDate(now.getDate() + mondayOffset);
@@ -22,7 +34,6 @@ function periodKeys() {
   return { day, week, month };
 }
 
-// Helper: получить отображаемое имя пользователя для рейтинга
 function getDisplayName(user) {
   const type = user.leaderboard_name_type || 'real';
   if (type === 'custom' && user.leaderboard_custom_name) {
@@ -32,12 +43,10 @@ function getDisplayName(user) {
     const last = user.real_last_name || '';
     return (user.real_first_name + (last ? ' ' + last.charAt(0) + '.' : '')).slice(0, 40);
   }
-  // tg fallback
   const tg = (user.first_name || '') + (user.last_name ? ' ' + user.last_name.charAt(0) + '.' : '');
   return (tg || 'Странник').slice(0, 40);
 }
 
-// Получить или создать запись в intuition_scores
 async function getOrCreateScoreRow(db, userId) {
   const { data: existing } = await db
     .from('intuition_scores')
@@ -46,7 +55,7 @@ async function getOrCreateScoreRow(db, userId) {
     .single();
   if (existing) return existing;
 
-  const keys = periodKeys();
+  const keys = periodKeysLeaderboard();
   const { data: created, error } = await db
     .from('intuition_scores')
     .insert({
@@ -69,9 +78,8 @@ async function getOrCreateScoreRow(db, userId) {
   return created;
 }
 
-// Сбросить периодические очки если период поменялся
 function resetOutdatedPeriods(row) {
-  const keys = periodKeys();
+  const keys = periodKeysLeaderboard();
   const updates = {};
   if (row.period_day !== keys.day) {
     updates.score_daily = 0;
@@ -88,7 +96,7 @@ function resetOutdatedPeriods(row) {
   return updates;
 }
 
-module.exports = async (req, res) => {
+async function handleLeaderboard(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-telegram-init-data, x-telegram-id');
@@ -97,13 +105,11 @@ module.exports = async (req, res) => {
   try {
     const db = getSupabase();
 
-    // ========== GET: получить топ рейтинга ==========
     if (req.method === 'GET') {
       const period = (req.query && req.query.period) || 'daily';
       const difficulty = (req.query && req.query.difficulty) || 'all';
       const limit = Math.min(parseInt((req.query && req.query.limit) || '20', 10), 50);
 
-      // Для дневного периода можем фильтровать по сложности
       let scoreField;
       if (period === 'weekly') scoreField = 'score_weekly';
       else if (period === 'monthly') scoreField = 'score_monthly';
@@ -115,21 +121,14 @@ module.exports = async (req, res) => {
       const periodField = period === 'weekly' ? 'period_week'
                         : period === 'monthly' ? 'period_month'
                         : 'period_day';
-      // Побед за текущий период (раньше возвращалось общее games_won,
-      // из-за чего в Маге Дня/Недели/Месяца цифра побед была одинаковая).
       const winsField = period === 'weekly' ? 'games_won_weekly'
                       : period === 'monthly' ? 'games_won_monthly'
                       : 'games_won_daily';
-      const keys = periodKeys();
+      const keys = periodKeysLeaderboard();
       const currentPeriod = period === 'weekly' ? keys.week
                           : period === 'monthly' ? keys.month
                           : keys.day;
 
-      // Подтянуть топ игроков в текущем периоде.
-      // Если миграция supabase-migration-leaderboard-period-wins.sql не запущена
-      // (колонки games_won_daily/weekly/monthly не существуют) — фолбэк на
-      // старое общее games_won. Иначе Supabase вернёт ошибку и рейтинг
-      // перестанет загружаться у всех.
       let scores = null;
       let winsFieldActual = winsField;
       let firstTry = await db
@@ -144,7 +143,7 @@ module.exports = async (req, res) => {
         const msg = (firstTry.error.message || '').toLowerCase();
         const missingColumn = msg.includes('column') && (msg.includes('does not exist') || msg.includes('not found'));
         if (missingColumn) {
-          console.warn('[leaderboard] per-period wins columns missing, falling back to games_won. Run migration: supabase-migration-leaderboard-period-wins.sql');
+          console.warn('[leaderboard] per-period wins columns missing, falling back to games_won.');
           winsFieldActual = 'games_won';
           const fallback = await db
             .from('intuition_scores')
@@ -162,7 +161,6 @@ module.exports = async (req, res) => {
         scores = firstTry.data;
       }
 
-      // Позиция текущего пользователя (если есть авторизация)
       let myRank = null;
       let myScore = 0;
       const tgUser = getUser(req);
@@ -177,7 +175,6 @@ module.exports = async (req, res) => {
           if (myRow && myRow[periodField] === currentPeriod) {
             myScore = myRow[scoreField] || 0;
             if (myScore > 0) {
-              // Посчитать сколько игроков имеют больше очков
               const { count } = await db
                 .from('intuition_scores')
                 .select('*', { count: 'exact', head: true })
@@ -197,15 +194,13 @@ module.exports = async (req, res) => {
           rank: i + 1,
           display_name: row.display_name || 'Странник',
           score: row[scoreField] || 0,
-          // Побед: в выбранном периоде если миграция накачена; иначе общее games_won.
           games_won: row[winsFieldActual] || 0,
-          is_me: (tgUser && tgUser.id) && row.user_id === (tgUser.id ? undefined : null) // fallback
+          is_me: (tgUser && tgUser.id) && row.user_id === (tgUser.id ? undefined : null)
         })),
         me: (tgUser && tgUser.id) ? { rank: myRank, score: myScore } : null
       });
     }
 
-    // ========== POST: отправить очки после игры ==========
     if (req.method === 'POST') {
       const tgUser = requireUser(req, res);
       if (!tgUser) return;
@@ -218,23 +213,18 @@ module.exports = async (req, res) => {
       const streak = body.streak;
       const addPoints = Math.max(0, Math.min(1000, parseInt(points, 10) || 0));
 
-      // Получить или создать запись
       let row = await getOrCreateScoreRow(db, user.id);
 
-      // Сбросить устаревшие периоды
       const resetUpdates = resetOutdatedPeriods(row);
       if (Object.keys(resetUpdates).length > 0) {
         Object.assign(row, resetUpdates);
       }
 
-      // Базы побед по периодам: если период сменился — начинаем с 0,
-      // иначе продолжаем существующий счётчик.
       const wonInc = won ? 1 : 0;
       const baseWonDaily   = resetUpdates.period_day   !== undefined ? 0 : (row.games_won_daily   || 0);
       const baseWonWeekly  = resetUpdates.period_week  !== undefined ? 0 : (row.games_won_weekly  || 0);
       const baseWonMonthly = resetUpdates.period_month !== undefined ? 0 : (row.games_won_monthly || 0);
 
-      // Обновить очки (общие + по сложности для дневных)
       const updates = Object.assign({}, resetUpdates, {
         score_daily: (row.score_daily || 0) + addPoints,
         score_weekly: (row.score_weekly || 0) + addPoints,
@@ -251,7 +241,6 @@ module.exports = async (req, res) => {
         updated_at: new Date().toISOString()
       });
 
-      // Дневные очки по конкретной сложности
       if (difficulty === 'medium') {
         updates.score_daily_medium = ((resetUpdates.score_daily_medium !== undefined ? 0 : row.score_daily_medium) || 0) + addPoints;
         if (resetUpdates.score_daily !== undefined) updates.score_daily_medium = addPoints;
@@ -263,7 +252,6 @@ module.exports = async (req, res) => {
         if (resetUpdates.score_daily !== undefined) updates.score_daily_expert = addPoints;
       }
 
-      // Если день поменялся, сбросить и посложностные
       if (resetUpdates.score_daily !== undefined) {
         if (updates.score_daily_medium === undefined) updates.score_daily_medium = 0;
         if (updates.score_daily_hard === undefined) updates.score_daily_hard = 0;
@@ -276,7 +264,6 @@ module.exports = async (req, res) => {
         .update(updates)
         .eq('user_id', user.id));
 
-      // Фолбэк: если per-period колонок ещё нет в БД — повторяем без них.
       if (updErr && /column.*(does not exist|not found)/i.test(updErr.message || '')) {
         console.warn('[leaderboard] missing per-period wins columns on update, falling back');
         delete updates.games_won_daily;
@@ -307,7 +294,189 @@ module.exports = async (req, res) => {
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (e) {
-    console.error('leaderboard.js error:', e.message);
+    console.error('leaderboard error:', e.message);
     return res.status(500).json({ error: e.message });
   }
+}
+
+// =====================================================================
+// ========== HALL OF FAME =============================================
+// =====================================================================
+
+const TITLE_REWARDS = {
+  day: 30,
+  week: 100,
+  month: 300
+};
+
+function periodKeysHallOfFame() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const day = `${y}-${m}-${d}`;
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const prevDay = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+  const lastMonday = new Date(now);
+  const dow = lastMonday.getDay();
+  const daysSinceMonday = dow === 0 ? 6 : dow - 1;
+  lastMonday.setDate(lastMonday.getDate() - daysSinceMonday - 7);
+  const prevWeek = `${lastMonday.getFullYear()}-${String(lastMonday.getMonth() + 1).padStart(2, '0')}-${String(lastMonday.getDate()).padStart(2, '0')}`;
+
+  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevMonth = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-01`;
+
+  return { day, prevDay, prevWeek, prevMonth };
+}
+
+async function checkAndAwardPrevPeriods(db) {
+  const keys = periodKeysHallOfFame();
+
+  const checks = [
+    { type: 'day', periodStart: keys.prevDay, scoreField: 'score_daily', periodField: 'period_day' },
+    { type: 'week', periodStart: keys.prevWeek, scoreField: 'score_weekly', periodField: 'period_week' },
+    { type: 'month', periodStart: keys.prevMonth, scoreField: 'score_monthly', periodField: 'period_month' }
+  ];
+
+  for (const check of checks) {
+    try {
+      const { data: existing } = await db
+        .from('hall_of_fame')
+        .select('id')
+        .eq('title_type', check.type)
+        .eq('period_start', check.periodStart)
+        .limit(1);
+      if (existing && existing.length > 0) continue;
+
+      const { data: winners } = await db
+        .from('intuition_scores')
+        .select('user_id, display_name, ' + check.scoreField + ', ' + check.periodField)
+        .eq(check.periodField, check.periodStart)
+        .gt(check.scoreField, 0)
+        .order(check.scoreField, { ascending: false })
+        .limit(1);
+
+      if (!winners || winners.length === 0) continue;
+
+      const winner = winners[0];
+      const score = winner[check.scoreField] || 0;
+      if (score <= 0) continue;
+
+      const reward = TITLE_REWARDS[check.type] || 0;
+      const { error: insErr } = await db
+        .from('hall_of_fame')
+        .insert({
+          user_id: winner.user_id,
+          title_type: check.type,
+          period_start: check.periodStart,
+          score: score,
+          crystals_awarded: reward
+        });
+      if (insErr) {
+        if (insErr.code !== '23505') {
+          console.warn('hall-of-fame insert error:', insErr.message);
+        }
+        continue;
+      }
+
+      if (reward > 0) {
+        try {
+          await addCrystals(winner.user_id, reward, 'title_' + check.type, {
+            period: check.periodStart,
+            score: score
+          });
+        } catch (e) {
+          console.warn('addCrystals error for title:', e.message);
+        }
+      }
+    } catch (e) {
+      console.warn('checkAndAward error for ' + check.type + ':', e.message);
+    }
+  }
+}
+
+const EMPTY_HOF_RESPONSE = { titles: [], counts: { day: 0, week: 0, month: 0 } };
+
+async function handleHallOfFame(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-telegram-init-data, x-telegram-id');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  try {
+    const tgUser = requireUser(req, res);
+    if (!tgUser) return;
+
+    const db = getSupabase();
+    let user;
+    try {
+      user = await getOrCreateUser(tgUser);
+    } catch (e) {
+      console.warn('hall-of-fame: getOrCreateUser failed:', e.message);
+      return res.status(200).json(EMPTY_HOF_RESPONSE);
+    }
+
+    try {
+      await checkAndAwardPrevPeriods(db);
+    } catch (e) {
+      console.warn('checkAndAwardPrevPeriods failed:', e.message);
+    }
+
+    let titles = [];
+    try {
+      const { data, error } = await db
+        .from('hall_of_fame')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('awarded_at', { ascending: false })
+        .limit(50);
+      if (error) {
+        console.warn('hall-of-fame select error:', error.message, error.code);
+        return res.status(200).json(EMPTY_HOF_RESPONSE);
+      }
+      titles = data || [];
+    } catch (e) {
+      console.warn('hall-of-fame select threw:', e.message);
+      return res.status(200).json(EMPTY_HOF_RESPONSE);
+    }
+
+    const counts = { day: 0, week: 0, month: 0 };
+    for (const t of titles) {
+      if (counts[t.title_type] !== undefined) counts[t.title_type]++;
+    }
+
+    return res.status(200).json({
+      titles: titles.map(t => ({
+        title_type: t.title_type,
+        period_start: t.period_start,
+        score: t.score,
+        crystals_awarded: t.crystals_awarded,
+        awarded_at: t.awarded_at
+      })),
+      counts
+    });
+  } catch (e) {
+    console.error('hall-of-fame fatal:', e.message);
+    return res.status(200).json(EMPTY_HOF_RESPONSE);
+  }
+}
+
+// =====================================================================
+// ========== MAIN ROUTER ==============================================
+// =====================================================================
+
+module.exports = async (req, res) => {
+  const mode = (req.query && req.query.mode) || '';
+  const url = req.url || '';
+
+  if (mode === 'hall-of-fame' || url.includes('/hall-of-fame')) {
+    return handleHallOfFame(req, res);
+  }
+
+  // По умолчанию — leaderboard
+  return handleLeaderboard(req, res);
 };

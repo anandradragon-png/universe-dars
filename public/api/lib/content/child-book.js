@@ -1,41 +1,27 @@
 /**
  * API для генерации персональной "Книги Даров для Родителей"
- *
- * POST /api/child-book
- *   action: 'get_section' — получить раздел книги (из кэша или сгенерировать)
- *     body: { relative_id, section_id }
- *   action: 'regenerate'  — принудительно перегенерировать раздел
- *     body: { relative_id, section_id }
- *   action: 'get_toc'     — получить оглавление (какие разделы уже сгенерированы)
- *     body: { relative_id }
- *
- * Каждый раздел генерируется DeepSeek персонально под конкретного ребёнка:
- * имя, возраст, пол, дар, поле, возрастной период.
  */
 
-const { requireUser } = require('./lib/auth');
-const { getSupabase, getOrCreateUser } = require('./lib/db');
-const deepseek = require('./lib/deepseek');
+const { requireUser } = require('../auth');
+const { getSupabase, getOrCreateUser } = require('../db');
+const deepseek = require('../deepseek');
 const Groq = require('groq-sdk');
 const fs = require('fs');
 const path = require('path');
 
-// Загружаем данные даров и полей
 let darContent = {};
 try {
-  darContent = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'dar-content.json'), 'utf8'));
+  darContent = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'dar-content.json'), 'utf8'));
 } catch (e) { console.warn('[child-book] dar-content.json not loaded:', e.message); }
 
-const fieldsData = require('../fields.json');
+const fieldsData = require('../../../fields.json');
 const FIELDS_BY_ID = {};
 (fieldsData.fields || []).forEach(f => { FIELDS_BY_ID[f.id] = f; });
 const DARS_DB = {};
 fieldsData.dars.forEach(d => { DARS_DB[d.code] = d.name; });
 
-// Архетипы даров
 const DAR_ARCHETYPES = {"8-6-5":"Первородное солнце","8-4-3":"Купол любви","1-3-4":"Портал между мирами","2-3-5":"Усилитель реальности","4-3-7":"Архитектор реальности","6-2-8":"Танец красоты","1-7-8":"Путеводная звезда","1-1-2":"Абсолютное внимание","2-5-7":"Дыхание жизни","2-1-3":"Внутренняя вера","6-7-4":"Крылья ангела","3-8-2":"Вершина власти","3-4-7":"Архитектор единства","4-7-2":"Нить времени","4-6-1":"Внутренний вулкан","7-7-5":"Квинтэссенция жизни","1-4-5":"Алхимическая лаборатория","2-2-4":"Белый огонь","5-3-8":"Золотая спираль","1-6-7":"Змей времени","3-6-9":"Река жизни","3-7-1":"Родник силы","3-5-8":"Программист реальности","1-5-6":"Рог изобилия","2-8-1":"Гармонизатор границ","3-1-4":"Огненный щит","8-2-1":"Голос природы","4-4-8":"Театральная маска","1-2-3":"Ось мира","5-1-6":"Магнит событий","7-6-4":"Цунами вдохновения","6-1-7":"Манна небесная","7-5-3":"Хирург реальности","5-7-3":"Инкубатор реальностей","8-3-2":"Вершина мира","7-1-8":"Туннель реальности","5-4-9":"Древо миров","5-2-7":"Картограф сновидений","6-6-3":"Портал любви","8-8-7":"Выдох вселенной","7-3-1":"Место силы","1-8-9":"Осознанный выбор","3-2-5":"Ядерная радость","4-1-5":"Целительный удар","7-4-2":"Живая нить рода","8-1-9":"Живой алгоритм","5-8-4":"Духовное рождение","6-4-1":"Внутреннее солнце","8-5-4":"Семя","4-8-3":"Атланты","2-6-8":"Расширенное сознание","5-6-2":"Шут","8-7-6":"Сфера покоя","7-8-6":"Конструктор аватара","5-5-1":"Храм души","7-2-9":"Ветер перемен","6-3-9":"Фрактальное зеркало","2-4-6":"Первооткрыватель","6-8-5":"Трон воли","3-3-6":"Колесо сансары","6-5-2":"Дракон порядка","2-7-9":"Священный момент","4-5-9":"Танец жизни","4-2-6":"Фантазия"};
 
-// ===== 8 разделов Книги для Родителей =====
 const SECTIONS = [
   { id: 'essence',       icon: '🌟', title: 'Кто этот ребёнок',             desc: 'Суть дара глазами родителя' },
   { id: 'patterns',      icon: '👀', title: 'Как вы узнаете его дар',        desc: 'Паттерны поведения по возрасту' },
@@ -47,7 +33,6 @@ const SECTIONS = [
   { id: 'genius',        icon: '🌱', title: 'Путь к гениальности',          desc: 'Главный путь раскрытия' },
 ];
 
-// ===== Возрастные периоды =====
 function getAgePeriod(ageYears) {
   if (ageYears < 1)  return { period: '0-1 год',     label: 'младенчество', desc: 'Первый год жизни. Дар проявляется в темпераменте, реакциях на мир, ритме сна и бодрствования. Родители уже сейчас могут заметить первые признаки.' };
   if (ageYears < 3)  return { period: '1-3 года',     label: 'ранний возраст', desc: 'Первые осознанные проявления дара. Игры "говорят" про этот дар. Истерики и упрямство как проявление силы. Критически важно не задавить дар.' };
@@ -73,7 +58,7 @@ function calcAge(birthDateStr) {
     let age = now.getFullYear() - birth.getFullYear();
     if (now.getMonth() < birth.getMonth() || (now.getMonth() === birth.getMonth() && now.getDate() < birth.getDate())) age--;
     return Math.max(0, age);
-  } catch (e) { return 5; } // fallback
+  } catch (e) { return 5; }
 }
 
 function getFieldForDar(darCode) {
@@ -81,13 +66,11 @@ function getFieldForDar(darCode) {
   return FIELDS_BY_ID[kun] || FIELDS_BY_ID[1];
 }
 
-// ===== Промпт для DeepSeek =====
 function buildPrompt(child, section, darData, field, agePeriod) {
   const darName = DARS_DB[child.dar_code] || child.dar_code;
   const archetype = DAR_ARCHETYPES[child.dar_code] || '';
   const genderWord = child.gender === 'male' ? 'мальчик' : child.gender === 'female' ? 'девочка' : 'ребёнок';
   const genderPron = child.gender === 'male' ? 'он' : child.gender === 'female' ? 'она' : 'ребёнок';
-  const genderAdj = child.gender === 'male' ? 'ый/ий' : child.gender === 'female' ? 'ая/яя' : '';
 
   const truncate = (s, n) => {
     if (!s) return '';
@@ -199,7 +182,6 @@ ${truncate(darData.essence || '', 400)}
   };
 }
 
-// ===== Главный обработчик =====
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -215,11 +197,9 @@ module.exports = async (req, res) => {
     const db = getSupabase();
     const { action, relative_id, section_id } = req.body || {};
 
-    // ========== ОГЛАВЛЕНИЕ ==========
     if (action === 'get_toc') {
       if (!relative_id) return res.status(400).json({ error: 'relative_id required' });
 
-      // Получаем данные ребёнка
       const { data: child } = await db
         .from('user_relatives')
         .select('*')
@@ -229,7 +209,6 @@ module.exports = async (req, res) => {
 
       if (!child) return res.status(404).json({ error: 'Ребёнок не найден' });
 
-      // Какие разделы уже сгенерированы
       let generated = [];
       try {
         const { data } = await db
@@ -261,7 +240,6 @@ module.exports = async (req, res) => {
       });
     }
 
-    // ========== ПОЛУЧИТЬ / СГЕНЕРИРОВАТЬ РАЗДЕЛ ==========
     if (action === 'get_section' || action === 'regenerate') {
       if (!relative_id || !section_id) {
         return res.status(400).json({ error: 'relative_id и section_id обязательны' });
@@ -270,7 +248,6 @@ module.exports = async (req, res) => {
       const section = SECTIONS.find(s => s.id === section_id);
       if (!section) return res.status(400).json({ error: 'Неизвестный раздел: ' + section_id });
 
-      // Получаем данные ребёнка
       const { data: child } = await db
         .from('user_relatives')
         .select('*')
@@ -283,7 +260,6 @@ module.exports = async (req, res) => {
       const age = calcAge(child.birth_date);
       child.age = age;
 
-      // Проверяем кэш (если не regenerate)
       if (action !== 'regenerate') {
         try {
           const { data: cached } = await db
@@ -305,7 +281,6 @@ module.exports = async (req, res) => {
         } catch (e) {}
       }
 
-      // Генерируем через DeepSeek
       const darData = darContent[child.dar_code] || {};
       const field = getFieldForDar(child.dar_code);
       const agePeriod = getAgePeriod(age);
@@ -345,7 +320,6 @@ module.exports = async (req, res) => {
       }
 
       let content = completion.choices[0]?.message?.content || '';
-      // Чистка
       content = content
         .replace(/\u2014/g, '-')
         .replace(/\u2013/g, '-')
@@ -353,7 +327,6 @@ module.exports = async (req, res) => {
         .replace(/\u00A0/g, ' ')
         .trim();
 
-      // Конвертируем абзацы в HTML
       const htmlContent = content
         .split(/\n\n+/)
         .map(p => p.trim())
@@ -361,7 +334,6 @@ module.exports = async (req, res) => {
         .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
         .join('\n');
 
-      // Сохраняем в кэш
       try {
         await db.from('child_book_sections').upsert({
           relative_id,

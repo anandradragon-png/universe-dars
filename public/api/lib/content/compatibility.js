@@ -1,30 +1,18 @@
 /**
- * API для расчёта совместимости двух людей по их дарам
- *
- * POST /api/compatibility
- *   body: { dar_code_1, dar_code_2, name_1?, name_2?, relationship? }
- *
- * Генерирует через DeepSeek персональный анализ совместимости:
- * - Общий % совместимости
- * - Гармония (где дары усиливают друг друга)
- * - Точки напряжения
- * - Советы по взаимодействию
- * - Секрет пары (уникальная суперсила вместе)
- *
- * Кэширует результат в localStorage на клиенте (пара дар1+дар2).
+ * API для расчёта совместимости двух людей по их дарам.
  */
 
-const deepseek = require('./lib/deepseek');
+const deepseek = require('../deepseek');
 const Groq = require('groq-sdk');
 const fs = require('fs');
 const path = require('path');
 
 let darContent = {};
 try {
-  darContent = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'dar-content.json'), 'utf8'));
+  darContent = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'dar-content.json'), 'utf8'));
 } catch (e) {}
 
-const fieldsData = require('../fields.json');
+const fieldsData = require('../../../fields.json');
 const FIELDS_BY_ID = {};
 (fieldsData.fields || []).forEach(f => { FIELDS_BY_ID[f.id] = f; });
 const DARS_DB = {};
@@ -156,7 +144,6 @@ module.exports = async (req, res) => {
       };
     }
 
-    // Чистка
     const clean = (s) => String(s || '').replace(/\u2014/g, '-').replace(/\u2013/g, '-').replace(/\u2026/g, '...').trim();
 
     return res.status(200).json({

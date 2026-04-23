@@ -1,85 +1,28 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/bot-webhook", "destination": "/api/webhooks?provider=bot" },
+    { "source": "/api/tbank-webhook", "destination": "/api/webhooks?provider=tbank" },
+    { "source": "/api/yuppay-webhook", "destination": "/api/webhooks?provider=yuppay" },
+    { "source": "/api/relatives", "destination": "/api/user?action=relatives" },
+    { "source": "/api/verify-code", "destination": "/api/user?action=verify" },
+    { "source": "/api/promo", "destination": "/api/user?action=promo" },
+    { "source": "/api/oracle", "destination": "/api/content?type=oracle" },
+    { "source": "/api/shadow-review", "destination": "/api/content?type=shadow-review" },
+    { "source": "/api/section", "destination": "/api/content?type=section" },
+    { "source": "/api/message", "destination": "/api/content?type=message" },
+    { "source": "/api/compatibility", "destination": "/api/content?type=compatibility" },
+    { "source": "/api/child-book", "destination": "/api/content?type=child-book" },
+    { "source": "/api/quest", "destination": "/api/game-actions?action=quest" },
+    { "source": "/api/referral", "destination": "/api/game-actions?action=referral" },
+    { "source": "/api/treasury", "destination": "/api/game-actions?action=treasury" },
+    { "source": "/api/hall-of-fame", "destination": "/api/leaderboard?mode=hall-of-fame" },
+    { "source": "/api/admin-feedback", "destination": "/api/feedback?action=admin" }
+  ],
   "functions": {
-    "api/message.js": {
-      "memory": 512,
-      "maxDuration": 30
-    },
-    "api/user.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/treasury.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/referral.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/promo.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
     "api/daily.js": {
       "memory": 128,
       "maxDuration": 5
-    },
-    "api/quest.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/oracle.js": {
-      "memory": 512,
-      "maxDuration": 30
-    },
-    "api/feedback.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/admin-feedback.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/shadow-review.js": {
-      "memory": 512,
-      "maxDuration": 30
-    },
-    "api/leaderboard.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/hall-of-fame.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/section.js": {
-      "memory": 512,
-      "maxDuration": 30
-    },
-    "api/relatives.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/payment.js": {
-      "memory": 256,
-      "maxDuration": 15
-    },
-    "api/bot-webhook.js": {
-      "memory": 256,
-      "maxDuration": 15
-    },
-    "api/child-book.js": {
-      "memory": 512,
-      "maxDuration": 45
-    },
-    "api/yuppay-webhook.js": {
-      "memory": 256,
-      "maxDuration": 15
-    },
-    "api/compatibility.js": {
-      "memory": 512,
-      "maxDuration": 30
     },
     "api/diary.js": {
       "memory": 512,
@@ -89,9 +32,33 @@
       "memory": 512,
       "maxDuration": 60
     },
-    "api/tbank-webhook.js": {
+    "api/payment.js": {
       "memory": 256,
       "maxDuration": 15
+    },
+    "api/webhooks.js": {
+      "memory": 256,
+      "maxDuration": 15
+    },
+    "api/user.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/content.js": {
+      "memory": 512,
+      "maxDuration": 45
+    },
+    "api/game-actions.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/feedback.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/leaderboard.js": {
+      "memory": 256,
+      "maxDuration": 10
     }
   },
   "headers": [

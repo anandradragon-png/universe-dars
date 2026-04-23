@@ -479,7 +479,7 @@
   <button id="btn-profile" onclick="openProfile()"></button>
   <button id="btn-tariffs" onclick="openTariffsPage()" title="Тарифы" style="position:fixed;top:14px;right:58px;z-index:900;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(160deg,rgba(212,175,55,0.25),rgba(184,134,11,0.15));color:#D4AF37;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(212,175,55,0.25);font-family:Manrope,sans-serif" aria-label="Тарифы YupDar">&#128142;</button>
   <div id="crystal-counter"><svg width="16" height="16" viewBox="0 0 24 24" fill="#D4AF37" stroke="none"><path d="M6 3h12l4 6-10 13L2 9z"/></svg> <span id="crystal-count">0</span></div>
-  <header><h1 onclick="goHome()" style="cursor:pointer">YupDar <span style="font-size:11px;color:#888;letter-spacing:1px;font-weight:normal">(ЮпДар)</span></h1></header>
+  <header><h1 onclick="goHome()" style="cursor:pointer;line-height:1.2">YupDar<div style="font-size:10px;color:#D4AF37;letter-spacing:2px;font-weight:normal;margin-top:2px;opacity:0.8">ВСЕЛЕННАЯ ДАРОВ</div></h1></header>
 
   <!-- Панель личного кабинета -->
   <div id="profile-overlay" onclick="closeProfile()"></div>
@@ -914,7 +914,7 @@
       </div>
     </div>
   </div>
-  <!-- Модалка: Страница Тарифов YupDar (ЮпДар) -->
+  <!-- Модалка: Страница Тарифов YupDar — Вселенная Даров -->
   <div id="tariffs-modal" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,0.92);backdrop-filter:blur(6px);padding:16px;overflow-y:auto">
     <div style="max-width:480px;margin:0 auto;padding:8px 4px 40px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;position:sticky;top:0;background:rgba(8,8,8,0.9);padding:10px 4px;backdrop-filter:blur(6px);border-radius:12px">
@@ -923,7 +923,7 @@
       </div>
 
       <div style="text-align:center;margin-bottom:20px">
-        <div style="font-size:20px;color:#D4AF37;font-weight:700;letter-spacing:1px;margin-bottom:4px">YupDar (ЮпДар)</div>
+        <div style="font-size:20px;color:#D4AF37;font-weight:700;letter-spacing:1px;margin-bottom:4px">YupDar — Вселенная Даров</div>
         <div style="font-size:13px;color:var(--text-dim);font-style:italic">Вселенная Даров</div>
       </div>
 
@@ -1349,7 +1349,7 @@
 
         <!-- Тарифы: прозрачный прайс-лист со всеми уровнями, виден всегда -->
         <div style="margin-top:14px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px">
-          <div style="font-size:13px;color:#D4AF37;margin-bottom:10px;font-weight:600;letter-spacing:0.5px">&#128142; ТАРИФЫ YupDar (ЮпДар)</div>
+          <div style="font-size:13px;color:#D4AF37;margin-bottom:10px;font-weight:600;letter-spacing:0.5px">&#128142; ТАРИФЫ YupDar</div>
           <div style="display:grid;gap:6px">
 
             <div style="padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:8px;font-size:12px;line-height:1.5;${level === 'basic' ? 'border:2px solid #2ecc71;box-shadow:0 0 10px rgba(46,204,113,0.3)' : 'border:1px solid transparent'}">
@@ -1385,7 +1385,7 @@
 
           </div>
           <div style="margin-top:10px;font-size:11px;color:var(--text-dim);text-align:center;line-height:1.4">
-            Подробнее на <a href="https://public-yup-land1.vercel.app/index-landing" target="_blank" style="color:#D4AF37;text-decoration:none">сайте YupDar (ЮпДар)</a>
+            Подробнее на <a href="https://public-yup-land1.vercel.app/index-landing" target="_blank" style="color:#D4AF37;text-decoration:none">сайте YupDar</a>
           </div>
         </div>
 

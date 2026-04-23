@@ -7,7 +7,7 @@
  * Роутинг по req.query.action или URL (через rewrites).
  */
 
-const { requireUser } = require('./lib/auth');
+const { requireUser } = require('./_lib/auth');
 const {
   getOrCreateUser,
   completeQuest,
@@ -19,8 +19,8 @@ const {
   createReferral,
   getReferralCount,
   getSupabase
-} = require('./lib/db');
-const { getCost, getReward } = require('./lib/crystals');
+} = require('./_lib/db');
+const { getCost, getReward } = require('./_lib/crystals');
 
 // =====================================================================
 // ========== QUEST ====================================================

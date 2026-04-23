@@ -9,9 +9,9 @@
  *   action: 'get_insight'— запросить AI-инсайт по накопленным данным
  */
 
-const { requireUser } = require('./lib/auth');
-const { getSupabase, getOrCreateUser } = require('./lib/db');
-const deepseek = require('./lib/deepseek');
+const { requireUser } = require('./_lib/auth');
+const { getSupabase, getOrCreateUser } = require('./_lib/db');
+const deepseek = require('./_lib/deepseek');
 const Groq = require('groq-sdk');
 const fs = require('fs');
 const path = require('path');
@@ -63,7 +63,7 @@ module.exports = async (req, res) => {
         }, { onConflict: 'user_id,date_key' });
 
         // Начисляем 1 кристалл за запись (ежедневная привычка)
-        const { addCrystals } = require('./lib/db');
+        const { addCrystals } = require('./_lib/db');
         await addCrystals(user.id, 1, 'diary_entry');
 
         return res.json({ success: true, crystals_earned: 1 });

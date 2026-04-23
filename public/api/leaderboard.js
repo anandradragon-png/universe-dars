@@ -6,8 +6,8 @@
  * Роутинг по req.query.mode или URL.
  */
 
-const { getUser, requireUser } = require('./lib/auth');
-const { getSupabase, getOrCreateUser, updateUser, addCrystals } = require('./lib/db');
+const { getUser, requireUser } = require('./_lib/auth');
+const { getSupabase, getOrCreateUser, updateUser, addCrystals } = require('./_lib/db');
 
 // =====================================================================
 // ========== LEADERBOARD HELPERS ======================================

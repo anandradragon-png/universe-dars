@@ -11,7 +11,7 @@
  */
 
 const crypto = require('crypto');
-const { getSupabase, addCrystals } = require('./lib/db');
+const { getSupabase, addCrystals } = require('./_lib/db');
 
 // =====================================================================
 // ========== BOT (Telegram Stars) =====================================

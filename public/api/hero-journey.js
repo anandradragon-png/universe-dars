@@ -1,11 +1,11 @@
-const { requireUser } = require('./lib/auth');
-const { getOrCreateUser, addCrystals, getHeroJourney, upsertHeroJourney, getAllHeroJourneys, getUserDars } = require('./lib/db');
-const { getReward } = require('./lib/crystals');
-const { FIELD_CONFIGS, buildAwakeningPrompt, buildBattlePrompt, buildRiddlePrompt, buildTrialPrompt, buildMeditationPrompt, buildTransformPrompt, buildCoronationPrompt, buildPathAnalysisPrompt } = require('./lib/hero-prompts');
+const { requireUser } = require('./_lib/auth');
+const { getOrCreateUser, addCrystals, getHeroJourney, upsertHeroJourney, getAllHeroJourneys, getUserDars } = require('./_lib/db');
+const { getReward } = require('./_lib/crystals');
+const { FIELD_CONFIGS, buildAwakeningPrompt, buildBattlePrompt, buildRiddlePrompt, buildTrialPrompt, buildMeditationPrompt, buildTransformPrompt, buildCoronationPrompt, buildPathAnalysisPrompt } = require('./_lib/hero-prompts');
 
 // DeepSeek (primary) / Groq (fallback)
 let deepseek, groqSdk;
-try { deepseek = require('./lib/deepseek'); } catch(e) {}
+try { deepseek = require('./_lib/deepseek'); } catch(e) {}
 
 async function callAI(systemPrompt, userMessage, maxTokens = 800) {
   // Только DeepSeek - качественные тексты, без fallback на Groq

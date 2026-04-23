@@ -14,9 +14,9 @@ const Groq = require('groq-sdk');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const deepseek = require('./lib/deepseek');
-const { getSupabase, getOrCreateUser } = require('./lib/db');
-const { getUser, requireUser } = require('./lib/auth');
+const deepseek = require('./_lib/deepseek');
+const { getSupabase, getOrCreateUser } = require('./_lib/db');
+const { getUser, requireUser } = require('./_lib/auth');
 
 // ===== Общие загрузки =====
 const fieldsData = require('../fields.json');
@@ -585,19 +585,19 @@ module.exports = async (req, res) => {
     return handleOracle(req, res);
   }
   if (type === 'shadow-review' || url.includes('/shadow-review')) {
-    return require('./lib/content/shadow-review')(req, res);
+    return require('./_lib/content/shadow-review')(req, res);
   }
   if (type === 'section' || url.includes('/section')) {
-    return require('./lib/content/section')(req, res);
+    return require('./_lib/content/section')(req, res);
   }
   if (type === 'message' || url.includes('/message')) {
-    return require('./lib/content/message')(req, res);
+    return require('./_lib/content/message')(req, res);
   }
   if (type === 'compatibility' || url.includes('/compatibility')) {
-    return require('./lib/content/compatibility')(req, res);
+    return require('./_lib/content/compatibility')(req, res);
   }
   if (type === 'child-book' || url.includes('/child-book')) {
-    return require('./lib/content/child-book')(req, res);
+    return require('./_lib/content/child-book')(req, res);
   }
 
   return res.status(400).json({ error: 'Unknown content type. Expected: oracle, shadow-review, section, message, compatibility, child-book' });

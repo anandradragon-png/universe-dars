@@ -8,9 +8,9 @@
  * Роутинг по req.query.action или URL (через rewrites).
  */
 
-const { getUser, requireUser } = require('./lib/auth');
-const { getOrCreateUser, updateUser, getUserDars, addCrystals, unlockDar, getSupabase } = require('./lib/db');
-const { getReward, getStreakBonus } = require('./lib/crystals');
+const { getUser, requireUser } = require('./_lib/auth');
+const { getOrCreateUser, updateUser, getUserDars, addCrystals, unlockDar, getSupabase } = require('./_lib/db');
+const { getReward, getStreakBonus } = require('./_lib/crystals');
 
 // =====================================================================
 // ========== PROFILE (default) ========================================

@@ -10,8 +10,8 @@
  * Клиент вызывает Telegram.WebApp.openInvoice(url, callback)
  */
 
-const { requireUser } = require('./lib/auth');
-const { getOrCreateUser } = require('./lib/db');
+const { requireUser } = require('./_lib/auth');
+const { getOrCreateUser } = require('./_lib/db');
 
 // YupPay (DarAI/NEAR) - Supabase Edge Function
 const YUPPAY_API_URL = 'https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api';
@@ -50,7 +50,7 @@ module.exports = async (req, res) => {
     // Мягкая авторизация: пробуем получить юзера, но если не удалось —
     // всё равно создаём invoice (это просто ссылка на оплату, безвредная).
     // Настоящая проверка происходит в webhook при successful_payment.
-    const { getUser } = require('./lib/auth');
+    const { getUser } = require('./_lib/auth');
     let tgUser = getUser(req);
     let user = null;
 

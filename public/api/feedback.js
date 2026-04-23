@@ -4,8 +4,8 @@
  *  - GET  /api/feedback?action=admin   — получить список фидбэка (только админы)
  */
 
-const { requireUser } = require('./lib/auth');
-const { getSupabase } = require('./lib/db');
+const { requireUser } = require('./_lib/auth');
+const { getSupabase } = require('./_lib/db');
 
 // ID администраторов, которым разрешён доступ к фидбэку
 const ADMIN_IDS = [269932434]; // Светлана @AnandraDragon

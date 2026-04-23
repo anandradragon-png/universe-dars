@@ -2133,10 +2133,13 @@
     const JSON_SECTIONS = [
       {key:'sacred_energy', icon:'🌟', title:'Сакральная энергия', getText: d => d.sacred_energy},
       {key:'light_part',    icon:'✨', title:'Световая часть',     getText: d => {
-        const l=d.light_part||{};
-        return [l.ma_resource&&`**Внутренний ресурс:** ${l.ma_resource}`,
-                l.zhi_action&&`**Внешнее действие:** ${l.zhi_action}`,
-                l.kun_effect&&`**Итоговый эффект:** ${l.kun_effect}`].filter(Boolean).join('\n\n');
+        // Обратная совместимость: если AI вернул объект (старый формат) — склеиваем в один текст без подзаголовков
+        const l = d.light_part;
+        if (typeof l === 'string') return l;
+        if (l && typeof l === 'object') {
+          return [l.ma_resource, l.zhi_action, l.kun_effect].filter(Boolean).join('\n\n');
+        }
+        return '';
       }},
       {key:'growth_points', icon:'🌑', title:'Точки роста',        getText: d => {
         const g=d.growth_points||{};

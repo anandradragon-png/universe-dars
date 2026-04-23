@@ -479,7 +479,10 @@
   <button id="btn-profile" onclick="openProfile()"></button>
   <button id="btn-tariffs" onclick="openTariffsPage()" title="Тарифы" style="position:fixed;top:14px;right:58px;z-index:900;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(160deg,rgba(212,175,55,0.25),rgba(184,134,11,0.15));color:#D4AF37;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(212,175,55,0.25);font-family:Manrope,sans-serif" aria-label="Тарифы YupDar">&#128142;</button>
   <div id="crystal-counter"><svg width="16" height="16" viewBox="0 0 24 24" fill="#D4AF37" stroke="none"><path d="M6 3h12l4 6-10 13L2 9z"/></svg> <span id="crystal-count">0</span></div>
-  <header><h1 onclick="goHome()" style="cursor:pointer;line-height:1.2">YupDar<div style="font-size:10px;color:#D4AF37;letter-spacing:2px;font-weight:normal;margin-top:2px;opacity:0.8">ВСЕЛЕННАЯ ДАРОВ</div></h1></header>
+  <header style="text-align:center">
+    <h1 onclick="goHome()" style="cursor:pointer;margin:0;line-height:1">YupDar</h1>
+    <div onclick="goHome()" style="cursor:pointer;font-size:9px;color:#D4AF37;letter-spacing:3px;font-weight:600;margin-top:2px;opacity:0.75;font-family:Manrope,sans-serif">ВСЕЛЕННАЯ ДАРОВ</div>
+  </header>
 
   <!-- Панель личного кабинета -->
   <div id="profile-overlay" onclick="closeProfile()"></div>

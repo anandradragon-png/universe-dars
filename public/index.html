@@ -2084,6 +2084,48 @@
 
     const API_URL='https://public-yup-land1.vercel.app';
 
+    // Красивая анимация ожидания: сменяющиеся фразы + пульсирующая карта.
+    // AI-генерация портрета занимает 30-60 сек, юзеру скучно смотреть на пустую кнопку.
+    let _loadingPhraseTimer = null;
+    function startLoadingAnimation() {
+      const phrases = [
+        'Мудрый Наставник настраивается на твою энергию...',
+        'Считывает узор твоего дара...',
+        'Переводит древний язык в живые слова...',
+        'Ищет образы, которые отзовутся именно тебе...',
+        'Собирает портрет твоей души...',
+        'Ещё несколько мгновений...'
+      ];
+      const block = document.getElementById('full-description-block');
+      const content = document.getElementById('full-description-content');
+      block.style.display = 'block';
+      content.innerHTML = `
+        <div id="msg-loader" style="text-align:center;padding:40px 20px;color:#e8d49d">
+          <div style="font-size:48px;animation:pulse 1.8s ease-in-out infinite">✨</div>
+          <div id="msg-loader-text" style="margin-top:20px;font-size:15px;line-height:1.6;opacity:0.85;min-height:48px;transition:opacity 0.4s">${phrases[0]}</div>
+          <div style="margin-top:24px;display:flex;justify-content:center;gap:6px">
+            <span style="width:6px;height:6px;background:#d4af37;border-radius:50%;animation:dot 1.4s infinite ease-in-out;animation-delay:0s"></span>
+            <span style="width:6px;height:6px;background:#d4af37;border-radius:50%;animation:dot 1.4s infinite ease-in-out;animation-delay:0.2s"></span>
+            <span style="width:6px;height:6px;background:#d4af37;border-radius:50%;animation:dot 1.4s infinite ease-in-out;animation-delay:0.4s"></span>
+          </div>
+        </div>
+        <style>
+          @keyframes pulse {0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.15);opacity:1}}
+          @keyframes dot {0%,80%,100%{opacity:0.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}
+        </style>`;
+      let i = 0;
+      _loadingPhraseTimer = setInterval(() => {
+        i = (i + 1) % phrases.length;
+        const t = document.getElementById('msg-loader-text');
+        if (!t) return;
+        t.style.opacity = '0';
+        setTimeout(() => { t.textContent = phrases[i]; t.style.opacity = '0.85'; }, 400);
+      }, 5000);
+    }
+    function stopLoadingAnimation() {
+      if (_loadingPhraseTimer) { clearInterval(_loadingPhraseTimer); _loadingPhraseTimer = null; }
+    }
+
     async function requestMessage(){
       const saved=localStorage.getItem(STORAGE_KEY);
       if(!saved){ alert('Сначала рассчитайте дар'); return; }
@@ -2091,6 +2133,7 @@
       const btn=document.getElementById('btn-get-message');
       btn.textContent='⏳ Загрузка мудрости...';
       btn.disabled=true;
+      startLoadingAnimation();
       try{
         const resp=await fetch(`${API_URL}/api/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({giftCode:gift.code})});
         console.log('API status:', resp.status, resp.statusText);
@@ -2106,6 +2149,8 @@
         console.log('API response:', JSON.stringify(result).substring(0, 200));
 
         if(result.error) throw new Error(result.error);
+
+        stopLoadingAnimation();
 
         if(result.data) {
           buildAccordionFromJSON(result.data);
@@ -2123,6 +2168,7 @@
         block.style.display='block';
         setTimeout(()=>block.scrollIntoView({behavior:'smooth',block:'start'}),100);
       }catch(e){
+        stopLoadingAnimation();
         console.error('requestMessage error:', e.message);
         btn.textContent=' Получить полное послание';
         btn.disabled=false;

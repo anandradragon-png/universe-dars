@@ -2135,7 +2135,8 @@
       btn.disabled=true;
       startLoadingAnimation();
       try{
-        const resp=await fetch(`${API_URL}/api/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({giftCode:gift.code})});
+        const _prof=JSON.parse(localStorage.getItem('_darProfile')||'{}');
+        const resp=await fetch(`${API_URL}/api/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({giftCode:gift.code, gender:_prof.gender||''})});
         console.log('API status:', resp.status, resp.statusText);
         if(!resp.ok) throw new Error('HTTP ' + resp.status);
 

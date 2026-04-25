@@ -3240,8 +3240,24 @@
     // ============ ЮKASSA (карта / СБП / SberPay) ============
     async function buyBookWithCard() {
       try {
-        // Тестовый режим: ?test_yookassa=1 в URL → платёж на 10 ₽
-        const testMode = new URLSearchParams(location.search).get('test_yookassa') === '1';
+        // Тестовый режим срабатывает в трёх случаях:
+        //  1) URL с ?test_yookassa=1 (открыли в браузере)
+        //  2) Telegram Mini App открыта по ссылке t.me/YupDarBot?startapp=test_yookassa
+        //  3) localStorage._test_yookassa === '1' (для повторных тестов в TG)
+        const params = new URLSearchParams(location.search);
+        const tg = window.Telegram?.WebApp;
+        const tgStartParam = tg?.initDataUnsafe?.start_param || '';
+        let lsFlag = '';
+        try { lsFlag = localStorage.getItem('_test_yookassa') || ''; } catch(e) {}
+        const testMode =
+          params.get('test_yookassa') === '1' ||
+          tgStartParam === 'test_yookassa' ||
+          lsFlag === '1';
+        // Если зашли через Telegram start_param — запоминаем в localStorage,
+        // чтобы повторное открытие Mini App тоже было в тестовом режиме
+        if (tgStartParam === 'test_yookassa') {
+          try { localStorage.setItem('_test_yookassa', '1'); } catch(e) {}
+        }
 
         if (typeof showToast === 'function') {
           showToast(testMode ? 'Создаём тестовый платёж 10 ₽...' : 'Создаём платёж 990 ₽...', 'info');

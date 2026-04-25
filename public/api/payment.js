@@ -298,13 +298,16 @@ module.exports = async (req, res) => {
         ? 'Тестовая оплата ЮKassa (YupDar)'
         : 'Книга Даров — полный доступ + Хранитель';
 
-      // Контакт от веб-юзера (вне Telegram Mini App): email обязателен, tg_username опционален.
+      // Контакт от веб-юзера (вне Telegram Mini App): нужен либо TG-username, либо email.
+      // Сценарии:
+      //   1. Mini App → telegram_id есть, контакты не нужны
+      //   2. Web с TG → пользователь вводит @username (приоритет)
+      //   3. Web без TG → пользователь вводит email
       const userEmail = String(req.body.email || '').trim().toLowerCase();
       const userTgUsername = String(req.body.tg_username || '').trim().replace(/^@/, '').toLowerCase();
       const isWebUser = !user && !telegramId;
-      // Если запрос не из Telegram Mini App, требуем email
-      if (isWebUser && !userEmail) {
-        return res.status(400).json({ error: 'Укажи email — без него мы не сможем связать покупку с тобой' });
+      if (isWebUser && !userEmail && !userTgUsername) {
+        return res.status(400).json({ error: 'Укажи Telegram-username или email — без этого мы не сможем активировать доступ' });
       }
 
       const yooUserId = user ? user.id : (telegramId || userEmail || 'guest');

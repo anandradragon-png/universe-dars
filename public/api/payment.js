@@ -298,9 +298,34 @@ module.exports = async (req, res) => {
         ? 'Тестовая оплата ЮKassa (YupDar)'
         : 'Книга Даров — полный доступ + Хранитель';
 
-      const yooUserId = user ? user.id : telegramId;
+      // Контакт от веб-юзера (вне Telegram Mini App): email обязателен, tg_username опционален.
+      const userEmail = String(req.body.email || '').trim().toLowerCase();
+      const userTgUsername = String(req.body.tg_username || '').trim().replace(/^@/, '').toLowerCase();
+      const isWebUser = !user && !telegramId;
+      // Если запрос не из Telegram Mini App, требуем email
+      if (isWebUser && !userEmail) {
+        return res.status(400).json({ error: 'Укажи email — без него мы не сможем связать покупку с тобой' });
+      }
+
+      const yooUserId = user ? user.id : (telegramId || userEmail || 'guest');
       const idempotenceKey = `yookassa_book_${yooUserId}_${Date.now()}`;
       const auth = Buffer.from(`${yooShopId}:${yooSecret}`).toString('base64');
+
+      // ЮKassa email-чек: если задан email, передаём в receipt.customer для отправки чека по 54-ФЗ.
+      // Это требует что у магазина включена услуга «Самозанятые» в ЮKassa, иначе чек игнорируется.
+      const receiptBlock = userEmail ? {
+        receipt: {
+          customer: { email: userEmail },
+          items: [{
+            description: description.slice(0, 128),
+            quantity: '1.00',
+            amount: { value: amountValue, currency: 'RUB' },
+            vat_code: 1,                // НДС не облагается (для самозанятых)
+            payment_subject: 'service',
+            payment_mode: 'full_payment'
+          }]
+        }
+      } : {};
 
       try {
         const resp = await fetch('https://api.yookassa.ru/v3/payments', {
@@ -315,10 +340,13 @@ module.exports = async (req, res) => {
             confirmation: { type: 'redirect', return_url: 'https://t.me/YupDarBot' },
             capture: true,
             description,
+            ...receiptBlock,
             metadata: {
               payment_type: isTest ? 'test' : 'book',
               telegram_id: String(telegramId || ''),
-              user_id: user ? String(user.id) : ''
+              user_id: user ? String(user.id) : '',
+              email: userEmail,
+              tg_username: userTgUsername
             }
           })
         });

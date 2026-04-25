@@ -108,7 +108,7 @@ async function handleBotWebhook(req, res) {
           // Находим юзера по telegram_id
           const { data: user } = await db
             .from('users')
-            .select('id, access_level, crystals')
+            .select('id, telegram_id, access_level, crystals')
             .eq('telegram_id', telegramId)
             .single();
 
@@ -297,7 +297,7 @@ async function handleTbankWebhook(req, res) {
     // Находим юзера
     const { data: user } = await db
       .from('users')
-      .select('id, access_level, crystals')
+      .select('id, telegram_id, access_level, crystals')
       .eq('telegram_id', telegramId)
       .single();
 
@@ -506,7 +506,7 @@ async function handleYuppayWebhook(req, res) {
     // Находим юзера по telegram_id
     const { data: user } = await db
       .from('users')
-      .select('id, access_level, crystals')
+      .select('id, telegram_id, access_level, crystals')
       .eq('telegram_id', String(telegramChatId))
       .single();
 
@@ -637,11 +637,9 @@ async function handleYookassaWebhook(req, res) {
     const metadata = obj.metadata || {};
     const paymentType = metadata.payment_type || '';
     const telegramId = metadata.telegram_id || '';
-
-    if (!telegramId) {
-      console.warn('[yookassa-webhook] No telegram_id in metadata');
-      return res.status(200).json({ ok: true });
-    }
+    const userEmail = (metadata.email || '').toLowerCase();
+    const userTgUsername = (metadata.tg_username || '').toLowerCase();
+    const amountValue = obj.amount && obj.amount.value;
 
     const db = getSupabase();
 
@@ -657,19 +655,69 @@ async function handleYookassaWebhook(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // Находим юзера
-    const { data: user } = await db
-      .from('users')
-      .select('id, access_level, crystals')
-      .eq('telegram_id', String(telegramId))
-      .single();
+    // Ищем пользователя в порядке надёжности:
+    //   1) telegram_id (если оплата из Mini App — самый надёжный источник, валидирован)
+    //   2) tg_username (если веб-юзер ввёл свой @username и он совпал с username в БД)
+    //   3) email (через crystal_log, если такой email уже привязывался к юзеру)
+    let user = null;
+    if (telegramId) {
+      const { data } = await db.from('users').select('id, telegram_id, access_level, crystals')
+        .eq('telegram_id', String(telegramId)).single();
+      if (data) user = data;
+    }
+    if (!user && userTgUsername) {
+      const { data } = await db.from('users').select('id, telegram_id, access_level, crystals')
+        .ilike('username', userTgUsername).limit(1).single();
+      if (data) user = data;
+    }
+    // 3) Поиск по email через предыдущие активации (если email уже встречался в metadata)
+    if (!user && userEmail) {
+      const { data: prevByEmail } = await db.from('crystal_log').select('user_id, metadata')
+        .eq('metadata->>yookassa_email', userEmail).limit(1);
+      if (prevByEmail && prevByEmail[0] && prevByEmail[0].user_id) {
+        const { data } = await db.from('users').select('id, telegram_id, access_level, crystals')
+          .eq('id', prevByEmail[0].user_id).single();
+        if (data) user = data;
+      }
+    }
 
     if (!user) {
-      console.error('[yookassa-webhook] User not found:', telegramId);
+      // Юзер не найден — это веб-покупка, которую владелец активирует вручную.
+      // Логируем максимально подробно, чтобы Света увидела платёж в Vercel Logs и Supabase.
+      console.warn('[yookassa-webhook] PENDING PURCHASE — user not found:', JSON.stringify({
+        payment_id: obj.id,
+        amount: amountValue,
+        email: userEmail,
+        tg_username: userTgUsername,
+        telegram_id: telegramId,
+        payment_type: paymentType,
+        created_at: obj.created_at
+      }));
+      // Сохраняем в crystal_log с user_id=null, чтобы Света могла найти запросом по metadata.
+      // Если в схеме user_id NOT NULL — упадёт и просто оставим в логах (это ОК).
+      try {
+        await db.from('crystal_log').insert({
+          user_id: null,
+          amount: 0,
+          reason: 'pending_yookassa',
+          metadata: {
+            yookassa_payment_id: obj.id,
+            yookassa_email: userEmail,
+            yookassa_tg_username: userTgUsername,
+            yookassa_amount: amountValue,
+            yookassa_payment_type: paymentType,
+            yookassa_status: 'pending_manual_activation'
+          }
+        });
+      } catch (e) {
+        console.warn('[yookassa-webhook] Could not save pending row (likely user_id NOT NULL):', e.message);
+      }
       return res.status(200).json({ ok: true });
     }
 
-    const amountValue = obj.amount && obj.amount.value;
+    // chat_id для отправки сообщения в Telegram. Если оплата пришла из Mini App —
+    // metadata.telegram_id уже валидирован. Если найден по username/email — берём из user.telegram_id.
+    const tgChatId = telegramId || (user.telegram_id ? String(user.telegram_id) : '');
 
     if (paymentType === 'book') {
       // Апгрейд на Хранитель
@@ -678,71 +726,83 @@ async function handleYookassaWebhook(req, res) {
 
       await addCrystals(user.id, 50, 'purchase_book_yookassa', {
         yookassa_payment_id: obj.id,
+        yookassa_email: userEmail,
+        yookassa_tg_username: userTgUsername,
         amount: amountValue,
         currency: obj.amount && obj.amount.currency
       });
 
       console.log('[yookassa-webhook] User upgraded:', user.id, '->', newLevel);
 
-      try {
-        const botToken = (process.env.BOT_TOKEN || '').trim();
-        if (botToken) {
-          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: telegramId,
-              text: 'Спасибо за покупку!\n\n' +
-                'Полный доступ к Книге Даров активирован\n' +
-                'Уровень: Хранитель\n' +
-                '+50 кристаллов мудрости\n\n' +
-                'Открой приложение чтобы увидеть изменения.'
-            })
-          });
+      if (tgChatId) {
+        try {
+          const botToken = (process.env.BOT_TOKEN || '').trim();
+          if (botToken) {
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: tgChatId,
+                text: 'Спасибо за покупку!\n\n' +
+                  'Полный доступ к Книге Даров активирован\n' +
+                  'Уровень: Хранитель\n' +
+                  '+50 кристаллов мудрости\n\n' +
+                  'Открой приложение чтобы увидеть изменения.'
+              })
+            });
+          }
+        } catch (e) {
+          console.warn('[yookassa-webhook] sendMessage failed:', e.message);
         }
-      } catch (e) {
-        console.warn('[yookassa-webhook] sendMessage failed:', e.message);
       }
     } else if (paymentType === 'donation') {
       const bonusCrystals = parseInt(metadata.bonus_crystals || '1', 10);
       await addCrystals(user.id, bonusCrystals, 'donation_yookassa', {
         yookassa_payment_id: obj.id,
+        yookassa_email: userEmail,
+        yookassa_tg_username: userTgUsername,
         amount: amountValue
       });
 
-      try {
-        const botToken = (process.env.BOT_TOKEN || '').trim();
-        if (botToken) {
-          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: telegramId,
-              text: `Спасибо за поддержку!\n\n+${bonusCrystals} кристаллов мудрости в благодарность`
-            })
-          });
-        }
-      } catch (e) {}
+      if (tgChatId) {
+        try {
+          const botToken = (process.env.BOT_TOKEN || '').trim();
+          if (botToken) {
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: tgChatId,
+                text: `Спасибо за поддержку!\n\n+${bonusCrystals} кристаллов мудрости в благодарность`
+              })
+            });
+          }
+        } catch (e) {}
+      }
     } else if (paymentType === 'test') {
       // Тестовая оплата — просто фиксируем в логе и шлём подтверждение
       await addCrystals(user.id, 0, 'test_yookassa', {
         yookassa_payment_id: obj.id,
+        yookassa_email: userEmail,
+        yookassa_tg_username: userTgUsername,
         amount: amountValue
       });
 
-      try {
-        const botToken = (process.env.BOT_TOKEN || '').trim();
-        if (botToken) {
-          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: telegramId,
-              text: 'Тестовая оплата ЮKassa прошла успешно!\nВсё подключено правильно. Можно делать рефанд в ЛК ЮKassa.'
-            })
-          });
-        }
-      } catch (e) {}
+      if (tgChatId) {
+        try {
+          const botToken = (process.env.BOT_TOKEN || '').trim();
+          if (botToken) {
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: tgChatId,
+                text: 'Тестовая оплата ЮKassa прошла успешно!\nВсё подключено правильно. Можно делать рефанд в ЛК ЮKassa.'
+              })
+            });
+          }
+        } catch (e) {}
+      }
     }
 
     return res.status(200).json({ ok: true });

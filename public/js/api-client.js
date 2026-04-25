@@ -198,10 +198,20 @@ const DarAPI = (function() {
     createDaraiDonation: (amount_raw) =>
       request('/api/payment', 'POST', { action: 'create_darai_donation', amount_raw }),
     // ЮKassa (карта/СБП/SberPay)
-    createYookassaBook: (test_mode = false) =>
-      request('/api/payment', 'POST', { action: 'create_yookassa_book', test_mode }),
-    createYookassaDonation: (amount) =>
-      request('/api/payment', 'POST', { action: 'create_yookassa_donation', amount }),
+    createYookassaBook: (opts = {}) =>
+      request('/api/payment', 'POST', {
+        action: 'create_yookassa_book',
+        test_mode: !!opts.test_mode,
+        email: opts.email || '',
+        tg_username: opts.tg_username || ''
+      }),
+    createYookassaDonation: (amount, opts = {}) =>
+      request('/api/payment', 'POST', {
+        action: 'create_yookassa_donation',
+        amount,
+        email: opts.email || '',
+        tg_username: opts.tg_username || ''
+      }),
 
     // ---- Дневник Дара ----
     saveDiaryMood: (mood, note) =>

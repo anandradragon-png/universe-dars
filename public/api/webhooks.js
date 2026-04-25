@@ -586,6 +586,174 @@ async function handleYuppayWebhook(req, res) {
 }
 
 // =====================================================================
+// ========== YOOKASSA (ЮKassa) ========================================
+// =====================================================================
+
+async function handleYookassaWebhook(req, res) {
+  if (req.method === 'GET') {
+    return res.status(200).json({ status: 'yookassa webhook active' });
+  }
+  if (req.method !== 'POST') return res.status(405).end();
+
+  try {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const event = body && body.event;
+    const obj = body && body.object;
+
+    console.log('[yookassa-webhook] Received:', JSON.stringify({
+      event,
+      payment_id: obj && obj.id,
+      status: obj && obj.status,
+      amount: obj && obj.amount,
+      metadata: obj && obj.metadata
+    }));
+
+    // Реагируем только на успешные платежи. Остальные просто логируем 200.
+    if (event !== 'payment.succeeded' || !obj || obj.status !== 'succeeded') {
+      return res.status(200).json({ ok: true });
+    }
+
+    // Доп. защита: дёрнем GET /v3/payments/{id} для подтверждения статуса
+    // (IP можно подделать, авторитетный источник — сам API ЮKassa)
+    const yooShopId = (process.env.YOOKASSA_SHOP_ID || '').trim();
+    const yooSecret = (process.env.YOOKASSA_SECRET_KEY || '').trim();
+    if (yooShopId && yooSecret && obj.id) {
+      try {
+        const auth = Buffer.from(`${yooShopId}:${yooSecret}`).toString('base64');
+        const verifyResp = await fetch(`https://api.yookassa.ru/v3/payments/${obj.id}`, {
+          headers: { 'Authorization': `Basic ${auth}` }
+        });
+        const verifyData = await verifyResp.json();
+        if (verifyData.status !== 'succeeded') {
+          console.warn('[yookassa-webhook] Status mismatch on verify:', verifyData.status);
+          return res.status(200).json({ ok: true });
+        }
+      } catch (e) {
+        console.warn('[yookassa-webhook] Verify call failed:', e.message);
+        // не блокируем — лучше начислить чем потерять платёж
+      }
+    }
+
+    const metadata = obj.metadata || {};
+    const paymentType = metadata.payment_type || '';
+    const telegramId = metadata.telegram_id || '';
+
+    if (!telegramId) {
+      console.warn('[yookassa-webhook] No telegram_id in metadata');
+      return res.status(200).json({ ok: true });
+    }
+
+    const db = getSupabase();
+
+    // Идемпотентность: один и тот же payment_id не обрабатывать дважды
+    const { data: existingList } = await db
+      .from('crystal_log')
+      .select('id')
+      .eq('metadata->>yookassa_payment_id', String(obj.id))
+      .limit(1);
+
+    if (existingList && existingList.length > 0) {
+      console.log('[yookassa-webhook] Duplicate payment, skipping:', obj.id);
+      return res.status(200).json({ ok: true });
+    }
+
+    // Находим юзера
+    const { data: user } = await db
+      .from('users')
+      .select('id, access_level, crystals')
+      .eq('telegram_id', String(telegramId))
+      .single();
+
+    if (!user) {
+      console.error('[yookassa-webhook] User not found:', telegramId);
+      return res.status(200).json({ ok: true });
+    }
+
+    const amountValue = obj.amount && obj.amount.value;
+
+    if (paymentType === 'book') {
+      // Апгрейд на Хранитель
+      const newLevel = user.access_level === 'premium' ? 'premium' : 'extended';
+      await db.from('users').update({ access_level: newLevel }).eq('id', user.id);
+
+      await addCrystals(user.id, 50, 'purchase_book_yookassa', {
+        yookassa_payment_id: obj.id,
+        amount: amountValue,
+        currency: obj.amount && obj.amount.currency
+      });
+
+      console.log('[yookassa-webhook] User upgraded:', user.id, '->', newLevel);
+
+      try {
+        const botToken = (process.env.BOT_TOKEN || '').trim();
+        if (botToken) {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: telegramId,
+              text: 'Спасибо за покупку!\n\n' +
+                'Полный доступ к Книге Даров активирован\n' +
+                'Уровень: Хранитель\n' +
+                '+50 кристаллов мудрости\n\n' +
+                'Открой приложение чтобы увидеть изменения.'
+            })
+          });
+        }
+      } catch (e) {
+        console.warn('[yookassa-webhook] sendMessage failed:', e.message);
+      }
+    } else if (paymentType === 'donation') {
+      const bonusCrystals = parseInt(metadata.bonus_crystals || '1', 10);
+      await addCrystals(user.id, bonusCrystals, 'donation_yookassa', {
+        yookassa_payment_id: obj.id,
+        amount: amountValue
+      });
+
+      try {
+        const botToken = (process.env.BOT_TOKEN || '').trim();
+        if (botToken) {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: telegramId,
+              text: `Спасибо за поддержку!\n\n+${bonusCrystals} кристаллов мудрости в благодарность`
+            })
+          });
+        }
+      } catch (e) {}
+    } else if (paymentType === 'test') {
+      // Тестовая оплата — просто фиксируем в логе и шлём подтверждение
+      await addCrystals(user.id, 0, 'test_yookassa', {
+        yookassa_payment_id: obj.id,
+        amount: amountValue
+      });
+
+      try {
+        const botToken = (process.env.BOT_TOKEN || '').trim();
+        if (botToken) {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: telegramId,
+              text: 'Тестовая оплата ЮKassa прошла успешно!\nВсё подключено правильно. Можно делать рефанд в ЛК ЮKassa.'
+            })
+          });
+        }
+      } catch (e) {}
+    }
+
+    return res.status(200).json({ ok: true });
+  } catch (e) {
+    console.error('[yookassa-webhook] Error:', e.message, e.stack);
+    // Всегда 200, иначе ЮKassa будет повторять
+    return res.status(200).json({ ok: true });
+  }
+}
+
+// =====================================================================
 // ========== MAIN ROUTER ==============================================
 // =====================================================================
 
@@ -603,6 +771,9 @@ module.exports = async (req, res) => {
   if (provider === 'yuppay' || url.includes('yuppay-webhook')) {
     return handleYuppayWebhook(req, res);
   }
+  if (provider === 'yookassa' || url.includes('yookassa-webhook')) {
+    return handleYookassaWebhook(req, res);
+  }
 
-  return res.status(400).json({ error: 'Unknown webhook provider. Expected: bot, tbank, yuppay' });
+  return res.status(400).json({ error: 'Unknown webhook provider. Expected: bot, tbank, yuppay, yookassa' });
 };

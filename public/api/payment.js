@@ -278,6 +278,157 @@ module.exports = async (req, res) => {
       }
     }
 
+    // ========== ПОКУПКА КНИГИ ЧЕРЕЗ ЮKASSA ==========
+    if (action === 'create_yookassa_book') {
+      if (user && (user.access_level === 'extended' || user.access_level === 'premium')) {
+        return res.json({ already_purchased: true, message: 'У тебя уже есть полный доступ!' });
+      }
+
+      const yooShopId = (process.env.YOOKASSA_SHOP_ID || '').trim();
+      const yooSecret = (process.env.YOOKASSA_SECRET_KEY || '').trim();
+      if (!yooShopId || !yooSecret) {
+        return res.status(503).json({ error: 'Оплата картой временно недоступна. Попробуй Stars или DarAI.' });
+      }
+
+      // Тестовый режим: пока не убедились что всё работает — берём 10 ₽
+      // После успешного теста изменить на 990.00 (книга) — это единственная строка
+      const isTest = !!req.body.test_mode;
+      const amountValue = isTest ? '10.00' : '990.00';
+      const description = isTest
+        ? 'Тестовая оплата ЮKassa (YupDar)'
+        : 'Книга Даров — полный доступ + Хранитель';
+
+      const yooUserId = user ? user.id : telegramId;
+      const idempotenceKey = `yookassa_book_${yooUserId}_${Date.now()}`;
+      const auth = Buffer.from(`${yooShopId}:${yooSecret}`).toString('base64');
+
+      try {
+        const resp = await fetch('https://api.yookassa.ru/v3/payments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Basic ${auth}`,
+            'Idempotence-Key': idempotenceKey
+          },
+          body: JSON.stringify({
+            amount: { value: amountValue, currency: 'RUB' },
+            confirmation: { type: 'redirect', return_url: 'https://t.me/YupDarBot' },
+            capture: true,
+            description,
+            metadata: {
+              payment_type: isTest ? 'test' : 'book',
+              telegram_id: String(telegramId || ''),
+              user_id: user ? String(user.id) : ''
+            }
+          })
+        });
+
+        const respText = await resp.text();
+        let data;
+        try { data = JSON.parse(respText); } catch { data = {}; }
+
+        if (!resp.ok) {
+          console.error('[payment] YooKassa create failed:', resp.status, respText);
+          return res.status(502).json({ error: data.description || 'Не удалось создать платёж в ЮKassa' });
+        }
+
+        const confirmUrl = data.confirmation && data.confirmation.confirmation_url;
+        if (!confirmUrl) {
+          console.error('[payment] YooKassa no confirmation_url:', data);
+          return res.status(502).json({ error: 'ЮKassa не вернула ссылку на оплату' });
+        }
+
+        console.log('[payment] YooKassa book invoice created:', {
+          payment_id: data.id,
+          amount: amountValue,
+          test: isTest,
+          user_id: user ? user.id : null
+        });
+
+        return res.json({
+          invoice_url: confirmUrl,
+          payment_id: data.id,
+          price: amountValue,
+          currency: 'RUB',
+          test_mode: isTest
+        });
+      } catch (e) {
+        console.error('[payment] YooKassa book error:', e.message);
+        return res.status(500).json({ error: 'Не удалось создать платёж: ' + e.message });
+      }
+    }
+
+    // ========== ДОНЕЙШН ЧЕРЕЗ ЮKASSA ==========
+    if (action === 'create_yookassa_donation') {
+      const donAmount = parseInt(amount, 10);
+      if (!donAmount || donAmount < 10) {
+        return res.status(400).json({ error: 'Минимальная сумма пожертвования — 10 ₽' });
+      }
+      if (donAmount > 100000) {
+        return res.status(400).json({ error: 'Максимум 100 000 ₽ за раз' });
+      }
+
+      const yooShopId = (process.env.YOOKASSA_SHOP_ID || '').trim();
+      const yooSecret = (process.env.YOOKASSA_SECRET_KEY || '').trim();
+      if (!yooShopId || !yooSecret) {
+        return res.status(503).json({ error: 'Оплата картой временно недоступна.' });
+      }
+
+      const yooUserId = user ? user.id : telegramId;
+      const idempotenceKey = `yookassa_donation_${yooUserId}_${Date.now()}`;
+      const auth = Buffer.from(`${yooShopId}:${yooSecret}`).toString('base64');
+      const amountValue = `${donAmount}.00`;
+      const bonusCrystals = Math.max(1, Math.floor(donAmount / 10));
+
+      try {
+        const resp = await fetch('https://api.yookassa.ru/v3/payments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Basic ${auth}`,
+            'Idempotence-Key': idempotenceKey
+          },
+          body: JSON.stringify({
+            amount: { value: amountValue, currency: 'RUB' },
+            confirmation: { type: 'redirect', return_url: 'https://t.me/YupDarBot' },
+            capture: true,
+            description: `Пожертвование на развитие YupDar (+${bonusCrystals} кристаллов)`,
+            metadata: {
+              payment_type: 'donation',
+              telegram_id: String(telegramId || ''),
+              user_id: user ? String(user.id) : '',
+              bonus_crystals: String(bonusCrystals)
+            }
+          })
+        });
+
+        const respText = await resp.text();
+        let data;
+        try { data = JSON.parse(respText); } catch { data = {}; }
+
+        if (!resp.ok) {
+          console.error('[payment] YooKassa donation create failed:', resp.status, respText);
+          return res.status(502).json({ error: data.description || 'Не удалось создать платёж' });
+        }
+
+        const confirmUrl = data.confirmation && data.confirmation.confirmation_url;
+        if (!confirmUrl) {
+          return res.status(502).json({ error: 'ЮKassa не вернула ссылку на оплату' });
+        }
+
+        return res.json({
+          invoice_url: confirmUrl,
+          payment_id: data.id,
+          amount: donAmount,
+          bonus_crystals: bonusCrystals,
+          currency: 'RUB'
+        });
+      } catch (e) {
+        console.error('[payment] YooKassa donation error:', e.message);
+        return res.status(500).json({ error: 'Не удалось создать платёж: ' + e.message });
+      }
+    }
+
     return res.status(400).json({ error: 'Unknown action' });
   } catch (e) {
     console.error('[payment] Error:', e.message);

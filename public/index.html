@@ -2974,9 +2974,9 @@
             'Поиск и темы оформления'
           ],
           payBtns: [
-            { icon: '\u{1F4B3}', text: 'Оплатить картой (990 ₽)', action: 'buyBookAccess' },
+            { icon: '\u{1F4B3}', text: 'Оплатить картой (990 ₽)', action: 'buyBookWithCard' },
             { icon: '\u{2B50}', text: 'Оплатить Stars (500 \u2B50)', action: 'buyBookAccess' },
-            { icon: '\u{1F525}', text: 'Оплатить DarAI (44M)', action: 'buyBookAccess' }
+            { icon: '\u{1F525}', text: 'Оплатить DarAI (44M)', action: 'buyWithDarai' }
           ],
           isCurrent: false,
           isIncluded: currentLevel === 'premium' || currentLevel === 'extended'
@@ -3236,6 +3236,46 @@
         if (typeof showToast === 'function') showToast(e.message || 'Ошибка. Попробуй позже.', 'error');
       }
     }
+
+    // ============ ЮKASSA (карта / СБП / SberPay) ============
+    async function buyBookWithCard() {
+      try {
+        // Тестовый режим: ?test_yookassa=1 в URL → платёж на 10 ₽
+        const testMode = new URLSearchParams(location.search).get('test_yookassa') === '1';
+
+        if (typeof showToast === 'function') {
+          showToast(testMode ? 'Создаём тестовый платёж 10 ₽...' : 'Создаём платёж 990 ₽...', 'info');
+        }
+
+        const result = await DarAPI.createYookassaBook(testMode);
+
+        if (result.already_purchased) {
+          if (typeof showToast === 'function') showToast('У тебя уже есть полный доступ!', 'success');
+          return;
+        }
+
+        if (!result.invoice_url) {
+          throw new Error('Не удалось создать платёж');
+        }
+
+        // ЮKassa возвращает confirmation_url. В Telegram Mini App открываем во внешнем браузере,
+        // на десктопе/в браузере — в новой вкладке.
+        const tg = window.Telegram?.WebApp;
+        if (tg && typeof tg.openLink === 'function') {
+          tg.openLink(result.invoice_url);
+        } else {
+          window.open(result.invoice_url, '_blank');
+        }
+
+        if (typeof showToast === 'function') {
+          showToast('Открыли страницу оплаты. После оплаты вернись в приложение.', 'info');
+        }
+      } catch (e) {
+        console.error('[payment] buyBookWithCard error:', e);
+        if (typeof showToast === 'function') showToast(e.message || 'Ошибка оплаты картой', 'error');
+      }
+    }
+    window.buyBookWithCard = buyBookWithCard;
 
     // Покупка через DarAI (YupPay / NEAR)
     async function buyWithDarai() {

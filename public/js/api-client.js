@@ -197,6 +197,11 @@ const DarAPI = (function() {
       request('/api/payment', 'POST', { action: 'create_darai_book_invoice' }),
     createDaraiDonation: (amount_raw) =>
       request('/api/payment', 'POST', { action: 'create_darai_donation', amount_raw }),
+    // ЮKassa (карта/СБП/SberPay)
+    createYookassaBook: (test_mode = false) =>
+      request('/api/payment', 'POST', { action: 'create_yookassa_book', test_mode }),
+    createYookassaDonation: (amount) =>
+      request('/api/payment', 'POST', { action: 'create_yookassa_donation', amount }),
 
     // ---- Дневник Дара ----
     saveDiaryMood: (mood, note) =>

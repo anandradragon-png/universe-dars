@@ -549,11 +549,13 @@ async function handlePromo(req, res) {
 
     if (!code) return res.status(400).json({ error: 'code required' });
 
-    // Промокоды берутся ТОЛЬКО из env-переменных Vercel: PROMO_CODES_EXTENDED, PROMO_CODES_PREMIUM.
-    // Хардкод-коды (DARBOOK2024, UNIVERSE777, СЕМЬЯ2026) отключены 26.04.2026 по решению автора —
-    // тестовый период промокодами завершён, дальше — только платные тарифы.
-    const extendedCodes = (process.env.PROMO_CODES_EXTENDED || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
-    const premiumCodes = (process.env.PROMO_CODES_PREMIUM || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+    // Все промокоды отключены 26.04.2026 по решению автора — тестовый период
+    // завершён, дальше только платные тарифы. Если в будущем понадобятся
+    // промо-кампании — раскомментировать чтение из env и завести коды.
+    const extendedCodes = [];
+    const premiumCodes = [];
+    // const extendedCodes = (process.env.PROMO_CODES_EXTENDED || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+    // const premiumCodes = (process.env.PROMO_CODES_PREMIUM || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
 
     const inputCode = code.trim().toUpperCase();
 

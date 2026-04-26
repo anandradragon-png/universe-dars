@@ -264,6 +264,10 @@
 
     /* === Кристаллы === */
     #crystal-counter{position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:6px 14px;font-size:14px;color:#D4AF37;letter-spacing:1px}
+    /* Когда открыта модалка тарифов — прячем fixed-элементы с z-index выше неё */
+    body.tariffs-open #crystal-counter,
+    body.tariffs-open #btn-profile,
+    body.tariffs-open #btn-tariffs{display:none !important}
     .crystal-popup{position:absolute;top:-5px;right:-10px;font-size:14px;color:#D4AF37;font-weight:bold;transition:all .7s ease-out;pointer-events:none}
     .crystal-popup-spend{color:#f87171}
 
@@ -3096,13 +3100,9 @@
       if (modal) {
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
-        // Скрываем счётчик кристаллов на время — у него z-index выше и иначе перекрывает заголовок
-        const cc = document.getElementById('crystal-counter');
-        if (cc) cc.style.display = 'none';
-        const bp = document.getElementById('btn-profile');
-        if (bp) bp.style.display = 'none';
-        const bt = document.getElementById('btn-tariffs');
-        if (bt) bt.style.display = 'none';
+        // Класс на body — CSS прячет fixed-элементы (#crystal-counter, #btn-profile, #btn-tariffs).
+        // Класс надёжнее inline-style: closeProfile() через setTimeout(350) сбрасывает inline display.
+        document.body.classList.add('tariffs-open');
       }
     }
 
@@ -3111,12 +3111,7 @@
       if (modal) {
         modal.style.display = 'none';
         document.body.style.overflow = '';
-        const cc = document.getElementById('crystal-counter');
-        if (cc) cc.style.display = '';
-        const bp = document.getElementById('btn-profile');
-        if (bp) bp.style.display = '';
-        const bt = document.getElementById('btn-tariffs');
-        if (bt) bt.style.display = '';
+        document.body.classList.remove('tariffs-open');
       }
     }
 

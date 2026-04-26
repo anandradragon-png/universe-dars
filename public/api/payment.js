@@ -280,7 +280,11 @@ module.exports = async (req, res) => {
 
     // ========== ПОКУПКА КНИГИ ЧЕРЕЗ ЮKASSA ==========
     if (action === 'create_yookassa_book') {
-      if (user && (user.access_level === 'extended' || user.access_level === 'premium')) {
+      const isTest = !!req.body.test_mode;
+      // В тестовом режиме (?test_yookassa=1) пропускаем проверку already_purchased,
+      // чтобы тестеры с тарифом extended/premium могли пройти оплату 10 ₽ для проверки потока.
+      // В боевом режиме всё как раньше — нет смысла повторно покупать книгу если уже есть.
+      if (!isTest && user && (user.access_level === 'extended' || user.access_level === 'premium')) {
         return res.json({ already_purchased: true, message: 'У тебя уже есть полный доступ!' });
       }
 
@@ -292,7 +296,6 @@ module.exports = async (req, res) => {
 
       // Тестовый режим: пока не убедились что всё работает — берём 10 ₽
       // После успешного теста изменить на 990.00 (книга) — это единственная строка
-      const isTest = !!req.body.test_mode;
       const amountValue = isTest ? '10.00' : '990.00';
       const description = isTest
         ? 'Тестовая оплата ЮKassa (YupDar)'

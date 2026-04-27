@@ -1419,7 +1419,7 @@
 
           </div>
           <div style="margin-top:10px;font-size:11px;color:var(--text-dim);text-align:center;line-height:1.4">
-            Подробнее на <a href="https://public-yup-land1.vercel.app/index-landing" target="_blank" style="color:#D4AF37;text-decoration:none">сайте YupDar</a>
+            Подробнее на <a href="/index-landing" target="_blank" style="color:#D4AF37;text-decoration:none">сайте YupDar</a>
           </div>
         </div>
 
@@ -2109,7 +2109,8 @@
       document.getElementById('full-description-block').style.display='none';
     }
 
-    const API_URL='https://public-yup-land1.vercel.app';
+    // Относительный путь: приложение деплоится туда же, где API. Не зависит от смены домена Vercel.
+    const API_URL='';
 
     // Красивая анимация ожидания: сменяющиеся фразы + пульсирующая карта.
     // AI-генерация портрета занимает 30-60 сек, юзеру скучно смотреть на пустую кнопку.

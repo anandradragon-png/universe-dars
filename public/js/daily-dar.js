@@ -4,7 +4,9 @@
 
 const DailyDar = (function() {
   const FIELDS = {1:'ЛОГОС',2:'НИМА',3:'АНДРА',4:'ЗИНГРА',5:'ЛУБА',6:'ТУМА',7:'АСТРА',8:'БИТРА',9:'ОМА'};
-  const API_URL = 'https://public-yup-land1.vercel.app';
+  // Используем относительный путь — приложение всегда деплоится на тот же домен,
+  // что и API. Так не сломается, если в будущем домен Vercel снова поменяют.
+  const API_URL = '';
 
   let _darContent = null;
   let _currentTab = 'card';

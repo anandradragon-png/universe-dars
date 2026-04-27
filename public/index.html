@@ -3511,22 +3511,19 @@
 
     async function buyBookWithCard() {
       try {
-        // Тестовый режим срабатывает в трёх случаях:
-        //  1) URL с ?test_yookassa=1 (открыли в браузере)
+        // Тестовый режим срабатывает в двух случаях:
+        //  1) URL с ?test_yookassa=1 (открыли в браузере для теста)
         //  2) Telegram Mini App открыта по ссылке t.me/YupDarBot?startapp=test_yookassa
-        //  3) localStorage._test_yookassa === '1' (для повторных тестов в TG)
+        // Флаг в localStorage больше не используется — раньше тестеры могли случайно
+        // купить за 10₽ из-за устаревшего флага. Теперь test_mode требует явного действия КАЖДЫЙ раз.
         const params = new URLSearchParams(location.search);
         const tg = window.Telegram?.WebApp;
         const tgStartParam = tg?.initDataUnsafe?.start_param || '';
-        let lsFlag = '';
-        try { lsFlag = localStorage.getItem('_test_yookassa') || ''; } catch(e) {}
         const testMode =
           params.get('test_yookassa') === '1' ||
-          tgStartParam === 'test_yookassa' ||
-          lsFlag === '1';
-        if (tgStartParam === 'test_yookassa') {
-          try { localStorage.setItem('_test_yookassa', '1'); } catch(e) {}
-        }
+          tgStartParam === 'test_yookassa';
+        // Чистим устаревший флаг с прошлой схемы, чтобы у тестеров не висел
+        try { localStorage.removeItem('_test_yookassa'); } catch(e) {}
 
         // Спрашиваем email/username (только если не в Telegram Mini App)
         const contact = await _yookassaAskContact();

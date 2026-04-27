@@ -700,3 +700,8 @@ const DailyDar = (function() {
 
   return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook };
 })();
+
+// Экспортируем в window — нужен для api-client.js (Оракул для родственника
+// использует calcGeneralDar/calcPersonalDar чтобы посчитать Личный Дар Дня).
+// const на верхнем уровне script-тега не попадает в window автоматически.
+try { window.DailyDar = DailyDar; } catch (e) {}

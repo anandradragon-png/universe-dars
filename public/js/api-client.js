@@ -166,6 +166,9 @@ const DarAPI = (function() {
     deleteRelative: (id) => request('/api/relatives?id=' + encodeURIComponent(id), 'DELETE'),
 
     // ---- Оракул для близкого ----
+    // ВАЖНО: для дневного послания используем Личный Дар Дня родственника,
+    // а не его личный дар по рождению. Личный Дар Дня = личный + Общий Дар Дня.
+    // Без этого пророчество было бы одинаковым каждый день (см. law_grounding_in_dars).
     getOracleForRelative: (relative) => {
       const headers = { 'Content-Type': 'application/json' };
       try {
@@ -173,11 +176,31 @@ const DarAPI = (function() {
           headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
         }
       } catch (e) {}
+
+      // Считаем Личный Дар Дня родственника (relative.dar_code + Общий Дар Дня).
+      // Используем функции из daily-dar.js (DailyDar.calcGeneralDar / calcPersonalDar).
+      // Если по какой-то причине DailyDar недоступен — fallback на личный код,
+      // чтобы не сломать запрос (но в норме DailyDar всегда доступен).
+      let dailyDarCode = relative.dar_code;
+      try {
+        if (window.DailyDar && typeof window.DailyDar.calcGeneralDar === 'function'
+            && typeof window.DailyDar.calcPersonalDar === 'function'
+            && relative.dar_code) {
+          const general = window.DailyDar.calcGeneralDar(new Date());
+          const personalDaily = window.DailyDar.calcPersonalDar(relative.dar_code, general.code);
+          if (personalDaily && personalDaily.code) {
+            dailyDarCode = personalDaily.code;
+          }
+        }
+      } catch (e) {
+        console.warn('[oracle/relative] daily dar calc failed, falling back to personal:', e.message);
+      }
+
       return fetch('/api/oracle', {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          dar_code: relative.dar_code,
+          dar_code: dailyDarCode,
           mode: 'relative',
           relative_name: relative.name,
           relative_relationship: relative.relationship,

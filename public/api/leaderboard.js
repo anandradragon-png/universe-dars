@@ -214,17 +214,36 @@ async function handleLeaderboard(req, res) {
       const crystalsEarned = Math.max(0, Math.min(1000, parseInt(body.crystals_earned, 10) || 0));
       const addPoints = Math.max(0, Math.min(1000, parseInt(points, 10) || 0));
 
-      // Кристаллы за победу — пишем в users.crystals и crystal_log,
-      // чтобы баланс сохранялся между сессиями. Раньше клиент считал
-      // их только локально через CrystalsUI и они сбрасывались
-      // при следующей загрузке профиля с сервера.
+      // Кристаллы за победу — пишем в users.crystals и crystal_log.
+      // Дневной кэп 40 ⭐: считаем сколько уже начислено за сегодня
+      // (reason=intuition_win) и режем добавление, чтобы не было фарма
+      // на безлимитных тарифах. Песочница (easy) даёт 0 — не учитывается.
+      const DAILY_CRYSTALS_CAP = 40;
+      let crystalsActuallyAdded = 0;
       if (crystalsEarned > 0) {
         try {
-          await addCrystals(user.id, crystalsEarned, 'intuition_win', {
-            difficulty,
-            streak: parseInt(streak, 10) || 0,
-            points: addPoints
-          });
+          // Сумма уже начисленного за сегодня (UTC-день, как в crystal_log.created_at)
+          const todayStart = new Date();
+          todayStart.setUTCHours(0, 0, 0, 0);
+          const { data: todayLog } = await db
+            .from('crystal_log')
+            .select('amount')
+            .eq('user_id', user.id)
+            .eq('reason', 'intuition_win')
+            .gte('created_at', todayStart.toISOString());
+          const todaySum = (todayLog || []).reduce((s, r) => s + (r.amount || 0), 0);
+          const remaining = Math.max(0, DAILY_CRYSTALS_CAP - todaySum);
+          crystalsActuallyAdded = Math.min(crystalsEarned, remaining);
+
+          if (crystalsActuallyAdded > 0) {
+            await addCrystals(user.id, crystalsActuallyAdded, 'intuition_win', {
+              difficulty,
+              streak: parseInt(streak, 10) || 0,
+              points: addPoints,
+              earned_full: crystalsEarned,
+              capped: crystalsActuallyAdded < crystalsEarned
+            });
+          }
         } catch (cryErr) {
           console.warn('[leaderboard] addCrystals failed:', cryErr.message);
         }
@@ -305,7 +324,9 @@ async function handleLeaderboard(req, res) {
         score_daily: updates.score_daily,
         score_weekly: updates.score_weekly,
         score_monthly: updates.score_monthly,
-        score_alltime: updates.score_alltime
+        score_alltime: updates.score_alltime,
+        crystals_added: crystalsActuallyAdded,
+        crystals_capped: crystalsEarned > 0 && crystalsActuallyAdded < crystalsEarned
       });
     }
 

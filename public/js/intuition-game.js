@@ -884,8 +884,91 @@ const IntuitionGame = (function() {
         won: won,
         streak: stats.streak,
         crystals_earned: crystalsToAward
-      }).catch(err => {
+      })
+      .then(resp => {
+        // Сервер сообщил, что бесплатный лимит 5 побед в день исчерпан.
+        // Победа не засчитана (ни кристаллы, ни очки рейтинга).
+        if (resp && resp.daily_limit_reached) {
+          // Откатываем локальную выдачу кристаллов чтобы не вводить в заблуждение
+          if (crystalsToAward > 0 && typeof CrystalsUI !== 'undefined') {
+            try { CrystalsUI.animateSpend(crystalsToAward); } catch (e) {}
+          }
+          showDailyLimitModal(resp);
+        }
+      })
+      .catch(err => {
         console.warn('Leaderboard submit failed:', err.message);
+      });
+    }
+  }
+
+  // Модалка «Лимит 5 побед в день» — показывается после блокирующего ответа сервера.
+  // Даёт два варианта: купить +1 попытку за 10 ⭐ или вернуться завтра.
+  function showDailyLimitModal(resp) {
+    let modal = document.getElementById('intuition-limit-modal');
+    if (modal) modal.remove();
+    modal = document.createElement('div');
+    modal.id = 'intuition-limit-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:10400;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px';
+    const have = resp.user_crystals || 0;
+    const cost = resp.extra_attempt_cost || 10;
+    const canBuy = have >= cost;
+    modal.innerHTML = `
+      <div style="position:relative;background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:42px 22px 22px;max-width:420px;width:100%;font-family:Manrope,sans-serif">
+        <button id="ilim-close" style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:16px;cursor:pointer">&#10005;</button>
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:32px;margin-bottom:6px">✨</div>
+          <div style="font-size:16px;color:var(--text);margin-bottom:6px;font-weight:600">Дневной лимит достигнут</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.55">
+            Ты ${resp.wins_today === 1 ? 'одержал победу' : `одержал${resp.wins_today < 5 ? '' : ''} ${resp.wins_today} побед`} сегодня.<br>
+            Возвращайся завтра — лимит сбросится. Или купи дополнительную попытку прямо сейчас.
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button id="ilim-buy" ${canBuy ? '' : 'disabled'} style="width:100%;padding:12px;border-radius:11px;border:none;background:${canBuy ? 'linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%)' : 'rgba(212,175,55,0.15)'};color:${canBuy ? '#080808' : '#999'};font-size:14px;cursor:${canBuy ? 'pointer' : 'not-allowed'};font-family:Manrope,sans-serif;font-weight:bold">
+            💎 Купить +1 попытку за ${cost} ⭐
+          </button>
+          <div style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5">У тебя сейчас: ${have} ⭐${canBuy ? '' : ` · нужно ещё ${cost - have} ⭐`}</div>
+          <button id="ilim-tomorrow" style="width:100%;padding:11px;border-radius:11px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">Вернусь завтра</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    const close = () => modal.remove();
+    modal.querySelector('#ilim-close').addEventListener('click', close);
+    modal.querySelector('#ilim-tomorrow').addEventListener('click', close);
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+    const buyBtn = modal.querySelector('#ilim-buy');
+    if (canBuy) {
+      buyBtn.addEventListener('click', async () => {
+        buyBtn.textContent = 'Покупаем...';
+        buyBtn.disabled = true;
+        try {
+          const result = await DarAPI.buyExtraIntuitionAttempt();
+          if (result && result.success) {
+            if (typeof CrystalsUI !== 'undefined') {
+              try { CrystalsUI.setBalance(result.total_crystals); } catch (e) {}
+            }
+            if (typeof showToast === 'function') {
+              showToast('+1 попытка добавлена! Можешь играть дальше ✨', 'success');
+            }
+            close();
+          } else {
+            buyBtn.textContent = (result && result.error) || 'Не удалось купить';
+            setTimeout(() => {
+              buyBtn.textContent = `💎 Купить +1 попытку за ${cost} ⭐`;
+              buyBtn.disabled = false;
+            }, 2000);
+          }
+        } catch (e) {
+          console.error('[intuition] buy extra failed:', e);
+          buyBtn.textContent = 'Ошибка, попробуй ещё раз';
+          setTimeout(() => {
+            buyBtn.textContent = `💎 Купить +1 попытку за ${cost} ⭐`;
+            buyBtn.disabled = false;
+          }, 2000);
+        }
       });
     }
 

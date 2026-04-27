@@ -318,6 +318,26 @@ async function handleTreasury(req, res) {
         });
       }
 
+      if (action === 'buy_extra_intuition_attempt') {
+        const EXTRA_COST = 10;
+        if ((user.crystals || 0) < EXTRA_COST) {
+          return res.status(400).json({
+            error: 'Not enough crystals',
+            need: EXTRA_COST,
+            have: user.crystals || 0
+          });
+        }
+        const newBalance = await addCrystals(user.id, -EXTRA_COST, 'intuition_extra_attempt', {
+          purchased_at: new Date().toISOString()
+        });
+        return res.json({
+          success: true,
+          crystals_spent: EXTRA_COST,
+          total_crystals: newBalance,
+          message: 'Дополнительная попытка добавлена! Лимит на сегодня увеличен на 1.'
+        });
+      }
+
       if (action === 'unlock_random') {
         const cost = getCost('unlock_random_dar');
         if (user.crystals < cost) {

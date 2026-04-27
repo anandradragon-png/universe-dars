@@ -154,6 +154,10 @@ const DarAPI = (function() {
       return request(url);
     },
     submitIntuitionScore: (payload) => request('/api/leaderboard', 'POST', payload),
+    // Покупка дополнительной попытки в Интуиции за 10 кристаллов
+    // (увеличивает дневной лимит побед на 1 для бесплатного тарифа)
+    buyExtraIntuitionAttempt: () =>
+      request('/api/treasury', 'POST', { action: 'buy_extra_intuition_attempt' }),
 
     // ---- Зал Славы (титулы победителей рейтинга) ----
     getHallOfFame: () => request('/api/hall-of-fame'),

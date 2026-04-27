@@ -214,6 +214,53 @@ async function handleLeaderboard(req, res) {
       const crystalsEarned = Math.max(0, Math.min(1000, parseInt(body.crystals_earned, 10) || 0));
       const addPoints = Math.max(0, Math.min(1000, parseInt(points, 10) || 0));
 
+      // ============ ЛИМИТ 5 ПОБЕД В ДЕНЬ ДЛЯ БЕСПЛАТНОГО ТАРИФА ============
+      // Подписчики (extended/premium) играют без ограничений.
+      // Бесплатные (basic) могут победить 5 раз в день. Дальше — либо ждать завтра,
+      // либо купить дополнительную попытку за 10 ⭐ (даёт +1 к лимиту на день).
+      // Лимит проверяем только при реальной победе (won=true), проигрыши не считаем.
+      if (won && user.access_level === 'basic') {
+        try {
+          const todayStart = new Date();
+          todayStart.setUTCHours(0, 0, 0, 0);
+
+          const { data: winsLog } = await db
+            .from('crystal_log')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('reason', 'intuition_win')
+            .gte('created_at', todayStart.toISOString());
+          const winsToday = (winsLog || []).length;
+
+          const { data: extrasLog } = await db
+            .from('crystal_log')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('reason', 'intuition_extra_attempt')
+            .gte('created_at', todayStart.toISOString());
+          const extrasToday = (extrasLog || []).length;
+
+          const dailyLimit = 5 + extrasToday;
+
+          if (winsToday >= dailyLimit) {
+            // Победа не засчитывается — ни кристаллов, ни очков рейтинга.
+            return res.status(200).json({
+              success: false,
+              daily_limit_reached: true,
+              wins_today: winsToday,
+              daily_limit: dailyLimit,
+              extras_purchased_today: extrasToday,
+              user_crystals: user.crystals || 0,
+              extra_attempt_cost: 10,
+              message: `Сегодня ты уже одержал${user.gender === 'female' ? 'а' : ''} ${winsToday} побед${winsToday === 1 ? 'у' : winsToday < 5 ? 'ы' : ''} ✨ Возвращайся завтра или купи доп. попытку за 10 ⭐`
+            });
+          }
+        } catch (limitErr) {
+          // Если проверка упала — пропускаем (не блокируем юзера из-за нашей ошибки)
+          console.warn('[leaderboard] daily limit check failed:', limitErr.message);
+        }
+      }
+
       // Кристаллы за победу — пишем в users.crystals и crystal_log.
       // Дневной кэп 40 ⭐: считаем сколько уже начислено за сегодня
       // (reason=intuition_win) и режем добавление, чтобы не было фарма

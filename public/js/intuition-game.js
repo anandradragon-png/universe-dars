@@ -637,29 +637,24 @@ const IntuitionGame = (function() {
         const rawLower = card.name.toLowerCase();
         const imgBaseNFC = rawLower.normalize('NFC').replace(/[^\u0400-\u04FFa-z]/g,'');
         const imgBaseNFD = rawLower.normalize('NFD').replace(/[^\u0400-\u04FFa-z\u0300-\u036F]/g,'');
+        // Inline <img> (был баг: setTimeout-механизм через document.getElementById
+        // приводил к гонке — у части карт картинка не появлялась).
+        // Теперь картинка рендерится сразу в html, ошибка загрузки — fallback на NFD-имя,
+        // и если оба не нашлись — img прячется и остаётся только текстовая часть.
+        const imgFilter = 'width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px #D4AF37)';
+        const imgFallback = (imgBaseNFD && imgBaseNFD !== imgBaseNFC)
+          ? "if(!this.dataset.tried){this.dataset.tried='1';this.src='images/dars/" + imgBaseNFD + ".svg'}else{this.style.display='none'}"
+          : "this.style.display='none'";
+        const cardImg = imgBaseNFC
+          ? '<img src="images/dars/' + imgBaseNFC + '.svg" style="' + imgFilter + '" onerror="' + imgFallback + '"/>'
+          : '';
         html += `
           <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:12px 6px;text-align:center;min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;${isSelected ? 'box-shadow:0 0 10px rgba(212,175,55,0.3)' : ''}">
-            <div style="width:72px;height:72px;margin-bottom:6px;display:flex;align-items:center;justify-content:center" id="gc-${i}"></div>
+            <div style="width:72px;height:72px;margin-bottom:6px;display:flex;align-items:center;justify-content:center">${cardImg}</div>
             <div style="font-size:13px;color:var(--text);letter-spacing:1px;font-weight:bold">${card.name}</div>
             <div style="font-size:12px;color:#D4AF37;font-weight:700;margin-top:3px;letter-spacing:1px">${card.code}</div>
             ${badge}
           </div>`;
-        setTimeout(() => {
-          const w = document.getElementById('gc-'+i);
-          if(w && imgBaseNFC){
-            const img = new Image();
-            img.style = 'width:100%;height:100%;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 4px #D4AF37)';
-            img.onload = () => w.appendChild(img);
-            img.onerror = () => {
-              // Fallback: некоторые файлы хранятся в NFD (й = и + бреве)
-              if (img.dataset.tried !== '1' && imgBaseNFD !== imgBaseNFC) {
-                img.dataset.tried = '1';
-                img.src = 'images/dars/' + imgBaseNFD + '.svg';
-              }
-            };
-            img.src = 'images/dars/' + imgBaseNFC + '.svg';
-          }
-        }, 50);
       } else {
         // ЗАКРЫТАЯ КАРТА (рубашка)
         const selStyle = isSelected

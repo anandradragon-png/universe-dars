@@ -211,7 +211,24 @@ async function handleLeaderboard(req, res) {
       const difficulty = body.difficulty || 'all';
       const won = body.won;
       const streak = body.streak;
+      const crystalsEarned = Math.max(0, Math.min(1000, parseInt(body.crystals_earned, 10) || 0));
       const addPoints = Math.max(0, Math.min(1000, parseInt(points, 10) || 0));
+
+      // Кристаллы за победу — пишем в users.crystals и crystal_log,
+      // чтобы баланс сохранялся между сессиями. Раньше клиент считал
+      // их только локально через CrystalsUI и они сбрасывались
+      // при следующей загрузке профиля с сервера.
+      if (crystalsEarned > 0) {
+        try {
+          await addCrystals(user.id, crystalsEarned, 'intuition_win', {
+            difficulty,
+            streak: parseInt(streak, 10) || 0,
+            points: addPoints
+          });
+        } catch (cryErr) {
+          console.warn('[leaderboard] addCrystals failed:', cryErr.message);
+        }
+      }
 
       let row = await getOrCreateScoreRow(db, user.id);
 

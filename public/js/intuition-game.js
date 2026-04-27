@@ -871,13 +871,19 @@ const IntuitionGame = (function() {
     const pointsEarned = calculatePoints(lvl, won, stats.streak, targetsFound);
     stats._lastPoints = pointsEarned;
 
-    // Отправляем на сервер (не блокируем UI)
-    if (pointsEarned > 0 && typeof DarAPI !== 'undefined' && DarAPI.submitIntuitionScore) {
+    // Заработанные кристаллы за победу (если игра не песочница)
+    const crystalsToAward = (won && !lvl.sandbox) ? (stats._lastWin || 0) : 0;
+
+    // Отправляем на сервер (не блокируем UI). Передаём ещё и crystals_earned —
+    // backend сохранит в users.crystals, иначе после перезагрузки баланс
+    // сбрасывался к серверному значению (тестеры жаловались).
+    if ((pointsEarned > 0 || crystalsToAward > 0) && typeof DarAPI !== 'undefined' && DarAPI.submitIntuitionScore) {
       DarAPI.submitIntuitionScore({
         points: pointsEarned,
         difficulty: currentLevel,
         won: won,
-        streak: stats.streak
+        streak: stats.streak,
+        crystals_earned: crystalsToAward
       }).catch(err => {
         console.warn('Leaderboard submit failed:', err.message);
       });

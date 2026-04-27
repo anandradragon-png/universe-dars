@@ -3046,8 +3046,34 @@
       ];
     }
 
+    let _tariffsRefreshing = false;
     function openTariffsPage() {
       try { closeProfile(); } catch(e) {}
+
+      // Запрашиваем свежий профиль с сервера и, если уровень отличается — перерисовываем.
+      // Это нужно потому что при ручном сбросе в Supabase localStorage может застрять
+      // с устаревшим 'extended' и тариф «Книга» не покажет кнопку покупки.
+      // Флаг _tariffsRefreshing защищает от рекурсии при повторном вызове.
+      if (!_tariffsRefreshing) {
+        _tariffsRefreshing = true;
+        (async () => {
+          try {
+            if (typeof DarAPI !== 'undefined' && DarAPI.getProfile) {
+              const data = await DarAPI.getProfile();
+              const serverLevel = data && data.user && data.user.access_level;
+              const cached = localStorage.getItem('_access_level') || 'basic';
+              if (serverLevel && serverLevel !== cached) {
+                try { localStorage.setItem('_access_level', serverLevel); } catch(e) {}
+                if (window.PROFILE) window.PROFILE.access_level = serverLevel;
+                // Перерисовываем тарифы с актуальным уровнем
+                openTariffsPage();
+              }
+            }
+          } catch (e) { /* без сети — оставляем локальный уровень */ }
+          finally { _tariffsRefreshing = false; }
+        })();
+      }
+
       const currentLevel = (window.PROFILE && window.PROFILE.access_level) || localStorage.getItem('_access_level') || 'basic';
       const tariffs = getTariffsData(currentLevel);
       const container = document.getElementById('tariffs-list');

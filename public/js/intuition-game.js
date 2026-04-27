@@ -877,7 +877,9 @@ const IntuitionGame = (function() {
     // Отправляем на сервер (не блокируем UI). Передаём ещё и crystals_earned —
     // backend сохранит в users.crystals, иначе после перезагрузки баланс
     // сбрасывался к серверному значению (тестеры жаловались).
-    if ((pointsEarned > 0 || crystalsToAward > 0) && typeof DarAPI !== 'undefined' && DarAPI.submitIntuitionScore) {
+    // Отправляем submit ВСЕГДА (и при победе, и при проигрыше) —
+    // backend считает раунды независимо от результата для лимита 5 раундов/день.
+    if (typeof DarAPI !== 'undefined' && DarAPI.submitIntuitionScore) {
       DarAPI.submitIntuitionScore({
         points: pointsEarned,
         difficulty: currentLevel,
@@ -920,7 +922,7 @@ const IntuitionGame = (function() {
           <div style="font-size:32px;margin-bottom:6px">✨</div>
           <div style="font-size:16px;color:var(--text);margin-bottom:6px;font-weight:600">Дневной лимит достигнут</div>
           <div style="font-size:13px;color:var(--text-dim);line-height:1.55">
-            Ты ${resp.wins_today === 1 ? 'одержал победу' : `одержал${resp.wins_today < 5 ? '' : ''} ${resp.wins_today} побед`} сегодня.<br>
+            Ты сыграл${(resp.rounds_today || 0)} раунд${(resp.rounds_today === 1) ? '' : ((resp.rounds_today || 0) < 5 ? 'а' : 'ов')} сегодня.<br>
             Возвращайся завтра — лимит сбросится. Или купи дополнительную попытку прямо сейчас.
           </div>
         </div>

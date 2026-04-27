@@ -607,10 +607,24 @@ ${genderBlock}
 // ========== MAIN ROUTER ==============================================
 // =====================================================================
 
+// Баннер технических работ. Управляется env-переменной MAINTENANCE_MESSAGE в Vercel.
+// Чтобы включить баннер: задать MAINTENANCE_MESSAGE = "текст" → Redeploy не нужен,
+//   фронт подтянет через 60 секунд (Cache-Control max-age=60).
+// Чтобы выключить: очистить значение или удалить переменную → следующий запрос вернёт пусто.
+function handleMaintenance(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60');
+  const message = (process.env.MAINTENANCE_MESSAGE || '').trim();
+  return res.status(200).json({ message });
+}
+
 module.exports = async (req, res) => {
   const type = (req.query && req.query.type) || '';
   const url = req.url || '';
 
+  if (type === 'maintenance' || url.includes('/maintenance')) {
+    return handleMaintenance(req, res);
+  }
   if (type === 'oracle' || url.includes('/oracle')) {
     return handleOracle(req, res);
   }

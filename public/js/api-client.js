@@ -228,7 +228,6 @@ const DarAPI = (function() {
     createYookassaBook: (opts = {}) =>
       request('/api/payment', 'POST', {
         action: 'create_yookassa_book',
-        test_mode: !!opts.test_mode,
         email: opts.email || '',
         tg_username: opts.tg_username || ''
       }),

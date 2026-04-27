@@ -841,31 +841,10 @@ async function handleYookassaWebhook(req, res) {
           }
         } catch (e) {}
       }
-    } else if (paymentType === 'test') {
-      // Тестовая оплата — просто фиксируем в логе и шлём подтверждение
-      await addCrystals(user.id, 0, 'test_yookassa', {
-        yookassa_payment_id: obj.id,
-        yookassa_email: userEmail,
-        yookassa_tg_username: userTgUsername,
-        amount: amountValue
-      });
-
-      if (tgChatId) {
-        try {
-          const botToken = (process.env.BOT_TOKEN || '').trim();
-          if (botToken) {
-            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: tgChatId,
-                text: 'Тестовая оплата ЮKassa прошла успешно!\nВсё подключено правильно. Можно делать рефанд в ЛК ЮKassa.'
-              })
-            });
-          }
-        } catch (e) {}
-      }
     }
+    // Ветка paymentType === 'test' удалена 27.04.2026 — тестовый режим не используется,
+    // все продажи боевые. Если из истории прилетит старый webhook с payment_type='test',
+    // он просто пройдёт мимо без обработки и без записи в БД (это безопасно).
 
     return res.status(200).json({ ok: true });
   } catch (e) {

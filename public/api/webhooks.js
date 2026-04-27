@@ -734,6 +734,68 @@ async function handleYookassaWebhook(req, res) {
 
       console.log('[yookassa-webhook] User upgraded:', user.id, '->', newLevel);
 
+      // ============ РЕФЕРАЛЬНЫЙ БОНУС ============
+      // Если этого юзера кто-то пригласил (есть запись в referrals или users.referred_by)
+      // и приглашение было в первые 30 дней — рефереру +200 ⭐ + 10% от суммы покупки в кристаллах.
+      try {
+        const { data: refRow } = await db.from('referrals')
+          .select('referrer_id, created_at')
+          .eq('referred_id', user.id)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .single();
+
+        if (refRow && refRow.referrer_id) {
+          const referredAt = new Date(refRow.created_at);
+          const daysSince = (Date.now() - referredAt.getTime()) / 86400000;
+          if (daysSince <= 30) {
+            const baseBonus = 200;
+            const percentBonus = Math.floor(parseFloat(amountValue) * 0.1); // 10% от ₽ → ⭐
+            const totalBonus = baseBonus + percentBonus;
+
+            await addCrystals(refRow.referrer_id, totalBonus, 'referral_buyer_bonus', {
+              referred_user_id: user.id,
+              yookassa_payment_id: obj.id,
+              amount: amountValue,
+              base_bonus: baseBonus,
+              percent_bonus: percentBonus
+            });
+
+            // Уведомление рефереру в TG
+            try {
+              const { data: refUser } = await db.from('users')
+                .select('telegram_id, first_name')
+                .eq('id', refRow.referrer_id)
+                .single();
+              const botToken = (process.env.BOT_TOKEN || '').trim();
+              if (refUser && refUser.telegram_id && botToken) {
+                const friendName = user.first_name || user.username || 'твой друг';
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    chat_id: refUser.telegram_id,
+                    text: `🎉 ${friendName} купил(а) Книгу Даров!\n\n` +
+                      `Тебе в благодарность: +${totalBonus} кристаллов мудрости 💎\n` +
+                      `(${baseBonus} базовый бонус + ${percentBonus} от суммы)`
+                  })
+                });
+              }
+            } catch (msgErr) {
+              console.warn('[yookassa-webhook] referrer notification failed:', msgErr.message);
+            }
+
+            console.log('[yookassa-webhook] Referrer bonus:',
+              refRow.referrer_id, '+', totalBonus, '⭐ (referred user', user.id, 'bought book)');
+          }
+        }
+      } catch (refErr) {
+        // Если записи в referrals нет (single() throws) или ошибка — это норма, тихо пропускаем
+        if (refErr && !String(refErr.message).includes('PGRST116')) {
+          console.warn('[yookassa-webhook] referral bonus check failed:', refErr.message);
+        }
+      }
+
       if (tgChatId) {
         try {
           const botToken = (process.env.BOT_TOKEN || '').trim();

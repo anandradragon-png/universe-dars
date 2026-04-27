@@ -170,29 +170,86 @@ async function handleReferral(req, res) {
         return res.json({ success: false, message: 'Referrer not found' });
       }
 
+      // ============ ЗАЩИТЫ ОТ АБУЗА ============
+      const { REFERRAL_LIMITS } = require('./_lib/crystals');
+
+      // 1. Этот юзер уже был кем-то приглашён? Один раз = на всю жизнь.
+      const { data: alreadyReferred } = await db.from('referrals')
+        .select('id').eq('referred_id', user.id).limit(1);
+      if (alreadyReferred && alreadyReferred.length > 0) {
+        return res.json({ success: false, message: 'Already referred', already_referred: true });
+      }
+
+      // 2. Лимит 64 пожизненно для реферера (больше даров нет — нет смысла)
+      const lifetimeCount = await getReferralCount(referrer.id);
+      if (lifetimeCount >= REFERRAL_LIMITS.lifetime) {
+        return res.json({ success: false, message: 'Lifetime referral limit reached' });
+      }
+
+      // 3. Лимит 5 в день (защита от ботов)
+      const todayStart = new Date(); todayStart.setUTCHours(0, 0, 0, 0);
+      const { data: todayRefs } = await db.from('referrals')
+        .select('id').eq('referrer_id', referrer.id)
+        .gte('created_at', todayStart.toISOString());
+      if (todayRefs && todayRefs.length >= REFERRAL_LIMITS.per_day) {
+        return res.json({ success: false, message: 'Daily referral limit reached', limit: REFERRAL_LIMITS.per_day });
+      }
+
+      // ============ ЛОГИКА НАГРАД ============
       const referrerDars = await getUserDars(referrer.id);
       const darAlreadyInTreasury = referrerDars.some(d => d.dar_code === new_user_dar_code);
 
-      // Логика наград:
-      // - Если дар друга ЕЩЁ НЕ в сокровищнице реферера → открываем дар (без кристаллов)
-      // - Если дар ЕСТЬ → даём кристаллы
       let darUnlocked = false;
       let referrerCrystals = 0;
 
       if (!darAlreadyInTreasury) {
+        // Если дар друга ЕЩЁ НЕ в сокровищнице — открываем дар (без кристаллов)
         await unlockDar(referrer.id, new_user_dar_code, 'referral');
         darUnlocked = true;
       } else {
+        // Дар уже есть → даём 30 ⭐
         referrerCrystals = getReward('referral', referrer.access_level);
         await addCrystals(referrer.id, referrerCrystals, 'referral_duplicate', {
-          referred_dar: new_user_dar_code
+          referred_dar: new_user_dar_code,
+          referred_user_id: user.id
         });
       }
 
       await createReferral(referrer.id, user.id, new_user_dar_code, darUnlocked);
 
+      // Пометить нового юзера, что он пришёл по реф-ссылке (для скидки 15% на 7 дней)
+      try {
+        await db.from('users').update({
+          referred_by: referrer.id,
+          referred_at: new Date().toISOString()
+        }).eq('id', user.id);
+      } catch (e) {
+        // Если колонок нет в схеме — пропускаем (миграция отдельной задачей)
+        console.warn('[referral] could not save referred_by/referred_at:', e.message);
+      }
+
       const newUserCrystals = getReward('referral', user.access_level);
-      await addCrystals(user.id, newUserCrystals, 'was_referred');
+      await addCrystals(user.id, newUserCrystals, 'was_referred', {
+        referrer_id: referrer.id
+      });
+
+      // Уведомление в TG рефереру
+      try {
+        const botToken = (process.env.BOT_TOKEN || '').trim();
+        if (botToken && referrer.telegram_id) {
+          const friendName = user.first_name || user.username || 'друг';
+          const text = darUnlocked
+            ? `🎉 Твой друг ${friendName} присоединился к YupDar!\nУ тебя в Сокровищнице открылся новый дар.`
+            : `🎉 Твой друг ${friendName} присоединился к YupDar!\nЭтот дар у тебя уже был — получаешь +${referrerCrystals} кристаллов мудрости 💎`;
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: referrer.telegram_id, text })
+          });
+        }
+      } catch (e) {
+        console.warn('[referral] sendMessage failed:', e.message);
+      }
 
       return res.json({
         success: true,

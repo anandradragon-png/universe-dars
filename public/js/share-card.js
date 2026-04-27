@@ -323,27 +323,94 @@ const ShareCard = (function() {
     return canvas;
   }
 
-  // === Скачивание ===
-
+  // === Скачивание/шейринг ===
+  // На мобильных в Telegram WebView классический <a download> НЕ работает
+  // (TG блокирует), поэтому пробуем по очереди:
+  //   1. Web Share API с File — самый надёжный путь, открывает системное меню «Поделиться»
+  //      (TG/Insta/WhatsApp/«Сохранить картинку» и т.п.)
+  //   2. Открытие blob URL в новой вкладке — на десктопе и в Safari
+  //   3. Классический <a download> — только десктоп
+  //   4. Если ничего не помогло — открываем картинку во весь экран с инструкцией
+  //      «нажми и удержи → Сохранить в галерею»
   function downloadCanvas(canvas, filename) {
     return new Promise((resolve, reject) => {
       try {
-        canvas.toBlob((blob) => {
+        canvas.toBlob(async (blob) => {
           if (!blob) { reject(new Error('Canvas toBlob returned null')); return; }
+
+          // 1. Web Share API с файлом
+          try {
+            const file = new File([blob], filename, { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({ files: [file], title: 'YupDar — Мой Дар' });
+              resolve();
+              return;
+            }
+          } catch (shareErr) {
+            // AbortError — пользователь закрыл шит, не считаем за ошибку
+            if (shareErr && shareErr.name === 'AbortError') { resolve(); return; }
+            // Иначе пробуем следующий способ
+            console.warn('[ShareCard] Web Share failed, falling back:', shareErr.message);
+          }
+
+          // 2. Классический <a download> — для десктопа и браузеров
           const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
+          try {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+              try { document.body.removeChild(a); } catch (e) {}
+            }, 100);
+          } catch (e) {}
+
+          // 3. Fallback для TG WebView без Web Share: показываем картинку
+          // во весь экран с инструкцией «удержи → Сохранить»
+          // Делаем через 250 мс — если <a> сработал, картинка уже скачалась.
           setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            resolve();
-          }, 100);
+            // Если мы в Telegram WebView и Web Share не сработал — покажем оверлей
+            const tg = window.Telegram && window.Telegram.WebApp;
+            const inTg = !!(tg && tg.initData);
+            if (!inTg) {
+              try { URL.revokeObjectURL(url); } catch (e) {}
+              resolve();
+              return;
+            }
+            showLongPressSaveOverlay(url, filename, () => {
+              try { URL.revokeObjectURL(url); } catch (e) {}
+              resolve();
+            });
+          }, 250);
         }, 'image/png', 0.95);
       } catch (e) { reject(e); }
     });
+  }
+
+  // Полноэкранный оверлей с картинкой и инструкцией для TG WebView,
+  // когда нет Web Share API (старые версии Telegram).
+  function showLongPressSaveOverlay(blobUrl, filename, onClose) {
+    let overlay = document.getElementById('share-save-overlay');
+    if (overlay) overlay.remove();
+    overlay = document.createElement('div');
+    overlay.id = 'share-save-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10500;background:rgba(0,0,0,0.96);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;overflow-y:auto';
+    overlay.innerHTML =
+      '<div style="position:relative;width:100%;max-width:560px;text-align:center">' +
+        '<button id="ssave-close" style="position:absolute;top:0;right:6px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:rgba(0,0,0,0.7);color:#D4AF37;font-size:18px;cursor:pointer;z-index:1">&#10005;</button>' +
+        '<div style="font-size:13px;color:#D4AF37;letter-spacing:1.5px;margin-bottom:14px;padding-top:10px">📥 СОХРАНИТЬ КАРТОЧКУ</div>' +
+        '<img src="' + blobUrl + '" alt="' + filename + '" style="max-width:100%;max-height:70vh;border-radius:14px;border:1px solid rgba(212,175,55,0.3);user-select:auto;-webkit-user-select:auto;-webkit-touch-callout:default" />' +
+        '<div style="margin-top:18px;padding:14px 16px;background:rgba(212,175,55,0.08);border:1px dashed rgba(212,175,55,0.4);border-radius:12px;font-size:13px;color:var(--text);line-height:1.6;text-align:left">' +
+          '<div style="color:#D4AF37;font-weight:600;margin-bottom:6px">Чтобы сохранить:</div>' +
+          'Нажми и удержи картинку выше → выбери <b>«Сохранить картинку»</b> или <b>«Поделиться»</b>.' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    const close = () => { overlay.remove(); if (typeof onClose === 'function') onClose(); };
+    overlay.querySelector('#ssave-close').addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
   }
 
   // === МОДАЛКА ===

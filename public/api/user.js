@@ -116,7 +116,7 @@ async function handleProfile(req, res) {
 
       // Сохранить расширенный профиль
       if (action === 'save_profile') {
-        const { real_first_name, real_last_name, gender, birth_time, birth_place, birth_lat, birth_lon } = req.body;
+        const { real_first_name, real_last_name, gender, birth_date, birth_time, birth_place, birth_lat, birth_lon } = req.body;
 
         // Валидация
         if (!real_first_name || !real_first_name.trim()) {
@@ -127,6 +127,15 @@ async function handleProfile(req, res) {
         }
         if (gender !== 'male' && gender !== 'female') {
           return res.status(400).json({ error: 'Укажи пол' });
+        }
+        // Дата рождения — обязательна, формат ДД.ММ.ГГГГ
+        if (!birth_date || !/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(birth_date)) {
+          return res.status(400).json({ error: 'Укажи дату рождения в формате ДД.ММ.ГГГГ' });
+        }
+        const [_dd, _mm, _yyyy] = birth_date.split('.').map(Number);
+        const _nowYear = new Date().getUTCFullYear();
+        if (_dd < 1 || _dd > 31 || _mm < 1 || _mm > 12 || _yyyy < 1900 || _yyyy > _nowYear) {
+          return res.status(400).json({ error: 'Проверь дату рождения — что-то не так' });
         }
         if (!birth_time || !/^\d{1,2}:\d{2}$/.test(birth_time)) {
           return res.status(400).json({ error: 'Укажи время рождения в формате ЧЧ:ММ' });
@@ -148,6 +157,7 @@ async function handleProfile(req, res) {
             real_first_name: real_first_name.trim().slice(0, 50),
             real_last_name: real_last_name.trim().slice(0, 50),
             gender,
+            birth_date,
             birth_time,
             birth_place: birth_place.trim().slice(0, 100),
             birth_lat: lat,

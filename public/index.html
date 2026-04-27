@@ -1108,6 +1108,13 @@
         </div>
       </div>
       <div style="margin-bottom:12px">
+        <div class="psu-label">Дата рождения (ДД.ММ.ГГГГ)</div>
+        <input id="psu-birth-date" type="text" placeholder="ДД.ММ.ГГГГ" class="psu-input" maxlength="10" inputmode="numeric"
+          oninput="psuMaskDate(this)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Та же дата, что использовалась при расчёте дара. Если ошиблась — поправь здесь.</div>
+      </div>
+      <div style="margin-bottom:12px">
         <div class="psu-label">Время рождения (ЧЧ:ММ)</div>
         <input id="psu-birth-time" type="text" placeholder="14:30" class="psu-input" maxlength="5" inputmode="numeric"
           oninput="psuMaskTime(this);if(this.value.length===5){this.blur()}"
@@ -3766,6 +3773,17 @@
       const p = getLocalProfile();
       document.getElementById('psu-first-name').value = p.real_first_name || '';
       document.getElementById('psu-last-name').value = p.real_last_name || '';
+      // Дата рождения может быть в _darProfile (если уже сохраняли) либо
+      // в STORAGE_KEY (там лежит дата, использованная для расчёта дара).
+      let prefillDate = p.birth_date || '';
+      if (!prefillDate) {
+        try {
+          const k = window.STORAGE_KEY || 'dar_data';
+          const saved = JSON.parse(localStorage.getItem(k) || '{}');
+          if (saved && saved.date) prefillDate = saved.date;
+        } catch (e) {}
+      }
+      document.getElementById('psu-birth-date').value = prefillDate;
       document.getElementById('psu-birth-time').value = p.birth_time || '';
       document.getElementById('psu-birth-place').value = p.birth_place || '';
       _psuGender = p.gender || '';
@@ -3801,6 +3819,15 @@
       let v = input.value.replace(/\D/g, '').slice(0, 4);
       if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2);
       input.value = v;
+    }
+
+    // Маска для поля даты рождения: автоматически вставляет точки → ДД.ММ.ГГГГ
+    function psuMaskDate(input) {
+      let v = input.value.replace(/\D/g, '').slice(0, 8);
+      let out = v.slice(0, 2);
+      if (v.length >= 3) out += '.' + v.slice(2, 4);
+      if (v.length >= 5) out += '.' + v.slice(4, 8);
+      input.value = out;
     }
 
     // Автодополнение города через OpenStreetMap Nominatim
@@ -3884,6 +3911,7 @@
     async function psuSave() {
       const firstName = document.getElementById('psu-first-name').value.trim();
       const lastName = document.getElementById('psu-last-name').value.trim();
+      const birthDate = document.getElementById('psu-birth-date').value.trim();
       const birthTime = document.getElementById('psu-birth-time').value.trim();
       const birthPlace = document.getElementById('psu-birth-place').value.trim();
       const status = document.getElementById('psu-status');
@@ -3892,6 +3920,16 @@
       if (!firstName) { status.textContent = 'Укажи своё настоящее имя'; return; }
       if (!lastName) { status.textContent = 'Укажи свою настоящую фамилию'; return; }
       if (_psuGender !== 'male' && _psuGender !== 'female') { status.textContent = 'Укажи свой пол'; return; }
+      if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(birthDate)) {
+        status.textContent = 'Дата рождения в формате ДД.ММ.ГГГГ';
+        return;
+      }
+      const [dd, mm, yyyy] = birthDate.split('.').map(Number);
+      const nowYear = new Date().getFullYear();
+      if (dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy < 1900 || yyyy > nowYear) {
+        status.textContent = 'Проверь дату — что-то не так';
+        return;
+      }
       if (!/^\d{1,2}:\d{2}$/.test(birthTime)) { status.textContent = 'Время в формате ЧЧ:ММ (например 14:30)'; return; }
       const [h, m] = birthTime.split(':').map(Number);
       if (h > 23 || m > 59) { status.textContent = 'Проверь время: часы 00-23, минуты 00-59'; return; }
@@ -3905,6 +3943,7 @@
         real_first_name: firstName,
         real_last_name: lastName,
         gender: _psuGender,
+        birth_date: birthDate,
         birth_time: birthTime,
         birth_place: birthPlace,
         birth_lat: _psuCityLat,

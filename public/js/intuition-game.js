@@ -20,10 +20,10 @@ const IntuitionGame = (function() {
         // pointsWin: очки рейтинга за победу, pointsTry: очки за участие
         // streakBonus: разрешён ли бонус серии, mult: множитель сложности
         // Песочница - тренировочное поле, очки в рейтинг НЕ идут
-        easy:   { cards: 3,  crystals: 2,  pointsWin: 0,  pointsTry: 0, streakBonus: false, mult: 1,   label: '3 карты (песочница)',  opens: 1, targets: 1, sandbox: true },
-        medium: { cards: 6,  crystals: 5,  pointsWin: 15, pointsTry: 1, streakBonus: true,  mult: 1.5, label: '6 карт',   opens: 1, targets: 1 },
-        hard:   { cards: 9,  crystals: 12, pointsWin: 25, pointsTry: 3, streakBonus: true,  mult: 2,   label: '9 карт',   opens: 1, targets: 1 },
-        expert: { cards: 12, crystals: 25, pointsWin: 40, pointsTry: 5, streakBonus: true,  mult: 3,   label: '12 карт',  opens: 1, targets: 1 },
+        easy:   { cards: 3,  crystals: 2,  pointsWin: 0,  pointsTry: 0, streakBonus: false, mult: 1,   label: 'Песочница · 3',  opens: 1, targets: 1, sandbox: true },
+        medium: { cards: 6,  crystals: 5,  pointsWin: 15, pointsTry: 1, streakBonus: true,  mult: 1.5, label: 'Средне · 6',   opens: 1, targets: 1 },
+        hard:   { cards: 9,  crystals: 12, pointsWin: 25, pointsTry: 3, streakBonus: true,  mult: 2,   label: 'Сложно · 9',   opens: 1, targets: 1 },
+        expert: { cards: 12, crystals: 25, pointsWin: 40, pointsTry: 5, streakBonus: true,  mult: 3,   label: 'Эксперт · 12',  opens: 1, targets: 1 },
       }
     },
     multi: {
@@ -31,8 +31,8 @@ const IntuitionGame = (function() {
       desc: 'Найди загаданные дары, остерегайся Карты Тени',
       icon: '&#127183;',
       levels: {
-        hard:   { cards: 9,  crystals: 20, pointsWin: 50, pointsTry: 5, streakBonus: true, mult: 2.5, label: '9 карт',  opens: 4, targets: 3, hasBonus: true, hasTrap: true },
-        expert: { cards: 12, crystals: 35, pointsWin: 80, pointsTry: 8, streakBonus: true, mult: 4,   label: '12 карт', opens: 5, targets: 3, hasBonus: true, hasTrap: true },
+        hard:   { cards: 9,  crystals: 20, pointsWin: 50, pointsTry: 5, streakBonus: true, mult: 2.5, label: 'Сложно · 9',  opens: 4, targets: 3, hasBonus: true, hasTrap: true },
+        expert: { cards: 12, crystals: 35, pointsWin: 80, pointsTry: 8, streakBonus: true, mult: 4,   label: 'Эксперт · 12', opens: 5, targets: 3, hasBonus: true, hasTrap: true },
       }
     }
   };

@@ -267,38 +267,56 @@ function renderResult(d) {
   }
   let html = '';
 
-  if (d.sacred_energy) {
+  // Архетип
+  if (d.archetype) {
+    const title = d.archetype.title || '';
+    const motto = d.archetype.motto || '';
+    html += `<div style="text-align:center;padding:14px;background:var(--gold-soft);border-radius:10px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px">👑 Твой Архетип</div>
+      <div style="font-size:20px;color:var(--gold);font-weight:700;letter-spacing:1px">${escapeHtml(title)}</div>
+      ${motto ? `<div style="font-size:13px;color:var(--text-dim);margin-top:6px;font-style:italic">«${escapeHtml(motto)}»</div>` : ''}
+    </div>`;
+  }
+
+  if (d.essence) html += `<h4>✨ Твоя Суть</h4><p>${escapeHtml(d.essence)}</p>`;
+  if (d.superpowers) html += `<h4>💎 Твои Суперсилы</h4><p>${escapeHtml(d.superpowers)}</p>`;
+
+  if (d.wealth_flow) {
+    html += `<h4>💰 Твой Поток Изобилия</h4>`;
+    if (typeof d.wealth_flow === 'string') {
+      html += `<p>${escapeHtml(d.wealth_flow)}</p>`;
+    } else {
+      if (d.wealth_flow.intro) html += `<p>${escapeHtml(d.wealth_flow.intro)}</p>`;
+      if (d.wealth_flow.includes) html += `<p><b style="color:var(--ok)">Что включает поток:</b> ${escapeHtml(d.wealth_flow.includes)}</p>`;
+      if (d.wealth_flow.blocks) html += `<p><b style="color:var(--err)">Что блокирует:</b> ${escapeHtml(d.wealth_flow.blocks)}</p>`;
+    }
+  }
+
+  if (d.relationships) {
+    html += `<h4>❤️ Ты в Отношениях</h4>`;
+    if (typeof d.relationships === 'string') {
+      html += `<p>${escapeHtml(d.relationships)}</p>`;
+    } else {
+      if (d.relationships.main) html += `<p>${escapeHtml(d.relationships.main)}</p>`;
+      if (d.relationships.needs) html += `<p><b style="color:var(--gold)">Твоя потребность:</b> ${escapeHtml(d.relationships.needs)}</p>`;
+      if (d.relationships.triggers) html += `<p><b style="color:var(--err)">Твой триггер:</b> ${escapeHtml(d.relationships.triggers)}</p>`;
+    }
+  }
+
+  if (d.traps) html += `<h4>⚠️ Твои Ловушки</h4><p>${escapeHtml(d.traps)}</p>`;
+  if (d.key_to_self) html += `<h4>🗝️ Ключ к Себе</h4><p>${escapeHtml(d.key_to_self)}</p>`;
+  if (d.mission) html += `<h4>🌍 Твоё Предназначение</h4><p>${escapeHtml(d.mission)}</p>`;
+
+  // Fallback на старую структуру (sacred_energy, light_part…) если AI вернул её
+  if (!html && d.sacred_energy) {
     html += `<h4>🌟 Сакральная энергия</h4><p>${escapeHtml(d.sacred_energy)}</p>`;
-  }
-  if (d.light_part) {
-    const lp = typeof d.light_part === 'string' ? d.light_part :
-               Object.values(d.light_part).filter(x => typeof x === 'string').join(' ');
-    html += `<h4>✨ Световая часть</h4><p>${escapeHtml(lp)}</p>`;
-  }
-  if (d.growth_points) {
-    html += `<h4>🌱 Точки роста</h4>`;
-    if (d.growth_points.ma_shadow) html += `<p><b style="color:var(--gold)">МА — внутренняя природа:</b> ${escapeHtml(d.growth_points.ma_shadow)}</p>`;
-    if (d.growth_points.zhi_shadow) html += `<p><b style="color:var(--gold)">ЖИ — проявление:</b> ${escapeHtml(d.growth_points.zhi_shadow)}</p>`;
-    if (d.growth_points.kun_shadow) html += `<p><b style="color:var(--gold)">КУН — дар миру:</b> ${escapeHtml(d.growth_points.kun_shadow)}</p>`;
-  }
-  if (d.transition_keys) {
-    html += `<h4>🔑 Ключи возвращения</h4><p>${escapeHtml(d.transition_keys)}</p>`;
-  }
-  if (d.ecology) {
-    html += `<h4>🌍 Экология жизни</h4>`;
-    if (d.ecology.bloom_zones && d.ecology.bloom_zones.length) {
-      html += `<p><b style="color:var(--ok)">Где расцветаешь:</b></p><ul>`;
-      d.ecology.bloom_zones.forEach(z => html += `<li>${escapeHtml(String(z))}</li>`);
-      html += `</ul>`;
+    if (d.light_part) {
+      const lp = typeof d.light_part === 'string' ? d.light_part :
+                 Object.values(d.light_part).filter(x => typeof x === 'string').join(' ');
+      html += `<h4>✨ Световая часть</h4><p>${escapeHtml(lp)}</p>`;
     }
-    if (d.ecology.risk_zones && d.ecology.risk_zones.length) {
-      html += `<p><b style="color:var(--err)">Зоны риска:</b></p><ul>`;
-      d.ecology.risk_zones.forEach(z => html += `<li>${escapeHtml(String(z))}</li>`);
-      html += `</ul>`;
-    }
-  }
-  if (d.mission) {
-    html += `<h4>🎯 Миссия</h4><p>${escapeHtml(d.mission)}</p>`;
+    if (d.transition_keys) html += `<h4>🔑 Ключ</h4><p>${escapeHtml(d.transition_keys)}</p>`;
+    if (d.mission) html += `<h4>🎯 Миссия</h4><p>${escapeHtml(d.mission)}</p>`;
   }
 
   document.getElementById('result-content').innerHTML = html || '<div class="error">Не удалось разобрать структуру ответа</div>';

@@ -401,9 +401,21 @@ const DailyDar = (function() {
   };
 
   function getAccessLevel() {
-    // Уровень хранится в профиле на сервере, на фронте подтягивается в ЛК
-    // Используем _profileData (общий кэш из index.html) если доступен, иначе 'basic'
+    // Уровень хранится в профиле на сервере. Проверяем источники по убыванию надёжности:
+    //   1) window.PROFILE.access_level (синхронизированный объект из index.html)
+    //   2) localStorage._access_level (сохраняется при каждой загрузке профиля)
+    //   3) window._profileData (legacy, обычно undefined — это локальная переменная в index.html)
+    //   4) fallback 'basic'
+    // Раньше использовался только пункт 3, и у юзеров с extended/premium Оракул
+    // показывал лимит как для basic (3 обращения вместо 7) — это баг 28.04.2026.
     try {
+      if (window.PROFILE && window.PROFILE.access_level) {
+        return window.PROFILE.access_level;
+      }
+      const lsLevel = localStorage.getItem('_access_level');
+      if (lsLevel && (lsLevel === 'extended' || lsLevel === 'premium' || lsLevel === 'basic')) {
+        return lsLevel;
+      }
       if (window._profileData && window._profileData.access_level) {
         return window._profileData.access_level;
       }

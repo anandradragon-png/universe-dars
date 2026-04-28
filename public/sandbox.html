@@ -124,6 +124,12 @@ textarea.usr{min-height:300px;background:rgba(46,204,113,0.04)}
     <code>{{kun_essence}}</code> <code>{{kun_flow}}</code> <code>{{kun_shadow}}</code> <code>{{kun_harmony}}</code> — Слой 3 (КУН)
   </div>
 
+  <!-- Большое подтверждение что выбрано перед запуском (защита от случайного выбора не того Дара) -->
+  <div id="generate-summary" style="margin-top:24px;padding:18px 22px;background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.04));border:2px solid rgba(212,175,55,0.45);border-radius:14px;text-align:center">
+    <div style="font-size:11px;color:var(--gold);letter-spacing:2px;font-weight:600;margin-bottom:8px">⚡ СЕЙЧАС БУДЕТ СГЕНЕРИРОВАНО ДЛЯ:</div>
+    <div id="gen-summary-text" style="font-size:18px;color:var(--text);font-weight:700;line-height:1.5">—</div>
+  </div>
+
   <div class="btn-row">
     <button class="btn" id="run-btn" onclick="runGeneration()">🚀 Сгенерировать послание</button>
     <button class="btn btn-sec" onclick="resetToDefault()">↺ Откатить к дефолту</button>
@@ -334,16 +340,53 @@ function escapeHtml(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// Локальный словарь имён Даров — точная копия из public/fields.json dars[].
+// Используется для отображения в блоке-подтверждении «Сейчас будет сгенерировано для:».
+const DAR_NAMES = {
+  "4-6-1":"ЖАР","3-7-1":"И-СТОК","2-8-1":"ЛА-ДА","8-2-1":"ЛЕ-ЛИ","7-3-1":"ПРИ-ТОК","6-4-1":"СВЕ-ТО","5-5-1":"ТЕ-ЛО",
+  "1-1-2":"БРА-МА","3-8-2":"ГО-РА","4-7-2":"ГУ-НА","8-3-2":"МЕ-РУ","7-4-2":"РО-ДА","5-6-2":"СО-НА","6-5-2":"У-МА",
+  "8-4-3":"АНАН-Д-РА","2-1-3":"ВИ-РА","1-2-3":"ЛИ-РА","7-5-3":"МА-ТА","5-7-3":"МАТ-КА","6-6-3":"ПА-РА","4-8-3":"СИ-ЛА",
+  "1-3-4":"АР-КА","6-7-4":"ВОС-ХА","2-2-4":"ЗИ-МА","3-1-4":"ЛА-НА","7-6-4":"МА-АТ","5-8-4":"РО-СА","8-5-4":"СЕ-МА",
+  "8-6-5":"А-МА","2-3-5":"АР-МА","7-7-5":"ЖИ-ВА","1-4-5":"ЖИ-МА","3-2-5":"РА-МА","4-1-5":"РИ-МА","6-8-5":"ТРО-НА",
+  "1-5-6":"КУ-НА","5-1-6":"ЛУ-НА","8-7-6":"СО-ХА","7-8-6":"ТА-РА","2-4-6":"ТО-ТА","3-3-6":"ТУ-РА","4-2-6":"Э-МА",
+  "4-3-7":"АР-ХЕЙ","2-5-7":"БРА-Х-МА","3-4-7":"ГРАД","1-6-7":"З-МАН","6-1-7":"МА-НА","5-2-7":"НИ-РА","8-8-7":"ПРА-НА",
+  "6-2-8":"БИ-МА","1-7-8":"БИ-РА","5-3-8":"ЗЛА-ТО","3-5-8":"КО-ДА","4-4-8":"ЛИ-КО","7-1-8":"МИ-ДА","2-6-8":"СО-ЛАР",
+  "3-6-9":"ИРИЙ","5-4-9":"МИ-РА","1-8-9":"РАЙ","8-1-9":"РОЙ","7-2-9":"ТО-РА","6-3-9":"ТОТ","2-7-9":"ФА-НА","4-5-9":"ШИ-ВА"
+};
+
+// Обновляет блок «Сейчас будет сгенерировано для:» при изменении параметров
+function updateGenSummary() {
+  const code = document.getElementById('dar-code').value;
+  const gender = document.getElementById('gender').value;
+  const provider = document.getElementById('ai-provider')?.value || 'deepseek';
+  const genderLabel = gender === 'female' ? 'Женский' : gender === 'male' ? 'Мужской' : '— не указан —';
+  const providerLabel = provider === 'deepseek' ? 'DeepSeek-V3' : 'Llama (Groq)';
+  const darName = DAR_NAMES[code] || code;
+  const darLabel = `${darName} (${code})`;
+  const el = document.getElementById('gen-summary-text');
+  if (el) {
+    el.innerHTML = `Дар: <span style="color:var(--gold)">${darLabel}</span><br>` +
+                   `<span style="font-size:14px;color:var(--text-dim);font-weight:500">Пол: ${genderLabel} · Модель: ${providerLabel}</span>`;
+  }
+}
+
 // === Init ===
 (async () => {
-  // Заполнить выпадайку даров
+  // Заполнить выпадайку даров — показываем «КОД · ИМЯ» чтобы был визуальный контроль
   const sel = document.getElementById('dar-code');
   DAR_CODES.forEach(code => {
     const opt = document.createElement('option');
     opt.value = code;
-    opt.textContent = code;
+    const name = DAR_NAMES[code] || '';
+    opt.textContent = name ? `${code} · ${name}` : code;
     if (code === '4-6-1') opt.selected = true;
     sel.appendChild(opt);
+  });
+
+  // Обновлять блок-подтверждение при любом изменении параметров
+  ['dar-code', 'gender', 'ai-provider'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateGenSummary);
   });
 
   // Проверка авторизации
@@ -359,6 +402,10 @@ function escapeHtml(s){
     _defaultUsr = data.userTemplate;
     document.getElementById('system-template').value = data.systemTemplate;
     document.getElementById('user-template').value = data.userTemplate;
+    // Сохраняем имя Дара чтобы блок-подтверждение его показывал
+    window._lastGiftCode = data.giftCode;
+    window._lastDarName = data.darName;
+    updateGenSummary();
   } catch (e) {
     showAuth();
   }

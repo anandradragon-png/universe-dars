@@ -371,29 +371,44 @@ function fillTemplate(tpl, ctx) {
 // Запуск AI с заданными системным и пользовательским промптами.
 // Применяет тот же постпроцессинг (russify+feminize) что и оригинал.
 // Песочница использует это, чтобы видеть точно такой же результат как в проде.
-async function runMessageGeneration({ systemMsg, userPrompt, isFemale }) {
-  const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
+//
+// Параметр provider:
+//   'groq'     — Llama 3.3 70B через Groq (бесплатно, быстро, средний русский)
+//   'deepseek' — DeepSeek-V3 (~$0.0024 за описание, лучше держит русский тон)
+//   undefined  — по умолчанию groq (чтобы не ломать боевой /api/message)
+async function runMessageGeneration({ systemMsg, userPrompt, isFemale, provider }) {
+  const messages = [
+    { role: 'system', content: systemMsg },
+    { role: 'user', content: userPrompt }
+  ];
+
   let completion;
-  try {
-    completion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemMsg },
-        { role: 'user', content: userPrompt }
-      ],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.8,
-      max_tokens: 2200
+
+  if (provider === 'deepseek') {
+    const ds = require('../deepseek');
+    completion = await ds.chatCompletion({
+      messages,
+      model: 'deepseek-chat',
+      temperature: 0.85,
+      max_tokens: 3000
     });
-  } catch (modelErr) {
-    completion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemMsg },
-        { role: 'user', content: userPrompt }
-      ],
-      model: 'llama-3.1-8b-instant',
-      temperature: 0.8,
-      max_tokens: 2200
-    });
+  } else {
+    const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
+    try {
+      completion = await groq.chat.completions.create({
+        messages,
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.8,
+        max_tokens: 2200
+      });
+    } catch (modelErr) {
+      completion = await groq.chat.completions.create({
+        messages,
+        model: 'llama-3.1-8b-instant',
+        temperature: 0.8,
+        max_tokens: 2200
+      });
+    }
   }
   const raw = completion.choices[0]?.message?.content || '';
   const start = raw.indexOf('{');

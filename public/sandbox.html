@@ -90,9 +90,15 @@ textarea.usr{min-height:300px;background:rgba(46,204,113,0.04)}
         </select>
       </div>
       <div>
-        <label>&nbsp;</label>
-        <button class="btn btn-sec" onclick="loadDefaults()" style="width:100%">Загрузить дефолтный промпт</button>
+        <label>AI-модель</label>
+        <select id="ai-provider">
+          <option value="deepseek">DeepSeek-V3 (платно, ~21 коп, лучше)</option>
+          <option value="groq">Llama 3.3 70B (бесплатно, как в проде)</option>
+        </select>
       </div>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn btn-sec" onclick="loadDefaults()">Загрузить дефолтный промпт</button>
     </div>
   </div>
 
@@ -224,6 +230,7 @@ function copyToClipboard() {
 async function runGeneration() {
   const giftCode = document.getElementById('dar-code').value;
   const gender = document.getElementById('gender').value;
+  const provider = document.getElementById('ai-provider').value || 'deepseek';
   const systemTemplate = document.getElementById('system-template').value.trim();
   const userTemplate = document.getElementById('user-template').value.trim();
 
@@ -242,7 +249,7 @@ async function runGeneration() {
 
   try {
     const t0 = Date.now();
-    const data = await api('run', { giftCode, gender, systemTemplate, userTemplate });
+    const data = await api('run', { giftCode, gender, systemTemplate, userTemplate, provider });
     const ms = Date.now() - t0;
 
     if (data.error) {
@@ -251,7 +258,8 @@ async function runGeneration() {
     }
 
     renderResult(data.data);
-    metaEl.textContent = `⏱ ${ms}мс · модель: llama-3.3-70b · system: ${data.debug?.systemLen} симв · user: ${data.debug?.userLen} симв · дар: ${data.darName}`;
+    const modelName = data.provider === 'deepseek' ? 'DeepSeek-V3' : 'Llama 3.3 70B (Groq)';
+    metaEl.textContent = `⏱ ${ms}мс · модель: ${modelName} · system: ${data.debug?.systemLen} симв · user: ${data.debug?.userLen} симв · дар: ${data.darName}`;
   } catch (e) {
     resultEl.innerHTML = `<div class="error">❌ ${e.message}</div>`;
   } finally {

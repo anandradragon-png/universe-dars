@@ -690,6 +690,8 @@ async function handleSandboxMessage(req, res) {
       const gender = (req.body && req.body.gender) || '';
       const systemTemplate = (req.body && req.body.systemTemplate) || '';
       const userTemplate = (req.body && req.body.userTemplate) || '';
+      // Провайдер AI: 'groq' (Llama, бесплатно) или 'deepseek' (платно копейки, лучше русский)
+      const provider = (req.body && req.body.provider) === 'deepseek' ? 'deepseek' : 'groq';
       if (!systemTemplate || !userTemplate) {
         return res.status(400).json({ error: 'systemTemplate и userTemplate обязательны' });
       }
@@ -700,7 +702,7 @@ async function handleSandboxMessage(req, res) {
 
       const isFemale = gender === 'female';
       const startTime = Date.now();
-      const data = await messageMod.runMessageGeneration({ systemMsg, userPrompt, isFemale });
+      const data = await messageMod.runMessageGeneration({ systemMsg, userPrompt, isFemale, provider });
       const durationMs = Date.now() - startTime;
 
       return res.status(200).json({
@@ -710,6 +712,7 @@ async function handleSandboxMessage(req, res) {
         giftCode,
         gender,
         durationMs,
+        provider,
         // Возвращаем итоговые промпты чтобы видеть что ушло в AI
         debug: {
           systemRendered: systemMsg,

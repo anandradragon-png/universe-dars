@@ -11,6 +11,7 @@
     { "source": "/api/shadow-review", "destination": "/api/content?type=shadow-review" },
     { "source": "/api/section", "destination": "/api/content?type=section" },
     { "source": "/api/message", "destination": "/api/content?type=message" },
+    { "source": "/api/sandbox-message", "destination": "/api/content?type=sandbox-message" },
     { "source": "/api/compatibility", "destination": "/api/content?type=compatibility" },
     { "source": "/api/child-book", "destination": "/api/content?type=child-book" },
     { "source": "/api/quest", "destination": "/api/game-actions?action=quest" },

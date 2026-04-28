@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Песочница промптов · YupDar</title>
+<style>
+:root{--bg:#0a0a0a;--bg2:#141414;--text:#f3f3f3;--text-dim:#a8a8a8;--text-muted:#6a6a6a;--gold:#D4AF37;--gold-soft:rgba(212,175,55,0.15);--border:rgba(255,255,255,0.1);--ok:#2ecc71;--warn:#f39c12;--err:#e74c3c}
+*{box-sizing:border-box}
+body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Manrope',-apple-system,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1400px;margin:0 auto;padding:20px}
+h1{font-size:22px;color:var(--gold);margin:0 0 6px 0;letter-spacing:1px}
+.lead{color:var(--text-dim);font-size:13px;margin-bottom:20px;line-height:1.6}
+.warn-bar{background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.4);color:#FFC97A;padding:10px 14px;border-radius:10px;font-size:12.5px;margin-bottom:20px}
+.row{display:grid;gap:20px;margin-bottom:20px}
+.row-3{grid-template-columns:repeat(3,1fr)}
+.row-2{grid-template-columns:1fr 1fr}
+@media(max-width:900px){.row-3,.row-2{grid-template-columns:1fr}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.card h3{font-size:14px;color:var(--gold);margin:0 0 10px 0;letter-spacing:0.5px}
+label{display:block;font-size:11px;color:var(--text-dim);margin:8px 0 4px;text-transform:uppercase;letter-spacing:0.5px}
+input,select,textarea{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:13px;padding:9px 11px;border-radius:8px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:vertical;font-family:'Menlo','Consolas',monospace;font-size:12px;line-height:1.5;min-height:200px}
+textarea.sys{min-height:380px;background:rgba(212,175,55,0.04)}
+textarea.usr{min-height:300px;background:rgba(46,204,113,0.04)}
+.btn{display:inline-block;padding:11px 20px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A,#D4AF37 30%,#9A7B1A 70%,#D4AF37);color:#080808;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;letter-spacing:0.5px}
+.btn:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-sec{background:rgba(255,255,255,0.06);color:var(--text);border:1px solid var(--border)}
+.btn-sec:hover{border-color:var(--gold);color:var(--gold)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.result{background:rgba(46,204,113,0.04);border:1px solid rgba(46,204,113,0.2);border-radius:12px;padding:18px;font-size:13.5px;line-height:1.7}
+.result h4{color:var(--gold);font-size:13px;margin:14px 0 8px;letter-spacing:0.5px;text-transform:uppercase}
+.result h4:first-child{margin-top:0}
+.result p,.result li{margin:6px 0}
+.result ul{padding-left:18px}
+.placeholder{color:var(--text-muted);font-style:italic;text-align:center;padding:30px 0}
+.meta{font-size:11px;color:var(--text-muted);margin-top:8px;font-family:monospace}
+.error{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.4);color:#FF8C7A;padding:10px 14px;border-radius:10px;font-size:13px}
+.tag{display:inline-block;background:var(--gold-soft);color:var(--gold);padding:3px 10px;border-radius:5px;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;margin-right:6px}
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.dual{grid-template-columns:1fr}}
+.placeholders-help{background:rgba(255,255,255,0.03);border:1px dashed var(--border);border-radius:10px;padding:12px;font-size:11.5px;color:var(--text-dim);line-height:1.6;margin-top:10px}
+.placeholders-help code{background:rgba(212,175,55,0.1);color:var(--gold);padding:1px 5px;border-radius:3px;font-family:monospace;font-size:11px}
+.access-denied{max-width:420px;margin:80px auto;text-align:center;background:var(--bg2);border:1px solid rgba(231,76,60,0.4);border-radius:14px;padding:30px}
+.access-denied h2{color:#FF8C7A;font-size:18px;margin:0 0 10px}
+.access-denied input{margin:14px 0}
+</style>
+</head>
+<body>
+
+<div id="auth-wrap" style="display:none">
+  <div class="access-denied">
+    <h2>🔒 Только для администратора</h2>
+    <p style="color:var(--text-dim);font-size:13px">Введи свой Telegram ID или открой эту страницу с параметром <code>?admin_id=ТВОЙ_ID</code> в URL</p>
+    <input id="admin-id-input" type="number" placeholder="Telegram ID" value="">
+    <button class="btn" onclick="saveAdminId()">Войти</button>
+  </div>
+</div>
+
+<div class="wrap" id="main-wrap" style="display:none">
+  <h1>🧪 Песочница промптов</h1>
+  <div class="lead">
+    Безопасный режим для тестирования AI-промпта <b>«Получить полное послание»</b> (психологический портрет).
+    Никаких изменений в БД, никаких сообщений юзерам. Все генерации работают на твоих реальных ключах AI,
+    но ничего никуда не сохраняется.
+  </div>
+
+  <div class="warn-bar">
+    ⚠️ Внимание: этот промпт — <b>упрощённая версия</b>. Боевой промпт в проде значительно длиннее
+    (с детальными правилами стиля). Здесь — основная структура для удобного редактирования.
+    Когда промпт устраивает — пришли его мне, я перенесу в боевой код с полным набором правил.
+  </div>
+
+  <!-- Параметры теста -->
+  <div class="card">
+    <h3>📋 Параметры теста</h3>
+    <div class="row row-3">
+      <div>
+        <label>Дар (код)</label>
+        <select id="dar-code"></select>
+      </div>
+      <div>
+        <label>Пол читателя</label>
+        <select id="gender">
+          <option value="">— не указан —</option>
+          <option value="female">Женский</option>
+          <option value="male">Мужской</option>
+        </select>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn btn-sec" onclick="loadDefaults()" style="width:100%">Загрузить дефолтный промпт</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Промпты -->
+  <div class="row row-2">
+    <div class="card">
+      <h3>⚙️ Системный промпт <span class="tag">SYSTEM</span></h3>
+      <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:8px">Правила и стиль для AI. Здесь описывается роль, тон, запреты.</div>
+      <textarea id="system-template" class="sys" placeholder="Загрузи дефолтный промпт →"></textarea>
+    </div>
+    <div class="card">
+      <h3>📝 Пользовательский промпт <span class="tag" style="background:rgba(46,204,113,0.15);color:#7FE3A0">USER</span></h3>
+      <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:8px">Конкретное задание AI с фактами по Дару. Сюда подставляются данные.</div>
+      <textarea id="user-template" class="usr" placeholder="Загрузи дефолтный промпт →"></textarea>
+    </div>
+  </div>
+
+  <div class="placeholders-help">
+    <b>Доступные плейсхолдеры в промптах</b> (подставляются автоматически перед отправкой в AI):<br>
+    <code>{{darName}}</code> · <code>{{giftCode}}</code> · <code>{{GENDER_BLOCK}}</code> · <code>{{INT_PHRASE}}</code><br>
+    <code>{{ma_essence}}</code> <code>{{ma_flow}}</code> <code>{{ma_body}}</code> <code>{{ma_shadow}}</code> <code>{{ma_harmony}}</code> — Слой 1 (МА)<br>
+    <code>{{zhi_essence}}</code> <code>{{zhi_flow}}</code> <code>{{zhi_body}}</code> <code>{{zhi_shadow}}</code> <code>{{zhi_risks}}</code> — Слой 2 (ЖИ)<br>
+    <code>{{kun_essence}}</code> <code>{{kun_flow}}</code> <code>{{kun_shadow}}</code> <code>{{kun_harmony}}</code> — Слой 3 (КУН)
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" id="run-btn" onclick="runGeneration()">🚀 Сгенерировать послание</button>
+    <button class="btn btn-sec" onclick="resetToDefault()">↺ Откатить к дефолту</button>
+    <button class="btn btn-sec" onclick="copyToClipboard()">📋 Скопировать промпты</button>
+  </div>
+
+  <!-- Результат -->
+  <div class="row" style="margin-top:24px">
+    <div class="card" id="result-card">
+      <h3>✨ Результат генерации</h3>
+      <div id="result-content" class="placeholder">Здесь появится результат после нажатия «Сгенерировать»</div>
+      <div id="result-meta" class="meta"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_ID_KEY = '_sandbox_admin_id';
+
+// 64 кода даров для выпадайки
+const DAR_CODES = ["1-1-2","1-2-3","1-3-4","1-4-5","1-5-6","1-6-7","1-7-8","1-8-9","2-1-3","2-2-4","2-3-5","2-4-6","2-5-7","2-6-8","2-7-9","2-8-1","3-1-4","3-2-5","3-3-6","3-4-7","3-5-8","3-6-9","3-7-1","3-8-2","4-1-5","4-2-6","4-3-7","4-4-8","4-5-9","4-6-1","4-7-2","4-8-3","5-1-6","5-2-7","5-3-8","5-4-9","5-5-1","5-6-2","5-7-3","5-8-4","6-1-7","6-2-8","6-3-9","6-4-1","6-5-2","6-6-3","6-7-4","6-8-5","7-1-8","7-2-9","7-3-1","7-4-2","7-5-3","7-6-4","7-7-5","7-8-6","8-1-9","8-2-1","8-3-2","8-4-3","8-5-4","8-6-5","8-7-6","8-8-7"];
+
+function getAdminId(){
+  // 1) URL ?admin_id=...
+  const url = new URLSearchParams(location.search);
+  const fromUrl = url.get('admin_id');
+  if (fromUrl) {
+    try { localStorage.setItem(ADMIN_ID_KEY, fromUrl); } catch(e) {}
+    return fromUrl;
+  }
+  // 2) localStorage
+  try { return localStorage.getItem(ADMIN_ID_KEY) || ''; } catch(e) { return ''; }
+}
+
+function saveAdminId(){
+  const id = document.getElementById('admin-id-input').value.trim();
+  if (!id) return;
+  try { localStorage.setItem(ADMIN_ID_KEY, id); } catch(e) {}
+  location.reload();
+}
+
+function showAuth(){
+  document.getElementById('auth-wrap').style.display = 'block';
+  document.getElementById('main-wrap').style.display = 'none';
+}
+function showMain(){
+  document.getElementById('auth-wrap').style.display = 'none';
+  document.getElementById('main-wrap').style.display = 'block';
+}
+
+async function api(action, body) {
+  const adminId = getAdminId();
+  const url = `/api/sandbox-message?action=${action}&admin_id=${encodeURIComponent(adminId)}`;
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-telegram-id': adminId
+    },
+    body: JSON.stringify(body || {})
+  });
+  if (resp.status === 403) {
+    showAuth();
+    throw new Error('Доступ запрещён. Введи правильный Telegram ID.');
+  }
+  return await resp.json();
+}
+
+let _defaultSys = '';
+let _defaultUsr = '';
+
+async function loadDefaults() {
+  try {
+    const giftCode = document.getElementById('dar-code').value;
+    const gender = document.getElementById('gender').value;
+    const data = await api('get_default', { giftCode, gender });
+    if (data.error) throw new Error(data.error);
+    _defaultSys = data.systemTemplate;
+    _defaultUsr = data.userTemplate;
+    document.getElementById('system-template').value = data.systemTemplate;
+    document.getElementById('user-template').value = data.userTemplate;
+  } catch (e) {
+    alert('Ошибка загрузки: ' + e.message);
+  }
+}
+
+function resetToDefault() {
+  if (!_defaultSys) return alert('Сначала нажми «Загрузить дефолтный промпт»');
+  if (!confirm('Откатить промпты к дефолтному варианту?')) return;
+  document.getElementById('system-template').value = _defaultSys;
+  document.getElementById('user-template').value = _defaultUsr;
+}
+
+function copyToClipboard() {
+  const sys = document.getElementById('system-template').value;
+  const usr = document.getElementById('user-template').value;
+  const text = `=== СИСТЕМНЫЙ ПРОМПТ ===\n\n${sys}\n\n=== ПОЛЬЗОВАТЕЛЬСКИЙ ПРОМПТ ===\n\n${usr}`;
+  navigator.clipboard.writeText(text).then(
+    () => alert('Скопировано в буфер обмена. Можешь прислать мне в чат.'),
+    () => alert('Не удалось скопировать. Выдели и нажми Ctrl+C вручную.')
+  );
+}
+
+async function runGeneration() {
+  const giftCode = document.getElementById('dar-code').value;
+  const gender = document.getElementById('gender').value;
+  const systemTemplate = document.getElementById('system-template').value.trim();
+  const userTemplate = document.getElementById('user-template').value.trim();
+
+  if (!systemTemplate || !userTemplate) {
+    return alert('Заполни оба промпта или загрузи дефолтные');
+  }
+
+  const btn = document.getElementById('run-btn');
+  const resultEl = document.getElementById('result-content');
+  const metaEl = document.getElementById('result-meta');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Генерируем...';
+  resultEl.innerHTML = '<div class="placeholder">AI работает, обычно 5-15 секунд...</div>';
+  metaEl.textContent = '';
+
+  try {
+    const t0 = Date.now();
+    const data = await api('run', { giftCode, gender, systemTemplate, userTemplate });
+    const ms = Date.now() - t0;
+
+    if (data.error) {
+      resultEl.innerHTML = `<div class="error">❌ ${data.error}</div>`;
+      return;
+    }
+
+    renderResult(data.data);
+    metaEl.textContent = `⏱ ${ms}мс · модель: llama-3.3-70b · system: ${data.debug?.systemLen} симв · user: ${data.debug?.userLen} симв · дар: ${data.darName}`;
+  } catch (e) {
+    resultEl.innerHTML = `<div class="error">❌ ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 Сгенерировать послание';
+  }
+}
+
+function renderResult(d) {
+  if (!d) {
+    document.getElementById('result-content').innerHTML = '<div class="error">Пустой ответ от AI</div>';
+    return;
+  }
+  let html = '';
+
+  if (d.sacred_energy) {
+    html += `<h4>🌟 Сакральная энергия</h4><p>${escapeHtml(d.sacred_energy)}</p>`;
+  }
+  if (d.light_part) {
+    const lp = typeof d.light_part === 'string' ? d.light_part :
+               Object.values(d.light_part).filter(x => typeof x === 'string').join(' ');
+    html += `<h4>✨ Световая часть</h4><p>${escapeHtml(lp)}</p>`;
+  }
+  if (d.growth_points) {
+    html += `<h4>🌱 Точки роста</h4>`;
+    if (d.growth_points.ma_shadow) html += `<p><b style="color:var(--gold)">МА — внутренняя природа:</b> ${escapeHtml(d.growth_points.ma_shadow)}</p>`;
+    if (d.growth_points.zhi_shadow) html += `<p><b style="color:var(--gold)">ЖИ — проявление:</b> ${escapeHtml(d.growth_points.zhi_shadow)}</p>`;
+    if (d.growth_points.kun_shadow) html += `<p><b style="color:var(--gold)">КУН — дар миру:</b> ${escapeHtml(d.growth_points.kun_shadow)}</p>`;
+  }
+  if (d.transition_keys) {
+    html += `<h4>🔑 Ключи возвращения</h4><p>${escapeHtml(d.transition_keys)}</p>`;
+  }
+  if (d.ecology) {
+    html += `<h4>🌍 Экология жизни</h4>`;
+    if (d.ecology.bloom_zones && d.ecology.bloom_zones.length) {
+      html += `<p><b style="color:var(--ok)">Где расцветаешь:</b></p><ul>`;
+      d.ecology.bloom_zones.forEach(z => html += `<li>${escapeHtml(String(z))}</li>`);
+      html += `</ul>`;
+    }
+    if (d.ecology.risk_zones && d.ecology.risk_zones.length) {
+      html += `<p><b style="color:var(--err)">Зоны риска:</b></p><ul>`;
+      d.ecology.risk_zones.forEach(z => html += `<li>${escapeHtml(String(z))}</li>`);
+      html += `</ul>`;
+    }
+  }
+  if (d.mission) {
+    html += `<h4>🎯 Миссия</h4><p>${escapeHtml(d.mission)}</p>`;
+  }
+
+  document.getElementById('result-content').innerHTML = html || '<div class="error">Не удалось разобрать структуру ответа</div>';
+}
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// === Init ===
+(async () => {
+  // Заполнить выпадайку даров
+  const sel = document.getElementById('dar-code');
+  DAR_CODES.forEach(code => {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = code;
+    if (code === '4-6-1') opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  // Проверка авторизации
+  const adminId = getAdminId();
+  if (!adminId) { showAuth(); return; }
+
+  // Пробный запрос для проверки доступа
+  try {
+    const data = await api('get_default', { giftCode: '4-6-1', gender: '' });
+    if (data.error) throw new Error(data.error);
+    showMain();
+    _defaultSys = data.systemTemplate;
+    _defaultUsr = data.userTemplate;
+    document.getElementById('system-template').value = data.systemTemplate;
+    document.getElementById('user-template').value = data.userTemplate;
+  } catch (e) {
+    showAuth();
+  }
+})();
+</script>
+</body>
+</html>

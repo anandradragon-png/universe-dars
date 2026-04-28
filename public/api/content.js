@@ -618,12 +618,124 @@ function handleMaintenance(req, res) {
   return res.status(200).json({ message });
 }
 
+// ============ SANDBOX: тест промптов без сохранения ============
+// Доступен только админам. Используется страницей /sandbox.html для
+// безопасного редактирования и тестирования AI-промпта психологического
+// портрета (того что выдаёт кнопка «Получить полное послание»).
+//
+// Действия (action):
+//   - 'get_default'  : вернуть дефолтные шаблоны промптов и контекст по даркоду
+//   - 'run'          : запустить генерацию с переданными промптами и вернуть JSON
+//
+// Безопасность: проверяем telegram_id из заголовка x-telegram-id или initData,
+// сверяем с ADMIN_IDS. Никаких изменений в БД, никаких уведомлений юзерам.
+const SANDBOX_ADMIN_IDS = [269932434]; // Светлана @AnandraDragon
+
+function isSandboxAdmin(req) {
+  // Через Mini App: парсим initData (без жёсткой проверки hash — это admin-tool, не публичный endpoint)
+  try {
+    const initData = req.headers['x-telegram-init-data'] || '';
+    if (initData) {
+      const params = new URLSearchParams(initData);
+      const userJson = params.get('user');
+      if (userJson) {
+        const u = JSON.parse(userJson);
+        if (u && u.id && SANDBOX_ADMIN_IDS.includes(Number(u.id))) return true;
+      }
+    }
+  } catch (e) {}
+  // Через ?admin_id=... в query (для открытия страницы в обычном браузере)
+  // или через заголовок x-telegram-id (dev fallback)
+  const headerId = parseInt(req.headers['x-telegram-id'] || '', 10);
+  if (headerId && SANDBOX_ADMIN_IDS.includes(headerId)) return true;
+  const queryId = parseInt((req.query && req.query.admin_id) || '', 10);
+  if (queryId && SANDBOX_ADMIN_IDS.includes(queryId)) return true;
+  return false;
+}
+
+async function handleSandboxMessage(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-telegram-init-data, x-telegram-id');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  if (!isSandboxAdmin(req)) {
+    return res.status(403).json({ error: 'Доступ только для администратора' });
+  }
+
+  const messageMod = require('./_lib/content/message');
+  const action = (req.body && req.body.action) || (req.query && req.query.action) || 'get_default';
+
+  try {
+    if (action === 'get_default') {
+      const giftCode = (req.body && req.body.giftCode) || (req.query && req.query.giftCode) || '4-6-1';
+      const gender = (req.body && req.body.gender) || (req.query && req.query.gender) || '';
+      const ctx = messageMod.buildContext(giftCode, gender);
+      return res.status(200).json({
+        giftCode,
+        gender,
+        darName: ctx.darName,
+        imageUrl: ctx.imageUrl,
+        systemTemplate: messageMod.DEFAULT_SYSTEM_TEMPLATE,
+        userTemplate: messageMod.DEFAULT_USER_TEMPLATE,
+        // Готовые рендеры для предпросмотра как они уйдут в AI
+        systemRendered: messageMod.fillTemplate(messageMod.DEFAULT_SYSTEM_TEMPLATE, ctx),
+        userRendered: messageMod.fillTemplate(messageMod.DEFAULT_USER_TEMPLATE, ctx),
+        context: ctx
+      });
+    }
+
+    if (action === 'run') {
+      const giftCode = (req.body && req.body.giftCode) || '4-6-1';
+      const gender = (req.body && req.body.gender) || '';
+      const systemTemplate = (req.body && req.body.systemTemplate) || '';
+      const userTemplate = (req.body && req.body.userTemplate) || '';
+      if (!systemTemplate || !userTemplate) {
+        return res.status(400).json({ error: 'systemTemplate и userTemplate обязательны' });
+      }
+
+      const ctx = messageMod.buildContext(giftCode, gender);
+      const systemMsg = messageMod.fillTemplate(systemTemplate, ctx);
+      const userPrompt = messageMod.fillTemplate(userTemplate, ctx);
+
+      const isFemale = gender === 'female';
+      const startTime = Date.now();
+      const data = await messageMod.runMessageGeneration({ systemMsg, userPrompt, isFemale });
+      const durationMs = Date.now() - startTime;
+
+      return res.status(200).json({
+        data,
+        imageUrl: ctx.imageUrl,
+        darName: ctx.darName,
+        giftCode,
+        gender,
+        durationMs,
+        // Возвращаем итоговые промпты чтобы видеть что ушло в AI
+        debug: {
+          systemRendered: systemMsg,
+          userRendered: userPrompt,
+          systemLen: systemMsg.length,
+          userLen: userPrompt.length
+        }
+      });
+    }
+
+    return res.status(400).json({ error: 'Unknown action' });
+  } catch (e) {
+    console.error('[sandbox-message] error:', e.message);
+    return res.status(200).json({ error: e.message });
+  }
+}
+
 module.exports = async (req, res) => {
   const type = (req.query && req.query.type) || '';
   const url = req.url || '';
 
   if (type === 'maintenance' || url.includes('/maintenance')) {
     return handleMaintenance(req, res);
+  }
+  if (type === 'sandbox-message' || url.includes('/sandbox-message')) {
+    return handleSandboxMessage(req, res);
   }
   if (type === 'oracle' || url.includes('/oracle')) {
     return handleOracle(req, res);

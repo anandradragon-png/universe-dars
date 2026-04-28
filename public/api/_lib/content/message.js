@@ -130,6 +130,193 @@ const feminizeText = (s) => {
   return out;
 };
 
+// Контекст по даркоду — данные, которые подставляются в промпт.
+// Вынесено в отдельную функцию, чтобы Песочница (/sandbox) могла собирать
+// тот же контекст и редактировать промпт-шаблон без дублирования логики.
+function buildContext(giftCode, gender) {
+  const isFemale = gender === 'female';
+  const isMale = gender === 'male';
+
+  const parts = giftCode.split('-').map(Number);
+  const [codeMA, codeZHI, codeKUN] = parts;
+  const maF = FIELDS_DB[codeMA];
+  const zhiF = FIELDS_DB[codeZHI];
+  const kunF = FIELDS_DB[codeKUN];
+  if (!maF || !zhiF || !kunF) throw new Error('Invalid code');
+
+  const isIntegrator = !!INTEGRATORS[giftCode];
+  const darName = isIntegrator ? INTEGRATORS[giftCode] : (DARS_DB[giftCode] || 'Дар');
+
+  const rawName  = DARS_DB[giftCode] || '';
+  const fileName = rawName.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '');
+  const imageUrl = fileName ? `/images/dars/${fileName}.svg` : '';
+  const darExt  = fieldsData.dars_extended?.[giftCode];
+  const darMeta = darExt?.metaphor || darName;
+  const darEss  = darExt?.essence_short || '';
+  const darFlow = darExt?.energy_flow || '';
+
+  let intPhrase = '';
+  if (isIntegrator) {
+    if (giftCode === '9-9-9') intPhrase = 'Твоё существование становится актом целостного творения.';
+    else if (codeZHI === 9)   intPhrase = 'Твоё действие становится актом целостного творения.';
+    else                      intPhrase = 'Твоё состояние становится актом целостного творения.';
+  }
+
+  const maData  = { name: maF.name,  essence: maF.essence,  pattern: maF.pattern||'', flow: maF.flow||'', body: maF.body||'', shadow: maF.shadow_ma,  harmony: maF.harmony_key, risks: (maF.risk_zones||[]).join(', ') };
+  const zhiData = { name: zhiF.name, essence: zhiF.essence, pattern: zhiF.pattern||'', flow: zhiF.flow||'', body: zhiF.body||'', shadow: zhiF.shadow_zhi, harmony: zhiF.harmony_key, risks: (zhiF.risk_zones||[]).join(', ') };
+  const kunData = { name: kunF.name, essence: kunF.essence, pattern: kunF.pattern||'', flow: kunF.flow||'', body: kunF.body||'', shadow: kunF.shadow_kun, harmony: kunF.harmony_key, risks: (kunF.risk_zones||[]).join(', ') };
+
+  return { isFemale, isMale, darName, darMeta, darEss, darFlow, intPhrase, maData, zhiData, kunData, imageUrl, giftCode };
+}
+
+// Шаблон системного промпта в виде строки с плейсхолдерами {{name}}.
+// Песочница показывает его в textarea для редактирования. После замены
+// плейсхолдеров на реальные значения получается тот же systemMsg что и в проде.
+const DEFAULT_SYSTEM_TEMPLATE = `Ты — Мудрый Наставник и Коуч душ. Твоя задача — написать живой, тёплый психологический портрет читателя. Обращайся к нему НАПРЯМУЮ, как будто сидишь рядом за чашкой чая.
+
+ГЛАВНЫЙ ПРИНЦИП — ФАКТЫ ИЗ БАЗЫ + ЖИВАЯ ПОДАЧА:
+• Все смысловые факты (суть силы, теневые стороны, ключи возвращения, зоны риска) ты берёшь ТОЛЬКО из предоставленных данных. Не придумываешь новые качества, страхи, риски.
+• Но твоя СВОБОДА — в том, КАК ты эти факты подаёшь. Пиши не «сухо пересказывая», а через ЖИВЫЕ СЦЕНЫ из обычной жизни, тёплые образы, конкретные моменты.
+
+ЖЕЛЕЗНЫЕ ПРАВИЛА СТИЛЯ:
+1. Обращение ТОЛЬКО на «ты» (единственное число). НЕ «Вы», «человек», «он».
+2. МЯГКАЯ ПОДАЧА: запрещены «нужно», «надо», «должен», «обязан», «требуется». Используй «важно», «полезно», «попробуй», «ключ — в...».
+3. БЕЗ повторов и штампов. Не начинай 2+ предложения подряд одинаково.
+4. ЭТИКА: запрещены «манипулировать», «контролировать», «подчинять», «заставлять», «принуждать».
+5. БЕЗ технических деталей: не упоминай поля (Логос, Нима, Андра…), МА/ЖИ/КУН, буквальные части тела.
+6. ТОЛЬКО русская кириллица. Никакой латиницы.
+7. Чередуй длинные и короткие предложения для ритма.
+
+{{GENDER_BLOCK}}
+
+ФОРМАТ: Верни ТОЛЬКО валидный JSON.`;
+
+const DEFAULT_USER_TEMPLATE = `Напиши живой психологический портрет для читателя с даром «{{darName}}» (код {{giftCode}}). Обращение ТОЛЬКО на «ты». Все смысловые факты — ТОЛЬКО из данных ниже.
+
+========= ФАКТЫ ИЗ БАЗЫ =========
+
+▓ СЛОЙ 1. Твоя внутренняя природа:
+  • Суть: {{ma_essence}}
+  • Как течёт: {{ma_flow}}
+  • Откуда черпаешь силу: {{ma_body}}
+  • Теневая сторона: {{ma_shadow}}
+  • Ключ восстановления: {{ma_harmony}}
+
+▓ СЛОЙ 2. Как ты проявляешься в мире:
+  • Суть: {{zhi_essence}}
+  • Как течёт: {{zhi_flow}}
+  • Где чувствуешь правильный момент: {{zhi_body}}
+  • Теневая сторона: {{zhi_shadow}}
+  • Зоны риска: {{zhi_risks}}
+
+▓ СЛОЙ 3. Что ты приносишь миру:
+  • Суть: {{kun_essence}}
+  • Как течёт: {{kun_flow}}
+  • Теневая сторона: {{kun_shadow}}
+  • Ключ гармонии: {{kun_harmony}}
+
+{{INT_PHRASE}}
+
+ФОРМАТ JSON:
+{
+  "sacred_energy": "5-6 живых предложений на «ты» — кто ты по сути.",
+  "light_part": "8-10 предложений — как сила раскрывается в жизни.",
+  "growth_points": {
+    "ma_shadow": "5-6 бережных предложений — теневая сторона СЛОЯ 1.",
+    "zhi_shadow": "5-6 предложений — тень СЛОЯ 2.",
+    "kun_shadow": "5-6 предложений — тень СЛОЯ 3."
+  },
+  "transition_keys": "6-7 предложений — три приглашения вернуться к себе.",
+  "ecology": {
+    "bloom_zones": ["5-6 сфер где ты расцветаешь"],
+    "risk_zones": ["3-4 ситуации"]
+  },
+  "mission": "4-5 вдохновляющих предложений о предназначении."
+}`;
+
+// Подставляет значения в шаблон-строку. Плейсхолдеры в формате {{name}}.
+function fillTemplate(tpl, ctx) {
+  const genderBlock = ctx.isFemale
+    ? '0. РОД ЧИТАТЕЛЯ — ЖЕНСКИЙ. Согласовывай прошедшее время и краткие прилагательные в женском роде: пришла, ушла, нашла, поняла, должна, готова, сильна. НИКОГДА не пиши «ты пришёл», «ты должен» — это мужской род.'
+    : ctx.isMale
+    ? '0. РОД ЧИТАТЕЛЯ — МУЖСКОЙ. Согласовывай прошедшее время в мужском роде: пришёл, понял, нашёл, должен, готов, силён.'
+    : '0. РОД НЕ УКАЗАН. Используй нейтральные формулировки.';
+
+  return tpl
+    .replace(/\{\{GENDER_BLOCK\}\}/g, genderBlock)
+    .replace(/\{\{darName\}\}/g, ctx.darName || '')
+    .replace(/\{\{giftCode\}\}/g, ctx.giftCode || '')
+    .replace(/\{\{ma_essence\}\}/g, ctx.maData?.essence || '')
+    .replace(/\{\{ma_flow\}\}/g, ctx.maData?.flow || '')
+    .replace(/\{\{ma_body\}\}/g, ctx.maData?.body || '')
+    .replace(/\{\{ma_shadow\}\}/g, ctx.maData?.shadow || '')
+    .replace(/\{\{ma_harmony\}\}/g, ctx.maData?.harmony || '')
+    .replace(/\{\{zhi_essence\}\}/g, ctx.zhiData?.essence || '')
+    .replace(/\{\{zhi_flow\}\}/g, ctx.zhiData?.flow || '')
+    .replace(/\{\{zhi_body\}\}/g, ctx.zhiData?.body || '')
+    .replace(/\{\{zhi_shadow\}\}/g, ctx.zhiData?.shadow || '')
+    .replace(/\{\{zhi_risks\}\}/g, ctx.zhiData?.risks || '')
+    .replace(/\{\{kun_essence\}\}/g, ctx.kunData?.essence || '')
+    .replace(/\{\{kun_flow\}\}/g, ctx.kunData?.flow || '')
+    .replace(/\{\{kun_shadow\}\}/g, ctx.kunData?.shadow || '')
+    .replace(/\{\{kun_harmony\}\}/g, ctx.kunData?.harmony || '')
+    .replace(/\{\{INT_PHRASE\}\}/g, ctx.intPhrase ? `▓ Особое послание: «${ctx.intPhrase}»` : '');
+}
+
+// Запуск AI с заданными системным и пользовательским промптами.
+// Применяет тот же постпроцессинг (russify+feminize) что и оригинал.
+// Песочница использует это, чтобы видеть точно такой же результат как в проде.
+async function runMessageGeneration({ systemMsg, userPrompt, isFemale }) {
+  const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
+  let completion;
+  try {
+    completion = await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: userPrompt }
+      ],
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.8,
+      max_tokens: 2200
+    });
+  } catch (modelErr) {
+    completion = await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: userPrompt }
+      ],
+      model: 'llama-3.1-8b-instant',
+      temperature: 0.8,
+      max_tokens: 2200
+    });
+  }
+  const raw = completion.choices[0]?.message?.content || '';
+  const start = raw.indexOf('{');
+  const end   = raw.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('JSON не найден в ответе AI');
+  const clean = raw.slice(start, end + 1);
+  let parsed;
+  try { parsed = JSON.parse(clean); }
+  catch { throw new Error('Ошибка разбора JSON'); }
+
+  const processString = (str) => {
+    let s = russifyText(str);
+    if (isFemale) s = feminizeText(s);
+    return s;
+  };
+  const clean_ = (v) => {
+    if (typeof v === 'string') return processString(v);
+    if (Array.isArray(v)) return v.map(clean_);
+    if (v && typeof v === 'object') {
+      const out = {};
+      for (const k of Object.keys(v)) out[k] = clean_(v[k]);
+      return out;
+    }
+    return v;
+  };
+  return clean_(parsed);
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -390,3 +577,19 @@ ${intPhrase ? `▓ Особое послание: «${intPhrase}»` : ''}
     res.status(200).json({ error: 'Ошибка генерации, попробуйте ещё раз. ' + e.message });
   }
 };
+
+// Экспорт хелперов для Песочницы (/api/sandbox-message).
+// Песочница использует:
+//   - buildContext: получить факты по даркоду
+//   - DEFAULT_SYSTEM_TEMPLATE и DEFAULT_USER_TEMPLATE: упрощённые шаблоны
+//     промптов с плейсхолдерами {{name}} (для редактирования в textarea)
+//   - fillTemplate: подставить значения контекста в шаблон
+//   - runMessageGeneration: запустить AI с кастомными промптами без сохранения
+//   - russifyText, feminizeText: тот же постпроцессинг что и в проде
+module.exports.buildContext = buildContext;
+module.exports.DEFAULT_SYSTEM_TEMPLATE = DEFAULT_SYSTEM_TEMPLATE;
+module.exports.DEFAULT_USER_TEMPLATE = DEFAULT_USER_TEMPLATE;
+module.exports.fillTemplate = fillTemplate;
+module.exports.runMessageGeneration = runMessageGeneration;
+module.exports.russifyText = russifyText;
+module.exports.feminizeText = feminizeText;

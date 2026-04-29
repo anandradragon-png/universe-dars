@@ -20,6 +20,8 @@ h1{font-size:22px;color:var(--gold);margin:0 0 6px 0;letter-spacing:1px}
 .card h3{font-size:14px;color:var(--gold);margin:0 0 10px 0;letter-spacing:0.5px}
 label{display:block;font-size:11px;color:var(--text-dim);margin:8px 0 4px;text-transform:uppercase;letter-spacing:0.5px}
 input,select,textarea{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:13px;padding:9px 11px;border-radius:8px;outline:none}
+select{cursor:pointer;-webkit-appearance:menulist;appearance:menulist;color-scheme:dark}
+select option{background:#1a1a1a;color:var(--text);padding:6px}
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 textarea{resize:vertical;font-family:'Menlo','Consolas',monospace;font-size:12px;line-height:1.5;min-height:200px}
 textarea.sys{min-height:380px;background:rgba(212,175,55,0.04)}
@@ -317,9 +319,17 @@ function renderResult(d) {
     }
   }
 
-  if (d.traps) html += `<h4>⚠️ Твои Ловушки</h4><p>${escapeHtml(d.traps)}</p>`;
-  if (d.key_to_self) html += `<h4>🗝️ Ключ к Себе</h4><p>${escapeHtml(d.key_to_self)}</p>`;
+  // traps и key_to_self больше не используются — практики и тени теперь в платной Книге Даров.
+  // Если AI всё-таки их вернул (старый кэш или промпт-инерция) — показываем для отладки в свёрнутом виде.
+  if (d.traps) html += `<h4 style="opacity:.5">⚠️ traps (не должно быть, AI вернул лишнее)</h4><p style="opacity:.5">${escapeHtml(d.traps)}</p>`;
+  if (d.key_to_self) html += `<h4 style="opacity:.5">🗝️ key_to_self (не должно быть)</h4><p style="opacity:.5">${escapeHtml(d.key_to_self)}</p>`;
   if (d.mission) html += `<h4>🌍 Твоё Предназначение</h4><p>${escapeHtml(d.mission)}</p>`;
+  if (d.book_invitation) {
+    html += `<div style="margin-top:18px;padding:18px;border:2px dashed var(--gold);border-radius:14px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(212,175,55,0.02))">
+      <h4 style="margin:0 0 8px;color:var(--gold)">📖 Приглашение в Книгу Даров</h4>
+      <p style="margin:0;font-style:italic">${escapeHtml(d.book_invitation)}</p>
+    </div>`;
+  }
 
   // Fallback на старую структуру (sacred_energy, light_part…) если AI вернул её
   if (!html && d.sacred_energy) {

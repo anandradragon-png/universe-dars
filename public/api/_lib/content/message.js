@@ -620,7 +620,18 @@ function _parseAndPostprocess(completion, isFemale) {
     }
     return v;
   };
-  return clean_(parsed);
+  const cleaned = clean_(parsed);
+
+  // Удаляем поля, которых не должно быть в бесплатном послании.
+  // Они в платной Книге Даров. DeepSeek системно их возвращает,
+  // несмотря на запрет в промпте — фильтруем программно.
+  delete cleaned.traps;
+  delete cleaned.key_to_self;
+  delete cleaned.growth_points;
+  delete cleaned.transition_keys;
+  delete cleaned.ecology;
+
+  return cleaned;
 }
 
 module.exports = async (req, res) => {

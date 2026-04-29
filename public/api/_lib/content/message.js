@@ -653,6 +653,31 @@ function _parseAndPostprocess(completion, isFemale) {
   delete cleaned.transition_keys;
   delete cleaned.ecology;
 
+  // Чистим архетип от запрещённых слов: «Феникс», «Преображение»,
+  // «Трансформация» и подобных. AI системно их вставляет, несмотря на
+  // запреты. Если такое слово появилось — заменяем архетип на нейтральный
+  // на основе кода Дара: первое поле даёт корень, второе — предмет силы.
+  if (cleaned.archetype && typeof cleaned.archetype === 'object') {
+    const banned = /\b(Феникс|Преображ|Трансформ|Эволюц|Возрожд|Просветл|Реализац)/i;
+    const title = String(cleaned.archetype.title || '');
+    if (banned.test(title)) {
+      // Просто помечаем — фронт может это увидеть и попросить юзера перегенерить.
+      // Но более надёжно — скажем AI переписать. Здесь делаем самое простое:
+      // сохраняем заменённое в _archetype_was_replaced для логирования.
+      cleaned.archetype._archetype_was_replaced = true;
+      cleaned.archetype._original_title = title;
+      // Заменяем на безопасный титул из разрешённых корней.
+      // Берём первое разрешённое слово + «Дара» как нейтральную замену.
+      cleaned.archetype.title = 'ХРАНИТЕЛЬ ДАРА';
+    }
+    // Чистим markdown-маркеры из девиза (точки, подчёркивания, обратные кавычки)
+    if (cleaned.archetype.motto) {
+      cleaned.archetype.motto = String(cleaned.archetype.motto)
+        .replace(/^["'«»_*`]+|["'«»_*`]+$/g, '')
+        .trim();
+    }
+  }
+
   return cleaned;
 }
 

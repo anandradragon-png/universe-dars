@@ -599,10 +599,9 @@ async function _runViaDeepseek(messages) {
   return await ds.chatCompletion({
     messages,
     model: 'deepseek-chat',
-    temperature: 0.95,
-    // 5000 токенов — с запасом на все 7 разделов и финал. На скрине было
-    // обрезано «Ты держишь нити, чтобы сплести цело…» при лимите 3500.
-    max_tokens: 5000
+    temperature: 0.85,  // 0.95 → 0.85: меньше галлюцинаций, лучше соблюдение JSON
+    max_tokens: 5000,
+    response_format: { type: 'json_object' }  // гарантия валидного JSON
   });
 }
 
@@ -613,15 +612,17 @@ async function _runViaGroq(messages, isFemale) {
     completion = await groq.chat.completions.create({
       messages,
       model: 'llama-3.3-70b-versatile',
-      temperature: 0.8,
-      max_tokens: 4500
+      temperature: 0.6,
+      max_tokens: 4500,
+      response_format: { type: 'json_object' }
     });
   } catch (modelErr) {
     completion = await groq.chat.completions.create({
       messages,
       model: 'llama-3.1-8b-instant',
-      temperature: 0.8,
-      max_tokens: 4500
+      temperature: 0.6,
+      max_tokens: 4500,
+      response_format: { type: 'json_object' }
     });
   }
   return _parseAndPostprocess(completion, isFemale);
@@ -902,62 +903,17 @@ ${intPhrase ? `▓ Особое послание Интегратора: «${int
 ВАЖНО: верни СТРОГО один валидный JSON-объект, начиная с открывающей фигурной скобки. Никакого текста до и после. Никаких обёрток типа три-обратных-кавычки.`;
 
   try {
-    const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
-    console.log('Generating for:', giftCode, darName);
+    console.log('Generating for:', giftCode, darName, '(default provider: deepseek)');
 
-    let completion;
-    try {
-      completion = await groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemMsg },
-          { role: 'user', content: prompt }
-        ],
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.6,
-        max_tokens: 4500,
-        response_format: { type: 'json_object' }
-      });
-    } catch (modelErr) {
-      completion = await groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemMsg },
-          { role: 'user', content: prompt }
-        ],
-        model: 'llama-3.1-8b-instant',
-        temperature: 0.6,
-        max_tokens: 4500,
-        response_format: { type: 'json_object' }
-      });
-    }
-
-    const raw = completion.choices[0]?.message?.content || '';
-    const start = raw.indexOf('{');
-    const end   = raw.lastIndexOf('}');
-    if (start === -1 || end === -1) throw new Error('JSON не найден в ответе AI');
-    const clean = raw.slice(start, end + 1);
-
-    let parsed;
-    try { parsed = JSON.parse(clean); }
-    catch (parseErr) { throw new Error('Ошибка разбора JSON'); }
-
-    // Рекурсивно чистим все строки в ответе (включая вложенные объекты и массивы).
-    // При женском поле дополнительно согласуем род прошедшего времени и кратких прилагательных.
-    const processString = (str) => {
-      let s = russifyText(str);
-      if (isFemale) s = feminizeText(s);
-      return s;
-    };
-    const clean_ = (v) => {
-      if (typeof v === 'string') return processString(v);
-      if (Array.isArray(v)) return v.map(clean_);
-      if (v && typeof v === 'object') {
-        const out = {};
-        for (const k of Object.keys(v)) out[k] = clean_(v[k]);
-        return out;
-      }
-      return v;
-    };
-    parsed = clean_(parsed);
+    // Идём через runMessageGeneration: DeepSeek по умолчанию + Groq как
+    // fallback при сбое. Раньше тут был прямой вызов Groq в обход DeepSeek —
+    // это был остаток старого кода, мы давно договорились на DeepSeek (29.04).
+    const parsed = await runMessageGeneration({
+      systemMsg,
+      userPrompt: prompt,
+      isFemale,
+      provider: undefined  // undefined = DeepSeek с Groq fallback
+    });
 
     const totalLen = JSON.stringify(parsed).length;
     if (totalLen < 800) throw new Error('Ответ слишком короткий (' + totalLen + ' символов)');

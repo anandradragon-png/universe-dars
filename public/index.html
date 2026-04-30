@@ -714,7 +714,8 @@
           <div class="dar-image-wrap" id="darImageWrap"></div>
           <div class="dar-name" id="darName"></div>
           <div class="dar-code" id="darCode"></div>
-          <div class="dar-archetype" id="darArchetype"></div>
+          <!-- Статичный архетип скрыт по решению автора 30.04.2026: чтобы не было путаницы со сгенерированным AI архетипом в полном послании -->
+          <div class="dar-archetype" id="darArchetype" style="display:none"></div>
           <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()"> Получить полное послание</button>
           <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()"> Изменить дату</button>
         </div>
@@ -2239,37 +2240,53 @@
       }
     }
 
-    // Аккордеон из JSON-структуры
+    // Аккордеон из JSON-структуры (схема v2 от 30.04.2026: archetype + 7 разделов)
     const JSON_SECTIONS = [
-      {key:'sacred_energy', icon:'🌟', title:'Сакральная энергия', getText: d => d.sacred_energy},
-      {key:'light_part',    icon:'✨', title:'Световая часть',     getText: d => {
-        // Обратная совместимость: если AI вернул объект (старый формат) — склеиваем в один текст без подзаголовков
-        const l = d.light_part;
-        if (typeof l === 'string') return l;
-        if (l && typeof l === 'object') {
-          return [l.ma_resource, l.zhi_action, l.kun_effect].filter(Boolean).join('\n\n');
-        }
-        return '';
+      {key:'essence',      icon:'✨', title:'Твоя Суть', getText: d => d.essence},
+      {key:'superpowers',  icon:'💎', title:'Твои Суперсилы', getText: d => d.superpowers},
+      {key:'wealth_flow',  icon:'💰', title:'Твой Поток Изобилия', getText: d => {
+        const w = d.wealth_flow;
+        if (!w) return '';
+        if (typeof w === 'string') return w;
+        const parts = [];
+        if (w.intro) parts.push(w.intro);
+        if (w.includes) parts.push('**Твой поток включается, когда ты:**\n' + w.includes);
+        if (w.blocks) parts.push('**Твой поток гаснет, когда ты:**\n' + w.blocks);
+        return parts.join('\n\n');
       }},
-      {key:'growth_points', icon:'🌑', title:'Точки роста',        getText: d => {
-        const g=d.growth_points||{};
-        return [g.ma_shadow&&`**Искажение потенциала:** ${g.ma_shadow}`,
-                g.zhi_shadow&&`**Искажение действия:** ${g.zhi_shadow}`,
-                g.kun_shadow&&`**Разрыв связи:** ${g.kun_shadow}`].filter(Boolean).join('\n\n');
+      {key:'relationships',icon:'❤️', title:'Ты в Отношениях', getText: d => {
+        const r = d.relationships;
+        if (!r) return '';
+        if (typeof r === 'string') return r;
+        const parts = [];
+        if (r.main) parts.push(r.main);
+        if (r.needs) parts.push('**Что тебе нужно:**\n' + r.needs);
+        if (r.triggers) parts.push('**Что тебя ранит:**\n' + r.triggers);
+        if (r.hint) parts.push('**Подсказка для близких:** ' + r.hint);
+        return parts.join('\n\n');
       }},
-      {key:'transition_keys',icon:'🗝', title:'Ключи к гармонии',  getText: d => d.transition_keys},
-      {key:'ecology',        icon:'🌿', title:'Сферы расцвета',     getText: d => {
-        const e=d.ecology||{};
-        const bloom=(e.bloom_zones||[]).map(z=>`- ${z}`).join('\n');
-        const risk=(e.risk_zones||[]).map(z=>`- ${z}`).join('\n');
-        return `**Где расцветает сила:**\n${bloom}\n\n**Где сила угасает:**\n${risk}`;
-      }},
-      {key:'mission',        icon:'🕊', title:'Миссия дара',        getText: d => d.mission}
+      {key:'traps',        icon:'⚠️', title:'Твои Ловушки', getText: d => d.traps},
+      {key:'key_to_self',  icon:'🗝', title:'Ключ к Себе', getText: d => d.key_to_self},
+      {key:'mission',      icon:'🌍', title:'Твоё Предназначение', getText: d => d.mission}
     ];
+
+    // Отрисовка блока архетипа (от AI) над аккордеоном
+    function renderArchetypeBlock(data){
+      if (!data || !data.archetype) return '';
+      const a = typeof data.archetype === 'object' ? data.archetype : { title: String(data.archetype), motto: '' };
+      const title = (a.title || '').trim();
+      const motto = (a.motto || '').trim();
+      if (!title && !motto) return '';
+      return `
+        <div class="ai-archetype-block" style="text-align:center;margin:0 0 24px;padding:18px 16px;border:1px solid rgba(212,175,55,0.35);border-radius:14px;background:linear-gradient(180deg,rgba(212,175,55,0.06),rgba(212,175,55,0.02))">
+          ${title ? `<div style="font-size:20px;font-weight:700;color:#D4AF37;letter-spacing:1.5px;margin-bottom:8px">${title}</div>` : ''}
+          ${motto ? `<div style="font-size:14px;font-style:italic;color:#E8D5A0;line-height:1.5">«${motto}»</div>` : ''}
+        </div>`;
+    }
 
     function buildAccordionFromJSON(data){
       const container=document.getElementById('full-description-content');
-      container.innerHTML='';
+      container.innerHTML = renderArchetypeBlock(data);
       let firstOpened=false;
       JSON_SECTIONS.forEach(s=>{
         const text=s.getText(data);
@@ -2350,10 +2367,17 @@
         h.classList.remove('open');
         h.nextElementSibling.classList.remove('open');
       });
-      // Открываем текущий если был закрыт
+      // Открываем текущий если был закрыт + удерживаем заголовок в видимой зоне.
+      // Без этого после закрытия соседних секций страница сжимается и открытая
+      // секция уезжает из поля зрения — пользователь думает, что его «выкинуло».
       if(!isOpen){
         btn.classList.add('open');
         body.classList.add('open');
+        setTimeout(() => {
+          if (typeof btn.scrollIntoView === 'function') {
+            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 80);
       }
     }
 

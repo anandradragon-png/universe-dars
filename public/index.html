@@ -2260,9 +2260,10 @@
         if (typeof r === 'string') return r;
         const parts = [];
         if (r.main) parts.push(r.main);
-        if (r.needs) parts.push('**Что тебе нужно:**\n' + r.needs);
-        if (r.triggers) parts.push('**Что тебя ранит:**\n' + r.triggers);
-        if (r.hint) parts.push('**Подсказка для близких:** ' + r.hint);
+        if (r.love_style) parts.push('**Как ты любишь:** ' + r.love_style);
+        if (r.needs) parts.push('**Твоя потребность:** ' + r.needs);
+        if (r.triggers) parts.push('**Твой триггер:** ' + r.triggers);
+        if (r.hint) parts.push(r.hint);
         return parts.join('\n\n');
       }},
       {key:'traps',        icon:'⚠️', title:'Твои Ловушки', getText: d => d.traps},

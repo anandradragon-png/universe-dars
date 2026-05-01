@@ -2250,8 +2250,8 @@
         if (typeof w === 'string') return w;
         const parts = [];
         if (w.intro) parts.push(w.intro);
-        if (w.includes) parts.push('**Твой поток включается, когда ты:**\n' + w.includes);
-        if (w.blocks) parts.push('**Твой поток гаснет, когда ты:**\n' + w.blocks);
+        if (w.includes) parts.push('**Что включает поток:**\n' + w.includes);
+        if (w.blocks) parts.push('**Что блокирует поток:**\n' + w.blocks);
         return parts.join('\n\n');
       }},
       {key:'relationships',icon:'❤️', title:'Ты в Отношениях', getText: d => {

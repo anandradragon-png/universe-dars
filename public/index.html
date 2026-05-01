@@ -2192,9 +2192,19 @@
       if(!saved){ alert('Сначала рассчитайте дар'); return; }
       const{gift}=JSON.parse(saved);
       const btn=document.getElementById('btn-get-message');
-      btn.textContent='⏳ Загрузка мудрости...';
-      btn.disabled=true;
+      // Сразу прячем кнопки и запускаем анимацию загрузки на месте кнопки.
+      // disabled=true делал кнопку «чёрной» (grayscale+opacity), что путает
+      // пользователя. И сам лоадер был ниже экрана — не видно без скролла.
+      btn.style.display='none';
+      const btnChange=document.getElementById('btn-change-date');
+      if(btnChange) btnChange.style.display='none';
       startLoadingAnimation();
+      // Прокручиваем к блоку загрузки, чтобы пользователь видел анимацию
+      // и сменяющиеся подсказки, пока AI генерирует послание (30-60 сек).
+      setTimeout(() => {
+        const block=document.getElementById('full-description-block');
+        if(block) block.scrollIntoView({behavior:'smooth',block:'start'});
+      }, 100);
       try{
         const _prof=JSON.parse(localStorage.getItem('_darProfile')||'{}');
         const resp=await fetch(`${API_URL}/api/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({giftCode:gift.code, gender:_prof.gender||''})});
@@ -2232,8 +2242,12 @@
       }catch(e){
         stopLoadingAnimation();
         console.error('requestMessage error:', e.message);
-        btn.textContent=' Получить полное послание';
-        btn.disabled=false;
+        // При ошибке возвращаем кнопки на место (раньше было disabled=false,
+        // но теперь мы скрываем кнопки через display:none при старте).
+        btn.textContent='📩 Получить полное послание';
+        btn.style.display='';
+        const btnChange2=document.getElementById('btn-change-date');
+        if(btnChange2) btnChange2.style.display='';
         document.getElementById('full-description-content').innerHTML=
           '<p style="color:#f87171;text-align:center;padding:20px;line-height:1.7"> Мудрый Наставник сейчас отдыхает.<br><br>Попробуйте через минуту.</p>';
         document.getElementById('full-description-block').style.display='block';

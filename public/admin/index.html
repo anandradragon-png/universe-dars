@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>YupDar — Админ-панель</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f14;
+      color: #eaeaea;
+      min-height: 100vh;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(135deg, #1a1a25, #0f0f14);
+      padding: 16px 20px;
+      border-bottom: 1px solid #2a2a35;
+      position: sticky; top: 0; z-index: 10;
+    }
+    header h1 { font-size: 18px; font-weight: 600; color: #D4AF37; }
+    header .sub { font-size: 12px; color: #888; margin-top: 2px; }
+
+    nav.tabs {
+      display: flex;
+      overflow-x: auto;
+      background: #1a1a25;
+      border-bottom: 1px solid #2a2a35;
+      -webkit-overflow-scrolling: touch;
+    }
+    nav.tabs button {
+      flex: 0 0 auto;
+      background: transparent;
+      border: none;
+      color: #888;
+      padding: 14px 18px;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+    }
+    nav.tabs button:hover { color: #ccc; }
+    nav.tabs button.active {
+      color: #D4AF37;
+      border-bottom-color: #D4AF37;
+    }
+
+    main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .loader { text-align: center; padding: 40px; color: #888; }
+    .error-box {
+      background: #2a1818;
+      border: 1px solid #5a2828;
+      color: #ffcccc;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .info-box {
+      background: #1a2330;
+      border: 1px solid #2a4060;
+      color: #cce0ff;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    .card {
+      background: #1a1a25;
+      border: 1px solid #2a2a35;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .card h2 { font-size: 16px; color: #D4AF37; margin-bottom: 8px; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .stat-tile {
+      background: #1a1a25;
+      border: 1px solid #2a2a35;
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .stat-tile .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .5px; }
+    .stat-tile .value { font-size: 22px; font-weight: 700; color: #eaeaea; margin-top: 4px; }
+    .stat-tile .delta { font-size: 11px; color: #6c9; margin-top: 2px; }
+
+    button.primary {
+      background: linear-gradient(135deg, #D4AF37, #b8941e);
+      color: #1a1a1a;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button.primary:hover { opacity: .9; }
+
+    .placeholder {
+      padding: 60px 20px;
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
+
+    /* Users screen */
+    .search-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .search-row input {
+      flex: 1;
+      background: #0f0f14;
+      color: #eaeaea;
+      border: 1px solid #2a2a35;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    table.users-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1a1a25;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 13px;
+    }
+    table.users-table th, table.users-table td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #2a2a35;
+    }
+    table.users-table th { color: #888; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+    table.users-table tbody tr { cursor: pointer; transition: background .15s; }
+    table.users-table tbody tr:hover { background: #252535; }
+    table.users-table tbody tr:last-child td { border-bottom: none; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge.basic { background: #2a2a35; color: #aaa; }
+    .badge.extended { background: #2a3548; color: #88aadd; }
+    .badge.premium { background: #3d2e1f; color: #D4AF37; }
+    .badge.blocked { background: #4a1a1a; color: #ff8888; margin-left: 4px; }
+    .badge.admin { background: #1a4a2a; color: #88dd88; margin-left: 4px; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      z-index: 100;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal {
+      background: #1a1a25;
+      border: 1px solid #2a2a35;
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 700px;
+      margin: auto;
+    }
+    .modal h2 { margin-bottom: 12px; color: #D4AF37; font-size: 18px; }
+    .modal-close { float: right; background: none; border: none; color: #888; font-size: 22px; cursor: pointer; line-height: 1; }
+    .modal-section { margin: 14px 0; }
+    .modal-section h3 { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 8px; }
+    .modal .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .modal .actions button {
+      background: #2a2a35;
+      color: #eaeaea;
+      border: 1px solid #3a3a45;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .modal .actions button:hover { background: #353545; }
+    .modal .actions button.danger { background: #4a1a1a; border-color: #6a2a2a; color: #ffaaaa; }
+    .modal .log-list { max-height: 300px; overflow-y: auto; font-size: 12px; }
+    .modal .log-list .row { padding: 6px 0; border-bottom: 1px solid #25252f; display: flex; gap: 10px; }
+    .modal .log-list .row:last-child { border-bottom: none; }
+    .modal .log-list .amount { font-weight: 600; min-width: 60px; }
+    .modal .log-list .amount.pos { color: #6c9; }
+    .modal .log-list .amount.neg { color: #c69; }
+    .modal .log-list .reason { flex: 1; color: #ccc; }
+    .modal .log-list .date { color: #666; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🛡 YupDar — Админ-панель</h1>
+    <div class="sub" id="adminInfo">Проверяю доступ…</div>
+  </header>
+
+  <nav class="tabs" id="tabs" style="display:none">
+    <button data-tab="dashboard" class="active">📊 Дашборд</button>
+    <button data-tab="users">👥 Пользователи</button>
+    <button data-tab="promo">🎟 Промокоды</button>
+    <button data-tab="payments">💳 Платежи</button>
+  </nav>
+
+  <main>
+    <div id="bootError" class="error-box" style="display:none"></div>
+
+    <div id="boot" class="loader">⏳ Загрузка…</div>
+
+    <section id="screen-dashboard" class="screen">
+      <div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <label style="font-size:13px;color:#888">Период:</label>
+        <select id="periodSelect" style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px 12px;border-radius:6px;font-size:14px">
+          <option value="7d">7 дней</option>
+          <option value="30d" selected>30 дней</option>
+          <option value="90d">90 дней</option>
+          <option value="all">всё время</option>
+        </select>
+        <button id="refreshBtn" class="primary" style="padding:8px 14px;font-size:13px">↻ Обновить</button>
+        <span id="dashStatus" style="font-size:12px;color:#888;margin-left:auto"></span>
+      </div>
+
+      <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;font-weight:500">👥 Пользователи</h3>
+      <div class="stat-grid">
+        <div class="stat-tile"><div class="label">Всего</div><div class="value" id="usersTotal">—</div></div>
+        <div class="stat-tile"><div class="label">Сегодня новые</div><div class="value" id="usersToday">—</div></div>
+        <div class="stat-tile"><div class="label">Новые за период</div><div class="value" id="usersNewPeriod">—</div></div>
+        <div class="stat-tile"><div class="label">Активные за период</div><div class="value" id="usersActive">—</div></div>
+        <div class="stat-tile"><div class="label">С рассчитанным даром</div><div class="value" id="usersWithDar">—</div></div>
+      </div>
+
+      <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;font-weight:500">🎟 По тарифам</h3>
+      <div class="stat-grid">
+        <div class="stat-tile"><div class="label">Странник (basic)</div><div class="value" id="tierBasic">—</div></div>
+        <div class="stat-tile"><div class="label">Хранитель (extended)</div><div class="value" id="tierExtended">—</div></div>
+        <div class="stat-tile"><div class="label">Мастер (premium)</div><div class="value" id="tierPremium">—</div></div>
+      </div>
+
+      <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;font-weight:500">💎 Кристаллы</h3>
+      <div class="stat-grid">
+        <div class="stat-tile"><div class="label">Всего в обращении</div><div class="value" id="crystalsCirculation">—</div></div>
+        <div class="stat-tile"><div class="label">Выдано за период</div><div class="value" id="crystalsGranted">—</div></div>
+        <div class="stat-tile"><div class="label">Потрачено за период</div><div class="value" id="crystalsSpent">—</div></div>
+      </div>
+
+      <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;font-weight:500">💳 Платежи</h3>
+      <div class="stat-grid">
+        <div class="stat-tile"><div class="label">Покупок за период</div><div class="value" id="paymentsCount">—</div></div>
+        <div class="stat-tile"><div class="label">Telegram Stars</div><div class="value" id="paymentsStars">—</div></div>
+        <div class="stat-tile"><div class="label">ЮKassa, ₽</div><div class="value" id="paymentsRub">—</div></div>
+      </div>
+
+      <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;font-weight:500">🤝 Виральность и AI</h3>
+      <div class="stat-grid">
+        <div class="stat-tile"><div class="label">Рефералов за период</div><div class="value" id="referrals">—</div></div>
+        <div class="stat-tile"><div class="label">Кэш Оракула</div><div class="value" id="oracleCache">—</div></div>
+        <div class="stat-tile"><div class="label">Кэш секций даров</div><div class="value" id="sectionsCache">—</div></div>
+      </div>
+    </section>
+
+    <section id="screen-users" class="screen">
+      <div class="search-row">
+        <input id="userSearch" type="text" placeholder="Поиск: имя, username, telegram_id, dar_code (или пусто — последние активные)">
+        <button id="userSearchBtn" class="primary">Найти</button>
+      </div>
+      <div id="usersResult"></div>
+    </section>
+
+    <!-- Modal: карточка юзера -->
+    <div class="modal-backdrop" id="userModalBackdrop">
+      <div class="modal">
+        <button class="modal-close" id="userModalClose">×</button>
+        <div id="userModalContent"></div>
+      </div>
+    </div>
+
+    <section id="screen-promo" class="screen">
+      <div class="card">
+        <h2>Создать новый промокод</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-top:10px">
+          <input id="promoCode" placeholder="КОД (заглавные)" style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px;border-radius:6px">
+          <select id="promoType" style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px;border-radius:6px">
+            <option value="crystals">кристаллы (бонус)</option>
+            <option value="tier">тариф (extended/premium)</option>
+            <option value="discount">скидка %</option>
+          </select>
+          <input id="promoValue" placeholder='value: 50 / "extended" / 30' style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px;border-radius:6px">
+          <input id="promoMaxUses" type="number" placeholder="Лимит активаций (пусто = ∞)" style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px;border-radius:6px">
+          <input id="promoExpires" type="date" placeholder="Действует до" style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px;border-radius:6px">
+          <input id="promoComment" placeholder="Комментарий (для тебя)" style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px;border-radius:6px">
+        </div>
+        <button id="promoCreateBtn" class="primary" style="margin-top:12px">Создать</button>
+      </div>
+
+      <div style="margin-top:20px">
+        <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Все промокоды</h3>
+        <div id="promoList"></div>
+      </div>
+    </section>
+
+    <section id="screen-payments" class="screen">
+      <div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <label style="font-size:13px;color:#888">Период:</label>
+        <select id="payPeriod" style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px 12px;border-radius:6px;font-size:14px">
+          <option value="7d">7 дней</option>
+          <option value="30d" selected>30 дней</option>
+          <option value="90d">90 дней</option>
+          <option value="all">всё время</option>
+        </select>
+        <label style="font-size:13px;color:#888">Провайдер:</label>
+        <select id="payProvider" style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px 12px;border-radius:6px;font-size:14px">
+          <option value="all">все</option>
+          <option value="yookassa">ЮKassa</option>
+          <option value="stars">Telegram Stars</option>
+        </select>
+        <button id="payRefresh" class="primary" style="padding:8px 14px;font-size:13px">↻ Обновить</button>
+        <button id="payExport" class="primary" style="padding:8px 14px;font-size:13px;background:linear-gradient(135deg,#4a8a4a,#2a6a2a)">📥 CSV</button>
+      </div>
+
+      <div id="paySummary" style="margin-top:16px"></div>
+      <div id="payList" style="margin-top:16px"></div>
+    </section>
+  </main>
+
+  <script>
+    // === Telegram WebApp init ===
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.ready();
+    }
+
+    // === API helper ===
+    async function adminFetch(path, opts = {}) {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(opts.headers || {})
+      };
+      // Передаём initData для авторизации
+      if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
+      // Dev fallback: ?dev_id=12345 в URL — для локального теста без Telegram
+      const devId = new URLSearchParams(location.search).get('dev_id');
+      if (devId) headers['x-telegram-id'] = devId;
+
+      const resp = await fetch(path, { ...opts, headers });
+      const text = await resp.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { raw: text }; }
+      if (!resp.ok) {
+        const err = new Error(data.error || `HTTP ${resp.status}`);
+        err.status = resp.status;
+        err.data = data;
+        throw err;
+      }
+      return data;
+    }
+
+    // === Tab switching ===
+    document.getElementById('tabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-tab]');
+      if (!btn) return;
+      document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b === btn));
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + tab));
+    });
+
+    // === Boot: проверка прав ===
+    (async () => {
+      const bootEl = document.getElementById('boot');
+      const errEl = document.getElementById('bootError');
+      const infoEl = document.getElementById('adminInfo');
+
+      try {
+        const res = await adminFetch('/api/admin/me');
+        // Успех → показать первую вкладку
+        bootEl.style.display = 'none';
+        document.getElementById('tabs').style.display = 'flex';
+        document.getElementById('screen-dashboard').classList.add('active');
+        infoEl.textContent = `👤 ${res.admin.first_name} · ID ${res.admin.telegram_id}`;
+      } catch (e) {
+        bootEl.style.display = 'none';
+        errEl.style.display = 'block';
+        if (e.status === 401) {
+          errEl.innerHTML = '<strong>Не удалось авторизоваться.</strong><br>Открой админку через Telegram WebApp (не через браузер напрямую).';
+          infoEl.textContent = '⛔ Не авторизован';
+        } else if (e.status === 403) {
+          errEl.innerHTML = '<strong>Доступ запрещён.</strong><br>У этого Telegram-аккаунта нет прав администратора. Если это ошибка — проверь, что в БД `users.is_admin = TRUE` для твоего telegram_id.';
+          infoEl.textContent = '⛔ Не админ';
+        } else {
+          errEl.innerHTML = `<strong>Ошибка загрузки:</strong> ${e.message}`;
+          infoEl.textContent = '⚠ Ошибка';
+        }
+      }
+    })();
+
+    // Экспортируем для будущих скриптов вкладок
+    window.AdminAPI = { fetch: adminFetch };
+
+    // === Dashboard loader ===
+    function fmt(n) {
+      if (n === null || n === undefined) return '—';
+      if (typeof n !== 'number') return String(n);
+      // 1234567 → "1 234 567"
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+
+    async function loadDashboard() {
+      const period = document.getElementById('periodSelect').value;
+      const status = document.getElementById('dashStatus');
+      const btn = document.getElementById('refreshBtn');
+      status.textContent = '⏳ загружаю…';
+      btn.disabled = true;
+
+      try {
+        const data = await adminFetch('/api/admin/stats?period=' + encodeURIComponent(period));
+        const u = data.users || {};
+        const c = data.crystals || {};
+        const p = data.payments || {};
+        const r = data.referrals || {};
+        const ai = data.ai || {};
+        const t = u.by_tier || {};
+
+        document.getElementById('usersTotal').textContent = fmt(u.total);
+        document.getElementById('usersToday').textContent = fmt(u.new_today);
+        document.getElementById('usersNewPeriod').textContent = fmt(u.new_period);
+        document.getElementById('usersActive').textContent = fmt(u.active_period);
+        document.getElementById('usersWithDar').textContent = fmt(u.with_dar);
+
+        document.getElementById('tierBasic').textContent = fmt(t.basic);
+        document.getElementById('tierExtended').textContent = fmt(t.extended);
+        document.getElementById('tierPremium').textContent = fmt(t.premium);
+
+        document.getElementById('crystalsCirculation').textContent = fmt(c.in_circulation);
+        document.getElementById('crystalsGranted').textContent = fmt(c.granted_period);
+        document.getElementById('crystalsSpent').textContent = fmt(c.spent_period);
+
+        document.getElementById('paymentsCount').textContent = fmt(p.count_period);
+        document.getElementById('paymentsStars').textContent = fmt(p.stars_total_period) + ' ⭐';
+        document.getElementById('paymentsRub').textContent = fmt(p.yookassa_rub_period) + ' ₽';
+
+        document.getElementById('referrals').textContent = fmt(r.count_period);
+        document.getElementById('oracleCache').textContent = fmt(ai.oracle_cache_size);
+        document.getElementById('sectionsCache').textContent = fmt(ai.dar_sections_cache_size);
+
+        const t2 = new Date();
+        status.textContent = '✓ обновлено в ' + t2.toLocaleTimeString('ru-RU');
+      } catch (e) {
+        status.textContent = '⚠ ошибка: ' + e.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+    document.getElementById('periodSelect').addEventListener('change', loadDashboard);
+
+    // === Users screen ===
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function formatDate(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function searchUsers() {
+      const q = document.getElementById('userSearch').value.trim();
+      const out = document.getElementById('usersResult');
+      out.innerHTML = '<div class="loader">⏳ ищу…</div>';
+      try {
+        const data = await adminFetch('/api/admin/users?action=search&q=' + encodeURIComponent(q));
+        if (!data.users || data.users.length === 0) {
+          out.innerHTML = '<div class="placeholder">Ничего не найдено</div>';
+          return;
+        }
+        const rows = data.users.map(u => {
+          const tier = u.access_level || 'basic';
+          const blocked = u.is_blocked ? '<span class="badge blocked">заблокирован</span>' : '';
+          const adm = u.is_admin ? '<span class="badge admin">админ</span>' : '';
+          return `
+            <tr data-user-id="${u.id}">
+              <td>${u.id}</td>
+              <td>${escapeHtml(u.first_name)} ${escapeHtml(u.last_name || '')}<br><small style="color:#888">@${escapeHtml(u.username || '—')}</small></td>
+              <td>${escapeHtml(u.dar_code || '—')}<br><small style="color:#888">${escapeHtml(u.dar_name || '')}</small></td>
+              <td><span class="badge ${tier}">${tier}</span>${adm}${blocked}</td>
+              <td>💎 ${u.crystals || 0}</td>
+              <td>${formatDate(u.last_active_at)}</td>
+            </tr>
+          `;
+        }).join('');
+        out.innerHTML = `
+          <div style="color:#888;font-size:12px;margin-bottom:8px">Найдено: ${data.users.length}${q ? ' по запросу «' + escapeHtml(q) + '»' : ' (последние активные)'}</div>
+          <table class="users-table">
+            <thead><tr><th>id</th><th>имя</th><th>дар</th><th>тариф</th><th>кристаллы</th><th>посл. активность</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+        out.querySelectorAll('tr[data-user-id]').forEach(tr => {
+          tr.addEventListener('click', () => openUserCard(parseInt(tr.dataset.userId)));
+        });
+      } catch (e) {
+        out.innerHTML = '<div class="error-box">Ошибка: ' + escapeHtml(e.message) + '</div>';
+      }
+    }
+
+    async function openUserCard(userId) {
+      const backdrop = document.getElementById('userModalBackdrop');
+      const content = document.getElementById('userModalContent');
+      content.innerHTML = '<div class="loader">⏳ загружаю…</div>';
+      backdrop.classList.add('active');
+      try {
+        const data = await adminFetch('/api/admin/users?action=card&id=' + userId);
+        renderUserCard(data);
+      } catch (e) {
+        content.innerHTML = '<div class="error-box">Ошибка: ' + escapeHtml(e.message) + '</div>';
+      }
+    }
+
+    function renderUserCard(data) {
+      const u = data.user;
+      const content = document.getElementById('userModalContent');
+      const darsHtml = (data.dars || []).map(d =>
+        `<div class="row"><span class="amount">${escapeHtml(d.dar_code)}</span><span class="reason">источник: ${escapeHtml(d.unlock_source)}, секций: ${d.unlocked_sections}</span><span class="date">${formatDate(d.unlocked_at)}</span></div>`
+      ).join('') || '<div style="color:#666;font-size:12px;padding:8px 0">нет открытых даров</div>';
+
+      const logHtml = (data.crystal_log || []).slice(0, 30).map(r => {
+        const cls = r.amount >= 0 ? 'pos' : 'neg';
+        const sign = r.amount >= 0 ? '+' : '';
+        return `<div class="row"><span class="amount ${cls}">${sign}${r.amount}</span><span class="reason">${escapeHtml(r.reason)}</span><span class="date">${formatDate(r.created_at)}</span></div>`;
+      }).join('') || '<div style="color:#666;font-size:12px;padding:8px 0">операций нет</div>';
+
+      const paymentsHtml = (data.payments || []).map(r => {
+        const m = r.metadata || {};
+        const sum = m.amount_rub || m.amount_stars || m.stars || m.amount || '?';
+        return `<div class="row"><span class="amount pos">${escapeHtml(String(sum))}</span><span class="reason">${escapeHtml(r.reason)}</span><span class="date">${formatDate(r.created_at)}</span></div>`;
+      }).join('') || '<div style="color:#666;font-size:12px;padding:8px 0">платежей нет</div>';
+
+      const adminLogHtml = (data.admin_actions || []).map(r =>
+        `<div class="row"><span class="amount">${escapeHtml(r.action)}</span><span class="reason">${escapeHtml(JSON.stringify(r.payload || {}))}</span><span class="date">${formatDate(r.created_at)}</span></div>`
+      ).join('') || '<div style="color:#666;font-size:12px;padding:8px 0">действий админов не было</div>';
+
+      content.innerHTML = `
+        <h2>${escapeHtml(u.first_name)} ${escapeHtml(u.last_name || '')} <small style="color:#888;font-size:13px">@${escapeHtml(u.username || '—')}</small></h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px">
+          <div class="stat-tile"><div class="label">id в БД</div><div class="value">${u.id}</div></div>
+          <div class="stat-tile"><div class="label">telegram_id</div><div class="value" style="font-size:14px">${u.telegram_id}</div></div>
+          <div class="stat-tile"><div class="label">тариф</div><div class="value" style="font-size:14px"><span class="badge ${u.access_level || 'basic'}">${u.access_level || 'basic'}</span></div></div>
+          <div class="stat-tile"><div class="label">кристаллы</div><div class="value">💎 ${u.crystals || 0}</div></div>
+          <div class="stat-tile"><div class="label">стрик</div><div class="value">🔥 ${u.streak_count || 0}</div></div>
+          <div class="stat-tile"><div class="label">рефералов</div><div class="value">👥 ${data.referrals_count || 0}</div></div>
+        </div>
+        <div style="font-size:13px;color:#aaa;margin-bottom:12px">
+          📅 регистрация: ${formatDate(u.created_at)} · последний вход: ${formatDate(u.last_active_at)}<br>
+          ✨ дар: ${escapeHtml(u.dar_code || '—')} ${u.dar_name ? '(' + escapeHtml(u.dar_name) + ')' : ''} · дата рождения: ${escapeHtml(u.birth_date || '—')}
+          ${u.is_admin ? '<br><span class="badge admin">админ</span>' : ''}
+          ${u.is_blocked ? '<span class="badge blocked">заблокирован</span>' : ''}
+        </div>
+
+        <div class="modal-section">
+          <h3>⚡ Действия</h3>
+          <div class="actions">
+            <button data-act="grant" data-uid="${u.id}">+ Начислить кристаллы</button>
+            <button data-act="deduct" data-uid="${u.id}">− Списать кристаллы</button>
+            <button data-act="tier" data-uid="${u.id}">Изменить тариф</button>
+            <button data-act="block" data-uid="${u.id}" data-blocked="${!!u.is_blocked}" class="${u.is_blocked ? '' : 'danger'}">${u.is_blocked ? '✓ Разблокировать' : '⛔ Заблокировать'}</button>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h3>✨ Открытые дары (${(data.dars || []).length})</h3>
+          <div class="log-list">${darsHtml}</div>
+        </div>
+
+        <div class="modal-section">
+          <h3>💳 Платежи (${(data.payments || []).length})</h3>
+          <div class="log-list">${paymentsHtml}</div>
+        </div>
+
+        <div class="modal-section">
+          <h3>💎 Последние операции по кристаллам (${Math.min(30, (data.crystal_log || []).length)} из ${(data.crystal_log || []).length})</h3>
+          <div class="log-list">${logHtml}</div>
+        </div>
+
+        <div class="modal-section">
+          <h3>🛡 Действия админов над юзером</h3>
+          <div class="log-list">${adminLogHtml}</div>
+        </div>
+      `;
+
+      // Хук кнопок действий
+      content.querySelectorAll('button[data-act]').forEach(btn => {
+        btn.addEventListener('click', () => userAction(btn.dataset.act, parseInt(btn.dataset.uid), btn));
+      });
+    }
+
+    async function userAction(act, userId, btn) {
+      try {
+        if (act === 'grant' || act === 'deduct') {
+          const sign = act === 'grant' ? 1 : -1;
+          const num = prompt(act === 'grant' ? 'Сколько кристаллов начислить?' : 'Сколько кристаллов списать?');
+          if (!num) return;
+          const amount = sign * parseInt(num);
+          if (!amount || isNaN(amount)) return alert('Неверное число');
+          const reason = prompt('Причина (видна тебе в логах):', act === 'grant' ? 'бонус от админа' : 'корректировка') || '';
+          const r = await adminFetch('/api/admin/users?action=crystals', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: userId, amount, reason })
+          });
+          alert('✓ Готово. Новый баланс: ' + r.new_balance);
+          openUserCard(userId);
+        } else if (act === 'tier') {
+          const tier = prompt('Введи тариф: basic / extended / premium', 'extended');
+          if (!tier) return;
+          await adminFetch('/api/admin/users?action=tier', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: userId, tier: tier.trim().toLowerCase() })
+          });
+          alert('✓ Тариф изменён');
+          openUserCard(userId);
+        } else if (act === 'block') {
+          const wasBlocked = btn.dataset.blocked === 'true';
+          const newBlocked = !wasBlocked;
+          if (!confirm(newBlocked ? 'Заблокировать пользователя?' : 'Разблокировать пользователя?')) return;
+          await adminFetch('/api/admin/users?action=block', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: userId, blocked: newBlocked })
+          });
+          alert('✓ Готово');
+          openUserCard(userId);
+        }
+      } catch (e) {
+        alert('Ошибка: ' + e.message);
+      }
+    }
+
+    document.getElementById('userSearchBtn').addEventListener('click', searchUsers);
+    document.getElementById('userSearch').addEventListener('keydown', e => {
+      if (e.key === 'Enter') searchUsers();
+    });
+    document.getElementById('userModalClose').addEventListener('click', () => {
+      document.getElementById('userModalBackdrop').classList.remove('active');
+    });
+    document.getElementById('userModalBackdrop').addEventListener('click', e => {
+      if (e.target.id === 'userModalBackdrop') e.target.classList.remove('active');
+    });
+
+    // Загружать список пользователей при первом переходе на вкладку
+    const usersScreen = document.getElementById('screen-users');
+    const usersObserver = new MutationObserver(() => {
+      if (usersScreen.classList.contains('active') && !usersScreen.dataset.loaded) {
+        usersScreen.dataset.loaded = '1';
+        searchUsers();
+      }
+    });
+    usersObserver.observe(usersScreen, { attributes: true, attributeFilter: ['class'] });
+
+    // === Promo screen ===
+    async function loadPromos() {
+      const out = document.getElementById('promoList');
+      out.innerHTML = '<div class="loader">⏳ загружаю…</div>';
+      try {
+        const data = await adminFetch('/api/admin/promo');
+        if (!data.codes || data.codes.length === 0) {
+          out.innerHTML = '<div class="placeholder">Промокодов пока нет. Создай первый ↑</div>';
+          return;
+        }
+        const rows = data.codes.map(p => {
+          const expired = p.expires_at && new Date(p.expires_at) < new Date();
+          const exhausted = p.max_uses && p.used_count >= p.max_uses;
+          const status = !p.is_active ? '⏸ выключен' : (expired ? '⏰ истёк' : (exhausted ? '✋ исчерпан' : '✓ активен'));
+          const valueStr = p.value ? JSON.stringify(p.value).replace(/[{}"]/g, '').replace(',', ', ') : '—';
+          return `
+            <tr>
+              <td><strong style="color:#D4AF37">${escapeHtml(p.code)}</strong></td>
+              <td>${escapeHtml(p.type)}<br><small style="color:#888">${escapeHtml(valueStr)}</small></td>
+              <td>${p.used_count || 0}${p.max_uses ? ' / ' + p.max_uses : ' / ∞'}</td>
+              <td>${p.expires_at ? formatDate(p.expires_at) : 'бессрочно'}</td>
+              <td>${status}</td>
+              <td>${escapeHtml(p.comment || '')}</td>
+              <td>
+                <button data-act="toggle" data-id="${p.id}" data-active="${!!p.is_active}" style="background:#2a2a35;color:#eaeaea;border:1px solid #3a3a45;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer">${p.is_active ? 'выключить' : 'включить'}</button>
+                <button data-act="uses" data-id="${p.id}" style="background:#2a2a35;color:#eaeaea;border:1px solid #3a3a45;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer">кто активировал</button>
+                <button data-act="delete" data-id="${p.id}" data-code="${escapeHtml(p.code)}" style="background:#4a1a1a;color:#ffaaaa;border:1px solid #6a2a2a;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer">удалить</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+        out.innerHTML = `
+          <table class="users-table">
+            <thead><tr><th>код</th><th>тип / value</th><th>активаций</th><th>действует до</th><th>статус</th><th>комментарий</th><th>действия</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+        out.querySelectorAll('button[data-act]').forEach(btn => {
+          btn.addEventListener('click', () => promoAction(btn.dataset.act, btn.dataset, btn));
+        });
+      } catch (e) {
+        out.innerHTML = '<div class="error-box">Ошибка: ' + escapeHtml(e.message) + '</div>';
+      }
+    }
+
+    async function promoAction(act, ds, btn) {
+      try {
+        if (act === 'toggle') {
+          const wasActive = ds.active === 'true';
+          await adminFetch('/api/admin/promo?action=toggle', {
+            method: 'POST',
+            body: JSON.stringify({ id: parseInt(ds.id), is_active: !wasActive })
+          });
+          loadPromos();
+        } else if (act === 'delete') {
+          if (!confirm('Удалить промокод «' + ds.code + '»? Это не откатит уже активированные ранее бонусы.')) return;
+          await adminFetch('/api/admin/promo?action=delete', {
+            method: 'POST',
+            body: JSON.stringify({ id: parseInt(ds.id) })
+          });
+          loadPromos();
+        } else if (act === 'uses') {
+          const data = await adminFetch('/api/admin/promo?action=uses&id=' + ds.id);
+          if (!data.uses || data.uses.length === 0) {
+            alert('Этот код пока никто не активировал.');
+            return;
+          }
+          const lines = data.uses.map(u => {
+            const name = u.user.first_name || u.user.username || 'id ' + u.user.id;
+            return formatDate(u.created_at) + '  —  ' + name + (u.user.username ? ' (@' + u.user.username + ')' : '') + '  +' + u.amount + ' 💎';
+          });
+          alert('Активаций: ' + data.uses.length + '\n\n' + lines.join('\n'));
+        }
+      } catch (e) {
+        alert('Ошибка: ' + e.message);
+      }
+    }
+
+    document.getElementById('promoCreateBtn').addEventListener('click', async () => {
+      const code = document.getElementById('promoCode').value.trim();
+      const type = document.getElementById('promoType').value;
+      const valueRaw = document.getElementById('promoValue').value.trim();
+      const maxUses = document.getElementById('promoMaxUses').value;
+      const expires = document.getElementById('promoExpires').value;
+      const comment = document.getElementById('promoComment').value.trim();
+      if (!code || !valueRaw) return alert('Заполни код и value');
+
+      let value;
+      if (type === 'crystals') value = { amount: parseInt(valueRaw) };
+      else if (type === 'tier') value = { tier: valueRaw };
+      else if (type === 'discount') value = { percent: parseInt(valueRaw) };
+
+      try {
+        await adminFetch('/api/admin/promo?action=create', {
+          method: 'POST',
+          body: JSON.stringify({
+            code, type, value,
+            max_uses: maxUses || null,
+            expires_at: expires ? new Date(expires + 'T23:59:59Z').toISOString() : null,
+            comment
+          })
+        });
+        document.getElementById('promoCode').value = '';
+        document.getElementById('promoValue').value = '';
+        document.getElementById('promoMaxUses').value = '';
+        document.getElementById('promoExpires').value = '';
+        document.getElementById('promoComment').value = '';
+        loadPromos();
+      } catch (e) {
+        alert('Ошибка: ' + e.message);
+      }
+    });
+
+    const promoScreen = document.getElementById('screen-promo');
+    const promoObserver = new MutationObserver(() => {
+      if (promoScreen.classList.contains('active') && !promoScreen.dataset.loaded) {
+        promoScreen.dataset.loaded = '1';
+        loadPromos();
+      }
+    });
+    promoObserver.observe(promoScreen, { attributes: true, attributeFilter: ['class'] });
+
+    // === Payments screen ===
+    let lastPayments = [];
+
+    async function loadPayments() {
+      const period = document.getElementById('payPeriod').value;
+      const provider = document.getElementById('payProvider').value;
+      const summaryEl = document.getElementById('paySummary');
+      const listEl = document.getElementById('payList');
+      summaryEl.innerHTML = '';
+      listEl.innerHTML = '<div class="loader">⏳ загружаю…</div>';
+      try {
+        const data = await adminFetch('/api/admin/payments?period=' + period + '&provider=' + provider);
+        lastPayments = data.payments || [];
+
+        summaryEl.innerHTML = `
+          <div class="stat-grid">
+            <div class="stat-tile"><div class="label">Покупок за период</div><div class="value">${fmt(data.total)}</div></div>
+            <div class="stat-tile"><div class="label">Telegram Stars</div><div class="value">${fmt(data.summary.stars)} ⭐</div></div>
+            <div class="stat-tile"><div class="label">ЮKassa, ₽</div><div class="value">${fmt(data.summary.rub)} ₽</div></div>
+          </div>
+        `;
+
+        if (lastPayments.length === 0) {
+          listEl.innerHTML = '<div class="placeholder">Платежей за выбранный период нет</div>';
+          return;
+        }
+
+        const rows = lastPayments.map(p => {
+          const userName = p.user.first_name || p.user.username || ('id ' + p.user.id);
+          const sumLabel = p.amount_stars
+            ? `<strong>${p.amount_stars} ⭐</strong>`
+            : `<strong>${p.amount_rub} ₽</strong>`;
+          const provBadge = p.provider === 'stars'
+            ? '<span class="badge extended">⭐ Stars</span>'
+            : (p.provider === 'yookassa' ? '<span class="badge premium">💳 ЮKassa</span>' : '<span class="badge basic">' + escapeHtml(p.provider) + '</span>');
+          return `
+            <tr>
+              <td>${formatDate(p.date)}</td>
+              <td>${provBadge}</td>
+              <td>${escapeHtml(userName)}<br><small style="color:#888">${p.user.username ? '@' + escapeHtml(p.user.username) : ''} ${p.user.telegram_id || ''}</small></td>
+              <td>${sumLabel}</td>
+              <td>${escapeHtml(p.product || p.reason || '')}</td>
+            </tr>
+          `;
+        }).join('');
+
+        listEl.innerHTML = `
+          <table class="users-table">
+            <thead><tr><th>дата</th><th>провайдер</th><th>пользователь</th><th>сумма</th><th>продукт / reason</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+      } catch (e) {
+        listEl.innerHTML = '<div class="error-box">Ошибка: ' + escapeHtml(e.message) + '</div>';
+      }
+    }
+
+    function exportPaymentsCSV() {
+      if (!lastPayments.length) return alert('Сначала загрузи список (нажми Обновить)');
+      const head = ['date', 'provider', 'user_telegram_id', 'username', 'first_name', 'amount_stars', 'amount_rub', 'product', 'reason'];
+      const lines = [head.join(',')];
+      for (const p of lastPayments) {
+        const row = [
+          p.date,
+          p.provider,
+          p.user.telegram_id || '',
+          p.user.username || '',
+          (p.user.first_name || '').replace(/,/g, ';'),
+          p.amount_stars || 0,
+          p.amount_rub || 0,
+          (p.product || '').replace(/,/g, ';'),
+          (p.reason || '').replace(/,/g, ';')
+        ];
+        lines.push(row.join(','));
+      }
+      const csv = '\uFEFF' + lines.join('\n'); // BOM для корректной кодировки в Excel
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'yupdar_payments_' + new Date().toISOString().slice(0, 10) + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('payRefresh').addEventListener('click', loadPayments);
+    document.getElementById('payPeriod').addEventListener('change', loadPayments);
+    document.getElementById('payProvider').addEventListener('change', loadPayments);
+    document.getElementById('payExport').addEventListener('click', exportPaymentsCSV);
+
+    const payScreen = document.getElementById('screen-payments');
+    const payObserver = new MutationObserver(() => {
+      if (payScreen.classList.contains('active') && !payScreen.dataset.loaded) {
+        payScreen.dataset.loaded = '1';
+        loadPayments();
+      }
+    });
+    payObserver.observe(payScreen, { attributes: true, attributeFilter: ['class'] });
+
+    // Загрузить дашборд при первом успешном входе
+    const _origBoot = (async () => {
+      // Перехватываем после успеха в boot-секции
+    });
+    // Вешаем загрузчик на showing dashboard tab
+    const observer = new MutationObserver(() => {
+      const dashScreen = document.getElementById('screen-dashboard');
+      if (dashScreen.classList.contains('active') && !dashScreen.dataset.loaded) {
+        dashScreen.dataset.loaded = '1';
+        loadDashboard();
+      }
+    });
+    observer.observe(document.getElementById('screen-dashboard'), { attributes: true, attributeFilter: ['class'] });
+  </script>
+</body>
+</html>

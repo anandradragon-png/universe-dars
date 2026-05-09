@@ -6,3 +6,4 @@ public/node_modules/
 public/.vercel/
 public/.env.local
 *.zip
+.vercel

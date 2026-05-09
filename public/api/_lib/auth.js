@@ -144,4 +144,63 @@ function requireUser(req, res) {
   return null;
 }
 
-module.exports = { validateTelegramData, getUser, requireUser };
+/**
+ * Middleware для админ-эндпоинтов: требует валидного Telegram-юзера
+ * И проверяет, что в БД у него is_admin = TRUE.
+ *
+ * Возвращает: объект пользователя из БД (с id, telegram_id, is_admin) при успехе,
+ *             либо null если ответ уже отправлен (401/403).
+ *
+ * Использование:
+ *   const admin = await requireAdmin(req, res);
+ *   if (!admin) return;
+ *   // ... admin.id — id админа в таблице users (для admin_actions_log)
+ */
+async function requireAdmin(req, res) {
+  const tgUser = requireUser(req, res);
+  if (!tgUser) return null; // 401 уже отправлен
+
+  // Подтянуть юзера из БД и проверить is_admin
+  const { getSupabase } = require('./db');
+  const db = getSupabase();
+  const { data: dbUser, error } = await db
+    .from('users')
+    .select('id, telegram_id, first_name, is_admin, is_blocked')
+    .eq('telegram_id', tgUser.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[admin] DB error:', error.message);
+    res.status(500).json({ error: 'Ошибка БД при проверке прав' });
+    return null;
+  }
+
+  if (!dbUser || !dbUser.is_admin) {
+    console.warn('[admin] FORBIDDEN: telegram_id =', tgUser.id, 'is_admin =', dbUser?.is_admin);
+    res.status(403).json({ error: 'Недостаточно прав' });
+    return null;
+  }
+
+  return dbUser;
+}
+
+/**
+ * Записать действие админа в аудит-лог. Использовать после любой записи в БД.
+ */
+async function logAdminAction(adminUserId, action, targetUserId = null, payload = null) {
+  try {
+    const { getSupabase } = require('./db');
+    const db = getSupabase();
+    await db.from('admin_actions_log').insert({
+      admin_user_id: adminUserId,
+      action,
+      target_user_id: targetUserId,
+      payload
+    });
+  } catch (e) {
+    console.error('[admin] logAdminAction failed:', e.message);
+    // не падаем — лог не должен блокировать действие
+  }
+}
+
+module.exports = { validateTelegramData, getUser, requireUser, requireAdmin, logAdminAction };

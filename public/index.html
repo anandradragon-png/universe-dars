@@ -648,6 +648,18 @@
       </div>
     </div>
 
+    <!-- Админ: Панель управления -->
+    <div class="profile-section" id="profile-admin-panel" style="display:none;cursor:pointer;background:linear-gradient(135deg,rgba(212,175,55,0.18),rgba(154,123,26,0.1));border:1px solid rgba(212,175,55,0.45)" onclick="openAdminPanel()">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="color:#D4AF37">&#128737;</div>
+        <div>
+          <div style="font-size:13px;color:#D4AF37">Админ: Панель управления</div>
+          <div style="font-size:10px;color:var(--text-dim)">Дашборд, пользователи, промокоды, платежи</div>
+        </div>
+        <div style="margin-left:auto;color:#D4AF37">&#10095;</div>
+      </div>
+    </div>
+
     <!-- 7. О ПРИЛОЖЕНИИ -->
     <div class="profile-section lk-collapse">
       <div class="profile-section-title lk-toggle" onclick="this.parentElement.classList.toggle('lk-open')">&#9432; О приложении <span class="lk-arrow">&#9660;</span></div>
@@ -5343,9 +5355,17 @@
     }
 
     function showAdminSectionIfAdmin() {
-      const section = document.getElementById('profile-admin-feedback');
-      if (!section) return;
-      section.style.display = isCurrentUserAdmin() ? 'block' : 'none';
+      const isAdmin = isCurrentUserAdmin();
+      const fb = document.getElementById('profile-admin-feedback');
+      if (fb) fb.style.display = isAdmin ? 'block' : 'none';
+      const panel = document.getElementById('profile-admin-panel');
+      if (panel) panel.style.display = isAdmin ? 'block' : 'none';
+    }
+
+    function openAdminPanel() {
+      // Открываем админку в том же Telegram WebApp — initData передастся в headers,
+      // requireAdmin на сервере проверит is_admin = TRUE в БД.
+      window.location.href = '/admin/';
     }
 
     async function openAdminFeedback() {

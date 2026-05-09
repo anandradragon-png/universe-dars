@@ -19,8 +19,25 @@
       padding: 16px 20px;
       border-bottom: 1px solid #2a2a35;
       position: sticky; top: 0; z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    header h1 { font-size: 18px; font-weight: 600; color: #D4AF37; }
+    header .back-btn {
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.4);
+      color: #D4AF37;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: inherit;
+    }
+    header .back-btn:hover { background: rgba(212,175,55,0.22); }
+    header .header-content { flex: 1; min-width: 0; }
+    header h1 { font-size: 17px; font-weight: 600; color: #D4AF37; }
     header .sub { font-size: 12px; color: #888; margin-top: 2px; }
 
     nav.tabs {
@@ -200,8 +217,11 @@
 </head>
 <body>
   <header>
-    <h1>🛡 YupDar — Админ-панель</h1>
-    <div class="sub" id="adminInfo">Проверяю доступ…</div>
+    <button class="back-btn" onclick="goBackToApp()" title="Вернуться в YupDar">← В YupDar</button>
+    <div class="header-content">
+      <h1>🛡 YupDar — Админ-панель</h1>
+      <div class="sub" id="adminInfo">Проверяю доступ…</div>
+    </div>
   </header>
 
   <nav class="tabs" id="tabs" style="display:none">
@@ -337,6 +357,11 @@
     if (tg) {
       tg.expand();
       tg.ready();
+    }
+
+    // Возврат в основное приложение
+    function goBackToApp() {
+      window.location.href = '/';
     }
 
     // === API helper ===

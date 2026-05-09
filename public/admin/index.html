@@ -226,6 +226,7 @@
 
   <nav class="tabs" id="tabs" style="display:none">
     <button data-tab="dashboard" class="active">📊 Дашборд</button>
+    <button data-tab="analytics">📈 Аналитика</button>
     <button data-tab="users">👥 Пользователи</button>
     <button data-tab="promo">🎟 Промокоды</button>
     <button data-tab="payments">💳 Платежи</button>
@@ -285,6 +286,29 @@
         <div class="stat-tile"><div class="label">Кэш Оракула</div><div class="value" id="oracleCache">—</div></div>
         <div class="stat-tile"><div class="label">Кэш секций даров</div><div class="value" id="sectionsCache">—</div></div>
       </div>
+    </section>
+
+    <section id="screen-analytics" class="screen">
+      <div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <label style="font-size:13px;color:#888">Период:</label>
+        <select id="analyticsPeriod" style="background:#0f0f14;color:#eaeaea;border:1px solid #2a2a35;padding:8px 12px;border-radius:6px;font-size:14px">
+          <option value="7d">7 дней</option>
+          <option value="30d" selected>30 дней</option>
+          <option value="90d">90 дней</option>
+          <option value="all">всё время</option>
+        </select>
+        <button id="analyticsRefresh" class="primary" style="padding:8px 14px;font-size:13px">↻ Обновить</button>
+        <span id="analyticsStatus" style="font-size:12px;color:#888;margin-left:auto"></span>
+      </div>
+
+      <div id="analyticsBase" style="margin-top:16px"></div>
+
+      <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:20px 0 8px;font-weight:500">🎯 Воронка использования фичей</h3>
+      <div style="font-size:11px;color:#666;margin-bottom:8px">% от активных пользователей за выбранный период. Что внизу списка — кандидат на доработку или удаление.</div>
+      <div id="analyticsFeatures"></div>
+
+      <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:20px 0 8px;font-weight:500">🤖 Нагрузка на AI (затраты)</h3>
+      <div id="analyticsAI"></div>
     </section>
 
     <section id="screen-users" class="screen">
@@ -488,6 +512,107 @@
     document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
     document.getElementById('periodSelect').addEventListener('change', loadDashboard);
 
+    // === Analytics screen ===
+    async function loadAnalytics() {
+      const period = document.getElementById('analyticsPeriod').value;
+      const status = document.getElementById('analyticsStatus');
+      const baseEl = document.getElementById('analyticsBase');
+      const featEl = document.getElementById('analyticsFeatures');
+      const aiEl = document.getElementById('analyticsAI');
+      status.textContent = '⏳ загружаю…';
+      baseEl.innerHTML = featEl.innerHTML = aiEl.innerHTML = '<div class="loader">⏳</div>';
+
+      try {
+        const data = await adminFetch('/api/admin/analytics?period=' + encodeURIComponent(period));
+        const b = data.base || {};
+
+        baseEl.innerHTML = `
+          <div class="stat-grid">
+            <div class="stat-tile"><div class="label">всего юзеров</div><div class="value">${fmt(b.total_users)}</div></div>
+            <div class="stat-tile"><div class="label">с рассчитанным даром</div><div class="value">${fmt(b.users_with_dar)}</div></div>
+            <div class="stat-tile"><div class="label">${escapeHtml(b.denominator_label || '')}</div><div class="value">${fmt(b.users_active_in_period)}</div></div>
+          </div>
+          <div style="font-size:11px;color:#666;margin-top:6px">База для расчёта % воронки: ${fmt(b.denominator)} ${escapeHtml(b.denominator_label || '')}</div>
+        `;
+
+        // Группируем фичи по tier
+        const tiers = { core: [], engagement: [], social: [], viral: [], support: [] };
+        const tierLabels = {
+          core: '🔑 Ключевые (без них — нет смысла)',
+          engagement: '💎 Удержание (играют, ведут дневник, побеждают)',
+          social: '👪 Социальные (близкие, дети)',
+          viral: '🚀 Виральные (приводят друзей)',
+          support: '💬 Обратная связь'
+        };
+        for (const f of (data.features || [])) {
+          if (tiers[f.tier]) tiers[f.tier].push(f);
+        }
+
+        let featHtml = '';
+        for (const tier of Object.keys(tiers)) {
+          const list = tiers[tier];
+          if (!list.length) continue;
+          // Сортируем по убыванию % внутри группы
+          list.sort((a, b) => (b.pct || 0) - (a.pct || 0));
+          featHtml += `<div style="margin-top:14px"><div style="font-size:11px;color:#888;margin-bottom:6px">${tierLabels[tier]}</div>`;
+          for (const f of list) {
+            const barColor = f.pct >= 50 ? '#6c9' : (f.pct >= 20 ? '#D4AF37' : (f.pct >= 5 ? '#c69' : '#5a5a5a'));
+            const verdict = f.pct >= 50 ? '✓ востребовано' : (f.pct >= 20 ? '~ средне' : (f.pct >= 5 ? '⚠ слабо' : '✗ почти не используют'));
+            featHtml += `
+              <div style="background:#1a1a25;border:1px solid #2a2a35;border-radius:8px;padding:10px 12px;margin-bottom:6px">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:14px;color:#eaeaea">${escapeHtml(f.name)}</div>
+                    ${f.extra ? `<div style="font-size:11px;color:#888;margin-top:2px">${escapeHtml(f.extra)}</div>` : ''}
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:18px;font-weight:600;color:${barColor}">${f.pct}%</div>
+                    <div style="font-size:11px;color:#888">${fmt(f.users)} юзеров</div>
+                  </div>
+                </div>
+                <div style="height:4px;background:#0f0f14;border-radius:2px;margin-top:8px;overflow:hidden">
+                  <div style="height:100%;width:${Math.min(100, f.pct)}%;background:${barColor};transition:width .3s"></div>
+                </div>
+                <div style="font-size:10px;color:${barColor};margin-top:4px">${verdict}</div>
+              </div>
+            `;
+          }
+          featHtml += '</div>';
+        }
+        featEl.innerHTML = featHtml || '<div class="placeholder">Нет данных</div>';
+
+        const ai = data.ai_load || {};
+        aiEl.innerHTML = `
+          <div class="stat-grid">
+            <div class="stat-tile"><div class="label">Оракул всего в кэше</div><div class="value" style="font-size:18px">${fmt(ai.oracle_cache_total)}</div></div>
+            <div class="stat-tile"><div class="label">Оракул сгенерировано за период</div><div class="value" style="font-size:18px">${fmt(ai.oracle_generated_period)}</div></div>
+            <div class="stat-tile"><div class="label">Секции даров в кэше</div><div class="value" style="font-size:18px">${fmt(ai.sections_cache_total)}</div></div>
+            <div class="stat-tile"><div class="label">Секции сгенерированы за период</div><div class="value" style="font-size:18px">${fmt(ai.sections_generated_period)}</div></div>
+            <div class="stat-tile"><div class="label">Книга для родителей за период</div><div class="value" style="font-size:18px">${fmt(ai.child_book_generated_period)}</div></div>
+          </div>
+          <div style="font-size:11px;color:#666;margin-top:8px">Каждая «генерация» — это вызов DeepSeek или Groq. Чем больше, тем выше счёт за AI. Кэш экономит — повторные запросы не идут в API.</div>
+        `;
+
+        const t = new Date();
+        status.textContent = '✓ обновлено в ' + t.toLocaleTimeString('ru-RU');
+      } catch (e) {
+        status.textContent = '⚠ ' + e.message;
+        baseEl.innerHTML = '<div class="error-box">' + escapeHtml(e.message) + '</div>';
+      }
+    }
+
+    document.getElementById('analyticsRefresh').addEventListener('click', loadAnalytics);
+    document.getElementById('analyticsPeriod').addEventListener('change', loadAnalytics);
+
+    const analyticsScreen = document.getElementById('screen-analytics');
+    const analyticsObserver = new MutationObserver(() => {
+      if (analyticsScreen.classList.contains('active') && !analyticsScreen.dataset.loaded) {
+        analyticsScreen.dataset.loaded = '1';
+        loadAnalytics();
+      }
+    });
+    analyticsObserver.observe(analyticsScreen, { attributes: true, attributeFilter: ['class'] });
+
     // === Users screen ===
     function escapeHtml(s) {
       if (s === null || s === undefined) return '';
@@ -554,46 +679,184 @@
 
     function renderUserCard(data) {
       const u = data.user;
+      const eng = data.engagement || {};
       const content = document.getElementById('userModalContent');
+
+      // ===== Helpers =====
+      const emptyMsg = (text) => `<div style="color:#666;font-size:12px;padding:8px 0;font-style:italic">${text}</div>`;
+
+      // ===== Активности (краткая сводка вверху) =====
+      const activityTiles = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:14px">
+          <div class="stat-tile"><div class="label">даров открыто</div><div class="value" style="font-size:18px">✨ ${eng.treasure_dars_opened || 0}</div></div>
+          <div class="stat-tile"><div class="label">квестов</div><div class="value" style="font-size:18px">🎯 ${eng.quests_done || 0}</div></div>
+          <div class="stat-tile"><div class="label">путешествий</div><div class="value" style="font-size:18px">🗺 ${eng.hero_journeys_started || 0}</div></div>
+          <div class="stat-tile"><div class="label">оракул всего</div><div class="value" style="font-size:18px">🔮 ${eng.oracle_used_total || 0}</div></div>
+          <div class="stat-tile"><div class="label">игр сыграно</div><div class="value" style="font-size:18px">🎮 ${eng.intuition_games || 0}</div></div>
+          <div class="stat-tile"><div class="label">титулов</div><div class="value" style="font-size:18px">🏆 ${eng.intuition_titles || 0}</div></div>
+          <div class="stat-tile"><div class="label">в дневнике</div><div class="value" style="font-size:18px">📔 ${eng.diary_entries || 0}</div></div>
+          <div class="stat-tile"><div class="label">близких</div><div class="value" style="font-size:18px">👪 ${eng.relatives_added || 0}</div></div>
+          <div class="stat-tile"><div class="label">глав о детях</div><div class="value" style="font-size:18px">📖 ${eng.child_book_chapters || 0}</div></div>
+          <div class="stat-tile"><div class="label">привёл друзей</div><div class="value" style="font-size:18px">👥 ${eng.referrals_made || 0}</div></div>
+          <div class="stat-tile"><div class="label">фидбэка</div><div class="value" style="font-size:18px">💬 ${eng.feedback_sent || 0}</div></div>
+          <div class="stat-tile"><div class="label">платежей</div><div class="value" style="font-size:18px">💳 ${eng.payments_count || 0}</div></div>
+        </div>
+      `;
+
+      // ===== Сокровищница =====
       const darsHtml = (data.dars || []).map(d =>
-        `<div class="row"><span class="amount">${escapeHtml(d.dar_code)}</span><span class="reason">источник: ${escapeHtml(d.unlock_source)}, секций: ${d.unlocked_sections}</span><span class="date">${formatDate(d.unlocked_at)}</span></div>`
-      ).join('') || '<div style="color:#666;font-size:12px;padding:8px 0">нет открытых даров</div>';
+        `<div class="row"><span class="amount">${escapeHtml(d.dar_code)}</span><span class="reason">источник: ${escapeHtml(d.unlock_source)} · секций: ${d.unlocked_sections}/9</span><span class="date">${formatDate(d.unlocked_at)}</span></div>`
+      ).join('') || emptyMsg('Сокровищница пуста');
+
+      // ===== Hero Journeys =====
+      const hjHtml = (data.hero_journeys || []).map(h => {
+        const completed = h.completed_at ? '✓ завершено' : `шаг ${h.step}/9`;
+        return `<div class="row"><span class="amount">${escapeHtml(h.dar_code)}</span><span class="reason">${completed} · 💎 ${h.crystals_earned || 0} заработано</span><span class="date">${formatDate(h.updated_at)}</span></div>`;
+      }).join('') || emptyMsg('Не начинал Путешествие Героя');
+
+      // ===== Игры =====
+      const intuition = data.intuition;
+      let gamesHtml = emptyMsg('Не играл в Тренажёр Интуиции');
+      if (intuition) {
+        const winRate = intuition.games_played ? Math.round(100 * (intuition.games_won || 0) / intuition.games_played) : 0;
+        gamesHtml = `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px">
+            <div class="stat-tile"><div class="label">сыграно</div><div class="value" style="font-size:16px">${intuition.games_played || 0}</div></div>
+            <div class="stat-tile"><div class="label">побед</div><div class="value" style="font-size:16px">${intuition.games_won || 0} (${winRate}%)</div></div>
+            <div class="stat-tile"><div class="label">лучший стрик</div><div class="value" style="font-size:16px">🔥 ${intuition.best_streak || 0}</div></div>
+            <div class="stat-tile"><div class="label">очки за всё время</div><div class="value" style="font-size:16px">${fmt(intuition.score_alltime)}</div></div>
+            <div class="stat-tile"><div class="label">за день</div><div class="value" style="font-size:16px">${fmt(intuition.score_daily)}</div></div>
+            <div class="stat-tile"><div class="label">за неделю</div><div class="value" style="font-size:16px">${fmt(intuition.score_weekly)}</div></div>
+          </div>
+          <div style="font-size:11px;color:#888;margin-top:6px">последняя игра: ${formatDate(intuition.last_played_at)}</div>
+        `;
+      }
+
+      // ===== Титулы Зала Славы =====
+      const tc = data.titles?.counts || {};
+      let titlesHtml = '';
+      if ((data.titles?.history || []).length > 0) {
+        titlesHtml = `
+          <div style="font-size:13px;margin-bottom:6px;color:#D4AF37">🏆 День: ${tc.day || 0} · Неделя: ${tc.week || 0} · Месяц: ${tc.month || 0}</div>
+          <div class="log-list">
+            ${(data.titles.history || []).map(t =>
+              `<div class="row"><span class="amount">${escapeHtml(t.title_type)}</span><span class="reason">${t.score} очков · +${t.crystals_awarded || 0} 💎</span><span class="date">${formatDate(t.awarded_at)}</span></div>`
+            ).join('')}
+          </div>
+        `;
+      } else {
+        titlesHtml = emptyMsg('Не получал титулы');
+      }
+
+      // ===== Оракул =====
+      const oracle = data.oracle || {};
+      let oracleHtml = '';
+      if (oracle.total > 0) {
+        oracleHtml = `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px">
+            <div class="stat-tile"><div class="label">всего</div><div class="value" style="font-size:16px">${oracle.total}</div></div>
+            <div class="stat-tile"><div class="label">за 30 дней</div><div class="value" style="font-size:16px">${oracle.last_30d}</div></div>
+            <div class="stat-tile"><div class="label">за 7 дней</div><div class="value" style="font-size:16px">${oracle.last_7d}</div></div>
+          </div>
+          <div class="log-list">
+            ${(oracle.latest || []).map(o =>
+              `<div class="row"><span class="amount">${escapeHtml(o.mode)}</span><span class="reason">дар ${escapeHtml(o.dar_code)} · ${escapeHtml(o.date_key || '')}</span><span class="date">${formatDate(o.created_at)}</span></div>`
+            ).join('')}
+          </div>
+        `;
+      } else {
+        oracleHtml = emptyMsg('Не пользовался Оракулом');
+      }
+
+      // ===== Дневник =====
+      const diary = data.diary || { total: 0 };
+      let diaryHtml = '';
+      if (diary.total > 0) {
+        const moods = Object.entries(diary.mood_counts || {}).map(([m, n]) => `${m}: ${n}`).join(' · ');
+        diaryHtml = `
+          <div style="font-size:13px;color:#aaa;margin-bottom:6px">
+            всего записей: <strong>${diary.total}</strong> · с AI-инсайтом: ${diary.with_ai_insight || 0}
+          </div>
+          <div style="font-size:12px;color:#888">${escapeHtml(moods)}</div>
+          ${diary.last_entry ? `<div style="font-size:11px;color:#666;margin-top:4px">последняя запись: ${escapeHtml(diary.last_entry.date_key)} (${escapeHtml(diary.last_entry.mood)})</div>` : ''}
+        `;
+      } else {
+        diaryHtml = emptyMsg('Не ведёт Дневник Дара');
+      }
+
+      // ===== Семья =====
+      const relsHtml = (data.relatives || []).map(r =>
+        `<div class="row"><span class="amount">${escapeHtml(r.name)}</span><span class="reason">${escapeHtml(r.relationship)} · дар ${escapeHtml(r.dar_code)}</span><span class="date">${formatDate(r.created_at)}</span></div>`
+      ).join('') || emptyMsg('Не добавлял близких');
+
+      // ===== Рефералы =====
+      const refsHtml = (data.referrals || []).map(r => {
+        const name = r.user?.first_name || r.user?.username || `id ${r.referred_id}`;
+        return `<div class="row"><span class="amount">${escapeHtml(name)}</span><span class="reason">дар: ${escapeHtml(r.referred_dar_code || '—')} ${r.dar_unlocked ? '✓ открыт' : ''}</span><span class="date">${formatDate(r.created_at)}</span></div>`;
+      }).join('') || emptyMsg('Никого не пригласил');
+
+      // ===== Кристаллы — агрегаты =====
+      const crysAgg = data.crystals_aggregate || {};
+      const reasonStats = Object.entries(crysAgg.by_reason || {})
+        .sort((a, b) => Math.abs(b[1].sum) - Math.abs(a[1].sum))
+        .slice(0, 10)
+        .map(([reason, stat]) =>
+          `<div class="row"><span class="amount ${stat.sum >= 0 ? 'pos' : 'neg'}">${stat.sum >= 0 ? '+' : ''}${stat.sum}</span><span class="reason">${escapeHtml(reason)}</span><span class="date">×${stat.count}</span></div>`
+        ).join('');
 
       const logHtml = (data.crystal_log || []).slice(0, 30).map(r => {
         const cls = r.amount >= 0 ? 'pos' : 'neg';
         const sign = r.amount >= 0 ? '+' : '';
         return `<div class="row"><span class="amount ${cls}">${sign}${r.amount}</span><span class="reason">${escapeHtml(r.reason)}</span><span class="date">${formatDate(r.created_at)}</span></div>`;
-      }).join('') || '<div style="color:#666;font-size:12px;padding:8px 0">операций нет</div>';
+      }).join('') || emptyMsg('операций нет');
 
+      // ===== Платежи =====
       const paymentsHtml = (data.payments || []).map(r => {
         const m = r.metadata || {};
-        const sum = m.amount_rub || m.amount_stars || m.stars || m.amount || '?';
+        const sum = m.amount_rub ? `${m.amount_rub} ₽` : (m.amount_stars || m.stars ? `${m.amount_stars || m.stars} ⭐` : '?');
         return `<div class="row"><span class="amount pos">${escapeHtml(String(sum))}</span><span class="reason">${escapeHtml(r.reason)}</span><span class="date">${formatDate(r.created_at)}</span></div>`;
-      }).join('') || '<div style="color:#666;font-size:12px;padding:8px 0">платежей нет</div>';
+      }).join('') || emptyMsg('платежей нет');
 
+      // ===== Фидбэк =====
+      const feedbackHtml = (data.feedback || []).map(f =>
+        `<div class="row" style="flex-direction:column;align-items:flex-start"><div style="display:flex;width:100%;justify-content:space-between"><span class="amount">${escapeHtml(f.category)}</span><span class="date">${formatDate(f.created_at)}</span></div><div style="color:#ccc;font-size:12px;margin-top:4px;width:100%">${escapeHtml((f.message || '').slice(0, 200))}</div></div>`
+      ).join('') || emptyMsg('Не присылал фидбэк');
+
+      // ===== Действия админов =====
       const adminLogHtml = (data.admin_actions || []).map(r =>
         `<div class="row"><span class="amount">${escapeHtml(r.action)}</span><span class="reason">${escapeHtml(JSON.stringify(r.payload || {}))}</span><span class="date">${formatDate(r.created_at)}</span></div>`
-      ).join('') || '<div style="color:#666;font-size:12px;padding:8px 0">действий админов не было</div>';
+      ).join('') || emptyMsg('Действий админов не было');
 
+      // ===== Кто пригласил =====
+      const referrerHtml = data.referrer
+        ? `<div style="font-size:12px;color:#888;margin-bottom:8px">Приглашён: <strong>${escapeHtml(data.referrer.first_name || data.referrer.username)}</strong> ${data.referrer.username ? '(@' + escapeHtml(data.referrer.username) + ')' : ''}</div>`
+        : '';
+
+      // ============================================
       content.innerHTML = `
         <h2>${escapeHtml(u.first_name)} ${escapeHtml(u.last_name || '')} <small style="color:#888;font-size:13px">@${escapeHtml(u.username || '—')}</small></h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px">
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;margin-bottom:8px">
           <div class="stat-tile"><div class="label">id в БД</div><div class="value">${u.id}</div></div>
           <div class="stat-tile"><div class="label">telegram_id</div><div class="value" style="font-size:14px">${u.telegram_id}</div></div>
           <div class="stat-tile"><div class="label">тариф</div><div class="value" style="font-size:14px"><span class="badge ${u.access_level || 'basic'}">${u.access_level || 'basic'}</span></div></div>
           <div class="stat-tile"><div class="label">кристаллы</div><div class="value">💎 ${u.crystals || 0}</div></div>
           <div class="stat-tile"><div class="label">стрик</div><div class="value">🔥 ${u.streak_count || 0}</div></div>
-          <div class="stat-tile"><div class="label">рефералов</div><div class="value">👥 ${data.referrals_count || 0}</div></div>
         </div>
-        <div style="font-size:13px;color:#aaa;margin-bottom:12px">
+
+        <div style="font-size:12px;color:#aaa;margin-bottom:8px;line-height:1.6">
           📅 регистрация: ${formatDate(u.created_at)} · последний вход: ${formatDate(u.last_active_at)}<br>
-          ✨ дар: ${escapeHtml(u.dar_code || '—')} ${u.dar_name ? '(' + escapeHtml(u.dar_name) + ')' : ''} · дата рождения: ${escapeHtml(u.birth_date || '—')}
+          ✨ дар: ${escapeHtml(u.dar_code || '—')} ${u.dar_name ? '(' + escapeHtml(u.dar_name) + ')' : ''} · дата рождения: ${escapeHtml(u.birth_date || '—')} · пол: ${escapeHtml(u.gender || '—')}
           ${u.is_admin ? '<br><span class="badge admin">админ</span>' : ''}
           ${u.is_blocked ? '<span class="badge blocked">заблокирован</span>' : ''}
         </div>
+        ${referrerHtml}
+
+        <h3 style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px">🎯 Активность по фичам</h3>
+        ${activityTiles}
 
         <div class="modal-section">
-          <h3>⚡ Действия</h3>
+          <h3>⚡ Действия админа</h3>
           <div class="actions">
             <button data-act="grant" data-uid="${u.id}">+ Начислить кристаллы</button>
             <button data-act="deduct" data-uid="${u.id}">− Списать кристаллы</button>
@@ -603,8 +866,59 @@
         </div>
 
         <div class="modal-section">
-          <h3>✨ Открытые дары (${(data.dars || []).length})</h3>
+          <h3>✨ Сокровищница (${(data.dars || []).length})</h3>
           <div class="log-list">${darsHtml}</div>
+          ${data.quests?.total ? `<div style="font-size:12px;color:#888;margin-top:6px">Выполнено квестов: <strong>${data.quests.total}</strong></div>` : ''}
+        </div>
+
+        <div class="modal-section">
+          <h3>🗺 Путешествие Героя (${(data.hero_journeys || []).length})</h3>
+          <div class="log-list">${hjHtml}</div>
+        </div>
+
+        <div class="modal-section">
+          <h3>🔮 Оракул</h3>
+          ${oracleHtml}
+        </div>
+
+        <div class="modal-section">
+          <h3>🎮 Тренажёр Интуиции</h3>
+          ${gamesHtml}
+        </div>
+
+        <div class="modal-section">
+          <h3>🏆 Зал Славы (титулы: ${(data.titles?.history || []).length})</h3>
+          ${titlesHtml}
+        </div>
+
+        <div class="modal-section">
+          <h3>📔 Дневник Дара</h3>
+          ${diaryHtml}
+        </div>
+
+        <div class="modal-section">
+          <h3>👪 Семья и близкие (${(data.relatives || []).length})${data.child_book_chapters_count ? ' · 📖 глав о детях: ' + data.child_book_chapters_count : ''}</h3>
+          <div class="log-list">${relsHtml}</div>
+        </div>
+
+        <div class="modal-section">
+          <h3>👥 Рефералы (привёл ${(data.referrals || []).length})</h3>
+          <div class="log-list">${refsHtml}</div>
+        </div>
+
+        <div class="modal-section">
+          <h3>💎 Кристаллы — на что тратил/откуда брал (топ-10)</h3>
+          <div style="font-size:12px;color:#888;margin-bottom:6px">
+            Заработано: <strong style="color:#6c9">+${crysAgg.total_earned || 0}</strong> ·
+            Потрачено: <strong style="color:#c69">−${crysAgg.total_spent || 0}</strong> ·
+            Текущий баланс: <strong>💎 ${u.crystals || 0}</strong>
+          </div>
+          <div class="log-list">${reasonStats || emptyMsg('операций нет')}</div>
+        </div>
+
+        <div class="modal-section">
+          <h3>💎 Последние операции (${Math.min(30, (data.crystal_log || []).length)} из ${(data.crystal_log || []).length})</h3>
+          <div class="log-list">${logHtml}</div>
         </div>
 
         <div class="modal-section">
@@ -613,8 +927,8 @@
         </div>
 
         <div class="modal-section">
-          <h3>💎 Последние операции по кристаллам (${Math.min(30, (data.crystal_log || []).length)} из ${(data.crystal_log || []).length})</h3>
-          <div class="log-list">${logHtml}</div>
+          <h3>💬 Обратная связь (${(data.feedback || []).length})</h3>
+          <div class="log-list">${feedbackHtml}</div>
         </div>
 
         <div class="modal-section">

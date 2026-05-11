@@ -16,17 +16,19 @@ const { getSupabase } = require('./db');
 // =====================================================================
 // Все цены в коде. UI читает их же — никогда не дублировать в html.
 
+// Курс DarAI рассчитан от эталона: Книга 990 ₽ = 40M DarAI → 1 ₽ ≈ 40 400 DarAI.
+// Цены округлены вверх для красоты чисел.
 const PLANS = {
   // --------- ХРАНИТЕЛЬ ---------
-  guardian_1m:  { tier: 'extended', days: 30,  rub: 490,    stars: 245,  usd: 4.90,  darai: 40_000_000, label: 'Хранитель · 1 месяц' },
-  guardian_3m:  { tier: 'extended', days: 90,  rub: 1290,   stars: 645,  usd: 12.90, darai: 40_000_000, label: 'Хранитель · 3 месяца' },
-  guardian_6m:  { tier: 'extended', days: 180, rub: 2290,   stars: 1145, usd: 22.90, darai: 40_000_000, label: 'Хранитель · 6 месяцев' },
-  guardian_12m: { tier: 'extended', days: 365, rub: 3990,   stars: 1995, usd: 39.90, darai: 40_000_000, label: 'Хранитель · 12 месяцев' },
+  guardian_1m:  { tier: 'extended', days: 30,  rub: 490,    stars: 245,  usd: 4.90,  darai: 20_000_000,  label: 'Хранитель · 1 месяц' },
+  guardian_3m:  { tier: 'extended', days: 90,  rub: 1290,   stars: 645,  usd: 12.90, darai: 52_000_000,  label: 'Хранитель · 3 месяца' },
+  guardian_6m:  { tier: 'extended', days: 180, rub: 2290,   stars: 1145, usd: 22.90, darai: 93_000_000,  label: 'Хранитель · 6 месяцев' },
+  guardian_12m: { tier: 'extended', days: 365, rub: 3990,   stars: 1995, usd: 39.90, darai: 161_000_000, label: 'Хранитель · 12 месяцев' },
   // --------- МАСТЕР ---------
-  master_1m:    { tier: 'premium',  days: 30,  rub: 1490,   stars: 749,  usd: 14.90, darai: 40_000_000, label: 'Мастер · 1 месяц' },
-  master_3m:    { tier: 'premium',  days: 90,  rub: 3990,   stars: 1995, usd: 39.90, darai: 40_000_000, label: 'Мастер · 3 месяца' },
-  master_6m:    { tier: 'premium',  days: 180, rub: 6990,   stars: 3495, usd: 69.90, darai: 40_000_000, label: 'Мастер · 6 месяцев' },
-  master_12m:   { tier: 'premium',  days: 365, rub: 11990,  stars: 5995, usd: 119.90,darai: 40_000_000, label: 'Мастер · 12 месяцев' }
+  master_1m:    { tier: 'premium',  days: 30,  rub: 1490,   stars: 749,  usd: 14.90, darai: 60_000_000,  label: 'Мастер · 1 месяц' },
+  master_3m:    { tier: 'premium',  days: 90,  rub: 3990,   stars: 1995, usd: 39.90, darai: 161_000_000, label: 'Мастер · 3 месяца' },
+  master_6m:    { tier: 'premium',  days: 180, rub: 6990,   stars: 3495, usd: 69.90, darai: 282_000_000, label: 'Мастер · 6 месяцев' },
+  master_12m:   { tier: 'premium',  days: 365, rub: 11990,  stars: 5995, usd: 119.90,darai: 485_000_000, label: 'Мастер · 12 месяцев' }
 };
 
 // Разовый продукт — Книга (НЕ открывает тариф)
@@ -39,16 +41,16 @@ const BOOK_PRODUCT = {
 };
 
 // Add-ons (одноразовые покупки для Странников)
+// DarAI цены по курсу 1 ₽ ≈ 40 400 DarAI (эталон Книга 990 ₽ = 40M).
 const ADDONS = {
-  oracle_unlimited_7d:  { days: 7,    rub: 149, stars: 75,  usd: 1.49, darai: 40_000_000, label: 'Безлимит Оракула на 7 дней' },
-  compatibility_pdf:    { days: null, rub: 249, stars: 125, usd: 2.49, darai: 40_000_000, label: 'Глубокая совместимость PDF' },
-  child_book_chapter:   { days: null, rub: 199, stars: 99,  usd: 1.99, darai: 40_000_000, label: '1 глава Книги для Родителей' },
+  oracle_unlimited_7d:  { days: 7,    rub: 149, stars: 75,  usd: 1.49, darai: 6_000_000,  label: 'Безлимит Оракула на 7 дней' },
+  compatibility_pdf:    { days: null, rub: 249, stars: 125, usd: 2.49, darai: 10_000_000, label: 'Глубокая совместимость PDF' },
+  child_book_chapter:   { days: null, rub: 199, stars: 99,  usd: 1.99, darai: 8_000_000,  label: '1 глава Книги для Родителей' },
 
   // === Hero Journey: открытие чужих даров ===
-  // dar_code и variant передаются в metadata при оплате.
-  hero_journey_unlock:           { days: null, rub: 99, stars: 50, usd: 0.99, darai: 5_000_000, label: 'Путешествие Героя по чужому дару' },
-  hero_journey_unlock_relative:  { days: null, rub: 49, stars: 25, usd: 0.49, darai: 2_500_000, label: 'Путешествие Героя по дару родственника' },
-  hero_journey_upgrade_preview:  { days: null, rub: 69, stars: 35, usd: 0.69, darai: 3_500_000, label: 'Полный Путь Героя после превью' }
+  hero_journey_unlock:           { days: null, rub: 99, stars: 50, usd: 0.99, darai: 4_000_000, label: 'Путешествие Героя по чужому дару' },
+  hero_journey_unlock_relative:  { days: null, rub: 49, stars: 25, usd: 0.49, darai: 2_000_000, label: 'Путешествие Героя по дару родственника' },
+  hero_journey_upgrade_preview:  { days: null, rub: 69, stars: 35, usd: 0.69, darai: 3_000_000, label: 'Полный Путь Героя после превью' }
 };
 
 // Стоимость открытия за кристаллы (отдельно — не платёжный поток)

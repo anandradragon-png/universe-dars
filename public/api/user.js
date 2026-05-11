@@ -10,6 +10,7 @@
 
 const { getUser, requireUser } = require('./_lib/auth');
 const { getOrCreateUser, updateUser, getUserDars, addCrystals, unlockDar, getSupabase } = require('./_lib/db');
+const pricing = require('./_lib/pricing');
 const { getReward, getStreakBonus } = require('./_lib/crystals');
 
 // =====================================================================
@@ -86,30 +87,53 @@ async function handleProfile(req, res) {
         return res.json({ success: true, crystals_earned: crystalsEarned });
       }
 
-      // Ежедневный вход
+      // Ежедневный вход — прогрессивный 7-дневный цикл (11.05.2026)
+      // День 1-7: 1, 2, 4, 6, 10, 12, 15 кристаллов.
+      // После 7 дня — снова с 1.
+      // Пропуск дня — сброс до дня 1.
       if (action === 'daily_login') {
         const today = new Date().toISOString().slice(0, 10);
         const lastDate = user.last_streak_date;
 
         if (lastDate === today) {
-          return res.json({ already_logged: true, streak: user.streak_count });
+          return res.json({
+            already_logged: true,
+            streak: user.streak_count,
+            cycle_day: user.daily_streak_day || 1
+          });
         }
 
         const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-        const newStreak = (lastDate === yesterday) ? (user.streak_count || 0) + 1 : 1;
+        const continuesStreak = lastDate === yesterday;
+        const newStreak = continuesStreak ? (user.streak_count || 0) + 1 : 1;
 
-        await updateUser(user.id, { streak_count: newStreak, last_streak_date: today });
+        // Позиция в 7-дневном цикле
+        const prevCycleDay = user.daily_streak_day || 0;
+        let cycleDay;
+        if (!continuesStreak) {
+          cycleDay = 1; // сброс при пропуске или первый вход
+        } else {
+          cycleDay = prevCycleDay >= 7 ? 1 : prevCycleDay + 1;
+        }
 
-        let crystals = getReward('daily_login', user.access_level);
-        const streakBonus = getStreakBonus(newStreak);
-        if (streakBonus > 0) crystals += streakBonus;
+        const DAILY_REWARDS = [1, 2, 4, 6, 10, 12, 15]; // дни 1..7
+        const crystals = DAILY_REWARDS[cycleDay - 1] || 1;
 
-        const newBalance = await addCrystals(user.id, crystals, 'daily_login', { streak: newStreak });
+        await updateUser(user.id, {
+          streak_count: newStreak,
+          last_streak_date: today,
+          daily_streak_day: cycleDay
+        });
+
+        const newBalance = await addCrystals(user.id, crystals, 'daily_login', {
+          streak: newStreak,
+          cycle_day: cycleDay
+        });
 
         return res.json({
           streak: newStreak,
+          cycle_day: cycleDay,
           crystals_earned: crystals,
-          streak_bonus: streakBonus,
           total_crystals: newBalance
         });
       }
@@ -332,8 +356,10 @@ async function handleRelatives(req, res) {
 
     const db = getSupabase();
     const user = await getOrCreateUser(tgUser);
-    const accessLevel = user.access_level || 'basic';
-    const slotLimit = SLOT_LIMITS[accessLevel] !== undefined ? SLOT_LIMITS[accessLevel] : 0;
+    // Эффективный тариф = с учётом subscription_end (если истекла — basic)
+    const effectiveTier = pricing.getEffectiveTier(user);
+    const slotLimit = pricing.getLimits(user).family_slots;
+    const accessLevel = effectiveTier;
 
     // ========== GET: список близких + лимиты ==========
     if (req.method === 'GET') {
@@ -346,13 +372,12 @@ async function handleRelatives(req, res) {
           .order('created_at', { ascending: true });
         if (error) {
           console.warn('relatives GET error:', error.message);
-          // Если таблица не создана - возвращаем пустой список, не ломаем UI
           return res.status(200).json({
             relatives: [],
-            slot_limit: slotLimit,
+            slot_limit: slotLimit === Infinity ? null : slotLimit,
             slot_used: 0,
             access_level: accessLevel,
-            note: 'Таблица user_relatives не создана. Запусти supabase-migration-relatives.sql'
+            note: 'Таблица user_relatives не создана.'
           });
         }
         relatives = data || [];
@@ -360,16 +385,24 @@ async function handleRelatives(req, res) {
         console.warn('relatives GET threw:', e.message);
         return res.status(200).json({
           relatives: [],
-          slot_limit: slotLimit,
+          slot_limit: slotLimit === Infinity ? null : slotLimit,
           slot_used: 0,
           access_level: accessLevel
         });
       }
 
+      // Помечаем какие близкие СЕЙЧАС активны (первые N по тарифу),
+      // а какие "заморожены" из-за понижения тарифа.
+      const finiteLimit = slotLimit === Infinity ? relatives.length : slotLimit;
+      const activeRelatives = relatives.map((r, i) => ({ ...r, is_active: i < finiteLimit }));
+      const frozenCount = Math.max(0, relatives.length - finiteLimit);
+
       return res.status(200).json({
-        relatives,
+        relatives: activeRelatives,
         slot_limit: slotLimit === Infinity ? null : slotLimit,
         slot_used: relatives.length,
+        slot_active: Math.min(relatives.length, finiteLimit),
+        slot_frozen: frozenCount,
         access_level: accessLevel
       });
     }
@@ -379,7 +412,8 @@ async function handleRelatives(req, res) {
       // Проверка лимита
       if (slotLimit === 0) {
         return res.status(403).json({
-          error: 'Чтобы добавлять близких, нужен уровень Хранитель или выше. Получи его через промо-код или открой все 64 дара.'
+          error: 'Чтобы добавлять близких, нужен тариф Хранитель или выше. Открой тарифы в Личном Кабинете.',
+          required_tier: 'extended'
         });
       }
 

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>YupDar — Тарифы</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    *,*::before,*::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Manrope', Roboto, sans-serif;
+      background: #080808;
+      color: #eaeaea;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background: linear-gradient(160deg, #1a1a14 0%, #080808 100%);
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(212,175,55,0.18);
+      display: flex; align-items: center; gap: 10px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    header .back {
+      background: rgba(212,175,55,0.10);
+      border: 1px solid rgba(212,175,55,0.35);
+      color: #D4AF37;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 16px;
+      color: #D4AF37;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    header .crystals {
+      margin-left: auto;
+      font-size: 13px;
+      color: #D4AF37;
+    }
+
+    main { padding: 16px; max-width: 720px; margin: 0 auto; padding-bottom: 80px; }
+
+    .status-banner {
+      background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(154,123,26,0.06));
+      border: 1px solid rgba(212,175,55,0.35);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #eaeaea;
+    }
+    .status-banner b { color: #D4AF37; }
+    .status-banner .sub { font-size: 11px; color: #888; margin-top: 4px; }
+
+    /* Currency picker */
+    .currency-row {
+      display: flex; gap: 6px; justify-content: flex-end;
+      margin-bottom: 12px;
+    }
+    .currency-row button {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: #888;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .currency-row button.active {
+      background: rgba(212,175,55,0.15);
+      border-color: rgba(212,175,55,0.5);
+      color: #D4AF37;
+    }
+
+    /* Period switcher */
+    .period-switch {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+    .period-switch button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #888;
+      padding: 9px 6px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 7px;
+      font-family: inherit;
+      transition: all .2s;
+      position: relative;
+    }
+    .period-switch button.active {
+      background: linear-gradient(135deg, #D4AF37, #9A7B1A);
+      color: #080808;
+      font-weight: 600;
+    }
+    .period-switch button .badge {
+      display: block;
+      font-size: 9px;
+      color: #6c9;
+      margin-top: 2px;
+    }
+    .period-switch button.active .badge { color: #1a1a1a; font-weight: 700; }
+
+    /* Plan card */
+    .plan {
+      background: linear-gradient(155deg, #181818 0%, #0e0e0e 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 12px;
+      transition: border-color .2s;
+    }
+    .plan.featured {
+      border-color: rgba(212,175,55,0.5);
+      background: linear-gradient(155deg, #1f1a0e 0%, #0e0e0e 100%);
+    }
+    .plan-head {
+      display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;
+    }
+    .plan-emoji { font-size: 22px; }
+    .plan-name {
+      font-size: 17px;
+      font-weight: 600;
+      color: #eaeaea;
+      letter-spacing: 0.5px;
+    }
+    .plan-desc {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .plan-price {
+      display: flex; align-items: baseline; gap: 8px;
+      padding: 10px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 12px;
+    }
+    .plan-price .main {
+      font-size: 26px;
+      font-weight: 700;
+      color: #D4AF37;
+    }
+    .plan-price .period { font-size: 12px; color: #888; }
+    .plan-price .per-month {
+      margin-left: auto;
+      font-size: 11px;
+      color: #6c9;
+      text-align: right;
+    }
+    .plan-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 14px;
+      font-size: 13px;
+      color: #ccc;
+    }
+    .plan-features li {
+      padding: 4px 0 4px 22px;
+      position: relative;
+      line-height: 1.5;
+    }
+    .plan-features li::before {
+      content: '✓';
+      position: absolute; left: 0; top: 4px;
+      color: #6c9;
+      font-weight: 700;
+    }
+    .plan-cta {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(160deg, #E8C84A 0%, #D4AF37 30%, #9A7B1A 70%, #D4AF37 100%);
+      color: #080808;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.5px;
+    }
+    .plan-cta.outlined {
+      background: transparent;
+      border: 1.5px solid #D4AF37;
+      color: #D4AF37;
+    }
+    .plan-cta.disabled {
+      background: rgba(255,255,255,0.06);
+      color: #666;
+      cursor: not-allowed;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .promo-strip {
+      background: linear-gradient(135deg, rgba(108,201,153,0.10), rgba(108,201,153,0.04));
+      border: 1px solid rgba(108,201,153,0.35);
+      color: #b6e6c4;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    /* Book product */
+    .book-card {
+      background: linear-gradient(155deg, #14181f 0%, #0a0d12 100%);
+      border: 1px solid rgba(136,170,221,0.25);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .book-card .head { display: flex; gap: 10px; align-items: baseline; margin-bottom: 8px; }
+    .book-card .head .name { font-size: 15px; font-weight: 600; color: #88aadd; }
+    .book-card .desc { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 10px; }
+    .book-card .note { font-size: 11px; color: #666; font-style: italic; margin-bottom: 12px; }
+    .book-card .row { display: flex; align-items: center; gap: 8px; }
+    .book-card .row .price { font-size: 19px; font-weight: 700; color: #88aadd; flex: 1; }
+    .book-card .row button {
+      padding: 10px 16px;
+      background: rgba(136,170,221,0.18);
+      border: 1px solid #88aadd;
+      color: #88aadd;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+    }
+
+    /* Addons */
+    h3.section-title {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 20px 0 10px;
+      font-weight: 500;
+    }
+    .addon-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .addon-card .emoji { font-size: 22px; flex-shrink: 0; }
+    .addon-card .info { flex: 1; min-width: 0; }
+    .addon-card .name { font-size: 14px; color: #eaeaea; font-weight: 500; }
+    .addon-card .desc { font-size: 11px; color: #888; margin-top: 2px; line-height: 1.4; }
+    .addon-card .duration { font-size: 10px; color: #666; margin-top: 2px; }
+    .addon-card .price-col {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .addon-card .price-col .price {
+      font-size: 14px;
+      color: #D4AF37;
+      font-weight: 600;
+    }
+    .addon-card .price-col button {
+      padding: 6px 10px;
+      margin-top: 4px;
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.4);
+      color: #D4AF37;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .loader {
+      text-align: center; padding: 60px 20px; color: #666; font-size: 13px;
+    }
+
+    .footnote {
+      font-size: 11px;
+      color: #555;
+      text-align: center;
+      margin-top: 30px;
+      line-height: 1.6;
+    }
+    .footnote a { color: #888; }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="back" onclick="goBack()">← Назад</button>
+    <h1>Тарифы</h1>
+    <div class="crystals" id="crystalsLabel"></div>
+  </header>
+
+  <main>
+    <div id="root" class="loader">Загружаю…</div>
+  </main>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.expand(); tg.ready(); }
+
+    function goBack() { window.location.href = '/'; }
+
+    let DATA = null;
+    let UI = {
+      currency: 'rub',
+      period: '12m' // дефолт = годовая
+    };
+
+    async function fetchPricing() {
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
+        const r = await fetch('/api/pricing', { headers });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || 'Ошибка');
+        return j;
+      } catch (e) {
+        return { error: e.message };
+      }
+    }
+
+    function fmtPrice(amount, currency) {
+      if (amount === null || amount === undefined) return '—';
+      if (currency === 'rub') return amount.toLocaleString('ru-RU') + ' ₽';
+      if (currency === 'stars') return amount.toLocaleString('ru-RU') + ' ⭐';
+      if (currency === 'usd') return '$' + amount;
+      if (currency === 'darai') {
+        if (amount >= 1_000_000) return (amount / 1_000_000) + 'M DarAI';
+        return amount.toLocaleString('ru-RU') + ' DarAI';
+      }
+      return amount;
+    }
+
+    function getPriceForPeriod(period, currency) {
+      return period[currency];
+    }
+    function getPerMonth(period, currency) {
+      const map = { rub: 'per_month_rub', stars: 'per_month_stars', usd: 'per_month_usd' };
+      return period[map[currency]] || null;
+    }
+
+    function statusText(user) {
+      if (!user) return null;
+      const tier = user.effective_tier;
+      if (tier === 'premium') {
+        const end = user.subscription_end ? new Date(user.subscription_end).toLocaleDateString('ru-RU') : 'бессрочно';
+        return { tier: 'Мастер', sub: 'действует до ' + end };
+      }
+      if (tier === 'extended') {
+        const end = user.subscription_end ? new Date(user.subscription_end).toLocaleDateString('ru-RU') : 'бессрочно';
+        return { tier: 'Хранитель', sub: 'действует до ' + end };
+      }
+      return { tier: 'Странник', sub: user.book_purchased ? 'Книга Даров куплена' : 'бесплатный доступ' };
+    }
+
+    function render() {
+      const root = document.getElementById('root');
+      if (!DATA) { root.innerHTML = '<div class="loader">Загружаю…</div>'; return; }
+      if (DATA.error) {
+        root.innerHTML = '<div class="loader" style="color:#c69">Ошибка: ' + DATA.error + '</div>';
+        return;
+      }
+
+      const st = statusText(DATA.user);
+      const crystalsEl = document.getElementById('crystalsLabel');
+      if (DATA.user) crystalsEl.textContent = '💎 ' + DATA.user.crystals;
+
+      const currencies = [
+        { key: 'rub', label: '₽ Рубли' },
+        { key: 'stars', label: '⭐ Stars' },
+        { key: 'usd', label: '$ USD' },
+        { key: 'darai', label: 'DarAI' }
+      ];
+
+      const periods = [
+        { key: '1m', label: '1 месяц' },
+        { key: '3m', label: '3 месяца' },
+        { key: '6m', label: '6 месяцев' },
+        { key: '12m', label: '12 мес' }
+      ];
+
+      // Промо если ещё не платил
+      const promoActive = DATA.user && DATA.user.eligible_for_first_purchase_promo;
+
+      let html = '';
+
+      if (st) {
+        html += '<div class="status-banner">Сейчас у тебя: <b>' + st.tier + '</b><div class="sub">' + st.sub + '</div></div>';
+      }
+
+      // Валюты
+      html += '<div class="currency-row">';
+      for (const c of currencies) {
+        html += '<button data-currency="' + c.key + '" class="' + (UI.currency === c.key ? 'active' : '') + '">' + c.label + '</button>';
+      }
+      html += '</div>';
+
+      // Периоды (применяется только к подпискам)
+      html += '<div class="period-switch">';
+      for (const p of periods) {
+        // вычислить экономию для бэйджа (берём guardian для примера)
+        const sample = DATA.plans.guardian.periods.find(x => x.plan_key === 'guardian_' + p.key);
+        const badge = sample && sample.discount_pct > 0 ? '<span class="badge">−' + sample.discount_pct + '%</span>' : '';
+        html += '<button data-period="' + p.key + '" class="' + (UI.period === p.key ? 'active' : '') + '">' + p.label + badge + '</button>';
+      }
+      html += '</div>';
+
+      // Промо-стрип
+      if (promoActive) {
+        html += '<div class="promo-strip">🎁 Первый месяц любого тарифа со скидкой −' + DATA.first_purchase_discount_pct + '%</div>';
+      }
+
+      // Тарифные карточки
+      for (const groupKey of ['guardian', 'master']) {
+        const card = DATA.plans[groupKey];
+        const period = card.periods.find(p => p.plan_key.endsWith('_' + UI.period));
+        if (!period) continue;
+
+        const price = getPriceForPeriod(period, UI.currency);
+        const perMonth = getPerMonth(period, UI.currency);
+        const isFeatured = period.is_default; // годовая = подсвечена
+        const isCurrentTier = DATA.user && DATA.user.effective_tier === card.tier;
+
+        const ctaLabel = isCurrentTier ? 'Текущий тариф' : 'Открыть ' + card.name;
+        const ctaClass = isCurrentTier ? 'disabled' : (groupKey === 'master' ? '' : 'outlined');
+
+        html += '<div class="plan ' + (isFeatured ? 'featured' : '') + '">';
+        html += '<div class="plan-head"><span class="plan-emoji">' + card.emoji + '</span><span class="plan-name">' + card.name + '</span></div>';
+        html += '<div class="plan-desc">' + card.desc + '</div>';
+
+        html += '<div class="plan-price">';
+        html += '<span class="main">' + fmtPrice(price, UI.currency) + '</span>';
+        html += '<span class="period">/ ' + period.period_label + '</span>';
+        if (perMonth && period.months > 1) {
+          html += '<span class="per-month">= ' + fmtPrice(perMonth, UI.currency) + ' / месяц' + (period.discount_pct > 0 ? '<br><span style="color:#6c9">экономия ' + period.discount_pct + '%</span>' : '') + '</span>';
+        }
+        html += '</div>';
+
+        html += '<ul class="plan-features">';
+        for (const f of card.features) html += '<li>' + f + '</li>';
+        html += '</ul>';
+
+        html += '<button class="plan-cta ' + ctaClass + '" data-buy-plan="' + period.plan_key + '" ' + (isCurrentTier ? 'disabled' : '') + '>' + ctaLabel + '</button>';
+
+        html += '</div>';
+      }
+
+      // Книга Даров (разовый)
+      const b = DATA.book;
+      html += '<h3 class="section-title">📚 Разовый продукт</h3>';
+      html += '<div class="book-card">';
+      html += '<div class="head"><span style="font-size:22px">' + b.emoji + '</span><span class="name">' + b.name + '</span></div>';
+      html += '<div class="desc">' + b.desc + '</div>';
+      html += '<div class="note">' + b.note + '</div>';
+      html += '<div class="row">';
+      html += '<div class="price">' + fmtPrice(b[UI.currency], UI.currency) + ' навсегда</div>';
+      const bookOwned = DATA.user && DATA.user.book_purchased;
+      html += '<button data-buy-book ' + (bookOwned ? 'disabled style="opacity:.5;cursor:not-allowed"' : '') + '>' + (bookOwned ? 'У тебя уже есть' : 'Купить') + '</button>';
+      html += '</div>';
+      html += '</div>';
+
+      // Add-ons
+      html += '<h3 class="section-title">🛒 Разовые покупки</h3>';
+      for (const a of DATA.addons) {
+        html += '<div class="addon-card">';
+        html += '<div class="emoji">' + a.emoji + '</div>';
+        html += '<div class="info">';
+        html += '<div class="name">' + a.name + '</div>';
+        html += '<div class="desc">' + a.desc + '</div>';
+        html += '<div class="duration">' + a.duration + '</div>';
+        html += '</div>';
+        html += '<div class="price-col">';
+        html += '<div class="price">' + fmtPrice(a[UI.currency], UI.currency) + '</div>';
+        html += '<button data-buy-addon="' + a.addon_key + '">Купить</button>';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      html += '<div class="footnote">';
+      html += 'Подписка не продлевается автоматически. По окончании периода доступ возвращается к «Странник», но все твои данные сохраняются.<br><br>';
+      html += '<a href="/legal/offer.html">Оферта</a> · <a href="/legal/terms.html">Условия</a> · <a href="/legal/privacy.html">Приватность</a>';
+      html += '</div>';
+
+      root.innerHTML = html;
+
+      // Хуки
+      root.querySelectorAll('[data-currency]').forEach(b => {
+        b.addEventListener('click', () => { UI.currency = b.dataset.currency; render(); });
+      });
+      root.querySelectorAll('[data-period]').forEach(b => {
+        b.addEventListener('click', () => { UI.period = b.dataset.period; render(); });
+      });
+      root.querySelectorAll('[data-buy-plan]').forEach(b => {
+        b.addEventListener('click', () => onBuy('plan', b.dataset.buyPlan));
+      });
+      root.querySelectorAll('[data-buy-book]').forEach(b => {
+        b.addEventListener('click', () => onBuy('book', null));
+      });
+      root.querySelectorAll('[data-buy-addon]').forEach(b => {
+        b.addEventListener('click', () => onBuy('addon', b.dataset.buyAddon));
+      });
+    }
+
+    function onBuy(kind, key) {
+      // Этап 4 — интеграция платежей. Пока заглушка.
+      const msg = kind === 'plan'
+        ? 'Скоро откроется оплата тарифа: ' + key
+        : kind === 'book'
+        ? 'Скоро откроется оплата Книги Даров'
+        : 'Скоро откроется оплата: ' + key;
+      if (tg && tg.showAlert) tg.showAlert(msg);
+      else alert(msg);
+    }
+
+    (async () => {
+      DATA = await fetchPricing();
+      // Перенесём дефолтную валюту из ответа
+      if (DATA && DATA.currency && !DATA.error) UI.currency = DATA.currency;
+      render();
+    })();
+  </script>
+</body>
+</html>

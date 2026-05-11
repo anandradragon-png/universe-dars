@@ -2164,12 +2164,29 @@
     init();
 
     function calculate(){
-      const raw=document.getElementById('dateInput').value.trim();
+      // Берём дату из hidden (точное валидированное значение) ИЛИ из видимого поля
+      // (fallback на случай если маска не сработала — Telegram WebView, paste, autocomplete)
+      let raw = document.getElementById('dateInput').value.trim();
+      if (!raw || raw.length !== 10) {
+        // Fallback на visible input
+        const visible = document.getElementById('dateMasked');
+        const v = (visible?.value || '').trim();
+        // Принимаем 8 цифр без точек ИЛИ DD.MM.YYYY
+        const digits = v.replace(/\D/g, '');
+        if (digits.length === 8) {
+          raw = digits.slice(0,2) + '.' + digits.slice(2,4) + '.' + digits.slice(4);
+          // Обновим hidden чтобы консистентность
+          document.getElementById('dateInput').value = raw;
+        }
+      }
       const err=document.getElementById('errorMsg');
+      // Локализованные тексты ошибок
+      const tFmt = (window.i18n && window.i18n.t) ? window.i18n.t('home.err_format') : 'Введите дату в формате ДД.ММ.ГГГГ';
+      const tInv = (window.i18n && window.i18n.t) ? window.i18n.t('home.err_invalid') : 'Проверьте правильность даты';
       const parts=raw.split('.');
-      if(parts.length!==3||raw.length!==10){err.textContent='Введите дату в формате ДД.ММ.ГГГГ';return}
+      if(parts.length!==3||raw.length!==10){err.textContent=tFmt;return}
       const day=parseInt(parts[0]),month=parseInt(parts[1]),year=parseInt(parts[2]);
-      if(day<1||day>31||month<1||month>12||year<1){err.textContent='Проверьте правильность даты';return}
+      if(day<1||day>31||month<1||month>12||year<1){err.textContent=tInv;return}
       err.textContent='';
       const gift=calcGift(day,month,year);
       localStorage.setItem(STORAGE_KEY,JSON.stringify({gift,date:raw}));

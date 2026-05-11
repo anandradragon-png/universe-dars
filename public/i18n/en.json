@@ -41,7 +41,9 @@
     "subhead": "Enter your date of birth and receive a message about your nature, your power, and your path",
     "date_placeholder": "DD.MM.YYYY",
     "calculate_btn": "Calculate my DAR",
-    "calculating": "Calculating…"
+    "calculating": "Calculating…",
+    "err_format": "Please enter date as DD.MM.YYYY",
+    "err_invalid": "Please check the date"
   },
 
   "dar": {

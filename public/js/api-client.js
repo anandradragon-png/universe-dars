@@ -17,6 +17,12 @@ const DarAPI = (function() {
     if (devId && !tg?.initData) {
       headers['x-telegram-id'] = devId;
     }
+    // Язык приложения — для AI-генерации (Oracle, message, compatibility)
+    // и для бэкенда чтобы знать какой язык вернуть в /api/pricing
+    try {
+      const lang = localStorage.getItem('_yupdar_lang');
+      if (lang) headers['x-yupdar-lang'] = lang;
+    } catch (e) {}
     return headers;
   }
 

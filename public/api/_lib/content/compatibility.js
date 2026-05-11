@@ -139,11 +139,19 @@ module.exports = async (req, res) => {
     const useDeepSeek = deepseek.isDeepSeekEnabled('coach') && deepseek.isDeepSeekConfigured();
     let completion;
 
+    // Локализация: для ru — без изменений. Для en/es — префикс языковой инструкции.
+    let finalSystemPrompt = systemPrompt;
+    try {
+      const language = require('../language');
+      const userLang = language.detectLang(req);
+      finalSystemPrompt = language.applyLanguage(systemPrompt, userLang);
+    } catch (e) {}
+
     try {
       if (useDeepSeek) {
         completion = await deepseek.chatCompletion({
           messages: [
-            { role: 'system', content: systemPrompt },
+            { role: 'system', content: finalSystemPrompt },
             { role: 'user', content: userPrompt }
           ],
           model: 'deepseek-chat',
@@ -154,7 +162,7 @@ module.exports = async (req, res) => {
         const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
         completion = await groq.chat.completions.create({
           messages: [
-            { role: 'system', content: systemPrompt },
+            { role: 'system', content: finalSystemPrompt },
             { role: 'user', content: userPrompt }
           ],
           model: 'llama-3.3-70b-versatile',

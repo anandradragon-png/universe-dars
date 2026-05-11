@@ -593,9 +593,21 @@ function fillTemplate(tpl, ctx) {
 //
 // 29.04.2026: переключили с Groq на DeepSeek по умолчанию для всех боевых
 // генераций — DeepSeek показал ощутимо лучший русский язык и стиль.
-async function runMessageGeneration({ systemMsg, userPrompt, isFemale, provider }) {
+async function runMessageGeneration({ systemMsg, userPrompt, isFemale, provider, lang }) {
+  // Локализация: для ru (или если lang не передан) — systemMsg как есть.
+  // Для en/es префиксируется инструкция языка. Сам русский промпт не меняется.
+  let finalSystemMsg = systemMsg;
+  if (lang && lang !== 'ru') {
+    try {
+      const language = require('../language');
+      finalSystemMsg = language.applyLanguage(systemMsg, lang);
+    } catch (e) {
+      // language.js не доступен — оставляем как есть (graceful)
+    }
+  }
+
   const messages = [
-    { role: 'system', content: systemMsg },
+    { role: 'system', content: finalSystemMsg },
     { role: 'user', content: userPrompt }
   ];
 
@@ -1075,11 +1087,19 @@ ${intPhrase ? `▓ Особое послание Интегратора: «${int
     // Идём через runMessageGeneration: DeepSeek по умолчанию + Groq как
     // fallback при сбое. Раньше тут был прямой вызов Groq в обход DeepSeek —
     // это был остаток старого кода, мы давно договорились на DeepSeek (29.04).
+    // Определяем язык юзера из req-заголовков (для генерации на нужном языке)
+    let userLang = 'ru';
+    try {
+      const language = require('../language');
+      userLang = language.detectLang(req);
+    } catch (e) {}
+
     const parsed = await runMessageGeneration({
       systemMsg,
       userPrompt: prompt,
       isFemale,
-      provider: undefined  // undefined = DeepSeek с Groq fallback
+      provider: undefined,  // undefined = DeepSeek с Groq fallback
+      lang: userLang        // для ru — applyLanguage вернёт оригинал, ничего не меняется
     });
 
     const totalLen = JSON.stringify(parsed).length;

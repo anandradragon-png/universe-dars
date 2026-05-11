@@ -1,0 +1,153 @@
+{
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "loading": "Loading…",
+    "error": "Error",
+    "try_again": "Try again",
+    "success": "Done",
+    "yes": "Yes",
+    "no": "No",
+    "next": "Next",
+    "prev": "Back",
+    "got_it": "Got it",
+    "more": "Learn more",
+    "open": "Open",
+    "share": "Share",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+
+  "app": {
+    "title": "YupDar",
+    "tagline": "UNIVERSE OF GIFTS",
+    "version": "v1.0"
+  },
+
+  "nav": {
+    "treasury": "Treasury",
+    "games": "Games",
+    "book": "Book",
+    "encyclopedia": "Encyclopedia"
+  },
+
+  "home": {
+    "headline": "Discover your Gift",
+    "subhead": "Enter your date of birth and receive a message about your nature, power, and path",
+    "date_placeholder": "DD.MM.YYYY",
+    "calculate_btn": "Calculate my Gift",
+    "calculating": "Calculating…"
+  },
+
+  "dar": {
+    "your_dar": "Your Gift",
+    "code_label": "Gift code",
+    "back_to_main": "Back to main",
+    "change_date": "Change date of birth",
+    "get_full_message": "Get full message",
+    "read_in_book": "Read about your Gift in the Book of DARs",
+    "archetype": "Archetype"
+  },
+
+  "profile": {
+    "title": "Personal Cabinet",
+    "section_profile": "Profile",
+    "section_dar": "My Gift",
+    "section_achievements": "Achievements",
+    "section_family": "Family and close ones",
+    "section_friends": "Friends",
+    "section_feedback": "Feedback",
+    "section_about": "About",
+    "calculate_first": "Calculate your Gift",
+    "data_not_filled": "Data not filled",
+    "fill_data_btn": "✎ Fill in / edit data",
+    "fill_hint": "You can change name, gender, time and place of birth at any moment",
+    "tariffs_btn": "🛡 Plans",
+    "enter_promo": "🔒 Enter promo code",
+    "activate": "Activate",
+    "promo_placeholder": "Enter promo code",
+    "feedback_title": "Feedback",
+    "feedback_sub": "Bugs, ideas, questions",
+    "reset_title": "Full reset",
+    "reset_sub": "Reset all local data (for testing)",
+    "about_caption": "64 Gifts · 9 Fields · endless possibilities",
+    "crystals": "Crystals",
+    "days_streak": "Days in a row",
+    "collection": "Collection",
+    "language": "Language",
+    "admin_feedback": "Admin: Feedback",
+    "admin_feedback_sub": "Tester messages",
+    "admin_panel": "Admin: Control panel",
+    "admin_panel_sub": "Dashboard, users, promo codes, payments"
+  },
+
+  "tariffs": {
+    "page_title": "Plans",
+    "current": "Your current plan",
+    "tier_wanderer": "Wanderer",
+    "tier_guardian": "Guardian",
+    "tier_master": "Master",
+    "status_active_until": "active until {date}",
+    "status_lifetime": "lifetime",
+    "status_free": "free access",
+    "status_book_purchased": "Book of DARs purchased",
+    "period_1m": "1 month",
+    "period_3m": "3 months",
+    "period_6m": "6 months",
+    "period_12m": "12 months",
+    "currency_rub": "₽ RUB",
+    "currency_stars": "⭐ Stars",
+    "currency_usd": "$ USD",
+    "currency_darai": "DarAI",
+    "label_period": "Period:",
+    "label_currency": "Currency:",
+    "promo_first_month": "🎁 First month of any plan with −{percent}% off",
+    "discount_badge": "−{percent}%",
+    "save_percent": "save {percent}%",
+    "per_month": "/ month",
+    "current_tier": "Your current plan",
+    "open_tier": "Get {tier}",
+    "book_section_title": "📚 One-time product",
+    "book_name": "The Book of DARs",
+    "book_desc": "Full Book of DARs with all 94 chapters + designer PDF. Forever, no subscription.",
+    "book_note": "Opens only the Book content. Does not affect plan or its limits.",
+    "book_buy": "Buy",
+    "book_owned": "You already own this",
+    "book_forever": "forever",
+    "addons_title": "🛒 One-time purchases",
+    "footnote": "The subscription does not renew automatically. When the period ends, your access returns to «Wanderer», but all your data is kept.",
+    "legal_offer": "Offer",
+    "legal_terms": "Terms",
+    "legal_privacy": "Privacy",
+    "checkout_soon": "Checkout coming soon: {what}",
+    "payment_ok": "Payment received! Refreshing…",
+    "payment_failed": "Payment failed",
+    "no_link": "Could not retrieve payment link",
+    "connection_error": "Connection error: {message}"
+  },
+
+  "limits": {
+    "oracle_locked_title": "Daily Oracle limit",
+    "oracle_locked_msg": "On the free plan you have 1 prediction per day. Get Guardian — 3 per day. Or Master — unlimited.",
+    "oracle_addon_label": "Unlimited for 7 days — $1.49",
+    "compatibility_locked_title": "Compatibility limit",
+    "compatibility_locked_msg": "Your free check is already used. Guardian gives 5 per month, Master — unlimited.",
+    "compatibility_addon_label": "Deep compatibility PDF — $2.49",
+    "hero_journey_locked_title": "The Hero's Path is still closed",
+    "hero_journey_locked_msg": "You can open this Path: invite a friend with this Gift (you'll get a preview for free), buy for 300 crystals / 50 Stars / $0.99, or get Master — they have all 64 Gifts unlocked.",
+    "open_tariffs": "🛡 Open plans",
+    "footer_note": "You can cancel the subscription at any moment"
+  },
+
+  "language_picker": {
+    "title": "App language",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español"
+  }
+}

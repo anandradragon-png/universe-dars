@@ -1,0 +1,155 @@
+{
+  "_note_pending_review": "Черновой AI-перевод, ждёт обновления после получения испанской книги Светланы (13.05.2026). См. memory: next_session_plan.md",
+
+  "common": {
+    "back": "Atrás",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "confirm": "Confirmar",
+    "loading": "Cargando…",
+    "error": "Error",
+    "try_again": "Intentar de nuevo",
+    "success": "Listo",
+    "yes": "Sí",
+    "no": "No",
+    "next": "Siguiente",
+    "prev": "Anterior",
+    "got_it": "Entendido",
+    "more": "Más información",
+    "open": "Abrir",
+    "share": "Compartir",
+    "copy": "Copiar",
+    "copied": "Copiado"
+  },
+
+  "app": {
+    "title": "YupDar",
+    "tagline": "UNIVERSO DE LOS DARES",
+    "version": "v1.0"
+  },
+
+  "nav": {
+    "treasury": "Tesoro",
+    "games": "Juegos",
+    "book": "Libro",
+    "encyclopedia": "Enciclopedia"
+  },
+
+  "home": {
+    "headline": "Descubre tu Don",
+    "subhead": "Ingresa tu fecha de nacimiento y recibe un mensaje sobre tu naturaleza, tu fuerza y tu camino",
+    "date_placeholder": "DD.MM.AAAA",
+    "calculate_btn": "Calcular mi Don",
+    "calculating": "Calculando…"
+  },
+
+  "dar": {
+    "your_dar": "Tu Don",
+    "code_label": "Código del Don",
+    "back_to_main": "Al menú principal",
+    "change_date": "Cambiar fecha de nacimiento",
+    "get_full_message": "Recibir mensaje completo",
+    "read_in_book": "Lee sobre tu Don en el Libro de los DARes",
+    "archetype": "Arquetipo"
+  },
+
+  "profile": {
+    "title": "Perfil",
+    "section_profile": "Perfil",
+    "section_dar": "Mi Don",
+    "section_achievements": "Logros",
+    "section_family": "Familia y seres queridos",
+    "section_friends": "Amigos",
+    "section_feedback": "Comentarios",
+    "section_about": "Acerca de",
+    "calculate_first": "Calcula tu Don",
+    "data_not_filled": "Datos no completados",
+    "fill_data_btn": "✎ Completar / editar datos",
+    "fill_hint": "Puedes cambiar nombre, género, hora y lugar de nacimiento en cualquier momento",
+    "tariffs_btn": "🛡 Planes",
+    "enter_promo": "🔒 Ingresar código promocional",
+    "activate": "Activar",
+    "promo_placeholder": "Ingresa código promocional",
+    "feedback_title": "Comentarios",
+    "feedback_sub": "Errores, ideas, preguntas",
+    "reset_title": "Restablecer todo",
+    "reset_sub": "Restablecer todos los datos locales (para pruebas)",
+    "about_caption": "64 Dones · 9 Campos · posibilidades infinitas",
+    "crystals": "Cristales",
+    "days_streak": "Días seguidos",
+    "collection": "Colección",
+    "language": "Idioma",
+    "admin_feedback": "Admin: Comentarios",
+    "admin_feedback_sub": "Mensajes de los probadores",
+    "admin_panel": "Admin: Panel de control",
+    "admin_panel_sub": "Panel, usuarios, códigos, pagos"
+  },
+
+  "tariffs": {
+    "page_title": "Planes",
+    "current": "Tu plan actual",
+    "tier_wanderer": "Caminante",
+    "tier_guardian": "Guardián",
+    "tier_master": "Maestro",
+    "status_active_until": "activo hasta {date}",
+    "status_lifetime": "para siempre",
+    "status_free": "acceso gratuito",
+    "status_book_purchased": "Libro de los DARes comprado",
+    "period_1m": "1 mes",
+    "period_3m": "3 meses",
+    "period_6m": "6 meses",
+    "period_12m": "12 meses",
+    "currency_rub": "₽ Rublos",
+    "currency_stars": "⭐ Stars",
+    "currency_usd": "$ USD",
+    "currency_darai": "DarAI",
+    "label_period": "Período:",
+    "label_currency": "Moneda:",
+    "promo_first_month": "🎁 Primer mes de cualquier plan con −{percent}% de descuento",
+    "discount_badge": "−{percent}%",
+    "save_percent": "ahorra {percent}%",
+    "per_month": "/ mes",
+    "current_tier": "Tu plan actual",
+    "open_tier": "Obtener {tier}",
+    "book_section_title": "📚 Producto único",
+    "book_name": "El Libro de los DARes",
+    "book_desc": "Libro completo de los DARes con 94 capítulos + PDF de diseño. Para siempre, sin suscripción.",
+    "book_note": "Solo abre el contenido del Libro. No afecta al plan ni a sus límites.",
+    "book_buy": "Comprar",
+    "book_owned": "Ya es tuyo",
+    "book_forever": "para siempre",
+    "addons_title": "🛒 Compras únicas",
+    "footnote": "La suscripción no se renueva automáticamente. Cuando termina el período, tu acceso vuelve a «Caminante», pero todos tus datos se conservan.",
+    "legal_offer": "Oferta",
+    "legal_terms": "Términos",
+    "legal_privacy": "Privacidad",
+    "checkout_soon": "El pago se abrirá pronto: {what}",
+    "payment_ok": "¡Pago recibido! Actualizando…",
+    "payment_failed": "El pago no se completó",
+    "no_link": "No se pudo obtener el enlace de pago",
+    "connection_error": "Error de conexión: {message}"
+  },
+
+  "limits": {
+    "oracle_locked_title": "Límite diario del Oráculo",
+    "oracle_locked_msg": "En el plan gratuito tienes 1 predicción al día. Obtén Guardián — 3 al día. O Maestro — sin límite.",
+    "oracle_addon_label": "Sin límite por 7 días — $1.49",
+    "compatibility_locked_title": "Límite de compatibilidad",
+    "compatibility_locked_msg": "Tu prueba gratuita ya está usada. Guardián te da 5 al mes, Maestro — sin límite.",
+    "compatibility_addon_label": "Compatibilidad profunda PDF — $2.49",
+    "hero_journey_locked_title": "El Camino del Héroe todavía está cerrado",
+    "hero_journey_locked_msg": "Puedes abrir este Camino: invita a un amigo con este Don (tendrás vista previa gratis), cómpralo por 300 cristales / 50 Stars / $0.99, u obtén Maestro — tiene los 64 Dones desbloqueados.",
+    "open_tariffs": "🛡 Ver planes",
+    "footer_note": "Puedes cancelar la suscripción en cualquier momento"
+  },
+
+  "language_picker": {
+    "title": "Idioma de la aplicación",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español"
+  }
+}

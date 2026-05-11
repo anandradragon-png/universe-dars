@@ -108,9 +108,16 @@ async function handleBotWebhook(req, res) {
       if (payload.startsWith('plan_') || payload.startsWith('addon_')) {
         try {
           const apply = require('./_lib/subscription_apply');
-          const parts = payload.split('_');
+          // Сначала отделяем суффикс @dar_code (для Hero Journey unlock)
+          let payloadCore = payload;
+          let darCodeFromPayload = null;
+          if (payload.includes('@')) {
+            const atIdx = payload.lastIndexOf('@');
+            payloadCore = payload.slice(0, atIdx);
+            darCodeFromPayload = payload.slice(atIdx + 1);
+          }
+          const parts = payloadCore.split('_');
           const kind = parts[0]; // 'plan' | 'addon'
-          // Последние 2 элемента = userId, timestamp. Между kind и userId — productKey
           const productKey = parts.slice(1, -2).join('_');
           const userId = parseInt(parts[parts.length - 2], 10);
 
@@ -123,6 +130,7 @@ async function handleBotWebhook(req, res) {
             payment_type: kind,
             product_key: productKey
           };
+          if (darCodeFromPayload) meta.dar_code = darCodeFromPayload;
           const result = await apply.applyByMetadata({
             userId,
             metadata: meta,
@@ -183,6 +191,12 @@ async function handleBotWebhook(req, res) {
             amount: payment.total_amount,
             currency: payment.currency
           });
+
+          // Реферальный апгрейд превью Hero Journey (если кто-то меня пригласил)
+          try {
+            const { upgradeReferrerPreviewIfPaid } = require('./_lib/subscription_apply');
+            upgradeReferrerPreviewIfPaid(user.id).catch(() => {});
+          } catch (e) {}
 
           console.log('[bot-webhook] User upgraded:', {
             user_id: user.id,
@@ -384,6 +398,12 @@ async function handleTbankWebhook(req, res) {
         Amount: body.Amount,
         OrderId: body.OrderId
       });
+
+      // Реферальный апгрейд превью Hero Journey
+      try {
+        const { upgradeReferrerPreviewIfPaid } = require('./_lib/subscription_apply');
+        upgradeReferrerPreviewIfPaid(user.id).catch(() => {});
+      } catch (e) {}
 
       console.log('[tbank-webhook] User upgraded:', user.id, '->', newLevel);
 
@@ -619,6 +639,12 @@ async function handleYuppayWebhook(req, res) {
         settlement_tx: data.settlement_tx_hash
       });
 
+      // Реферальный апгрейд превью Hero Journey
+      try {
+        const { upgradeReferrerPreviewIfPaid } = require('./_lib/subscription_apply');
+        upgradeReferrerPreviewIfPaid(user.id).catch(() => {});
+      } catch (e) {}
+
       console.log('[yuppay-webhook] User upgraded:', user.id, '->', newLevel);
 
       // Сообщение в Telegram
@@ -843,6 +869,12 @@ async function handleYookassaWebhook(req, res) {
       // Апгрейд на Хранитель
       const newLevel = user.access_level === 'premium' ? 'premium' : 'extended';
       await db.from('users').update({ access_level: newLevel }).eq('id', user.id);
+
+      // Реферальный апгрейд превью Hero Journey
+      try {
+        const { upgradeReferrerPreviewIfPaid } = require('./_lib/subscription_apply');
+        upgradeReferrerPreviewIfPaid(user.id).catch(() => {});
+      } catch (e) {}
 
       await addCrystals(user.id, 50, 'purchase_book_yookassa', {
         yookassa_payment_id: obj.id,

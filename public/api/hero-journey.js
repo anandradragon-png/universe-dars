@@ -122,10 +122,38 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Нужен код дара' });
     }
 
+    // === HERO JOURNEY 2.0: проверка доступа к дару ===
+    // Применяется для start и step_action.
+    // get_status пропускаем — это просто запрос состояния, без действий.
+    let accessGate = null;
+    if (action === 'start' || action === 'step_action') {
+      const pricing = require('./_lib/pricing');
+      accessGate = await pricing.canStartHeroJourney(user, dar_code, req);
+      if (!accessGate.allowed) {
+        // Дар не открыт. Возвращаем 403 с подсказками для UI.
+        return res.status(403).json({
+          error: 'hero_journey_locked',
+          message: 'Этот Путь Героя ещё закрыт. Открой его за кристаллы, деньги или пригласи друга с этим даром.',
+          dar_code,
+          suggestions: accessGate.suggestions
+        });
+      }
+    }
+
     // ---- get_status: статус конкретного путешествия ----
     if (action === 'get_status') {
       const journey = await getHeroJourney(user.id, dar_code);
-      return res.json({ journey: journey || null });
+      const pricing = require('./_lib/pricing');
+      const gate = await pricing.canStartHeroJourney(user, dar_code, req);
+      return res.json({
+        journey: journey || null,
+        access: {
+          allowed: gate.allowed,
+          source: gate.source || null,
+          preview_only: !!gate.preview_only,
+          suggestions: gate.suggestions || null
+        }
+      });
     }
 
     // ---- start: начать или продолжить путешествие ----
@@ -418,6 +446,32 @@ module.exports = async (req, res) => {
               crystals_earned: (journey.crystals_earned || 0) + reward,
               completed_at: isJourneyComplete ? new Date().toISOString() : null
             });
+
+            // === HERO JOURNEY 2.0: PAYWALL ПОСЛЕ ПРЕВЬЮ ===
+            // Если у юзера превью-открытие (только 1-й шаг) — после завершения шага 1
+            // блокируем дальнейший прогресс, показываем paywall.
+            // Откатываем step обратно на 1 чтобы он не «висел» на 2.
+            if (accessGate && accessGate.preview_only && step === 1 && !isJourneyComplete) {
+              const pricingNs = require('./_lib/pricing');
+              const isRelative = await pricingNs.isDarInFamily(user.id, dar_code);
+              return res.json({
+                result: 'preview_complete_paywall',
+                victory_text: state.victory || 'Пробуждение пройдено! Открой полный Путь, чтобы идти дальше.',
+                reward,
+                new_balance: newBalance,
+                journey,
+                paywall: {
+                  reason: 'preview_only',
+                  message: 'Это превью-доступ. Чтобы пройти оставшиеся 6 шагов — доплати со скидкой 30% или подожди пока друг сделает любую покупку — тебе откроется автоматом.',
+                  options: {
+                    upgrade_crystals: pricingNs.HERO_JOURNEY_CRYSTAL_PRICES.upgrade,
+                    upgrade_addon_key: 'hero_journey_upgrade_preview',
+                    upgrade_addon: pricingNs.ADDONS.hero_journey_upgrade_preview,
+                    can_wait_for_friend: true
+                  }
+                }
+              });
+            }
 
             return res.json({
               result: isJourneyComplete ? 'journey_complete' : 'step_complete',

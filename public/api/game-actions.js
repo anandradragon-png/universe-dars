@@ -217,6 +217,32 @@ async function handleReferral(req, res) {
 
       await createReferral(referrer.id, user.id, new_user_dar_code, darUnlocked);
 
+      // === HERO JOURNEY 2.0: реферальное превью-открытие ===
+      // Если у реферера ещё нет открытия по этому дару — даём превью (только 1-й шаг)
+      try {
+        const { data: existingUnlock } = await db
+          .from('hero_journey_unlocks')
+          .select('id, is_preview_only')
+          .eq('user_id', referrer.id)
+          .eq('dar_code', new_user_dar_code)
+          .maybeSingle();
+
+        if (!existingUnlock) {
+          await db.from('hero_journey_unlocks').insert({
+            user_id: referrer.id,
+            dar_code: new_user_dar_code,
+            source: 'referral_preview',
+            is_preview_only: true,
+            source_metadata: { referred_user_id: user.id }
+          });
+          console.log('[referral] HJ preview unlocked for referrer', referrer.id, 'dar', new_user_dar_code);
+        }
+      } catch (e) {
+        if (!e.message || !e.message.includes('does not exist')) {
+          console.warn('[referral] HJ preview unlock failed:', e.message);
+        }
+      }
+
       // Пометить нового юзера, что он пришёл по реф-ссылке (для скидки 15% на 7 дней)
       try {
         await db.from('users').update({
@@ -335,6 +361,96 @@ async function handleTreasury(req, res) {
           crystals_spent: EXTRA_COST,
           total_crystals: newBalance,
           message: 'Дополнительная попытка добавлена! Лимит на сегодня увеличен на 1.'
+        });
+      }
+
+      if (action === 'unlock_hero_journey') {
+        // Покупка открытия Hero Journey за кристаллы.
+        // body: { dar_code, variant: 'full' | 'relative' | 'upgrade' }
+        //   full      — открыть чужой дар (300 💎)
+        //   relative  — открыть дар родственника со скидкой (150 💎)
+        //   upgrade   — доплатить после превью (200 💎)
+        const pricing = require('./_lib/pricing');
+        const targetDar = req.body.dar_code;
+        const variant = (req.body.variant || 'full').toString();
+        if (!targetDar) return res.status(400).json({ error: 'dar_code required' });
+        if (!['full', 'relative', 'upgrade'].includes(variant)) {
+          return res.status(400).json({ error: 'variant must be full/relative/upgrade' });
+        }
+
+        const cost = pricing.HERO_JOURNEY_CRYSTAL_PRICES[variant];
+        if (!cost) return res.status(400).json({ error: 'unknown variant' });
+
+        if ((user.crystals || 0) < cost) {
+          return res.status(400).json({
+            error: 'Not enough crystals',
+            need: cost,
+            have: user.crystals || 0
+          });
+        }
+
+        // Свой родной дар не имеет смысла покупать
+        if (user.dar_code === targetDar) {
+          return res.status(400).json({ error: 'Это твой родной дар — он уже открыт' });
+        }
+
+        // Для variant='relative' проверяем что дар реально у родственника
+        if (variant === 'relative') {
+          const inFamily = await pricing.isDarInFamily(user.id, targetDar);
+          // Для Странника (без Семьи) — проверяем через query-form (имя+дата → расчёт дара)
+          // здесь упрощённо: variant='relative' принимается на доверии при условии что дар не в Семье
+          // и юзер basic — потому что Странник не может добавить в Семью, ему даём скидку всё равно
+          // (см. memory project_hero_journey_unlock.md, вариант Б).
+          const tier = pricing.getEffectiveTier(user);
+          if (tier !== 'basic' && !inFamily) {
+            return res.status(400).json({
+              error: 'Этот дар не у родственника — выбери полное открытие (300 💎)'
+            });
+          }
+        }
+
+        const db = getSupabase();
+
+        // Для variant='upgrade' нужна существующая запись превью
+        if (variant === 'upgrade') {
+          const existing = await pricing.getHeroJourneyUnlock(user.id, targetDar);
+          if (!existing || !existing.is_preview_only) {
+            return res.status(400).json({
+              error: 'Нет активного превью этого дара. Используй full для полного открытия'
+            });
+          }
+          // Апгрейдим запись
+          await db.from('hero_journey_unlocks').update({
+            is_preview_only: false,
+            upgraded_at: new Date().toISOString(),
+            source: 'upgrade_paid'
+          }).eq('id', existing.id);
+        } else {
+          // Полное открытие (full или relative)
+          const sourceName = variant === 'relative' ? 'crystals_relative' : 'crystals';
+          // Upsert на случай если уже была запись (например превью + сразу решил купить полное)
+          await db.from('hero_journey_unlocks').upsert({
+            user_id: user.id,
+            dar_code: targetDar,
+            source: sourceName,
+            is_preview_only: false,
+            source_metadata: { variant, cost },
+            upgraded_at: new Date().toISOString()
+          }, { onConflict: 'user_id,dar_code' });
+        }
+
+        const newBalance = await addCrystals(user.id, -cost, 'hero_journey_unlock', {
+          dar_code: targetDar,
+          variant
+        });
+
+        return res.json({
+          success: true,
+          dar_code: targetDar,
+          variant,
+          crystals_spent: cost,
+          total_crystals: newBalance,
+          unlocked: true
         });
       }
 

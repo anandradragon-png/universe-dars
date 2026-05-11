@@ -140,13 +140,19 @@ async function applyBookPurchase({ userId, provider, amountPaid, currency, provi
     console.warn('[apply book] crystal_log failed:', e.message);
   }
 
+  // Реферальный апгрейд превью (если есть пригласивший с превью этого дара)
+  upgradeReferrerPreviewIfPaid(userId).catch(() => {});
+
   return { user_id: userId, book_purchased: true };
 }
 
 /**
  * Применить покупку add-on.
+ *
+ * Для Hero Journey add-ons (hero_journey_unlock*) дополнительно создаём/апгрейдим
+ * запись в hero_journey_unlocks. dar_code должен быть передан в metadata.
  */
-async function applyAddon({ userId, addonKey, provider, amountPaid, currency, providerMetadata }) {
+async function applyAddon({ userId, addonKey, provider, amountPaid, currency, providerMetadata, extraMetadata }) {
   const addon = pricing.ADDONS[addonKey];
   if (!addon) throw new Error('Unknown addon: ' + addonKey);
 
@@ -161,10 +167,62 @@ async function applyAddon({ userId, addonKey, provider, amountPaid, currency, pr
       addon_type: addonKey,
       expires_at: expiresAt ? expiresAt.toISOString() : null,
       consumed_at: null,
-      metadata: { amount_paid: amountPaid, currency, provider, providerMetadata: providerMetadata || null }
+      metadata: { amount_paid: amountPaid, currency, provider, providerMetadata: providerMetadata || null, ...(extraMetadata || {}) }
     });
   } catch (e) {
     console.warn('[apply addon] insert failed:', e.message);
+  }
+
+  // === Hero Journey unlock: создаём запись в hero_journey_unlocks ===
+  if (addonKey === 'hero_journey_unlock' ||
+      addonKey === 'hero_journey_unlock_relative' ||
+      addonKey === 'hero_journey_upgrade_preview') {
+    const darCode = (extraMetadata && extraMetadata.dar_code) || (providerMetadata && providerMetadata.dar_code);
+    if (darCode) {
+      try {
+        if (addonKey === 'hero_journey_upgrade_preview') {
+          // Апгрейд существующего превью до полного
+          const { data: existing } = await db
+            .from('hero_journey_unlocks')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('dar_code', darCode)
+            .maybeSingle();
+          if (existing) {
+            await db.from('hero_journey_unlocks').update({
+              is_preview_only: false,
+              source: 'upgrade_paid',
+              upgraded_at: new Date().toISOString()
+            }).eq('id', existing.id);
+          } else {
+            // Превью не было — создаём как полное
+            await db.from('hero_journey_unlocks').insert({
+              user_id: userId,
+              dar_code: darCode,
+              source: 'upgrade_paid',
+              is_preview_only: false,
+              source_metadata: { amount_paid: amountPaid, currency, provider }
+            });
+          }
+        } else {
+          // Новое полное открытие
+          const source = addonKey === 'hero_journey_unlock_relative' ? 'purchase_relative' : 'purchase';
+          await db.from('hero_journey_unlocks').upsert({
+            user_id: userId,
+            dar_code: darCode,
+            source,
+            is_preview_only: false,
+            source_metadata: { amount_paid: amountPaid, currency, provider, addon_key: addonKey },
+            upgraded_at: new Date().toISOString()
+          }, { onConflict: 'user_id,dar_code' });
+        }
+        console.log('[apply addon] HJ unlock applied:', userId, darCode, addonKey);
+      } catch (e) {
+        console.warn('[apply addon] HJ unlock failed:', e.message);
+      }
+    } else {
+      console.warn('[apply addon] HJ unlock requested but no dar_code in metadata');
+    }
   }
 
   // crystal_log — для платёжной аналитики
@@ -200,31 +258,121 @@ async function applyByMetadata({ userId, metadata, provider, amountPaid, currenc
   const paymentType = metadata.payment_type || metadata.payload_type;
   const productKey = metadata.product_key;
 
-  // Новая схема: plan / addon
+  const extraMetadata = {};
+  if (metadata.dar_code) extraMetadata.dar_code = metadata.dar_code;
+
+  let result = null;
+
   if (paymentType === 'plan' && productKey) {
-    return { kind: 'plan', result: await applySubscription({
+    result = { kind: 'plan', result: await applySubscription({
       userId, planKey: productKey, provider, amountPaid, currency, providerMetadata
     }) };
-  }
-  if (paymentType === 'addon' && productKey) {
-    return { kind: 'addon', result: await applyAddon({
-      userId, addonKey: productKey, provider, amountPaid, currency, providerMetadata
+  } else if (paymentType === 'addon' && productKey) {
+    result = { kind: 'addon', result: await applyAddon({
+      userId, addonKey: productKey, provider, amountPaid, currency, providerMetadata, extraMetadata
     }) };
-  }
-
-  // Старая схема: только Книга (для обратной совместимости)
-  if (paymentType === 'book') {
-    return { kind: 'book', result: await applyBookPurchase({
+  } else if (paymentType === 'book') {
+    result = { kind: 'book', result: await applyBookPurchase({
       userId, provider, amountPaid, currency, providerMetadata
     }) };
+  } else {
+    return { kind: null, error: 'unknown payment_type: ' + paymentType };
   }
 
-  return { kind: null, error: 'unknown payment_type: ' + paymentType };
+  // === После любой успешной покупки: апгрейд превью Hero Journey пригласившему ===
+  // (не блокируем основной поток, не ждём)
+  upgradeReferrerPreviewIfPaid(userId).catch(err =>
+    console.warn('[applyByMetadata] upgradeReferrerPreviewIfPaid failed:', err.message)
+  );
+
+  return result;
+}
+
+/**
+ * При успешной оплате (любой тариф/Книга/add-on) этого пользователя —
+ * если его кто-то пригласил, проверяем: у пригласившего есть превью
+ * по дару этого пользователя? Если да — апгрейдим до полного.
+ *
+ * Это даёт виральный эффект: «друг заплатил → тебе автоматом открылся
+ * полный Путь Героя по его дару».
+ */
+async function upgradeReferrerPreviewIfPaid(buyerUserId) {
+  try {
+    const db = getSupabase();
+
+    // Кто купил
+    const { data: buyer } = await db
+      .from('users')
+      .select('id, dar_code, first_name, username')
+      .eq('id', buyerUserId)
+      .single();
+    if (!buyer || !buyer.dar_code) return null;
+
+    // Кто пригласил
+    const { data: refRow } = await db
+      .from('referrals')
+      .select('referrer_id')
+      .eq('referred_id', buyerUserId)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (!refRow || !refRow.referrer_id) return null;
+
+    // У реферера есть превью по дару покупателя?
+    const { data: unlock } = await db
+      .from('hero_journey_unlocks')
+      .select('id, is_preview_only')
+      .eq('user_id', refRow.referrer_id)
+      .eq('dar_code', buyer.dar_code)
+      .maybeSingle();
+
+    if (unlock && unlock.is_preview_only) {
+      // Апгрейдим
+      await db.from('hero_journey_unlocks').update({
+        is_preview_only: false,
+        source: 'referral_full',
+        upgraded_at: new Date().toISOString(),
+        source_metadata: { referred_buyer_id: buyerUserId, upgraded_by: 'purchase' }
+      }).eq('id', unlock.id);
+
+      // Уведомление рефереру
+      try {
+        const { data: refUser } = await db
+          .from('users')
+          .select('telegram_id, first_name')
+          .eq('id', refRow.referrer_id)
+          .single();
+        const botToken = (process.env.BOT_TOKEN || '').trim();
+        if (refUser && refUser.telegram_id && botToken) {
+          const friendName = buyer.first_name || buyer.username || 'твой друг';
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: refUser.telegram_id,
+              text: `🎉 ${friendName} сделал(а) покупку!\n\nТебе автоматически открылся ПОЛНЫЙ Путь Героя по его дару (${buyer.dar_code}). Заходи в Путешествие Героя — теперь там доступны все 7 шагов 🗺`
+            })
+          });
+        }
+      } catch (e) {
+        console.warn('[upgrade referrer] notification failed:', e.message);
+      }
+
+      console.log('[upgrade referrer] HJ preview upgraded to full for referrer', refRow.referrer_id, 'dar', buyer.dar_code);
+      return { upgraded: true, referrer_id: refRow.referrer_id, dar_code: buyer.dar_code };
+    }
+    return null;
+  } catch (e) {
+    if (e && e.message && e.message.includes('does not exist')) return null;
+    console.warn('[upgrade referrer] failed:', e.message);
+    return null;
+  }
 }
 
 module.exports = {
   applySubscription,
   applyBookPurchase,
   applyAddon,
-  applyByMetadata
+  applyByMetadata,
+  upgradeReferrerPreviewIfPaid
 };

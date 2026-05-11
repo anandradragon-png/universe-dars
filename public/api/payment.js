@@ -511,10 +511,26 @@ module.exports = async (req, res) => {
         discount_applied: String(discount)
       };
 
+      // Для Hero Journey unlock add-ons — обязателен dar_code в body, кладём в metadata
+      const isHJAddon = kind === 'addon' && (
+        key === 'hero_journey_unlock' ||
+        key === 'hero_journey_unlock_relative' ||
+        key === 'hero_journey_upgrade_preview'
+      );
+      if (isHJAddon) {
+        const darCode = req.body.dar_code;
+        if (!darCode) {
+          return res.status(400).json({ error: 'Для этой покупки нужен dar_code в body' });
+        }
+        meta.dar_code = darCode;
+      }
+
       // === STARS ===
       if (provider === 'stars') {
         try {
-          const payload = `${kind}_${key}_${user.id}_${Date.now()}`;
+          // Для HJ unlock дополнительно кодируем dar_code в payload через "@"
+          const payloadSuffix = isHJAddon && meta.dar_code ? `@${meta.dar_code}` : '';
+          const payload = `${kind}_${key}_${user.id}_${Date.now()}${payloadSuffix}`;
           const invoiceUrl = await callTelegramAPI('createInvoiceLink', {
             title: label.slice(0, 32),
             description: description.slice(0, 255),

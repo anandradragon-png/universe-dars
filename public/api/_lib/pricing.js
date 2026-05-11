@@ -42,7 +42,20 @@ const BOOK_PRODUCT = {
 const ADDONS = {
   oracle_unlimited_7d:  { days: 7,    rub: 149, stars: 75,  usd: 1.49, darai: 40_000_000, label: 'Безлимит Оракула на 7 дней' },
   compatibility_pdf:    { days: null, rub: 249, stars: 125, usd: 2.49, darai: 40_000_000, label: 'Глубокая совместимость PDF' },
-  child_book_chapter:   { days: null, rub: 199, stars: 99,  usd: 1.99, darai: 40_000_000, label: '1 глава Книги для Родителей' }
+  child_book_chapter:   { days: null, rub: 199, stars: 99,  usd: 1.99, darai: 40_000_000, label: '1 глава Книги для Родителей' },
+
+  // === Hero Journey: открытие чужих даров ===
+  // dar_code и variant передаются в metadata при оплате.
+  hero_journey_unlock:           { days: null, rub: 99, stars: 50, usd: 0.99, darai: 5_000_000, label: 'Путешествие Героя по чужому дару' },
+  hero_journey_unlock_relative:  { days: null, rub: 49, stars: 25, usd: 0.49, darai: 2_500_000, label: 'Путешествие Героя по дару родственника' },
+  hero_journey_upgrade_preview:  { days: null, rub: 69, stars: 35, usd: 0.69, darai: 3_500_000, label: 'Полный Путь Героя после превью' }
+};
+
+// Стоимость открытия за кристаллы (отдельно — не платёжный поток)
+const HERO_JOURNEY_CRYSTAL_PRICES = {
+  full: 300,         // полное открытие чужого дара
+  relative: 150,     // дар родственника (-50%)
+  upgrade: 200       // доплата после превью (-33%)
 };
 
 // =====================================================================
@@ -386,6 +399,115 @@ function getDiaryInsightCadenceDays(user) {
 }
 
 // =====================================================================
+// HERO JOURNEY UNLOCK SYSTEM
+// =====================================================================
+
+/**
+ * Проверить, открыт ли дар у пользователя в hero_journey_unlocks.
+ * Возвращает запись или null.
+ */
+async function getHeroJourneyUnlock(userId, darCode) {
+  try {
+    const db = getSupabase();
+    const { data } = await db
+      .from('hero_journey_unlocks')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('dar_code', darCode)
+      .maybeSingle();
+    return data || null;
+  } catch (e) {
+    if (e.message && e.message.includes('does not exist')) return null;
+    console.warn('[pricing] getHeroJourneyUnlock failed:', e.message);
+    return null;
+  }
+}
+
+/**
+ * Проверить, является ли дар даром родственника из Семьи.
+ */
+async function isDarInFamily(userId, darCode) {
+  try {
+    const db = getSupabase();
+    const { data } = await db
+      .from('user_relatives')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('dar_code', darCode)
+      .limit(1);
+    return (data || []).length > 0;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Проверить, может ли юзер начать/продолжить Hero Journey по дару.
+ *
+ * Возвращает:
+ *   { allowed: true, source: '...', preview_only: bool }
+ *   или
+ *   { allowed: false, reason: 'locked', preview_only: false, suggestions: {...} }
+ *
+ * suggestions содержит цены на разные варианты открытия (для UI).
+ */
+async function canStartHeroJourney(user, darCode, req) {
+  if (!user || !user.id) return { allowed: false, reason: 'no_user' };
+  if (!darCode) return { allowed: false, reason: 'no_dar_code' };
+
+  // 1. Свой родной дар — всегда доступен
+  if (user.dar_code === darCode) {
+    return { allowed: true, source: 'own', preview_only: false };
+  }
+
+  // 2. Уже открыт в hero_journey_unlocks — используем сохранённый статус
+  const unlock = await getHeroJourneyUnlock(user.id, darCode);
+  if (unlock) {
+    return {
+      allowed: true,
+      source: unlock.source,
+      preview_only: !!unlock.is_preview_only,
+      unlock_id: unlock.id
+    };
+  }
+
+  // 3. Мастер (premium) — безлимит на ВСЕ дары
+  const tier = req ? getEffectiveTierWithSimulation(user, req) : getEffectiveTier(user);
+  if (tier === 'premium') {
+    return { allowed: true, source: 'subscription', preview_only: false };
+  }
+
+  // 4. Хранитель + дар родственника из Семьи
+  if (tier === 'extended' && await isDarInFamily(user.id, darCode)) {
+    return { allowed: true, source: 'relative', preview_only: false };
+  }
+
+  // 5. Не открыт — возвращаем варианты покупки
+  const isRelative = await isDarInFamily(user.id, darCode);
+  return {
+    allowed: false,
+    reason: 'locked',
+    preview_only: false,
+    suggestions: {
+      is_relative: isRelative,
+      crystals: isRelative ? HERO_JOURNEY_CRYSTAL_PRICES.relative : HERO_JOURNEY_CRYSTAL_PRICES.full,
+      addon_key: isRelative ? 'hero_journey_unlock_relative' : 'hero_journey_unlock',
+      addon: isRelative ? ADDONS.hero_journey_unlock_relative : ADDONS.hero_journey_unlock,
+      can_invite_friend: !isRelative // для чужого дара можно пригласить друга
+    }
+  };
+}
+
+/**
+ * Может ли юзер продолжить за пределы 1-го шага?
+ * Если у него превью — нужна доплата.
+ */
+function canAdvancePastPreview(unlockRecord) {
+  if (!unlockRecord) return false;
+  return !unlockRecord.is_preview_only;
+}
+
+// =====================================================================
 // ЭКСПОРТ
 // =====================================================================
 
@@ -394,6 +516,7 @@ module.exports = {
   BOOK_PRODUCT,
   ADDONS,
   LIMITS,
+  HERO_JOURNEY_CRYSTAL_PRICES,
   getEffectiveTier,
   getEffectiveTierWithSimulation,
   getLimits,
@@ -407,6 +530,11 @@ module.exports = {
   // Compatibility
   canCheckCompatibility,
   trackCompatibilityUsage,
+  // Hero Journey unlock
+  getHeroJourneyUnlock,
+  isDarInFamily,
+  canStartHeroJourney,
+  canAdvancePastPreview,
   // Other gates
   canOpenForeignDar,
   canReadFullBook,

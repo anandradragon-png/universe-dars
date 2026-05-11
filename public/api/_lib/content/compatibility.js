@@ -6,6 +6,9 @@ const deepseek = require('../deepseek');
 const Groq = require('groq-sdk');
 const fs = require('fs');
 const path = require('path');
+const pricing = require('../pricing');
+const { getUser } = require('../auth');
+const { getOrCreateUser } = require('../db');
 
 let darContent = {};
 try {
@@ -42,6 +45,29 @@ module.exports = async (req, res) => {
 
     if (!dar_code_1 || !dar_code_2) {
       return res.status(400).json({ error: 'dar_code_1 и dar_code_2 обязательны' });
+    }
+
+    // === Проверка лимита совместимости по тарифу ===
+    let dbUser = null;
+    try {
+      const tgUser = getUser(req);
+      if (tgUser && tgUser.id) dbUser = await getOrCreateUser(tgUser);
+    } catch (e) {}
+
+    if (dbUser) {
+      const gate = await pricing.canCheckCompatibility(dbUser, req);
+      if (!gate.allowed) {
+        const tier = pricing.getEffectiveTierWithSimulation(dbUser, req);
+        const msg = tier === 'basic'
+          ? 'Бесплатная проверка совместимости уже использована. Открой Хранителя — там 5 в месяц.'
+          : 'Лимит проверок совместимости в этом месяце исчерпан (' + gate.limit + '). Открой Мастера для безлимита.';
+        return res.status(403).json({
+          error: 'compatibility_limit_reached',
+          message: msg,
+          used: gate.used,
+          limit: gate.limit
+        });
+      }
     }
 
     const dar1 = darContent[dar_code_1] || {};
@@ -160,6 +186,13 @@ module.exports = async (req, res) => {
     }
 
     const clean = (s) => String(s || '').replace(/\u2014/g, '-').replace(/\u2013/g, '-').replace(/\u2026/g, '...').trim();
+
+    // Учёт использования совместимости в лимите тарифа
+    if (dbUser) {
+      pricing.trackCompatibilityUsage(dbUser.id).catch(err =>
+        console.warn('[compatibility] trackCompatibilityUsage failed:', err.message)
+      );
+    }
 
     return res.status(200).json({
       dar_code_1,

@@ -16,6 +16,7 @@ const path = require('path');
 const crypto = require('crypto');
 const deepseek = require('./_lib/deepseek');
 const { getSupabase, getOrCreateUser } = require('./_lib/db');
+const pricing = require('./_lib/pricing');
 const { getUser, requireUser } = require('./_lib/auth');
 
 // ===== Общие загрузки =====
@@ -334,17 +335,35 @@ async function handleOracle(req, res) {
   if (!dar_code) { res.status(400).json({ error: 'dar_code required' }); return; }
 
   let userId = null;
+  let dbUser = null;
   try {
     const tgUser = getUser(req);
     if (tgUser && tgUser.id) {
-      const user = await getOrCreateUser(tgUser);
-      userId = user.id;
+      dbUser = await getOrCreateUser(tgUser);
+      userId = dbUser.id;
     }
   } catch (e) {}
 
+  // 1. Сначала — кэш (кэшированный ответ не съедает лимит)
   if (userId && mode !== 'card') {
     const cached = await getOracleCache(userId, dar_code, mode, relative_id || null);
     if (cached) return res.status(200).json(cached);
+  }
+
+  // 2. Проверка дневного лимита Оракула по тарифу.
+  // Лимит применяется только к НОВЫМ генерациям (не к кэшу). Режим 'card' тоже считаем,
+  // так как это полноценная AI-генерация. Если юзер не авторизован — пропускаем (бэк
+  // не падает, но фронт обычно не позволяет дойти сюда без авторизации).
+  if (userId && dbUser) {
+    const gate = await pricing.canUseOracle(dbUser, req);
+    if (!gate.allowed) {
+      return res.status(403).json({
+        error: 'oracle_limit_reached',
+        message: 'Ты исчерпал дневной лимит Оракула на тарифе «' + (dbUser.access_level || 'Странник') + '». Возвращайся завтра или открой больше через Хранителя.',
+        limit: gate.limit,
+        used: gate.used
+      });
+    }
   }
 
   const intInfo = INTEGRATORS[dar_code];
@@ -594,6 +613,13 @@ ${genderBlock}
 
     if (userId && mode !== 'card') {
       saveOracleCache(userId, dar_code, mode, parsed, relative_id || null, user_query || null);
+    }
+
+    // Учёт лимита: только новая генерация (не кэш), только если юзер авторизован
+    if (userId) {
+      pricing.trackOracleUsage(userId).catch(err =>
+        console.warn('[oracle] trackOracleUsage failed:', err.message)
+      );
     }
 
     res.status(200).json(parsed);

@@ -102,6 +102,59 @@ async function handleBotWebhook(req, res) {
       const payload = payment.invoice_payload || '';
       const db = getSupabase();
 
+      // === НОВАЯ СХЕМА: plan_* / addon_* (с 11.05.2026) ===
+      // payload формата: 'plan_guardian_1m_42_1746967200000' или 'addon_oracle_unlimited_7d_42_..'
+      // Структура: kind_planKey_userId_timestamp где planKey может содержать "_"
+      if (payload.startsWith('plan_') || payload.startsWith('addon_')) {
+        try {
+          const apply = require('./_lib/subscription_apply');
+          const parts = payload.split('_');
+          const kind = parts[0]; // 'plan' | 'addon'
+          // Последние 2 элемента = userId, timestamp. Между kind и userId — productKey
+          const productKey = parts.slice(1, -2).join('_');
+          const userId = parseInt(parts[parts.length - 2], 10);
+
+          if (!userId || !productKey) {
+            console.error('[bot-webhook] bad new-schema payload:', payload);
+            return res.status(200).end();
+          }
+
+          const meta = {
+            payment_type: kind,
+            product_key: productKey
+          };
+          const result = await apply.applyByMetadata({
+            userId,
+            metadata: meta,
+            provider: 'stars',
+            amountPaid: payment.total_amount,
+            currency: payment.currency,
+            providerMetadata: {
+              payload,
+              telegram_payment_charge_id: payment.telegram_payment_charge_id
+            }
+          });
+
+          console.log('[bot-webhook] applied (new schema):', result);
+
+          // Уведомление юзеру
+          try {
+            const successMsg = result.kind === 'plan'
+              ? `🎉 Подписка активирована!\n\nТариф: ${result.result.new_level === 'premium' ? 'Мастер 👑' : 'Хранитель 🛡'}\nДействует до: ${new Date(result.result.ends_at).toLocaleDateString('ru-RU')}\n\nОткрой приложение чтобы воспользоваться. 💜`
+              : `🎉 Покупка применена!\n\n${productKey}\n\nОткрой приложение чтобы воспользоваться.`;
+            await callTelegramAPI('sendMessage', {
+              chat_id: telegramId,
+              text: successMsg
+            });
+          } catch (e) {}
+
+          return res.status(200).end();
+        } catch (e) {
+          console.error('[bot-webhook] new-schema apply failed:', e.message);
+          // Не падаем — продолжаем со старой логикой ниже на случай если это всё-таки старый payload
+        }
+      }
+
       if (payload.startsWith('book_full_access_')) {
         // ===== ПОКУПКА: Полный доступ к Книге + уровень Хранитель =====
         try {
@@ -515,6 +568,43 @@ async function handleYuppayWebhook(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // === НОВАЯ СХЕМА: plan_* / addon_* (с 11.05.2026) ===
+    if (paymentType === 'plan' || paymentType === 'addon') {
+      try {
+        const apply = require('./_lib/subscription_apply');
+        const result = await apply.applyByMetadata({
+          userId: user.id,
+          metadata,
+          provider: 'darai',
+          amountPaid: 0,
+          currency: 'DARAI',
+          providerMetadata: {
+            invoice_id: data.invoice_id,
+            amount_raw: data.amount_raw,
+            settlement_tx: data.settlement_tx_hash
+          }
+        });
+        console.log('[yuppay-webhook] applied (new schema):', result);
+
+        try {
+          const botToken = (process.env.BOT_TOKEN || '').trim();
+          if (botToken && telegramChatId) {
+            const msg = result.kind === 'plan'
+              ? `🎉 Подписка через DarAI активирована!\n\nТариф: ${result.result.new_level === 'premium' ? 'Мастер 👑' : 'Хранитель 🛡'}\nДействует до: ${new Date(result.result.ends_at).toLocaleDateString('ru-RU')}`
+              : `🎉 Покупка через DarAI применена: ${metadata.product_key}`;
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: telegramChatId, text: msg })
+            });
+          }
+        } catch (e) {}
+        return res.status(200).json({ ok: true });
+      } catch (e) {
+        console.error('[yuppay-webhook] new-schema apply failed:', e.message);
+      }
+    }
+
     if (paymentType === 'book') {
       // Апгрейд на Хранитель
       const newLevel = user.access_level === 'premium' ? 'premium' : 'extended';
@@ -718,6 +808,36 @@ async function handleYookassaWebhook(req, res) {
     // chat_id для отправки сообщения в Telegram. Если оплата пришла из Mini App —
     // metadata.telegram_id уже валидирован. Если найден по username/email — берём из user.telegram_id.
     const tgChatId = telegramId || (user.telegram_id ? String(user.telegram_id) : '');
+
+    // === НОВАЯ СХЕМА: plan_* / addon_* (с 11.05.2026) ===
+    if (paymentType === 'plan' || paymentType === 'addon') {
+      try {
+        const apply = require('./_lib/subscription_apply');
+        const result = await apply.applyByMetadata({
+          userId: user.id,
+          metadata,
+          provider: 'yookassa',
+          amountPaid: parseFloat(amountValue) || 0,
+          currency: 'RUB',
+          providerMetadata: { yookassa_payment_id: obj.id, email: userEmail }
+        });
+        console.log('[yookassa-webhook] applied (new schema):', result);
+
+        // Уведомление в Telegram
+        if (tgChatId) {
+          try {
+            const msg = result.kind === 'plan'
+              ? `🎉 Подписка активирована!\n\nТариф: ${result.result.new_level === 'premium' ? 'Мастер 👑' : 'Хранитель 🛡'}\nДействует до: ${new Date(result.result.ends_at).toLocaleDateString('ru-RU')}\n\nОткрой YupDar чтобы воспользоваться. 💜`
+              : `🎉 Покупка применена: ${metadata.product_key}\n\nОткрой YupDar.`;
+            await callTelegramAPI('sendMessage', { chat_id: tgChatId, text: msg });
+          } catch (e) {}
+        }
+        return res.status(200).json({ ok: true });
+      } catch (e) {
+        console.error('[yookassa-webhook] new-schema apply failed:', e.message);
+        // Не падаем — продолжим по старой логике ниже
+      }
+    }
 
     if (paymentType === 'book') {
       // Апгрейд на Хранитель

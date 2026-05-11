@@ -541,6 +541,7 @@
         <button onclick="changeBirthDateFromProfile()" style="width:100%;margin-top:8px;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.35);background:rgba(212,175,55,0.06);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#128197; Изменить дату рождения</button>
         <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px">
           <div id="profile-level-info"></div>
+          <button onclick="openPricing()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;letter-spacing:0.5px">&#128737; Тарифы</button>
           <div id="profile-promo-section" style="margin-top:8px">
             <div id="profile-promo-input-wrap" style="display:none">
               <input id="profile-promo-input" type="text" placeholder="Введи промо-код" style="width:100%;padding:10px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;text-align:center;outline:none;font-family:Manrope,sans-serif;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">
@@ -1212,6 +1213,7 @@
 
   <!-- Игровые модули -->
   <script src="js/api-client.js?v=2"></script>
+  <script src="js/upgrade-modal.js?v=1"></script>
   <script src="js/crystals.js?v=2"></script>
   <script src="js/treasury.js?v=10"></script>
   <script src="js/referral.js?v=2"></script>
@@ -5366,6 +5368,12 @@
       // Открываем админку в том же Telegram WebApp — initData передастся в headers,
       // requireAdmin на сервере проверит is_admin = TRUE в БД.
       window.location.href = '/admin/';
+    }
+
+    function openPricing() {
+      // Страница тарифов открывается в том же WebApp.
+      // На странице есть кнопка "← Назад", которая возвращает на главную.
+      window.location.href = '/pricing.html';
     }
 
     async function openAdminFeedback() {

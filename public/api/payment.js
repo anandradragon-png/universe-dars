@@ -12,6 +12,7 @@
 
 const { requireUser } = require('./_lib/auth');
 const { getOrCreateUser } = require('./_lib/db');
+const pricing = require('./_lib/pricing');
 
 // YupPay (DarAI/NEAR) - Supabase Edge Function
 const YUPPAY_API_URL = 'https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api';
@@ -451,6 +452,194 @@ module.exports = async (req, res) => {
       } catch (e) {
         console.error('[payment] YooKassa donation error:', e.message);
         return res.status(500).json({ error: 'Не удалось создать платёж: ' + e.message });
+      }
+    }
+
+    // =====================================================================
+    // ============== НОВЫЕ ACTIONS ДЛЯ ПОДПИСОК И ADD-ONS (11.05.2026) =====
+    // =====================================================================
+    //
+    // Все три провайдера (stars/yookassa/darai) принимают один body:
+    //   { action, kind: 'plan'|'addon', key: 'guardian_1m'|'oracle_unlimited_7d'|..., provider, email? }
+    //
+    // Применение скидки -50% (промо первого месяца) делается на сервере, чтобы
+    // юзер не мог подсунуть свою цену.
+
+    if (action === 'create_subscription' || action === 'create_addon') {
+      const kind = req.body.kind || (action === 'create_subscription' ? 'plan' : 'addon');
+      const key = req.body.key;
+      const provider = (req.body.provider || 'yookassa').toLowerCase();
+
+      if (!key) return res.status(400).json({ error: 'key обязателен' });
+      if (!['stars', 'yookassa', 'darai'].includes(provider)) {
+        return res.status(400).json({ error: 'provider должен быть stars, yookassa или darai' });
+      }
+      if (!user || !user.id) {
+        return res.status(401).json({ error: 'Чтобы купить тариф или add-on, войди через Telegram' });
+      }
+
+      // Найти цену
+      const product = kind === 'plan' ? pricing.PLANS[key] : pricing.ADDONS[key];
+      if (!product) {
+        return res.status(400).json({ error: 'Неизвестный тариф или add-on: ' + key });
+      }
+
+      // Промо: -50% если это первая покупка юзера И это plan (промо НЕ на add-ons и Книгу)
+      const isFirstPurchasePromo = kind === 'plan' && !user.first_purchase_at;
+      const discount = isFirstPurchasePromo ? 0.5 : 1.0;
+
+      // Подсчитать цену в нужной валюте с учётом скидки
+      const priceRub = Math.round(product.rub * discount);
+      const priceStars = Math.round(product.stars * discount);
+      const priceUsd = Math.round(product.usd * discount * 100) / 100;
+      const priceDarai = product.darai; // DarAI фиксирована, без скидки
+
+      // Описание
+      const label = product.label || (kind === 'plan' ? 'Подписка YupDar' : 'Покупка YupDar');
+      const description = isFirstPurchasePromo ? `${label} (промо: -50% на первый месяц)` : label;
+
+      // Метаданные для webhook
+      const meta = {
+        payment_type: kind,           // 'plan' | 'addon'
+        product_key: key,             // 'guardian_1m' | 'oracle_unlimited_7d' | ...
+        plan_days: product.days || null,
+        user_id: String(user.id),
+        telegram_id: String(telegramId || ''),
+        provider,
+        first_purchase_promo: isFirstPurchasePromo ? '1' : '0',
+        original_rub: String(product.rub),
+        discount_applied: String(discount)
+      };
+
+      // === STARS ===
+      if (provider === 'stars') {
+        try {
+          const payload = `${kind}_${key}_${user.id}_${Date.now()}`;
+          const invoiceUrl = await callTelegramAPI('createInvoiceLink', {
+            title: label.slice(0, 32),
+            description: description.slice(0, 255),
+            payload,
+            currency: 'XTR',
+            prices: [{ label: label.slice(0, 32), amount: priceStars }]
+          });
+          return res.json({
+            invoice_url: invoiceUrl,
+            price: priceStars,
+            currency: 'XTR',
+            promo_applied: isFirstPurchasePromo
+          });
+        } catch (e) {
+          console.error('[payment] subscription stars error:', e.message);
+          return res.status(500).json({ error: 'Не удалось создать счёт Stars: ' + e.message });
+        }
+      }
+
+      // === YOOKASSA ===
+      if (provider === 'yookassa') {
+        const yooShopId = (process.env.YOOKASSA_SHOP_ID || '').trim();
+        const yooSecret = (process.env.YOOKASSA_SECRET_KEY || '').trim();
+        if (!yooShopId || !yooSecret) {
+          return res.status(503).json({ error: 'Оплата картой временно недоступна. Попробуй Stars или DarAI.' });
+        }
+
+        const idempotenceKey = `${kind}_${key}_${user.id}_${Date.now()}`;
+        const auth = Buffer.from(`${yooShopId}:${yooSecret}`).toString('base64');
+        const amountValue = `${priceRub}.00`;
+        const userEmail = String(req.body.email || '').trim().toLowerCase();
+
+        const receiptBlock = userEmail ? {
+          receipt: {
+            customer: { email: userEmail },
+            items: [{
+              description: description.slice(0, 128),
+              quantity: '1.00',
+              amount: { value: amountValue, currency: 'RUB' },
+              vat_code: 1,
+              payment_subject: 'service',
+              payment_mode: 'full_payment'
+            }]
+          }
+        } : {};
+
+        try {
+          const resp = await fetch('https://api.yookassa.ru/v3/payments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Basic ${auth}`,
+              'Idempotence-Key': idempotenceKey
+            },
+            body: JSON.stringify({
+              amount: { value: amountValue, currency: 'RUB' },
+              confirmation: { type: 'redirect', return_url: 'https://t.me/YupDarBot' },
+              capture: true,
+              description,
+              ...receiptBlock,
+              metadata: { ...meta, email: userEmail }
+            })
+          });
+          const respText = await resp.text();
+          let data; try { data = JSON.parse(respText); } catch { data = {}; }
+          if (!resp.ok) {
+            console.error('[payment] yookassa subscription failed:', resp.status, respText);
+            return res.status(502).json({ error: data.description || 'Не удалось создать платёж' });
+          }
+          const confirmUrl = data.confirmation && data.confirmation.confirmation_url;
+          if (!confirmUrl) return res.status(502).json({ error: 'ЮKassa не вернула ссылку' });
+          return res.json({
+            invoice_url: confirmUrl,
+            payment_id: data.id,
+            price: priceRub,
+            currency: 'RUB',
+            promo_applied: isFirstPurchasePromo
+          });
+        } catch (e) {
+          console.error('[payment] yookassa subscription threw:', e.message);
+          return res.status(500).json({ error: 'Не удалось создать платёж: ' + e.message });
+        }
+      }
+
+      // === DARAI ===
+      if (provider === 'darai') {
+        const yuppayKey = (process.env.YUPPAY_API_KEY || '').trim();
+        if (!yuppayKey) {
+          return res.status(503).json({ error: 'Оплата в DarAI временно недоступна' });
+        }
+        // DarAI цена фиксирована и в base units (×10^18 для NEP-141)
+        const amountRaw = String(priceDarai) + '000000000000000000';
+        try {
+          const resp = await fetch(YUPPAY_API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': YUPPAY_ANON_KEY,
+              'Authorization': 'Bearer ' + YUPPAY_ANON_KEY,
+              'x-yuppay-api-key': yuppayKey
+            },
+            body: JSON.stringify({
+              action: 'create_invoice',
+              token_contract_id: 'darai.tkn.near',
+              amount_raw: amountRaw,
+              metadata: { ...meta, return_url: 'https://t.me/YupDarBot' }
+            })
+          });
+          const respText = await resp.text();
+          let data; try { data = JSON.parse(respText); } catch { data = {}; }
+          if (!resp.ok || (!data.ok && !data.pay_tg_url && !data.pay_url)) {
+            console.error('[payment] darai subscription failed:', resp.status, respText);
+            return res.status(500).json({ error: data.error || data.message || 'YupPay error' });
+          }
+          return res.json({
+            invoice_url: data.pay_url,
+            invoice_tg_url: data.pay_tg_url || (data.links && data.links.telegram_mini_app),
+            price: `${(priceDarai / 1_000_000).toFixed(0)}M DarAI`,
+            currency: 'DARAI',
+            promo_applied: false // на DarAI промо не действует — цена фиксирована
+          });
+        } catch (e) {
+          console.error('[payment] darai subscription threw:', e.message);
+          return res.status(500).json({ error: 'Не удалось создать платёж DarAI: ' + e.message });
+        }
       }
     }
 

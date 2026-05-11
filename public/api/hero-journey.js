@@ -356,7 +356,39 @@ module.exports = async (req, res) => {
               rewardType = step === 1 ? 'hero_awakening' : step === 7 ? 'hero_journey_complete' : 'hero_step_complete';
               reward = getReward(rewardType, user.access_level);
             }
-            const newBalance = await addCrystals(user.id, reward, rewardType, { dar_code, step });
+
+            // === Anti-farm: не выдавать кристаллы повторно за уже пройденный шаг ===
+            // Проверяем crystal_log: была ли уже запись с тем же reason+dar_code+step.
+            const alreadyPaid = await (async () => {
+              try {
+                const { getSupabase } = require('./_lib/db');
+                const db = getSupabase();
+                const { data } = await db
+                  .from('crystal_log')
+                  .select('id')
+                  .eq('user_id', user.id)
+                  .eq('reason', rewardType)
+                  .eq('metadata->>dar_code', dar_code)
+                  .eq('metadata->>step', String(step))
+                  .limit(1);
+                return (data && data.length > 0);
+              } catch (e) {
+                console.warn('[hero] anti-farm check failed:', e.message);
+                return false;
+              }
+            })();
+
+            let newBalance;
+            if (alreadyPaid) {
+              // Шаг уже был оплачен ранее — не начисляем повторно
+              reward = 0;
+              const { getSupabase } = require('./_lib/db');
+              const { data: u } = await getSupabase().from('users').select('crystals').eq('id', user.id).single();
+              newBalance = u?.crystals || 0;
+              console.log('[hero] anti-farm: skipped reward for step', step, 'dar', dar_code, '(already paid)');
+            } else {
+              newBalance = await addCrystals(user.id, reward, rewardType, { dar_code, step });
+            }
 
             const completedSteps = [...(journey.completed_steps || [])];
             if (!completedSteps.includes(step)) completedSteps.push(step);
@@ -459,8 +491,29 @@ module.exports = async (req, res) => {
           let newBalance = user.crystals;
 
           if (heroWon) {
-            reward = getReward('hero_shadow_battle', user.access_level);
-            newBalance = await addCrystals(user.id, reward, 'hero_shadow_battle', { dar_code, step });
+            // Anti-farm: не выдавать повторно если за этот dar_code+step уже была награда
+            const alreadyPaid = await (async () => {
+              try {
+                const { getSupabase } = require('./_lib/db');
+                const db = getSupabase();
+                const { data } = await db
+                  .from('crystal_log')
+                  .select('id')
+                  .eq('user_id', user.id)
+                  .eq('reason', 'hero_shadow_battle')
+                  .eq('metadata->>dar_code', dar_code)
+                  .eq('metadata->>step', String(step))
+                  .limit(1);
+                return (data && data.length > 0);
+              } catch (e) { return false; }
+            })();
+
+            if (!alreadyPaid) {
+              reward = getReward('hero_shadow_battle', user.access_level);
+              newBalance = await addCrystals(user.id, reward, 'hero_shadow_battle', { dar_code, step });
+            } else {
+              console.log('[hero] anti-farm: skipped shadow battle reward for', dar_code, 'step', step);
+            }
           }
 
           const completedSteps = [...(journey.completed_steps || [])];

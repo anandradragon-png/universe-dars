@@ -523,15 +523,74 @@
       });
     }
 
-    function onBuy(kind, key) {
-      // Этап 4 — интеграция платежей. Пока заглушка.
-      const msg = kind === 'plan'
-        ? 'Скоро откроется оплата тарифа: ' + key
-        : kind === 'book'
-        ? 'Скоро откроется оплата Книги Даров'
-        : 'Скоро откроется оплата: ' + key;
-      if (tg && tg.showAlert) tg.showAlert(msg);
-      else alert(msg);
+    async function onBuy(kind, key) {
+      // Выбор провайдера: упрощённо по текущей валюте UI
+      const providerByCurrency = {
+        rub: 'yookassa',
+        stars: 'stars',
+        usd: 'stars',     // для USD пока тоже Stars (через перерасчёт)
+        darai: 'darai'
+      };
+      const provider = providerByCurrency[UI.currency] || 'stars';
+
+      // Если ЮKassa и юзер не привязан к Telegram (web) — спросим email для чека
+      let email = null;
+      if (provider === 'yookassa' && (!tg || !tg.initDataUnsafe?.user?.id)) {
+        email = prompt('Введи email для чека ЮKassa:');
+        if (!email) return;
+      }
+
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
+
+        let body;
+        if (kind === 'plan') {
+          body = { action: 'create_subscription', kind: 'plan', key, provider, email };
+        } else if (kind === 'addon') {
+          body = { action: 'create_addon', kind: 'addon', key, provider, email };
+        } else if (kind === 'book') {
+          // Старая ручка остаётся — Книга через book_invoice / yookassa_book / darai_book
+          if (provider === 'yookassa') body = { action: 'create_yookassa_book', email };
+          else if (provider === 'darai') body = { action: 'create_darai_book_invoice' };
+          else body = { action: 'create_book_invoice' };
+        }
+
+        const r = await fetch('/api/payment', {
+          method: 'POST', headers, body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if (!r.ok) {
+          const msg = 'Ошибка: ' + (j.error || r.status);
+          if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
+          return;
+        }
+
+        // Открываем оплату
+        if (provider === 'stars' && j.invoice_url) {
+          if (tg && tg.openInvoice) {
+            tg.openInvoice(j.invoice_url, (status) => {
+              if (status === 'paid') {
+                if (tg.showAlert) tg.showAlert('Оплата прошла! Обновляю…');
+                setTimeout(() => location.reload(), 1500);
+              } else if (status === 'failed') {
+                if (tg.showAlert) tg.showAlert('Оплата не прошла');
+              }
+            });
+          } else {
+            window.open(j.invoice_url, '_blank');
+          }
+        } else if (j.invoice_url) {
+          // ЮKassa / DarAI — открываем редирект
+          if (tg && tg.openLink) tg.openLink(j.invoice_url);
+          else window.open(j.invoice_url, '_blank');
+        } else {
+          alert('Не удалось получить ссылку на оплату');
+        }
+      } catch (e) {
+        const msg = 'Ошибка соединения: ' + e.message;
+        if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
+      }
     }
 
     (async () => {

@@ -43,7 +43,9 @@
     "subhead": "Ingresa tu fecha de nacimiento y recibe un mensaje sobre tu naturaleza, tu fuerza y tu camino",
     "date_placeholder": "DD.MM.AAAA",
     "calculate_btn": "Calcular mi DAR",
-    "calculating": "Calculando…"
+    "calculating": "Calculando…",
+    "err_format": "Ingresa la fecha como DD.MM.AAAA",
+    "err_invalid": "Revisa la fecha"
   },
 
   "dar": {

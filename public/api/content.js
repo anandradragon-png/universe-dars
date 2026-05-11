@@ -355,7 +355,7 @@ async function handleOracle(req, res) {
   // так как это полноценная AI-генерация. Если юзер не авторизован — пропускаем (бэк
   // не падает, но фронт обычно не позволяет дойти сюда без авторизации).
   if (userId && dbUser) {
-    const gate = await pricing.canUseOracle(dbUser);
+    const gate = await pricing.canUseOracle(dbUser, req);
     if (!gate.allowed) {
       return res.status(403).json({
         error: 'oracle_limit_reached',

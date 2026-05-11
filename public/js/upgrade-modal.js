@@ -129,6 +129,17 @@ window.UpgradeModal = (function() {
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
     const _origFetch = window.fetch.bind(window);
     window.fetch = async function(input, init) {
+      // === Симуляция тарифа для админа ===
+      // Если в localStorage есть _simulate_tier, прокидываем header во все запросы.
+      // Сервер увидит его только если у юзера is_admin=TRUE (см. pricing.getEffectiveTierWithSimulation).
+      try {
+        const simTier = localStorage.getItem('_simulate_tier');
+        if (simTier) {
+          init = init || {};
+          init.headers = { ...(init.headers || {}), 'x-admin-simulate-tier': simTier };
+        }
+      } catch (e) {}
+
       const resp = await _origFetch(input, init);
       // Клонируем для безопасного чтения без потери оригинального response
       if (resp.status === 403) {

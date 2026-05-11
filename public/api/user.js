@@ -357,8 +357,8 @@ async function handleRelatives(req, res) {
     const db = getSupabase();
     const user = await getOrCreateUser(tgUser);
     // Эффективный тариф = с учётом subscription_end (если истекла — basic)
-    const effectiveTier = pricing.getEffectiveTier(user);
-    const slotLimit = pricing.getLimits(user).family_slots;
+    const effectiveTier = pricing.getEffectiveTierWithSimulation(user, req);
+    const slotLimit = pricing.getLimits(user, req).family_slots;
     const accessLevel = effectiveTier;
 
     // ========== GET: список близких + лимиты ==========

@@ -222,6 +222,15 @@
       <h1>🛡 YupDar — Админ-панель</h1>
       <div class="sub" id="adminInfo">Проверяю доступ…</div>
     </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+      <label style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px">🧪 Симулировать тариф</label>
+      <select id="simulateTier" style="background:#0f0f14;color:#D4AF37;border:1px solid rgba(212,175,55,0.4);padding:5px 8px;border-radius:6px;font-size:11px;font-family:inherit;cursor:pointer">
+        <option value="">— реальный тариф —</option>
+        <option value="basic">🌍 Странник</option>
+        <option value="extended">🛡 Хранитель</option>
+        <option value="premium">👑 Мастер</option>
+      </select>
+    </div>
   </header>
 
   <nav class="tabs" id="tabs" style="display:none">
@@ -412,6 +421,38 @@
       }
       return data;
     }
+
+    // === Симуляция тарифа: для админа ставит header x-admin-simulate-tier
+    //     ВО ВСЕ запросы во всём приложении (не только в админке).
+    //     Сохраняется в localStorage и доезжает до /api/oracle, /api/relatives и т.д.
+    (function setupTierSimulation() {
+      const select = document.getElementById('simulateTier');
+      const stored = localStorage.getItem('_simulate_tier') || '';
+      select.value = stored;
+      applySimulationToFetch(stored);
+
+      select.addEventListener('change', () => {
+        const val = select.value;
+        if (val) localStorage.setItem('_simulate_tier', val);
+        else localStorage.removeItem('_simulate_tier');
+        applySimulationToFetch(val);
+        // Перезагрузим текущий экран чтобы свежие лимиты применились
+        location.reload();
+      });
+
+      function applySimulationToFetch(tier) {
+        // Глобально патчим fetch, чтобы во все запросы летел header.
+        // Сохраняем оригинал чтобы не нагромождать обёрток.
+        if (!window._origFetchForSim) window._origFetchForSim = window.fetch;
+        const orig = window._origFetchForSim;
+        window.fetch = function(input, init = {}) {
+          init = { ...init, headers: { ...(init.headers || {}) } };
+          if (tier) init.headers['x-admin-simulate-tier'] = tier;
+          else delete init.headers['x-admin-simulate-tier'];
+          return orig.call(this, input, init);
+        };
+      }
+    })();
 
     // === Tab switching ===
     document.getElementById('tabs').addEventListener('click', (e) => {

@@ -113,10 +113,30 @@ function getEffectiveTier(user) {
 }
 
 /**
- * Получить лимиты для пользователя.
+ * Эффективный тариф С УЧЁТОМ «симуляции» админом.
+ * Если в req-объекте есть header x-admin-simulate-tier И юзер реально админ,
+ * возвращаем симулированный тариф вместо настоящего.
+ *
+ * Это позволяет автору смотреть приложение глазами basic/extended/premium
+ * без необходимости менять свою подписку в БД.
  */
-function getLimits(user) {
-  const tier = getEffectiveTier(user);
+function getEffectiveTierWithSimulation(user, req) {
+  // Без симуляции — обычная логика
+  if (!req || !user || !user.is_admin) return getEffectiveTier(user);
+
+  const sim = (req.headers && req.headers['x-admin-simulate-tier']) || '';
+  if (sim && ['basic', 'extended', 'premium'].includes(sim)) {
+    return sim;
+  }
+  return getEffectiveTier(user);
+}
+
+/**
+ * Получить лимиты для пользователя.
+ * Если передан req — учитывает админскую симуляцию (header x-admin-simulate-tier).
+ */
+function getLimits(user, req) {
+  const tier = req ? getEffectiveTierWithSimulation(user, req) : getEffectiveTier(user);
   return LIMITS[tier] || LIMITS.basic;
 }
 
@@ -154,8 +174,8 @@ async function getActiveAddon(userId, addonType) {
  *
  * Возвращает: { allowed: bool, reason?: string, used: number, limit: number|Infinity }
  */
-async function canUseOracle(user) {
-  const limits = getLimits(user);
+async function canUseOracle(user, req) {
+  const limits = getLimits(user, req);
   const limit = limits.oracle_per_day;
 
   // Безлимит — сразу разрешаем
@@ -228,8 +248,8 @@ async function trackOracleUsage(userId) {
  * Тогда НЕЛЬЗЯ добавлять новых, но старые «заморожены» (видны, не активны)
  * — это уже логика на уровне отображения.
  */
-async function canAddRelative(user) {
-  const limits = getLimits(user);
+async function canAddRelative(user, req) {
+  const limits = getLimits(user, req);
   const limit = limits.family_slots;
   if (limit === Infinity) return { allowed: true, current: 0, limit: Infinity };
 
@@ -279,8 +299,8 @@ async function getActiveRelativeIds(user) {
  * extended: 5 в месяце.
  * premium: безлимит.
  */
-async function canCheckCompatibility(user) {
-  const limits = getLimits(user);
+async function canCheckCompatibility(user, req) {
+  const limits = getLimits(user, req);
   const limit = limits.compatibility_per_month;
   if (limit === Infinity) return { allowed: true, limit: Infinity };
 
@@ -375,6 +395,7 @@ module.exports = {
   ADDONS,
   LIMITS,
   getEffectiveTier,
+  getEffectiveTierWithSimulation,
   getLimits,
   getActiveAddon,
   // Oracle

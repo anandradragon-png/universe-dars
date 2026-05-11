@@ -55,9 +55,9 @@ module.exports = async (req, res) => {
     } catch (e) {}
 
     if (dbUser) {
-      const gate = await pricing.canCheckCompatibility(dbUser);
+      const gate = await pricing.canCheckCompatibility(dbUser, req);
       if (!gate.allowed) {
-        const tier = pricing.getEffectiveTier(dbUser);
+        const tier = pricing.getEffectiveTierWithSimulation(dbUser, req);
         const msg = tier === 'basic'
           ? 'Бесплатная проверка совместимости уже использована. Открой Хранителя — там 5 в месяц.'
           : 'Лимит проверок совместимости в этом месяце исчерпан (' + gate.limit + '). Открой Мастера для безлимита.';

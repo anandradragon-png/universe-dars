@@ -13,12 +13,12 @@ function getSupabase() {
 }
 
 // ---- Пользователи ----
-
-// Список юзеров с пожизненным тарифом (выше basic) — выдаются при логине.
-// Идемпотентно: если уже extended/premium — ничего не меняем.
-// Чтобы отозвать — убрать из списка И сбросить access_level в БД руками (иначе ничего не произойдёт,
-// потому что мы тут только апгрейдим, не понижаем).
-const LIFETIME_EXTENDED_USERNAMES = ['alina2301']; // в lowercase
+//
+// С 11.05.2026 убран старый список LIFETIME_EXTENDED_USERNAMES.
+// Все подарочные/пожизненные подписки теперь живут в обычных полях
+// subscription_plan / subscription_end (например, для Алины:
+// subscription_plan='master_year_gift', subscription_end='2027-05-11').
+// Никаких автоматических апгрейдов при логине — только то, что записано в БД.
 
 async function getOrCreateUser(telegramUser) {
   // Защита: не принимаем объект-ошибку от getUser/requireUser и не создаём запись с null telegram_id
@@ -37,32 +37,14 @@ async function getOrCreateUser(telegramUser) {
     .single();
 
   if (existing) {
-    // Lifetime-апгрейд: если username из белого списка и уровень ниже extended — повышаем до extended.
-    // Сравниваем username из БД (с поправкой на возможные изменения username в TG — берём оба источника).
-    const dbUsername = (existing.username || '').toLowerCase();
-    const tgUsername = (telegramUser.username || '').toLowerCase();
-    const inLifetimeList = LIFETIME_EXTENDED_USERNAMES.includes(dbUsername) ||
-                           LIFETIME_EXTENDED_USERNAMES.includes(tgUsername);
-    const needsUpgrade = inLifetimeList &&
-                         existing.access_level !== 'extended' &&
-                         existing.access_level !== 'premium';
-
-    const updates = { last_active_at: new Date().toISOString() };
-    if (needsUpgrade) {
-      updates.access_level = 'extended';
-      console.log('[db] Lifetime upgrade applied:', telegramUser.id, existing.username, '→ extended');
-    }
-    await db.from('users').update(updates).eq('id', existing.id);
-
-    // Возвращаем актуальные данные
-    if (needsUpgrade) existing.access_level = 'extended';
+    // Просто обновляем last_active_at. Никаких апгрейдов access_level.
+    await db.from('users').update({
+      last_active_at: new Date().toISOString()
+    }).eq('id', existing.id);
     return existing;
   }
 
-  // Для новых юзеров: тот же lifetime-апгрейд, чтобы Алина получила extended даже на первом логине.
-  const newUserUsernameLc = (telegramUser.username || '').toLowerCase();
-  const initialLevel = LIFETIME_EXTENDED_USERNAMES.includes(newUserUsernameLc) ? 'extended' : 'basic';
-
+  // Новый юзер всегда начинает с basic. Подарок (если кому-то) ставится через админку.
   const { data: newUser, error } = await db
     .from('users')
     .insert({
@@ -71,7 +53,7 @@ async function getOrCreateUser(telegramUser) {
       last_name: telegramUser.last_name || '',
       username: telegramUser.username || '',
       crystals: 0,
-      access_level: initialLevel
+      access_level: 'basic'
     })
     .select()
     .single();

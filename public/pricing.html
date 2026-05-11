@@ -438,8 +438,12 @@
         const period = card.periods.find(p => p.plan_key.endsWith('_' + UI.period));
         if (!period) continue;
 
-        const price = getPriceForPeriod(period, UI.currency);
+        const originalPrice = getPriceForPeriod(period, UI.currency);
         const perMonth = getPerMonth(period, UI.currency);
+        // Промо -50% применяется только к месячному тарифу и только если еще не платил.
+        // На многомесячные периоды и DarAI скидка не применяется.
+        const promoApplies = promoActive && UI.period === '1m' && UI.currency !== 'darai';
+        const price = promoApplies ? Math.round(originalPrice * 0.5 * 100) / 100 : originalPrice;
         const isFeatured = period.is_default; // годовая = подсвечена
         const isCurrentTier = DATA.user && DATA.user.effective_tier === card.tier;
 
@@ -447,10 +451,15 @@
         const ctaClass = isCurrentTier ? 'disabled' : (groupKey === 'master' ? '' : 'outlined');
 
         html += '<div class="plan ' + (isFeatured ? 'featured' : '') + '">';
-        html += '<div class="plan-head"><span class="plan-emoji">' + card.emoji + '</span><span class="plan-name">' + card.name + '</span></div>';
+        html += '<div class="plan-head"><span class="plan-emoji">' + card.emoji + '</span><span class="plan-name">' + card.name + '</span>';
+        if (promoApplies) html += '<span style="margin-left:auto;background:rgba(108,201,153,0.18);color:#6c9;border:1px solid #6c9;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600">−50%</span>';
+        html += '</div>';
         html += '<div class="plan-desc">' + card.desc + '</div>';
 
         html += '<div class="plan-price">';
+        if (promoApplies) {
+          html += '<span style="font-size:14px;color:#666;text-decoration:line-through;margin-right:6px">' + fmtPrice(originalPrice, UI.currency) + '</span>';
+        }
         html += '<span class="main">' + fmtPrice(price, UI.currency) + '</span>';
         html += '<span class="period">/ ' + period.period_label + '</span>';
         if (perMonth && period.months > 1) {

@@ -25,7 +25,7 @@
 
   "app": {
     "title": "YupDar",
-    "tagline": "UNIVERSE OF GIFTS",
+    "tagline": "UNIVERSE OF DARS",
     "version": "v1.0"
   },
 
@@ -37,33 +37,35 @@
   },
 
   "home": {
-    "headline": "Discover your Gift",
-    "subhead": "Enter your date of birth and receive a message about your nature, power, and path",
+    "headline": "Discover your DAR",
+    "subhead": "Enter your date of birth and receive a message about your nature, your power, and your path",
     "date_placeholder": "DD.MM.YYYY",
-    "calculate_btn": "Calculate my Gift",
+    "calculate_btn": "Calculate my DAR",
     "calculating": "Calculating…"
   },
 
   "dar": {
-    "your_dar": "Your Gift",
-    "code_label": "Gift code",
-    "back_to_main": "Back to main",
+    "your_dar": "Your DAR",
+    "code_label": "DAR code",
+    "back_to_main": "← Back to main",
     "change_date": "Change date of birth",
     "get_full_message": "Get full message",
-    "read_in_book": "Read about your Gift in the Book of DARs",
+    "read_in_book": "Read about your DAR in the Book of DARs",
+    "hide_description": "Hide description",
+    "want_deeper": "Want to go deeper? The Book of DARs has the full description of all 64 DARs",
     "archetype": "Archetype"
   },
 
   "profile": {
     "title": "Personal Cabinet",
     "section_profile": "Profile",
-    "section_dar": "My Gift",
+    "section_dar": "My DAR",
     "section_achievements": "Achievements",
     "section_family": "Family and close ones",
     "section_friends": "Friends",
     "section_feedback": "Feedback",
     "section_about": "About",
-    "calculate_first": "Calculate your Gift",
+    "calculate_first": "Calculate your DAR",
     "data_not_filled": "Data not filled",
     "fill_data_btn": "✎ Fill in / edit data",
     "fill_hint": "You can change name, gender, time and place of birth at any moment",
@@ -75,7 +77,7 @@
     "feedback_sub": "Bugs, ideas, questions",
     "reset_title": "Full reset",
     "reset_sub": "Reset all local data (for testing)",
-    "about_caption": "64 Gifts · 9 Fields · endless possibilities",
+    "about_caption": "64 DARs · 9 Fields · endless possibilities",
     "crystals": "Crystals",
     "days_streak": "Days in a row",
     "collection": "Collection",
@@ -139,7 +141,7 @@
     "compatibility_locked_msg": "Your free check is already used. Guardian gives 5 per month, Master — unlimited.",
     "compatibility_addon_label": "Deep compatibility PDF — $2.49",
     "hero_journey_locked_title": "The Hero's Path is still closed",
-    "hero_journey_locked_msg": "You can open this Path: invite a friend with this Gift (you'll get a preview for free), buy for 300 crystals / 50 Stars / $0.99, or get Master — they have all 64 Gifts unlocked.",
+    "hero_journey_locked_msg": "You can open this Path: invite a friend with this DAR (you'll get a preview for free), buy for 300 crystals / 50 Stars / $0.99, or get Master — they have all 64 DARs unlocked.",
     "open_tariffs": "🛡 Open plans",
     "footer_note": "You can cancel the subscription at any moment"
   },

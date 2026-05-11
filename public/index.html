@@ -490,6 +490,13 @@
   </div>
   <button id="btn-profile" onclick="openProfile()"></button>
   <button id="btn-tariffs" onclick="openTariffsPage()" title="Тарифы" style="position:fixed;top:14px;right:58px;z-index:900;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(160deg,rgba(212,175,55,0.25),rgba(184,134,11,0.15));color:#D4AF37;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(212,175,55,0.25);font-family:Manrope,sans-serif" aria-label="Тарифы YupDar">&#128273;</button>
+  <!-- Языковой переключатель сразу на главном экране -->
+  <button id="btn-lang" onclick="toggleLangPicker()" title="Язык / Language / Idioma" style="position:fixed;top:14px;right:102px;z-index:900;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(160deg,rgba(212,175,55,0.10),rgba(184,134,11,0.05));color:#D4AF37;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(212,175,55,0.15);font-family:Manrope,sans-serif;font-weight:700" aria-label="Language"><span id="btn-lang-label">RU</span></button>
+  <div id="lang-picker" style="display:none;position:fixed;top:56px;right:102px;z-index:1100;background:linear-gradient(160deg,#1a1a14 0%,#0a0a0a 100%);border:1px solid rgba(212,175,55,0.4);border-radius:10px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,0.6);min-width:140px;font-family:Manrope,sans-serif">
+    <button onclick="pickLang('ru')" data-lang-pick="ru" class="lang-pick-row" style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:none;background:transparent;color:#eaeaea;font-size:13px;cursor:pointer;text-align:left;border-radius:6px;font-family:inherit">🇷🇺 Русский</button>
+    <button onclick="pickLang('en')" data-lang-pick="en" class="lang-pick-row" style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:none;background:transparent;color:#eaeaea;font-size:13px;cursor:pointer;text-align:left;border-radius:6px;font-family:inherit">🇬🇧 English</button>
+    <button onclick="pickLang('es')" data-lang-pick="es" class="lang-pick-row" style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:none;background:transparent;color:#eaeaea;font-size:13px;cursor:pointer;text-align:left;border-radius:6px;font-family:inherit">🇪🇸 Español</button>
+  </div>
   <div id="crystal-counter"><svg width="16" height="16" viewBox="0 0 24 24" fill="#D4AF37" stroke="none"><path d="M6 3h12l4 6-10 13L2 9z"/></svg> <span id="crystal-count">0</span></div>
   <header>
     <h1 onclick="goHome()" style="cursor:pointer">YupDar</h1>
@@ -737,7 +744,7 @@
         <button class="btn btn-primary" onclick="calculate()" data-i18n="home.calculate_btn"> Рассчитать мой дар</button>
       </div>
       <div id="screen-result" style="display:none">
-        <button class="btn-back" id="btn-back" onclick="resetDate()">← В главное меню</button>
+        <button class="btn-back" id="btn-back" onclick="resetDate()" data-i18n="dar.back_to_main">← В главное меню</button>
         <div class="result-card">
           <div class="dar-image-wrap" id="darImageWrap"></div>
           <div class="dar-name" id="darName"></div>
@@ -765,10 +772,10 @@
         <div id="share-section" style="display:none"></div>
         <div id="full-description-block" style="display:none">
           <div id="full-description-content"></div>
-          <button class="btn btn-ghost" onclick="hideDescription()" style="margin-top:12px"> Скрыть описание</button>
+          <button class="btn btn-ghost" onclick="hideDescription()" style="margin-top:12px" data-i18n="dar.hide_description"> Скрыть описание</button>
           <!-- Призыв к книге после описания -->
           <div style="margin-top:14px;padding:14px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
-            <div style="font-size:13px;color:#D4AF37"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Хочешь глубже? В Книге Даров — полное описание всех 64 даров</div>
+            <div style="font-size:13px;color:#D4AF37"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> <span data-i18n="dar.want_deeper">Хочешь глубже? В Книге Даров — полное описание всех 64 даров</span></div>
           </div>
         </div>
       </div>
@@ -2197,14 +2204,35 @@
     // AI-генерация портрета занимает 30-60 сек, юзеру скучно смотреть на пустую кнопку.
     let _loadingPhraseTimer = null;
     function startLoadingAnimation() {
-      const phrases = [
-        'Мудрый Наставник настраивается на твою энергию...',
-        'Считывает узор твоего дара...',
-        'Переводит древний язык в живые слова...',
-        'Ищет образы, которые отзовутся именно тебе...',
-        'Собирает портрет твоей души...',
-        'Ещё несколько мгновений...'
-      ];
+      // Локализованные фразы лоадера (если i18n.t доступен и для en/es)
+      const lang = (window.i18n && window.i18n.getLang && window.i18n.getLang()) || 'ru';
+      const phrasesByLang = {
+        ru: [
+          'Мудрый Наставник настраивается на твою энергию...',
+          'Считывает узор твоего дара...',
+          'Переводит древний язык в живые слова...',
+          'Ищет образы, которые отзовутся именно тебе...',
+          'Собирает портрет твоей души...',
+          'Ещё несколько мгновений...'
+        ],
+        en: [
+          'The Wise Companion is tuning into your energy...',
+          'Reading the pattern of your DAR...',
+          'Translating the ancient language into living words...',
+          'Finding the images that will resonate with you...',
+          'Composing the portrait of your soul...',
+          'A few more moments...'
+        ],
+        es: [
+          'El Sabio Compañero sintoniza con tu energía...',
+          'Leyendo el patrón de tu DAR...',
+          'Traduciendo el lenguaje ancestral en palabras vivas...',
+          'Buscando las imágenes que resonarán contigo...',
+          'Componiendo el retrato de tu alma...',
+          'Unos momentos más...'
+        ]
+      };
+      const phrases = phrasesByLang[lang] || phrasesByLang.ru;
       const block = document.getElementById('full-description-block');
       const content = document.getElementById('full-description-content');
       block.style.display = 'block';
@@ -2255,7 +2283,14 @@
       }, 100);
       try{
         const _prof=JSON.parse(localStorage.getItem('_darProfile')||'{}');
-        const resp=await fetch(`${API_URL}/api/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({giftCode:gift.code, gender:_prof.gender||''})});
+        // Заголовки: добавляем initData (для авторизации) и x-yupdar-lang (для AI-локализации)
+        const _msgHeaders = { 'Content-Type': 'application/json' };
+        try {
+          if (window.Telegram?.WebApp?.initData) _msgHeaders['x-telegram-init-data'] = window.Telegram.WebApp.initData;
+          const _lang = localStorage.getItem('_yupdar_lang');
+          if (_lang) _msgHeaders['x-yupdar-lang'] = _lang;
+        } catch (e) {}
+        const resp=await fetch(`${API_URL}/api/message`,{method:'POST',headers:_msgHeaders,body:JSON.stringify({giftCode:gift.code, gender:_prof.gender||''})});
         console.log('API status:', resp.status, resp.statusText);
         if(!resp.ok) throw new Error('HTTP ' + resp.status);
 
@@ -5407,16 +5442,57 @@
     // Сохраняет язык в localStorage (i18n.js потом подхватывает) и перезагружает страницу,
     // чтобы AI-промпты и переводы UI применились на свежем рендере.
     function setLangLK(lang) {
+      pickLang(lang);
+    }
+
+    // Переключатель языка в шапке (на главном экране)
+    function toggleLangPicker() {
+      const picker = document.getElementById('lang-picker');
+      if (!picker) return;
+      picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+      if (picker.style.display === 'block') {
+        // Подсветить активный
+        const current = (window.i18n && window.i18n.getLang && window.i18n.getLang()) ||
+                        localStorage.getItem('_yupdar_lang') || 'ru';
+        picker.querySelectorAll('[data-lang-pick]').forEach(btn => {
+          const active = btn.dataset.langPick === current;
+          btn.style.background = active ? 'rgba(212,175,55,0.18)' : 'transparent';
+          btn.style.color = active ? '#D4AF37' : '#eaeaea';
+        });
+      }
+    }
+
+    function pickLang(lang) {
       if (!['ru', 'en', 'es'].includes(lang)) return;
       try {
         localStorage.setItem('_yupdar_lang', lang);
-        if (window.i18n && window.i18n.setLang) {
-          window.i18n.setLang(lang);
-        }
       } catch (e) {}
-      // Полная перезагрузка чтобы все скрипты увидели новый язык
+      // Скрываем picker и перезагружаем страницу
+      const picker = document.getElementById('lang-picker');
+      if (picker) picker.style.display = 'none';
       window.location.reload();
     }
+
+    // Закрытие picker при клике вне его
+    document.addEventListener('click', (e) => {
+      const picker = document.getElementById('lang-picker');
+      const btn = document.getElementById('btn-lang');
+      if (!picker || picker.style.display === 'none') return;
+      if (btn && btn.contains(e.target)) return;
+      if (picker.contains(e.target)) return;
+      picker.style.display = 'none';
+    });
+
+    // Обновить лейбл кнопки в шапке (RU/EN/ES)
+    function updateLangBtnLabel() {
+      const el = document.getElementById('btn-lang-label');
+      if (!el) return;
+      const current = (window.i18n && window.i18n.getLang && window.i18n.getLang()) ||
+                      localStorage.getItem('_yupdar_lang') || 'ru';
+      el.textContent = current.toUpperCase();
+    }
+    document.addEventListener('DOMContentLoaded', () => setTimeout(updateLangBtnLabel, 200));
+    document.addEventListener('i18n:changed', updateLangBtnLabel);
 
     // Подсветить активный язык при открытии ЛК
     function highlightActiveLang() {

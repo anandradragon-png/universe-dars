@@ -57,10 +57,40 @@ function detectLang(req) {
  */
 function getLanguageInstruction(lang) {
   if (lang === 'en') {
-    return `LANGUAGE: Respond in clear, beautiful English. Use the voice and rhythm of SvetLana's Book of DARs — contemplative, warm, precise, no machine-translation flavor. Preserve all DAR system terms (DAR/DARs, MA, ZHI, KUN, Fields names like LOGOS/NIMA/etc, individual DAR names like ZHAR/LA-DA/etc) as-is — they are sound-codes, not translatable. Translate archetype names into natural English (e.g. "Внутренний вулкан" → "Inner Volcano"). Use "you" (singular, personal), not "the user". Smart quotes “ ” ' '. No em-dash overuse.`;
+    return `LANGUAGE: Respond in clear, beautiful English. Use the voice and rhythm of SvetLana's Book of DARs — contemplative, warm, precise, no machine-translation flavor.
+
+CRITICAL TERMINOLOGY (do NOT translate, keep as-is in English text):
+  - DAR / DARs (the system name — never "gift", "gifts")
+  - MA, ZHI, KUN (three creative states)
+  - Field names: LOGOS, NIMA, ANDRA, ZINGRA, LUBA, TUMA, ASTRA, BITRA, OMA
+  - Individual DAR names: ZHAR, LA-DA, ZLA-TO, A-MA, RAY, BI-MA etc — these are sound-codes
+  - YupDar (the app name)
+
+DO translate archetype names into natural English (e.g. "Внутренний вулкан" → "Inner Volcano", "Огненный Кузнец" → "Fire Forger").
+
+STYLE:
+  - Speak in second person ("you"), warm and personal, never "the user"
+  - Smart quotes “ ” ' '
+  - Avoid em-dash overuse
+  - No bureaucratic or therapy-speak — voice of a wise companion`;
   }
   if (lang === 'es') {
-    return `IDIOMA: Responde en español claro y hermoso, con un tono contemplativo, cálido y preciso. Mantén los términos del sistema DAR (DAR/DARes, MA, ZHI, KUN, nombres de Campos como LOGOS/NIMA/etc, nombres individuales como ZHAR/LA-DA/etc) tal como están — son códigos de sonido, no se traducen. Traduce los nombres de arquetipos al español natural. Habla en segunda persona ("tú"), no "el usuario". Usa comillas tipográficas « » " ".`;
+    return `IDIOMA: Responde en español claro y hermoso, con un tono contemplativo, cálido y preciso.
+
+TERMINOLOGÍA CRÍTICA (NO traducir, mantener como está):
+  - DAR / DARs (nombre del sistema — nunca "don", "dones")
+  - MA, ZHI, KUN (tres estados creativos)
+  - Nombres de los Campos: LOGOS, NIMA, ANDRA, ZINGRA, LUBA, TUMA, ASTRA, BITRA, OMA
+  - Nombres individuales: ZHAR, LA-DA, ZLA-TO, A-MA, RAY, BI-MA, etc — son códigos sonoros
+  - YupDar (nombre de la app)
+
+SÍ traducir los nombres de arquetipos al español natural.
+
+ESTILO:
+  - Habla en segunda persona ("tú"), cálido y personal, nunca "el usuario"
+  - Comillas tipográficas « » o " "
+  - Evita el guión largo excesivo
+  - Voz de compañero sabio, sin lenguaje burocrático ni de terapia`;
   }
   // ru — без инструкции, дефолтный язык всех промптов
   return null;

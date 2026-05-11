@@ -14,6 +14,24 @@ const pricing = require('./_lib/pricing');
 
 // Какие тарифы показываем на странице (порядок имеет значение)
 const PLAN_GROUPS = {
+  wanderer: {
+    tier: 'basic',
+    name: 'Странник',
+    emoji: '🌍',
+    color: '#9aa3b2',
+    description: 'Бесплатный доступ навсегда. Достаточно чтобы попробовать всё ключевое.',
+    features: [
+      'Твой родной Дар и его AI-описание',
+      'Сокровищница: твой Дар (9 секций)',
+      'Превью Книги Даров (10 глав)',
+      'Оракул: 1 предсказание в день',
+      'Тренажёр Интуиции (5 раундов/день)',
+      'Дневник Дара (без AI-инсайтов)',
+      'Карточки для шейринга',
+      '1 разовая проверка совместимости'
+    ],
+    periods: ['wanderer_free']  // фейковый ключ для UI — оплаты нет
+  },
   guardian: {
     tier: 'extended',
     name: 'Хранитель',
@@ -94,6 +112,31 @@ function pickCurrency(lang) {
 function buildPlanCards() {
   const cards = {};
   for (const [groupKey, group] of Object.entries(PLAN_GROUPS)) {
+    // Странник — особый случай: бесплатно, без оплаты, без периодов
+    if (groupKey === 'wanderer') {
+      cards[groupKey] = {
+        group_key: groupKey,
+        tier: group.tier,
+        name: group.name,
+        emoji: group.emoji,
+        color: group.color,
+        description: group.description,
+        features: group.features,
+        is_free: true,
+        periods: [{
+          plan_key: 'wanderer_free',
+          period_label: 'навсегда',
+          months: 0,
+          days: 0,
+          rub: 0, stars: 0, usd: 0, darai: 0,
+          per_month_rub: 0, per_month_stars: 0, per_month_usd: 0,
+          discount_pct: 0,
+          is_default: true
+        }]
+      };
+      continue;
+    }
+
     const monthly = pricing.PLANS[group.periods[0]]; // 1-месячная цена для подсчёта экономии
     const periods = group.periods.map(planKey => {
       const plan = pricing.PLANS[planKey];

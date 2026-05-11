@@ -444,7 +444,31 @@
         html += '<div class="promo-strip">🎁 Первый месяц любого тарифа со скидкой −' + DATA.first_purchase_discount_pct + '%</div>';
       }
 
-      // Тарифные карточки
+      // Карточка Странника (бесплатный тариф) — отдельная логика, без оплаты
+      if (DATA.plans.wanderer) {
+        const w = DATA.plans.wanderer;
+        const isCurrent = DATA.user && DATA.user.effective_tier === 'basic';
+        html += '<div class="plan" style="border-color:rgba(154,163,178,0.35);background:linear-gradient(155deg,#15151a 0%,#0a0a0e 100%)">';
+        html += '<div class="plan-head"><span class="plan-emoji">' + w.emoji + '</span><span class="plan-name">' + w.name + '</span>';
+        html += '<span style="margin-left:auto;background:rgba(154,163,178,0.18);color:#9aa3b2;border:1px solid #9aa3b2;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600">FREE</span>';
+        html += '</div>';
+        html += '<div class="plan-desc">' + (w.description || '') + '</div>';
+        html += '<div class="plan-price" style="border-color:rgba(255,255,255,0.06)">';
+        html += '<span class="main" style="color:#9aa3b2">0</span>';
+        html += '<span class="period">' + (w.periods[0]?.period_label || 'навсегда') + '</span>';
+        html += '</div>';
+        html += '<ul class="plan-features">';
+        for (const f of w.features) html += '<li>' + f + '</li>';
+        html += '</ul>';
+        if (isCurrent) {
+          html += '<button class="plan-cta disabled" disabled>Текущий тариф</button>';
+        } else {
+          html += '<div style="text-align:center;font-size:11px;color:#666;padding:8px 0">Доступен всем, без оплаты</div>';
+        }
+        html += '</div>';
+      }
+
+      // Тарифные карточки платных
       for (const groupKey of ['guardian', 'master']) {
         const card = DATA.plans[groupKey];
         const period = card.periods.find(p => p.plan_key.endsWith('_' + UI.period));

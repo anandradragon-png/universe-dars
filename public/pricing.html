@@ -325,7 +325,7 @@
     let DATA = null;
     let UI = {
       currency: 'rub',
-      period: '12m' // дефолт = годовая
+      period: '1m' // дефолт = 1 месяц (чтобы не пугать большими числами; годовая остаётся подсвеченной как best-value)
     };
 
     async function fetchPricing() {
@@ -364,13 +364,17 @@
     function statusText(user) {
       if (!user) return null;
       const tier = user.effective_tier;
+      // Если subscription_end не задан — это бессрочный доступ (подарок, админ, lifetime).
+      // Не пишем «действует до бессрочно», просто «бессрочно».
+      const formatExpiry = (end) => {
+        if (!end) return 'бессрочно';
+        return 'действует до ' + new Date(end).toLocaleDateString('ru-RU');
+      };
       if (tier === 'premium') {
-        const end = user.subscription_end ? new Date(user.subscription_end).toLocaleDateString('ru-RU') : 'бессрочно';
-        return { tier: 'Мастер', sub: 'действует до ' + end };
+        return { tier: 'Мастер', sub: formatExpiry(user.subscription_end) };
       }
       if (tier === 'extended') {
-        const end = user.subscription_end ? new Date(user.subscription_end).toLocaleDateString('ru-RU') : 'бессрочно';
-        return { tier: 'Хранитель', sub: 'действует до ' + end };
+        return { tier: 'Хранитель', sub: formatExpiry(user.subscription_end) };
       }
       return { tier: 'Странник', sub: user.book_purchased ? 'Книга Даров куплена' : 'бесплатный доступ' };
     }
@@ -462,7 +466,7 @@
         html += '<div class="plan-head"><span class="plan-emoji">' + card.emoji + '</span><span class="plan-name">' + card.name + '</span>';
         if (promoApplies) html += '<span style="margin-left:auto;background:rgba(108,201,153,0.18);color:#6c9;border:1px solid #6c9;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600">−50%</span>';
         html += '</div>';
-        html += '<div class="plan-desc">' + card.desc + '</div>';
+        html += '<div class="plan-desc">' + (card.description || card.desc || '') + '</div>';
 
         html += '<div class="plan-price">';
         if (promoApplies) {
@@ -489,7 +493,7 @@
       html += '<h3 class="section-title">📚 Разовый продукт</h3>';
       html += '<div class="book-card">';
       html += '<div class="head"><span style="font-size:22px">' + b.emoji + '</span><span class="name">' + b.name + '</span></div>';
-      html += '<div class="desc">' + b.desc + '</div>';
+      html += '<div class="desc">' + (b.description || b.desc || '') + '</div>';
       html += '<div class="note">' + b.note + '</div>';
       html += '<div class="row">';
       html += '<div class="price">' + fmtPrice(b[UI.currency], UI.currency) + ' навсегда</div>';
@@ -505,7 +509,7 @@
         html += '<div class="emoji">' + a.emoji + '</div>';
         html += '<div class="info">';
         html += '<div class="name">' + a.name + '</div>';
-        html += '<div class="desc">' + a.desc + '</div>';
+        html += '<div class="desc">' + (a.description || a.desc || '') + '</div>';
         html += '<div class="duration">' + a.duration + '</div>';
         html += '</div>';
         html += '<div class="price-col">';

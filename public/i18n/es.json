@@ -51,10 +51,14 @@
   "dar": {
     "your_dar": "Tu DAR",
     "code_label": "Código del DAR",
+    "code_prefix": "Código del DAR:",
     "back_to_main": "← Al menú principal",
     "change_date": "Cambiar fecha de nacimiento",
+    "change_date_short": "Cambiar fecha",
     "get_full_message": "Recibir mensaje completo",
     "read_in_book": "Lee sobre tu DAR en el Libro de los DARs",
+    "read_in_book_sub": "Descripción completa, prácticas, meditaciones y técnicas de seguridad para cada DAR",
+    "share_card": "Crear tarjeta para redes sociales",
     "hide_description": "Ocultar descripción",
     "want_deeper": "¿Quieres ir más profundo? El Libro de los DARs tiene la descripción completa de los 64 DARs",
     "archetype": "Arquetipo"

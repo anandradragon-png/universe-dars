@@ -49,10 +49,14 @@
   "dar": {
     "your_dar": "Your DAR",
     "code_label": "DAR code",
+    "code_prefix": "DAR code:",
     "back_to_main": "← Back to main",
     "change_date": "Change date of birth",
+    "change_date_short": "Change date",
     "get_full_message": "Get full message",
     "read_in_book": "Read about your DAR in the Book of DARs",
+    "read_in_book_sub": "Full description, practices, meditations and safety techniques for every DAR",
+    "share_card": "Create a card for social media",
     "hide_description": "Hide description",
     "want_deeper": "Want to go deeper? The Book of DARs has the full description of all 64 DARs",
     "archetype": "Archetype"

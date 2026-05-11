@@ -752,16 +752,16 @@
           <!-- Статичный архетип скрыт по решению автора 30.04.2026: чтобы не было путаницы со сгенерированным AI архетипом в полном послании -->
           <div class="dar-archetype" id="darArchetype" style="display:none"></div>
           <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()"> Получить полное послание</button>
-          <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()"> Изменить дату</button>
+          <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()" data-i18n="dar.change_date_short"> Изменить дату</button>
         </div>
         <!-- Призыв к книге -->
         <div id="book-cta" style="display:none;margin-top:14px;padding:16px;background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:16px;text-align:center;cursor:pointer" onclick="goToMyDarInBook()">
-          <div style="font-size:15px;color:#D4AF37;margin-bottom:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Читай о своём даре в Книге Даров</div>
-          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Полное описание, практики, медитации и техники безопасности для каждого дара</div>
+          <div style="font-size:15px;color:#D4AF37;margin-bottom:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> <span data-i18n="dar.read_in_book">Читай о своём даре в Книге Даров</span></div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5" data-i18n="dar.read_in_book_sub">Полное описание, практики, медитации и техники безопасности для каждого дара</div>
         </div>
         <!-- Карточка для шейринга -->
         <div id="share-card-cta" style="display:none;margin-top:14px;padding:14px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:16px;text-align:center;cursor:pointer" onclick="shareMyDar()">
-          <div style="font-size:15px;color:#D4AF37;margin-bottom:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Создать карточку для соцсетей</div>
+          <div style="font-size:15px;color:#D4AF37;margin-bottom:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> <span data-i18n="dar.share_card">Создать карточку для соцсетей</span></div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Красивая картинка с твоим даром для Instagram, VK, Telegram</div>
         </div>
         <!-- Подробная карточка дара — для платных (А4 PNG, полное описание) -->
@@ -1968,7 +1968,8 @@
       }
 
       document.getElementById('darName').textContent=darName;
-      document.getElementById('darCode').textContent=`Код дара: ${gift.code}`;
+      const _codePrefix = (window.i18n && window.i18n.t) ? window.i18n.t('dar.code_prefix') : 'Код дара:';
+      document.getElementById('darCode').textContent=`${_codePrefix} ${gift.code}`;
       document.getElementById('darArchetype').textContent=isInt?intPhrase:darArchetype;
       // Картинка — пробуем NFC и NFD нормализацию
       const wrap=document.getElementById('darImageWrap');

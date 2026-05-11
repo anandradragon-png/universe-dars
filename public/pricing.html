@@ -387,12 +387,20 @@
       const crystalsEl = document.getElementById('crystalsLabel');
       if (DATA.user) crystalsEl.textContent = '💎 ' + DATA.user.crystals;
 
-      const currencies = [
+      // Валюты зависят от языка юзера:
+      // RU → все 4 (ЮKassa работает с рос.картами).
+      // EN/ES → без ЮKassa (₽), потому что зарубежные карты через ЮKassa не проходят.
+      const lang = (DATA.lang || 'ru').toLowerCase();
+      const isRusSpeaking = (lang === 'ru' || lang === 'be' || lang === 'uk' || lang === 'kk');
+      const allCurrencies = [
         { key: 'rub', label: '₽ Рубли' },
         { key: 'stars', label: '⭐ Stars' },
         { key: 'usd', label: '$ USD' },
         { key: 'darai', label: 'DarAI' }
       ];
+      const currencies = isRusSpeaking ? allCurrencies : allCurrencies.filter(c => c.key !== 'rub');
+      // Если юзер не русскоязычный и UI помнит рубль — переключаем на Stars
+      if (!isRusSpeaking && UI.currency === 'rub') UI.currency = 'stars';
 
       const periods = [
         { key: '1m', label: '1 месяц' },
@@ -509,7 +517,14 @@
 
       html += '<div class="footnote">';
       html += 'Подписка не продлевается автоматически. По окончании периода доступ возвращается к «Странник», но все твои данные сохраняются.<br><br>';
-      html += '<a href="/legal/offer.html">Оферта</a> · <a href="/legal/terms.html">Условия</a> · <a href="/legal/privacy.html">Приватность</a>';
+      // Юр-страницы по языку (ru/en/es). Если язык не из этих 3 — fallback на en.
+      const legalLang = (lang === 'ru' || lang === 'en' || lang === 'es') ? lang : 'en';
+      const legalLabels = lang === 'en'
+        ? { offer: 'Offer', terms: 'Terms', privacy: 'Privacy' }
+        : lang === 'es'
+        ? { offer: 'Oferta', terms: 'Términos', privacy: 'Privacidad' }
+        : { offer: 'Оферта', terms: 'Условия', privacy: 'Приватность' };
+      html += '<a href="/legal/' + legalLang + '/offer.html">' + legalLabels.offer + '</a> · <a href="/legal/' + legalLang + '/terms.html">' + legalLabels.terms + '</a> · <a href="/legal/' + legalLang + '/privacy.html">' + legalLabels.privacy + '</a>';
       html += '</div>';
 
       root.innerHTML = html;

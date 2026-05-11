@@ -17,6 +17,7 @@ const crypto = require('crypto');
 const deepseek = require('./_lib/deepseek');
 const { getSupabase, getOrCreateUser } = require('./_lib/db');
 const pricing = require('./_lib/pricing');
+const language = require('./_lib/language');
 const { getUser, requireUser } = require('./_lib/auth');
 
 // ===== Общие загрузки =====
@@ -557,11 +558,16 @@ ${genderBlock}
 
   const useDeepSeek = deepseek.isDeepSeekEnabled('oracle') && deepseek.isDeepSeekConfigured();
 
+  // Локализация: для ru applyLanguage возвращает systemMsg как есть.
+  // Для en/es префиксируется инструкция языка. Русский промпт не меняется.
+  const userLang = language.detectLang(req);
+  const finalSystemMsg = language.applyLanguage(systemMsg, userLang);
+
   try {
     let completion;
     let providerUsed = 'groq';
     const messages = [
-      { role: 'system', content: systemMsg },
+      { role: 'system', content: finalSystemMsg },
       { role: 'user', content: userPrompt }
     ];
 

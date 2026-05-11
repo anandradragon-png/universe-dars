@@ -1,0 +1,153 @@
+{
+  "common": {
+    "back": "Назад",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Изменить",
+    "confirm": "Подтвердить",
+    "loading": "Загрузка…",
+    "error": "Ошибка",
+    "try_again": "Попробовать снова",
+    "success": "Готово",
+    "yes": "Да",
+    "no": "Нет",
+    "next": "Дальше",
+    "prev": "Назад",
+    "got_it": "Понятно",
+    "more": "Подробнее",
+    "open": "Открыть",
+    "share": "Поделиться",
+    "copy": "Скопировать",
+    "copied": "Скопировано"
+  },
+
+  "app": {
+    "title": "YupDar",
+    "tagline": "ВСЕЛЕННАЯ ДАРОВ",
+    "version": "v1.0"
+  },
+
+  "nav": {
+    "treasury": "Сокровищница",
+    "games": "Игры",
+    "book": "Книга",
+    "encyclopedia": "Энциклопедия"
+  },
+
+  "home": {
+    "headline": "Узнай свой дар",
+    "subhead": "Введи дату рождения и получи послание о своей природе, силе и пути",
+    "date_placeholder": "ДД.ММ.ГГГГ",
+    "calculate_btn": "Рассчитать мой дар",
+    "calculating": "Рассчитываю…"
+  },
+
+  "dar": {
+    "your_dar": "Твой дар",
+    "code_label": "Код дара",
+    "back_to_main": "В главное меню",
+    "change_date": "Изменить дату рождения",
+    "get_full_message": "Получить полное послание",
+    "read_in_book": "Читай о своём даре в Книге Даров",
+    "archetype": "Архетип"
+  },
+
+  "profile": {
+    "title": "Личный кабинет",
+    "section_profile": "Профиль",
+    "section_dar": "Мой дар",
+    "section_achievements": "Достижения",
+    "section_family": "Семья и близкие",
+    "section_friends": "Друзья",
+    "section_feedback": "Обратная связь",
+    "section_about": "О приложении",
+    "calculate_first": "Рассчитай свой дар",
+    "data_not_filled": "Данные не заполнены",
+    "fill_data_btn": "✎ Заполнить / изменить данные",
+    "fill_hint": "Можно изменить имя, пол, время и место рождения в любой момент",
+    "tariffs_btn": "🛡 Тарифы",
+    "enter_promo": "🔒 Ввести промо-код",
+    "activate": "Активировать",
+    "promo_placeholder": "Введи промо-код",
+    "feedback_title": "Обратная связь",
+    "feedback_sub": "Баги, идеи, вопросы",
+    "reset_title": "Полный сброс",
+    "reset_sub": "Сбросить все локальные данные (для тестирования)",
+    "about_caption": "64 дара · 9 полей · бесконечные возможности",
+    "crystals": "Кристаллы",
+    "days_streak": "Дней подряд",
+    "collection": "Коллекция",
+    "language": "Язык",
+    "admin_feedback": "Админ: Фидбэк",
+    "admin_feedback_sub": "Сообщения тестеров",
+    "admin_panel": "Админ: Панель управления",
+    "admin_panel_sub": "Дашборд, пользователи, промокоды, платежи"
+  },
+
+  "tariffs": {
+    "page_title": "Тарифы",
+    "current": "Сейчас у тебя",
+    "tier_wanderer": "Странник",
+    "tier_guardian": "Хранитель",
+    "tier_master": "Мастер",
+    "status_active_until": "действует до {date}",
+    "status_lifetime": "бессрочно",
+    "status_free": "бесплатный доступ",
+    "status_book_purchased": "Книга Даров куплена",
+    "period_1m": "1 месяц",
+    "period_3m": "3 месяца",
+    "period_6m": "6 месяцев",
+    "period_12m": "12 мес",
+    "currency_rub": "₽ Рубли",
+    "currency_stars": "⭐ Stars",
+    "currency_usd": "$ USD",
+    "currency_darai": "DarAI",
+    "label_period": "Период:",
+    "label_currency": "Валюта:",
+    "promo_first_month": "🎁 Первый месяц любого тарифа со скидкой −{percent}%",
+    "discount_badge": "−{percent}%",
+    "save_percent": "экономия {percent}%",
+    "per_month": "/ месяц",
+    "current_tier": "Текущий тариф",
+    "open_tier": "Открыть {tier}",
+    "book_section_title": "📚 Разовый продукт",
+    "book_name": "Книга Даров",
+    "book_desc": "Полная Книга Даров на 94 главы + дизайнерская PDF. Навсегда, без подписки.",
+    "book_note": "Открывает только сам контент Книги. Тариф и его лимиты не задействует.",
+    "book_buy": "Купить",
+    "book_owned": "У тебя уже есть",
+    "book_forever": "навсегда",
+    "addons_title": "🛒 Разовые покупки",
+    "footnote": "Подписка не продлевается автоматически. По окончании периода доступ возвращается к «Странник», но все твои данные сохраняются.",
+    "legal_offer": "Оферта",
+    "legal_terms": "Условия",
+    "legal_privacy": "Приватность",
+    "checkout_soon": "Скоро откроется оплата: {what}",
+    "payment_ok": "Оплата прошла! Обновляю…",
+    "payment_failed": "Оплата не прошла",
+    "no_link": "Не удалось получить ссылку на оплату",
+    "connection_error": "Ошибка соединения: {message}"
+  },
+
+  "limits": {
+    "oracle_locked_title": "Дневной лимит Оракула",
+    "oracle_locked_msg": "На бесплатном тарифе доступно 1 предсказание в день. Открой Хранителя — 3 в день. Или Мастер — безлимит.",
+    "oracle_addon_label": "Безлимит на 7 дней — 149 ₽",
+    "compatibility_locked_title": "Лимит совместимости",
+    "compatibility_locked_msg": "Бесплатная проверка уже использована. У Хранителя 5 проверок в месяц, у Мастера — безлимит.",
+    "compatibility_addon_label": "Глубокая совместимость PDF — 249 ₽",
+    "hero_journey_locked_title": "Путь Героя ещё закрыт",
+    "hero_journey_locked_msg": "Этот Путь Героя можно открыть: пригласи друга с этим даром (тебе откроется превью бесплатно), купи за 300 кристаллов / 50 звёзд / 99 ₽, или возьми Мастера — у него открыты все 64 дара.",
+    "open_tariffs": "🛡 Открыть тарифы",
+    "footer_note": "Подписку можно отменить в любой момент"
+  },
+
+  "language_picker": {
+    "title": "Язык приложения",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español"
+  }
+}

@@ -1662,12 +1662,12 @@
               if (typeof showToast === 'function') showToast('\u2728 Аватарка сохранена', 'success');
             }).catch(err => {
               console.warn('saveAvatar failed:', err.message);
-              if (typeof showToast === 'function') showToast('Аватарка сохранена локально, но не на сервере. Попробуй позже.', 'error');
+              if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('avatar.local_only') : 'Аватарка сохранена локально, но не на сервере. Попробуй позже.', 'error');
             });
           }
         }).catch(err => {
           console.error('Image compression failed:', err);
-          if (typeof showToast === 'function') showToast('Не удалось обработать изображение', 'error');
+          if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('avatar.process_failed') : 'Не удалось обработать изображение', 'error');
         });
       };
       reader.readAsDataURL(file);
@@ -1879,7 +1879,7 @@
         if (newLevel !== prevLevel) {
           if (typeof BookReader !== 'undefined') BookReader.render();
           if (!silent && newLevel !== 'basic') {
-            showToast('Доступ обновлён! ' + (newLevel === 'premium' ? 'Мастер' : 'Хранитель'), 'success');
+            showToast(((window.i18n && i18n.t) ? i18n.t('access.updated') : 'Доступ обновлён!') + ' ' + (newLevel === 'premium' ? 'Мастер' : 'Хранитель'), 'success');
           }
         }
       } catch (e) {
@@ -3020,7 +3020,7 @@
         // Восстанавливаем keep-ключи
         Object.entries(keep).forEach(([k, v]) => localStorage.setItem(k, v));
 
-        if (typeof showToast === 'function') showToast('Локальные данные сброшены. Перезагрузка...', 'success');
+        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('reset.success') : 'Локальные данные сброшены. Перезагрузка...', 'success');
         setTimeout(() => location.reload(), 800);
       } catch (e) {
         alert(((window.i18n && i18n.t) ? i18n.t('reset.error') : 'Ошибка сброса:') + ' ' + e.message);
@@ -3369,11 +3369,11 @@
     // Покупка полного доступа к Книге (500 ⭐ = ~$10)
     async function buyBookAccess() {
       try {
-        if (typeof showToast === 'function') showToast('Создаём платёж...', 'info');
+        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('ykd.creating_payment') : 'Создаём платёж...', 'info');
         const result = await DarAPI.createBookInvoice();
 
         if (result.already_purchased) {
-          if (typeof showToast === 'function') showToast('У тебя уже есть полный доступ!', 'success');
+          if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('access.already_full') : 'У тебя уже есть полный доступ!', 'success');
           return;
         }
 
@@ -3395,7 +3395,7 @@
             } else if (status === 'cancelled') {
               // Пользователь закрыл — ничего не делаем
             } else if (status === 'failed') {
-              if (typeof showToast === 'function') showToast('Оплата не прошла. Попробуй ещё раз.', 'error');
+              if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('pay.failed_retry') : 'Оплата не прошла. Попробуй ещё раз.', 'error');
             }
           });
         } else {
@@ -3449,11 +3449,11 @@
 
     async function submitDonation(amount) {
       if (!amount || amount < 1) {
-        if (typeof showToast === 'function') showToast('Укажи сумму (минимум 1 звезда)', 'error');
+        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('pay.min_one_star') : 'Укажи сумму (минимум 1 звезда)', 'error');
         return;
       }
       try {
-        if (typeof showToast === 'function') showToast('Создаём платёж...', 'info');
+        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('ykd.creating_payment') : 'Создаём платёж...', 'info');
         const result = await DarAPI.createDonation(amount);
 
         if (!result.invoice_url) {
@@ -3469,7 +3469,7 @@
               if (typeof showToast === 'function') showToast('\u2728 Спасибо за поддержку! +' + result.bonus_crystals + ' кристаллов', 'success');
               if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(result.bonus_crystals);
             } else if (status === 'failed') {
-              if (typeof showToast === 'function') showToast('Оплата не прошла', 'error');
+              if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('tariffs.payment_failed') : 'Оплата не прошла', 'error');
             }
           });
         } else {
@@ -3683,7 +3683,7 @@
             window.open(result.invoice_url, '_blank');
           }
           if (typeof showToast === 'function') {
-            showToast(`Открыли страницу оплаты на ${amount} ₽. Спасибо! 💜`, 'success');
+            showToast(((window.i18n && i18n.t) ? i18n.t('ykd.opened_payment', { amount: amount }) : ('Открыли страницу оплаты на ' + amount + ' ₽. Спасибо! 💜')), 'success');
           }
         } catch (e) {
           console.error('[payment] yookassa donation error:', e);
@@ -3772,7 +3772,7 @@
         if (contact.cancelled) return;
 
         if (typeof showToast === 'function') {
-          showToast('Создаём платёж 990 ₽...', 'info');
+          showToast((window.i18n && i18n.t) ? i18n.t('book_pay.creating_990') : 'Создаём платёж 990 ₽...', 'info');
         }
 
         const result = await DarAPI.createYookassaBook({
@@ -3781,7 +3781,7 @@
         });
 
         if (result.already_purchased) {
-          if (typeof showToast === 'function') showToast('У тебя уже есть полный доступ!', 'success');
+          if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('access.already_full') : 'У тебя уже есть полный доступ!', 'success');
           return;
         }
 
@@ -3798,7 +3798,7 @@
         }
 
         if (typeof showToast === 'function') {
-          showToast('Открыли страницу оплаты. После оплаты вернись в приложение.', 'info');
+          showToast((window.i18n && i18n.t) ? i18n.t('book_pay.opened_page') : 'Открыли страницу оплаты. После оплаты вернись в приложение.', 'info');
         }
       } catch (e) {
         console.error('[payment] buyBookWithCard error:', e);
@@ -3810,11 +3810,11 @@
     // Покупка через DarAI (YupPay / NEAR)
     async function buyWithDarai() {
       try {
-        if (typeof showToast === 'function') showToast('Создаём платёж в DarAI...', 'info');
+        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('book_pay.creating_darai') : 'Создаём платёж в DarAI...', 'info');
         const result = await DarAPI.createDaraiBookInvoice();
 
         if (result.already_purchased) {
-          if (typeof showToast === 'function') showToast('У тебя уже есть полный доступ!', 'success');
+          if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('access.already_full') : 'У тебя уже есть полный доступ!', 'success');
           return;
         }
 
@@ -3950,7 +3950,7 @@
         active.style.display = 'block';
         if (typeof IntuitionGame !== 'undefined') IntuitionGame.render();
       } else if (mode === 'pvp') {
-        if (typeof showToast === 'function') showToast('Батлы с друзьями появятся скоро! Пока можно сразиться с AI-Юпиком.', 'info');
+        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('games.battles_soon') : 'Батлы с друзьями появятся скоро! Пока можно сразиться с AI-Юпиком.', 'info');
       }
     }
 
@@ -4773,7 +4773,7 @@
       let relative = relativeJson;
       if (typeof relativeJson === 'string') {
         try { relative = JSON.parse(relativeJson); } catch (e) {
-          showToast('Не удалось открыть данные близкого', 'error');
+          showToast((window.i18n && i18n.t) ? i18n.t('rel.open_failed') : 'Не удалось открыть данные близкого', 'error');
           return;
         }
       }
@@ -4913,7 +4913,7 @@
 
       // Мой дар
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) { if (typeof showToast === 'function') showToast('Сначала рассчитай свой дар', 'error'); return; }
+      if (!saved) { if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('dar2.calc_first') : 'Сначала рассчитай свой дар', 'error'); return; }
       const { gift } = JSON.parse(saved);
       const myCode = gift.code;
       const myName = getUserName() || window._userName || 'Ты';
@@ -4927,7 +4927,7 @@
       // Проверка: есть ли у юзера свой дар
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) {
-        if (typeof showToast === 'function') showToast('Сначала рассчитай свой дар', 'warning');
+        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('dar2.calc_first') : 'Сначала рассчитай свой дар', 'warning');
         else alert((window.i18n && i18n.t) ? i18n.t('dar2.calc_first') : 'Сначала рассчитай свой дар');
         return;
       }

@@ -275,9 +275,21 @@
     "coming_note": "Esta sección aparecerá en próximas actualizaciones. Por ahora el plan «Guardián» desbloquea las demás funciones avanzadas."
   },
 
+  "level_desc": {
+    "basic": "Tu DAR, Oráculo 1 vez/día, entrenador de intuición",
+    "extended": "DARs de amigos (hasta 5), enciclopedia, Oráculo sin límite",
+    "premium": "Cálculos sin límite, todas las secciones, x2 cristales"
+  },
+
+  "friends": {
+    "fallback_name": "Amigo",
+    "you_have": "Tienes {count} amigos en el sistema"
+  },
+
   "lk_price": {
     "open_all": "Ver todos los planes",
     "upgrade": "Mejorar plan",
+    "upgrade_hint": "Sube de nivel con un código promocional o invita amigos",
     "yours": "TUYO",
     "basic_short": "tu DAR, 1 mensaje del Oráculo al día, entrenador",
     "book_price_short": "990 ₽ pago único",

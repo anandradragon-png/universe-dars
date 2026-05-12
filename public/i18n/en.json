@@ -273,9 +273,21 @@
     "coming_note": "This section will appear in future updates. For now the «Guardian» plan unlocks the other advanced features."
   },
 
+  "level_desc": {
+    "basic": "Your DAR, Oracle 1/day, intuition trainer",
+    "extended": "Friends' DARs (up to 5), encyclopedia, unlimited Oracle",
+    "premium": "Unlimited calculations, all sections, x2 crystals"
+  },
+
+  "friends": {
+    "fallback_name": "Friend",
+    "you_have": "You have {count} friends in the system"
+  },
+
   "lk_price": {
     "open_all": "View all plans",
     "upgrade": "Upgrade plan",
+    "upgrade_hint": "Raise your level with a promo code or invite friends",
     "yours": "YOURS",
     "basic_short": "your DAR, 1 Oracle message per day, trainer",
     "book_price_short": "990 ₽ one-time",

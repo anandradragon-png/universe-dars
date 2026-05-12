@@ -24,7 +24,9 @@
     "copy": "Copiar",
     "copied": "Copiado",
     "coming_soon": "Pronto",
-    "not_now": "Ahora no"
+    "not_now": "Ahora no",
+    "saving": "Guardando...",
+    "saved": "Guardado"
   },
 
   "app": {
@@ -131,7 +133,8 @@
     "mood_sadness": "Tristeza",
     "mood_irritation": "Irritación",
     "mood_fatigue": "Cansancio",
-    "get_insight": "Recibir una idea de la IA"
+    "get_insight": "Recibir una idea de la IA",
+    "today_marked": "Hoy: marcado"
   },
 
   "hero": {
@@ -391,10 +394,34 @@
     "copy_card_manually": "Copia el número de tarjeta manualmente:"
   },
 
+  "compat": {
+    "err_name": "Ingresa el nombre de tu pareja",
+    "err_date_format": "Formato de fecha DD.MM.AAAA",
+    "err_date_invalid": "Revisa la fecha",
+    "err_calc": "No se pudo calcular el DAR"
+  },
+
+  "ykd": {
+    "err_contact_required": "Deja tu usuario de Telegram o tu email — de lo contrario no podremos darte acceso",
+    "err_email_typo": "Parece que hay un error en el email — revísalo, por favor",
+    "err_username": "El usuario de Telegram debe tener 4–32 letras latinas, dígitos o «_». Sin espacios.",
+    "err_min_amount": "Cantidad mínima — 10 ₽",
+    "err_max_amount": "Máximo 100 000 ₽ por vez",
+    "creating_payment": "Creando pago...",
+    "thank_btn": "Agradecer"
+  },
+
+  "hof": {
+    "min_chars": "Mínimo 2 caracteres",
+    "max_chars": "Máximo 30 caracteres"
+  },
+
   "kb": {
     "access_title": "Acceso a la Base de Conocimiento",
     "access_sub": "Ingresa un código promocional para desbloquear la enciclopedia de los 64 DARs y 9 Campos",
     "promo_placeholder_short": "Código promocional",
+    "promo_required": "Ingresa el código promocional",
+    "check_error": "Error de verificación. Inténtalo más tarde.",
     "open_access": "Desbloquear acceso",
     "tab_dars": "DARs",
     "tab_fields": "Campos",
@@ -453,7 +480,19 @@
     "accuracy_warning": "⚠️ Para lecturas precisas y profundas, todos los datos deben ser <b>reales</b>. Nombre, hora o lugar de nacimiento inventados llevarán a mensajes que no te corresponden.",
     "save_and_continue": "Guardar y continuar",
     "fill_later": "Completar más tarde",
-    "send_log": "Enviar registro al desarrollador"
+    "send_log": "Enviar registro al desarrollador",
+    "err_firstname": "Ingresa tu nombre real",
+    "err_lastname": "Ingresa tu apellido real",
+    "err_gender": "Selecciona tu género",
+    "err_date_format": "Fecha de nacimiento en formato DD.MM.AAAA",
+    "err_date_invalid": "Revisa la fecha — algo no cuadra",
+    "err_time_format": "Hora en formato HH:MM (por ejemplo 14:30)",
+    "err_time_range": "Revisa la hora: horas 00-23, minutos 00-59",
+    "err_place": "Ingresa el lugar de nacimiento",
+    "err_city_pick": "Elige una ciudad de las sugerencias (para coordenadas precisas)",
+    "data_saved": "Datos guardados",
+    "intro_new": "Para que tus predicciones sean realmente personales y precisas, comparte algunos detalles sobre ti. Tomará un minuto.",
+    "intro_returning": "Llevas tiempo con nosotros, ¡gracias! Para que los mensajes del Oráculo sean realmente tuyos — con el tono y la profundidad correctos — por favor completa estos campos. Es importante para lecturas precisas."
   },
 
   "admin_fb": {
@@ -461,7 +500,8 @@
     "all": "Todos",
     "bugs": "Errores",
     "ideas": "Ideas",
-    "questions": "Preguntas"
+    "questions": "Preguntas",
+    "total": "Total"
   },
 
   "tariffs": {

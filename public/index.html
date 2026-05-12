@@ -1501,7 +1501,7 @@
                 <div style="color:#D4AF37;font-weight:700">🗝 Хранитель: 1 990 ₽ / месяц</div>
                 ${level === 'extended' ? '<span style="font-size:9px;background:#D4AF37;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ТВОЙ</span>' : ''}
               </div>
-              <div style="color:var(--text-dim);font-size:11px">всё из Мастера + 🗝 Библиотека Практик (для Мастеров-практиков и ведущих)</div>
+              <div style="color:var(--text-dim);font-size:11px">всё из Мастера + 🗝 Библиотека Практик <span style="color:#f39c12;font-style:italic">(в разработке)</span></div>
               <div style="color:#aaa;font-size:10px;margin-top:4px;font-style:italic">Подписка с автопродлением.</div>
             </div>
 
@@ -3220,11 +3220,7 @@
           desc: 'Расширенный тариф для Мастеров-практиков и тех, кто ведёт других людей',
           features: [
             'Всё из тарифа «Мастер»',
-            '\u{1F5DD} Библиотека Практик: эксклюзивные глубинные знания',
-            'Углублённые материалы по каждому Дару',
-            'Методики работы с клиентами',
-            'Разборы практических ситуаций',
-            'Инструменты для проведения сессий и ретритов',
+            '\u{1F5DD} Библиотека Практик (в разработке)',
             'Раздел для ведущих и наставников'
           ],
           payBtns: [
@@ -3298,14 +3294,9 @@
           </div>` : '';
 
         const libBlock = (t.id === 'extended') ? `
-          <div style="margin-top:14px;padding:12px;background:rgba(212,175,55,0.1);border:1px dashed rgba(212,175,55,0.4);border-radius:10px">
-            <div style="font-size:13px;color:#D4AF37;font-weight:700;margin-bottom:6px">\u{1F5DD} Библиотека Практик (эксклюзив)</div>
-            <div style="font-size:12px;color:var(--text-dim);line-height:1.6">Для Мастеров-практиков и тех, кто ведёт других:<br>
-            &bull; Углублённые материалы по каждому Дару<br>
-            &bull; Методики работы с клиентами<br>
-            &bull; Разборы практических ситуаций<br>
-            &bull; Инструменты для проведения сессий и ретритов<br><br>
-            Только для тарифа «Хранитель».</div>
+          <div style="margin-top:14px;padding:12px;background:rgba(212,175,55,0.05);border:1px dashed rgba(212,175,55,0.25);border-radius:10px;opacity:0.7">
+            <div style="font-size:13px;color:#D4AF37;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">\u{1F5DD} ${(window.i18n && i18n.t) ? i18n.t('practices.title') : 'Библиотека Практик'} <span style="font-size:10px;background:rgba(243,156,18,0.18);color:#f39c12;border:1px solid rgba(243,156,18,0.5);padding:2px 8px;border-radius:6px;font-weight:600;letter-spacing:0.3px">${(window.i18n && i18n.t) ? i18n.t('practices.in_development') : 'в разработке'}</span></div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.6">${(window.i18n && i18n.t) ? i18n.t('practices.coming_note') : 'Раздел появится в следующих обновлениях. Сейчас тариф «Хранитель» открывает остальные расширенные возможности.'}</div>
           </div>` : '';
 
         return `
@@ -4576,7 +4567,7 @@
           <div style="font-size:13px;color:var(--text);margin-bottom:4px">Доступно с тарифа Мастер</div>
           <div style="font-size:11px;color:var(--text-dim);line-height:1.5">
             Мастер: безлимит слотов<br>
-            Хранитель: безлимит + Библиотека Практик
+            Хранитель: безлимит + Библиотека Практик (в разработке)
           </div>
           <button onclick="openTariffsPage()" style="margin-top:10px;padding:9px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(184,134,11,0.1));color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600">&#128142; Улучшить тариф</button>
         </div>`;

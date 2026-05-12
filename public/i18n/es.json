@@ -247,9 +247,9 @@
     "guardian_alt_pay": "suscripción mensual con renovación automática<br>o 1.000 ⭐ Telegram Stars al mes / 88M DarAI al mes",
     "guardian_desc": "Plan ampliado para Maestros practicantes y facilitadores",
     "guardian_f1": "Todo del plan «Maestro»",
-    "guardian_f2": "🔑 Biblioteca de Prácticas: conocimiento profundo exclusivo",
-    "guardian_f3": "Materiales avanzados para trabajar con otras personas",
-    "guardian_f4": "Sección para facilitadores y mentores",
+    "guardian_f2": "🔑 Biblioteca de Prácticas (en desarrollo)",
+    "guardian_f3": "Sección para facilitadores y mentores",
+    "guardian_f4": "Materiales avanzados — cuando se lance la Biblioteca",
     "payment_methods": "MÉTODOS DE PAGO",
     "legal_terms": "Acuerdo de Usuario",
     "legal_privacy": "Política de Privacidad",
@@ -264,6 +264,12 @@
 
   "reset": {
     "error": "Error al restablecer:"
+  },
+
+  "practices": {
+    "title": "Biblioteca de Prácticas",
+    "in_development": "en desarrollo",
+    "coming_note": "Esta sección aparecerá en próximas actualizaciones. Por ahora el plan «Guardián» desbloquea las demás funciones avanzadas."
   },
 
   "games": {

@@ -245,9 +245,9 @@
     "guardian_alt_pay": "monthly auto-renewing subscription<br>or 1,000 ⭐ Telegram Stars / month / 88M DarAI per month",
     "guardian_desc": "Extended plan for practicing Masters and facilitators",
     "guardian_f1": "Everything from the «Master» plan",
-    "guardian_f2": "🔑 Library of Practices: exclusive deep knowledge",
-    "guardian_f3": "Advanced materials for working with others",
-    "guardian_f4": "Section for facilitators and mentors",
+    "guardian_f2": "🔑 Library of Practices (in development)",
+    "guardian_f3": "Section for facilitators and mentors",
+    "guardian_f4": "Advanced materials — once the Library launches",
     "payment_methods": "PAYMENT METHODS",
     "legal_terms": "Terms of Service",
     "legal_privacy": "Privacy Policy",
@@ -262,6 +262,12 @@
 
   "reset": {
     "error": "Reset error:"
+  },
+
+  "practices": {
+    "title": "Library of Practices",
+    "in_development": "in development",
+    "coming_note": "This section will appear in future updates. For now the «Guardian» plan unlocks the other advanced features."
   },
 
   "games": {

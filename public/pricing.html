@@ -333,9 +333,11 @@
       try {
         const headers = { 'Content-Type': 'application/json' };
         if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
-        const r = await fetch('/api/pricing', { headers });
+        // Передаём текущий язык клиента, чтобы сервер вернул описания на нужном языке
+        const lang = (window.i18n && i18n.getLang) ? i18n.getLang() : 'ru';
+        const r = await fetch('/api/pricing?lang=' + encodeURIComponent(lang), { headers });
         const j = await r.json();
-        if (!r.ok) throw new Error(j.error || 'Ошибка');
+        if (!r.ok) throw new Error(j.error || ((window.i18n && i18n.t) ? i18n.t('common.error') : 'Ошибка'));
         return j;
       } catch (e) {
         return { error: e.message };
@@ -650,6 +652,11 @@
       // Перенесём дефолтную валюту из ответа
       if (DATA && DATA.currency && !DATA.error) UI.currency = DATA.currency;
       render();
+      // При смене языка в ЛК — перезапросим описания тарифов на новом языке
+      document.addEventListener('i18n:changed', async () => {
+        DATA = await fetchPricing();
+        render();
+      });
     })();
   </script>
 </body>

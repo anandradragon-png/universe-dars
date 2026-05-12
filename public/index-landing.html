@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YupDar (ЮпДар) — Вселенная Даров | Узнай свой Дар</title>
   <meta name="description" content="YupDar (ЮпДар) - интерактивный сервис самопознания через систему 64 Даров. Узнай свой дар по дате рождения, получай персональные послания Оракула, тренируй интуицию.">
+  <script src="/js/i18n.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{i18n.init().then(()=>i18n.applyToDOM())});</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #080808; color: #f1f5f9; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif; min-height: 100vh; }
@@ -57,9 +59,9 @@
     <div class="hero">
       <div class="hero-logo">&#128302;</div>
       <h1>YupDar (ЮпДар)</h1>
-      <div class="subtitle">Вселенная Даров</div>
-      <p>Узнай свой уникальный Дар по дате рождения. Получай персональные послания Оракула. Раскрой потенциал через AI-наставника. Пойми своих близких.</p>
-      <a href="https://t.me/YupDarBot" class="btn-main">&#128302; Открыть YupDar</a>
+      <div class="subtitle" data-i18n="landing.subtitle">Вселенная Даров</div>
+      <p data-i18n="landing.hero_text">Узнай свой уникальный Дар по дате рождения. Получай персональные послания Оракула. Раскрой потенциал через AI-наставника. Пойми своих близких.</p>
+      <a href="https://t.me/YupDarBot" class="btn-main">&#128302; <span data-i18n="landing.open_yupdar">Открыть YupDar</span></a>
     </div>
 
     <!-- Features -->
@@ -67,112 +69,112 @@
       <div class="feature">
         <div class="feature-icon">&#10024;</div>
         <div>
-          <h3>64 уникальных Дара</h3>
-          <p>Авторская система самопознания. Расчёт по дате рождения, полное описание сути, силы и граней каждого дара.</p>
+          <h3 data-i18n="landing.f1_title">64 уникальных Дара</h3>
+          <p data-i18n="landing.f1_text">Авторская система самопознания. Расчёт по дате рождения, полное описание сути, силы и граней каждого дара.</p>
         </div>
       </div>
       <div class="feature">
         <div class="feature-icon">&#128302;</div>
         <div>
-          <h3>Персональный Оракул</h3>
-          <p>AI-генерация ежедневных посланий на основе твоего дара. Практика дня, энергии, советы.</p>
+          <h3 data-i18n="landing.f2_title">Персональный Оракул</h3>
+          <p data-i18n="landing.f2_text">AI-генерация ежедневных посланий на основе твоего дара. Практика дня, энергии, советы.</p>
         </div>
       </div>
       <div class="feature">
         <div class="feature-icon">&#128214;</div>
         <div>
-          <h3>Книга Даров</h3>
-          <p>94 главы с полными описаниями всех 64 даров. Интерактивный ридер с темами, закладками и поиском.</p>
+          <h3 data-i18n="landing.f3_title">Книга Даров</h3>
+          <p data-i18n="landing.f3_text">94 главы с полными описаниями всех 64 даров. Интерактивный ридер с темами, закладками и поиском.</p>
         </div>
       </div>
       <div class="feature">
         <div class="feature-icon">&#128151;</div>
         <div>
-          <h3>AI-наставник</h3>
-          <p>Диалоговый коуч помогает раскрыть грани дара. Работает на DeepSeek AI, бережно ведёт через осознание.</p>
+          <h3 data-i18n="landing.f4_title">AI-наставник</h3>
+          <p data-i18n="landing.f4_text">Диалоговый коуч помогает раскрыть грани дара. Работает на DeepSeek AI, бережно ведёт через осознание.</p>
         </div>
       </div>
       <div class="feature">
         <div class="feature-icon">&#128106;</div>
         <div>
-          <h3>Семья и близкие</h3>
-          <p>Рассчитай дары близких, проверь совместимость, получи персональную книгу для родителей о ребёнке.</p>
+          <h3 data-i18n="landing.f5_title">Семья и близкие</h3>
+          <p data-i18n="landing.f5_text">Рассчитай дары близких, проверь совместимость, получи персональную книгу для родителей о ребёнке.</p>
         </div>
       </div>
       <div class="feature">
         <div class="feature-icon">&#127918;</div>
         <div>
-          <h3>Тренажёр интуиции</h3>
-          <p>Угадай дар среди карт. Батлы с AI-дракончиком Юпиком. Рейтинги и турниры.</p>
+          <h3 data-i18n="landing.f6_title">Тренажёр интуиции</h3>
+          <p data-i18n="landing.f6_text">Угадай дар среди карт. Батлы с AI-дракончиком Юпиком. Рейтинги и турниры.</p>
         </div>
       </div>
     </div>
 
     <!-- Pricing -->
     <div class="pricing">
-      <h2>&#11088; Тарифы</h2>
+      <h2>&#11088; <span data-i18n="tariffs.page_title">Тарифы</span></h2>
 
       <div class="price-card" style="border-color: rgba(255,255,255,0.15)">
-        <div style="font-size: 14px; color: #aaa; letter-spacing: 1px; margin-bottom: 8px;">СТРАННИК</div>
-        <div class="price-amount" style="color: #aaa;">Бесплатно</div>
-        <div class="price-desc">Начни знакомство с миром Даров</div>
+        <div style="font-size: 14px; color: #aaa; letter-spacing: 1px; margin-bottom: 8px;" data-i18n="tariffs.tier_wanderer">СТРАННИК</div>
+        <div class="price-amount" style="color: #aaa;" data-i18n="landing.free">Бесплатно</div>
+        <div class="price-desc" data-i18n="landing.wanderer_desc">Начни знакомство с миром Даров</div>
         <ul class="price-features">
-          <li>Расчёт своего дара</li>
-          <li>1 послание Оракула в день</li>
-          <li>Тренажёр интуиции</li>
-          <li>Превью Книги Даров (10 глав)</li>
+          <li data-i18n="landing.wanderer_f1">Расчёт своего дара</li>
+          <li data-i18n="landing.wanderer_f2">1 послание Оракула в день</li>
+          <li data-i18n="landing.wanderer_f3">Тренажёр интуиции</li>
+          <li data-i18n="landing.wanderer_f4">Превью Книги Даров (10 глав)</li>
         </ul>
       </div>
 
       <div class="price-card">
-        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#128214; КНИГА ДАРОВ</div>
+        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#128214; <span data-i18n="landing.book_label">КНИГА ДАРОВ</span></div>
         <div class="price-amount">990 ₽</div>
-        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;">разовая покупка, доступ навсегда<br>или 500 ⭐ Telegram Stars / 44M DarAI (ДарИИ)</div>
-        <div class="price-desc">Только полная Книга Даров: без остальных функций</div>
+        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;" data-i18n-html="landing.book_alt_pay">разовая покупка, доступ навсегда<br>или 500 ⭐ Telegram Stars / 44M DarAI (ДарИИ)</div>
+        <div class="price-desc" data-i18n="landing.book_desc">Только полная Книга Даров: без остальных функций</div>
         <ul class="price-features">
-          <li>Полная Книга Даров (94 главы)</li>
-          <li>Интерактивный ридер с закладками</li>
-          <li>Дизайнерская PDF-версия</li>
-          <li>Поиск и темы оформления</li>
+          <li data-i18n="landing.book_f1">Полная Книга Даров (94 главы)</li>
+          <li data-i18n="landing.book_f2">Интерактивный ридер с закладками</li>
+          <li data-i18n="landing.book_f3">Дизайнерская PDF-версия</li>
+          <li data-i18n="landing.book_f4">Поиск и темы оформления</li>
         </ul>
-        <a href="https://t.me/YupDarBot" class="btn-main" style="display:inline-block;margin-top:16px;padding:12px 30px;font-size:15px">Купить книгу</a>
+        <a href="https://t.me/YupDarBot" class="btn-main" style="display:inline-block;margin-top:16px;padding:12px 30px;font-size:15px" data-i18n="landing.buy_book">Купить книгу</a>
       </div>
 
       <div class="price-card" style="border-color: rgba(212,175,55,0.5); background: linear-gradient(135deg, rgba(212,175,55,0.18), rgba(184,134,11,0.08));">
-        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#127775; МАСТЕР</div>
-        <div class="price-amount">1 490 ₽<span style="font-size: 18px; color: #aaa; font-weight: normal;"> / месяц</span></div>
-        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;">ежемесячная подписка с автопродлением. Можно отменить в любой момент.<br>или 750 ⭐ Telegram Stars в месяц / 66M DarAI (ДарИИ) в месяц</div>
-        <div class="price-desc">Расширенный доступ ко всем основным функциям</div>
+        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#127775; <span data-i18n="landing.master_label">МАСТЕР</span></div>
+        <div class="price-amount">1 490 ₽<span style="font-size: 18px; color: #aaa; font-weight: normal;"> <span data-i18n="tariffs.per_month">/ месяц</span></span></div>
+        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;" data-i18n-html="landing.master_alt_pay">ежемесячная подписка с автопродлением. Можно отменить в любой момент.<br>или 750 ⭐ Telegram Stars в месяц / 66M DarAI (ДарИИ) в месяц</div>
+        <div class="price-desc" data-i18n="landing.master_desc">Расширенный доступ ко всем основным функциям</div>
         <ul class="price-features">
-          <li>Всё из тарифа «Книга Даров»</li>
-          <li>Безлимит Оракула</li>
-          <li>Безлимит слотов для близких</li>
-          <li>AI-наставник без ограничений</li>
-          <li>Дневник Дара с AI-анализом</li>
-          <li>Расчёт совместимости пары</li>
-          <li>+50 кристаллов мудрости при подписке</li>
+          <li data-i18n="landing.master_f1">Всё из тарифа «Книга Даров»</li>
+          <li data-i18n="landing.master_f2">Безлимит Оракула</li>
+          <li data-i18n="landing.master_f3">Безлимит слотов для близких</li>
+          <li data-i18n="landing.master_f4">AI-наставник без ограничений</li>
+          <li data-i18n="landing.master_f5">Дневник Дара с AI-анализом</li>
+          <li data-i18n="landing.master_f6">Расчёт совместимости пары</li>
+          <li data-i18n="landing.master_f7">+50 кристаллов мудрости при подписке</li>
         </ul>
-        <a href="https://t.me/YupDarBot" class="btn-main" style="display:inline-block;margin-top:16px;padding:12px 30px;font-size:15px">Оформить подписку</a>
+        <a href="https://t.me/YupDarBot" class="btn-main" style="display:inline-block;margin-top:16px;padding:12px 30px;font-size:15px" data-i18n="landing.subscribe">Оформить подписку</a>
       </div>
 
       <div class="price-card" style="border-color: rgba(212,175,55,0.6); background: linear-gradient(135deg, rgba(212,175,55,0.22), rgba(184,134,11,0.1));">
-        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#128273; ХРАНИТЕЛЬ</div>
-        <div class="price-amount">1 990 ₽<span style="font-size: 18px; color: #aaa; font-weight: normal;"> / месяц</span></div>
-        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;">ежемесячная подписка с автопродлением<br>или 1 000 ⭐ Telegram Stars в месяц / 88M DarAI (ДарИИ) в месяц</div>
-        <div class="price-desc">Расширенный тариф для Мастеров-практиков и ведущих</div>
+        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#128273; <span data-i18n="landing.guardian_label">ХРАНИТЕЛЬ</span></div>
+        <div class="price-amount">1 990 ₽<span style="font-size: 18px; color: #aaa; font-weight: normal;"> <span data-i18n="tariffs.per_month">/ месяц</span></span></div>
+        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;" data-i18n-html="landing.guardian_alt_pay">ежемесячная подписка с автопродлением<br>или 1 000 ⭐ Telegram Stars в месяц / 88M DarAI (ДарИИ) в месяц</div>
+        <div class="price-desc" data-i18n="landing.guardian_desc">Расширенный тариф для Мастеров-практиков и ведущих</div>
         <ul class="price-features">
-          <li>Всё из тарифа «Мастер»</li>
-          <li>&#128273; Библиотека Практик: эксклюзивные глубинные знания</li>
-          <li>Углублённые материалы для работы с другими людьми</li>
-          <li>Раздел для ведущих и наставников</li>
+          <li data-i18n="landing.guardian_f1">Всё из тарифа «Мастер»</li>
+          <li data-i18n-html="landing.guardian_f2">&#128273; Библиотека Практик: эксклюзивные глубинные знания</li>
+          <li data-i18n="landing.guardian_f3">Углублённые материалы для работы с другими людьми</li>
+          <li data-i18n="landing.guardian_f4">Раздел для ведущих и наставников</li>
         </ul>
-        <a href="https://t.me/YupDarBot" class="btn-main" style="display:inline-block;margin-top:16px;padding:12px 30px;font-size:15px">Оформить подписку</a>
+        <a href="https://t.me/YupDarBot" class="btn-main" style="display:inline-block;margin-top:16px;padding:12px 30px;font-size:15px" data-i18n="landing.subscribe">Оформить подписку</a>
       </div>
     </div>
 
     <!-- Payment methods -->
     <div class="payments">
-      <h3>СПОСОБЫ ОПЛАТЫ</h3>
+      <h3 data-i18n="landing.payment_methods">СПОСОБЫ ОПЛАТЫ</h3>
       <div class="payment-icons">
         <div class="payment-icon">&#11088; Telegram Stars</div>
         <div class="payment-icon">&#128179; Visa</div>
@@ -185,9 +187,9 @@
     <!-- Legal -->
     <div class="legal">
       <div>
-        <a href="/legal/terms">Пользовательское соглашение</a>
-        <a href="/legal/privacy">Политика конфиденциальности</a>
-        <a href="/legal/offer">Договор оферты</a>
+        <a href="/legal/terms" data-i18n="landing.legal_terms">Пользовательское соглашение</a>
+        <a href="/legal/privacy" data-i18n="landing.legal_privacy">Политика конфиденциальности</a>
+        <a href="/legal/offer" data-i18n="landing.legal_offer">Договор оферты</a>
         <a href="/legal/cookies">Cookies</a>
       </div>
       <div class="company">

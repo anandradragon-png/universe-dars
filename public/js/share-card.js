@@ -516,10 +516,10 @@ const ShareCard = (function() {
     const filename = _state.fileBase + '-' + format + '.png';
     try {
       await downloadCanvas(canvas, filename);
-      if (typeof showToast === 'function') showToast('\u2728 Карточка скачана', 'success');
+      if (typeof showToast === 'function') showToast('\u2728 ' + ((window.i18n && i18n.t) ? i18n.t('share.card_downloaded') : 'Карточка скачана'), 'success');
     } catch (e) {
       console.error('[ShareCard] download failed:', e);
-      if (typeof showToast === 'function') showToast('Не удалось скачать: ' + e.message, 'error');
+      if (typeof showToast === 'function') showToast(((window.i18n && i18n.t) ? i18n.t('share.download_failed') : 'Не удалось скачать:') + ' ' + e.message, 'error');
     }
   }
 
@@ -735,7 +735,7 @@ const ShareCard = (function() {
         await downloadCanvas(canvas, safeFileBase + '.png');
         if (typeof showToast === 'function') showToast('\u2728 Подробная карточка скачана', 'success');
       } catch (e) {
-        if (typeof showToast === 'function') showToast('Не удалось скачать: ' + e.message, 'error');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t) ? i18n.t('share.download_failed') : 'Не удалось скачать:') + ' ' + e.message, 'error');
       }
     });
   }

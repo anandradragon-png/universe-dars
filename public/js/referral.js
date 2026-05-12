@@ -49,12 +49,13 @@ const Referral = (function() {
     const container = document.getElementById('share-section');
     if (!container) return;
 
+    const t = (k) => (window.i18n && i18n.t) ? i18n.t(k) : null;
     container.innerHTML = `
       <div class="share-block">
-        <div class="share-title">&#127873; Поделись с другом!</div>
-        <div class="share-text">Если дар друга отличается от твоего, ты откроешь его в своей Сокровищнице и получишь кристаллы</div>
+        <div class="share-title">&#127873; ${t('referral.share_title') || 'Поделись с другом!'}</div>
+        <div class="share-text">${t('referral.share_text') || 'Если дар друга отличается от твоего, ты откроешь его в своей Сокровищнице и получишь кристаллы'}</div>
         <button class="btn btn-share" onclick="Referral.shareLink()">
-          &#128233; Отправить ссылку другу
+          &#128233; ${t('referral.send_link') || 'Отправить ссылку другу'}
         </button>
       </div>
     `;
@@ -75,7 +76,7 @@ const Referral = (function() {
    */
   function shareLink() {
     const link = getMyLink();
-    const text = 'Открой для себя YupDar - путешествие к своему Дару. Узнай свой дар по дате рождения и начни путь Алхимии.';
+    const text = (window.i18n && i18n.t) ? i18n.t('referral.share_message') : 'Открой для себя YupDar - путешествие к своему Дару. Узнай свой дар по дате рождения и начни путь Алхимии.';
 
     if (tg?.openTelegramLink) {
       tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
@@ -98,17 +99,20 @@ const Referral = (function() {
       }
     } catch (e) {}
     // Fallback: prompt
-    prompt('Скопируй эту ссылку:', link);
+    prompt((window.i18n && i18n.t) ? i18n.t('share.copy_link_prompt') : 'Скопируй эту ссылку:', link);
     return false;
   }
 
   function showReferralSuccess(result) {
     // Простое уведомление
     let msg;
+    const t = (k, vars) => (window.i18n && i18n.t) ? i18n.t(k, vars) : null;
     if (result.dar_unlocked) {
-      msg = `Добро пожаловать в YupDar!\n\nТвой дар открыт в Сокровищнице того, кто тебя пригласил. Это особая связь, которая начинает ваше общее путешествие.\n\n+${result.new_user_crystals} кристаллов мудрости как приветствие.`;
+      msg = t('referral.welcome_unlocked', { crystals: result.new_user_crystals })
+        || `Добро пожаловать в YupDar!\n\nТвой дар открыт в Сокровищнице того, кто тебя пригласил. Это особая связь, которая начинает ваше общее путешествие.\n\n+${result.new_user_crystals} кристаллов мудрости как приветствие.`;
     } else if (result.success) {
-      msg = `Добро пожаловать в YupDar!\n\nТот, кто тебя пригласил, уже имел твой дар в своей Сокровищнице. Зато ты приносишь ему кристаллы мудрости.\n\n+${result.new_user_crystals} кристаллов мудрости как приветствие.`;
+      msg = t('referral.welcome_existing', { crystals: result.new_user_crystals })
+        || `Добро пожаловать в YupDar!\n\nТот, кто тебя пригласил, уже имел твой дар в своей Сокровищнице. Зато ты приносишь ему кристаллы мудрости.\n\n+${result.new_user_crystals} кристаллов мудрости как приветствие.`;
     } else {
       return;
     }

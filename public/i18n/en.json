@@ -61,7 +61,10 @@
     "share_card": "Create a card for social media",
     "hide_description": "Hide description",
     "want_deeper": "Want to go deeper? The Book of DARs has the full description of all 64 DARs",
-    "archetype": "Archetype"
+    "archetype": "Archetype",
+    "share_card_sub": "A beautiful image of your DAR for Instagram, VK, Telegram",
+    "share_a4_title": "Detailed DAR card (A4)",
+    "share_a4_sub": "Print or gift to a loved one on their birthday"
   },
 
   "profile": {
@@ -268,6 +271,29 @@
     "title": "Library of Practices",
     "in_development": "in development",
     "coming_note": "This section will appear in future updates. For now the «Guardian» plan unlocks the other advanced features."
+  },
+
+  "lk_price": {
+    "open_all": "View all plans",
+    "upgrade": "Upgrade plan",
+    "yours": "YOURS",
+    "basic_short": "your DAR, 1 Oracle message per day, trainer",
+    "book_price_short": "990 ₽ one-time",
+    "book_short": "full Book (94 chapters) + PDF, lifetime access",
+    "master_price": "1 490 ₽ / month",
+    "master_short": "everything from Book + unlimited Oracle + AI mentor + DAR Diary + compatibility",
+    "cancel_note": "Auto-renewing subscription. Cancel anytime.",
+    "guardian_price": "1 990 ₽ / month",
+    "guardian_short_pre": "everything from Master",
+    "autorenew_short": "Auto-renewing subscription.",
+    "more_on": "Learn more at",
+    "site_yupdar": "the YupDar website"
+  },
+
+  "support": {
+    "q_like": "Do you love the project?",
+    "help_grow": "Your support helps YupDar grow — new DARs, features and content",
+    "button": "Support the project"
   },
 
   "tariffs_modal": {

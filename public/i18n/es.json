@@ -63,7 +63,10 @@
     "share_card": "Crear tarjeta para redes sociales",
     "hide_description": "Ocultar descripción",
     "want_deeper": "¿Quieres ir más profundo? El Libro de los DARs tiene la descripción completa de los 64 DARs",
-    "archetype": "Arquetipo"
+    "archetype": "Arquetipo",
+    "share_card_sub": "Una imagen bonita de tu DAR para Instagram, VK, Telegram",
+    "share_a4_title": "Tarjeta detallada del DAR (A4)",
+    "share_a4_sub": "Imprime o regala a un ser querido en su cumpleaños"
   },
 
   "profile": {
@@ -270,6 +273,29 @@
     "title": "Biblioteca de Prácticas",
     "in_development": "en desarrollo",
     "coming_note": "Esta sección aparecerá en próximas actualizaciones. Por ahora el plan «Guardián» desbloquea las demás funciones avanzadas."
+  },
+
+  "lk_price": {
+    "open_all": "Ver todos los planes",
+    "upgrade": "Mejorar plan",
+    "yours": "TUYO",
+    "basic_short": "tu DAR, 1 mensaje del Oráculo al día, entrenador",
+    "book_price_short": "990 ₽ pago único",
+    "book_short": "Libro completo (94 capítulos) + PDF, acceso para siempre",
+    "master_price": "1 490 ₽ / mes",
+    "master_short": "todo del Libro + Oráculo sin límite + mentor IA + Diario del DAR + compatibilidad",
+    "cancel_note": "Suscripción con renovación automática. Cancela cuando quieras.",
+    "guardian_price": "1 990 ₽ / mes",
+    "guardian_short_pre": "todo de Maestro",
+    "autorenew_short": "Suscripción con renovación automática.",
+    "more_on": "Más información en",
+    "site_yupdar": "el sitio de YupDar"
+  },
+
+  "support": {
+    "q_like": "¿Te gusta el proyecto?",
+    "help_grow": "Tu apoyo ayuda a que YupDar crezca — nuevos DARs, funciones y contenido",
+    "button": "Apoyar el proyecto"
   },
 
   "tariffs_modal": {

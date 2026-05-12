@@ -272,6 +272,46 @@
     "coming_note": "Esta sección aparecerá en próximas actualizaciones. Por ahora el plan «Guardián» desbloquea las demás funciones avanzadas."
   },
 
+  "tariffs_modal": {
+    "header": "PLANES",
+    "free": "Gratis",
+    "current_badge": "TU PLAN ACTUAL",
+    "included_badge": "Ya incluido en tu plan",
+    "month_subscription": "al mes, suscripción con renovación automática",
+
+    "basic_desc": "Funciones básicas para acercarte al mundo de los DARs",
+    "basic_f1": "Cálculo de tu DAR",
+    "basic_f2": "1 mensaje del Oráculo al día",
+    "basic_f3": "Entrenador de intuición",
+    "basic_f4": "Vista previa del Libro de los DARs (10 capítulos)",
+
+    "book_pricedesc": "compra única, acceso para siempre",
+    "book_desc": "Libro de los DARs completo (94 capítulos) con lector interactivo y versión PDF",
+    "book_f1": "Libro de los DARs completo (94 capítulos)",
+    "book_f2": "Lector interactivo con marcadores",
+    "book_f3": "Versión PDF de diseño",
+    "book_f4": "Búsqueda y temas",
+    "btn_buy_book": "Comprar (990 ₽)",
+
+    "master_desc": "Acceso ampliado a todas las funciones principales. Cancela cuando quieras.",
+    "master_f1": "Todo del plan «Libro de los DARs»",
+    "master_f2": "Oráculo sin límite",
+    "master_f3": "Espacios sin límite para seres queridos",
+    "master_f4": "Mentor IA sin restricciones",
+    "master_f5": "Diario del DAR con análisis de IA",
+    "master_f6": "Cálculo de compatibilidad de pareja",
+    "master_f7": "+50 cristales de sabiduría al suscribirse",
+    "btn_master_sub": "Suscribirse (1 490 ₽ / mes)",
+
+    "guardian_desc": "Plan ampliado para Maestros practicantes y quienes guían a otros",
+    "guardian_f1": "Todo del plan «Maestro»",
+    "guardian_f2": "Sección para facilitadores y mentores",
+    "btn_guardian_sub": "Suscribirse (1 990 ₽ / mes)",
+
+    "master_soon": "La suscripción «Maestro» estará disponible pronto. ¡Mantente atento!",
+    "guardian_soon": "La suscripción «Guardián» estará disponible pronto. ¡Mantente atento!"
+  },
+
   "games": {
     "hub_title": "JUEGOS",
     "hub_sub": "Elige un juego y desarrolla tu intuición",

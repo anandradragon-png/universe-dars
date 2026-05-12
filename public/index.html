@@ -985,7 +985,7 @@
     <!-- Фиксированная шапка модалки -->
     <div style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(8,8,8,0.95);backdrop-filter:blur(10px);border-bottom:1px solid rgba(212,175,55,0.2)">
       <button onclick="closeTariffsPage()" style="background:none;border:none;color:#D4AF37;font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;display:flex;align-items:center;gap:4px;font-family:Manrope,sans-serif" aria-label="Назад">&#8592;</button>
-      <div style="font-size:16px;color:#D4AF37;letter-spacing:2px;font-weight:700">&#128273; ТАРИФЫ</div>
+      <div style="font-size:16px;color:#D4AF37;letter-spacing:2px;font-weight:700">&#128273; <span data-i18n="tariffs_modal.header">ТАРИФЫ</span></div>
       <button onclick="closeTariffsPage()" style="background:none;border:none;color:var(--text-dim);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1" aria-label="Закрыть">&#10005;</button>
     </div>
     <!-- Прокручиваемая область содержимого -->
@@ -1471,7 +1471,7 @@
 
         <!-- Тарифы: прозрачный прайс-лист со всеми уровнями, виден всегда -->
         <div style="margin-top:14px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px">
-          <div style="font-size:13px;color:#D4AF37;margin-bottom:10px;font-weight:600;letter-spacing:0.5px">&#128142; ТАРИФЫ YupDar</div>
+          <div style="font-size:13px;color:#D4AF37;margin-bottom:10px;font-weight:600;letter-spacing:0.5px">&#128142; <span data-i18n="tariffs_modal.header">ТАРИФЫ</span> YupDar</div>
           <div style="display:grid;gap:6px">
 
             <div style="padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:8px;font-size:12px;line-height:1.5;${level === 'basic' ? 'border:2px solid #2ecc71;box-shadow:0 0 10px rgba(46,204,113,0.3)' : 'border:1px solid transparent'}">
@@ -3152,19 +3152,21 @@
     // premium (Мастер): оплачена подписка Мастер (включает Книгу)
     // extended (Хранитель): оплачена подписка Хранитель (включает всё)
     function getTariffsData(currentLevel) {
+      // Хелпер: i18n.t() с fallback на русский если i18n ещё не загружен
+      const t = (key, fallback) => (window.i18n && i18n.t) ? i18n.t(key) : fallback;
       return [
         {
           id: 'basic',
           emoji: '\u{1F30C}',
           title: 'Странник',
-          price: 'Бесплатно',
+          price: t('tariffs_modal.free', 'Бесплатно'),
           priceDesc: '',
-          desc: 'Базовый функционал для знакомства с миром Даров',
+          desc: t('tariffs_modal.basic_desc', 'Базовый функционал для знакомства с миром Даров'),
           features: [
-            'Расчёт своего дара',
-            '1 послание Оракула в день',
-            'Тренажёр интуиции',
-            'Превью Книги Даров (10 глав)'
+            t('tariffs_modal.basic_f1', 'Расчёт своего дара'),
+            t('tariffs_modal.basic_f2', '1 послание Оракула в день'),
+            t('tariffs_modal.basic_f3', 'Тренажёр интуиции'),
+            t('tariffs_modal.basic_f4', 'Превью Книги Даров (10 глав)')
           ],
           payBtns: [],
           isCurrent: currentLevel === 'basic',
@@ -3173,18 +3175,18 @@
         {
           id: 'book',
           emoji: '\u{1F4D6}',
-          title: 'Книга Даров',
+          title: t('tariffs.book_name', 'Книга Даров'),
           price: '990 ₽',
-          priceDesc: 'разовая покупка, доступ навсегда',
-          desc: 'Полная Книга Даров (94 главы) с интерактивным ридером и PDF-версией',
+          priceDesc: t('tariffs_modal.book_pricedesc', 'разовая покупка, доступ навсегда'),
+          desc: t('tariffs_modal.book_desc', 'Полная Книга Даров (94 главы) с интерактивным ридером и PDF-версией'),
           features: [
-            'Полная Книга Даров (94 главы)',
-            'Интерактивный ридер с закладками',
-            'Дизайнерская PDF-версия',
-            'Поиск и темы оформления'
+            t('tariffs_modal.book_f1', 'Полная Книга Даров (94 главы)'),
+            t('tariffs_modal.book_f2', 'Интерактивный ридер с закладками'),
+            t('tariffs_modal.book_f3', 'Дизайнерская PDF-версия'),
+            t('tariffs_modal.book_f4', 'Поиск и темы оформления')
           ],
           payBtns: [
-            { icon: '\u{1F4B3}', text: 'Купить (990 ₽)', action: 'buyBookChoice' }
+            { icon: '\u{1F4B3}', text: t('tariffs_modal.btn_buy_book', 'Купить (990 ₽)'), action: 'buyBookChoice' }
           ],
           isCurrent: false,
           isIncluded: currentLevel === 'premium' || currentLevel === 'extended'
@@ -3194,19 +3196,19 @@
           emoji: '\u{2B50}',
           title: 'Мастер',
           price: '1 490 ₽',
-          priceDesc: 'в месяц, подписка с автопродлением',
-          desc: 'Расширенный доступ ко всем основным функциям. Можно отменить в любой момент.',
+          priceDesc: t('tariffs_modal.month_subscription', 'в месяц, подписка с автопродлением'),
+          desc: t('tariffs_modal.master_desc', 'Расширенный доступ ко всем основным функциям. Можно отменить в любой момент.'),
           features: [
-            'Всё из «Книги Даров»',
-            'Безлимит Оракула',
-            'Безлимит слотов для близких',
-            'AI-наставник без ограничений',
-            'Дневник Дара с AI-анализом',
-            'Расчёт совместимости пары',
-            '+50 кристаллов мудрости при подписке'
+            t('tariffs_modal.master_f1', 'Всё из «Книги Даров»'),
+            t('tariffs_modal.master_f2', 'Безлимит Оракула'),
+            t('tariffs_modal.master_f3', 'Безлимит слотов для близких'),
+            t('tariffs_modal.master_f4', 'AI-наставник без ограничений'),
+            t('tariffs_modal.master_f5', 'Дневник Дара с AI-анализом'),
+            t('tariffs_modal.master_f6', 'Расчёт совместимости пары'),
+            t('tariffs_modal.master_f7', '+50 кристаллов мудрости при подписке')
           ],
           payBtns: [
-            { icon: '\u{1F4B3}', text: 'Подписаться (1 490 ₽ / мес)', action: 'buyMasterSubscription' }
+            { icon: '\u{1F4B3}', text: t('tariffs_modal.btn_master_sub', 'Подписаться (1 490 ₽ / мес)'), action: 'buyMasterSubscription' }
           ],
           isCurrent: currentLevel === 'premium',
           isIncluded: currentLevel === 'extended'
@@ -3216,15 +3218,15 @@
           emoji: '\u{1F5DD}',
           title: 'Хранитель',
           price: '1 990 ₽',
-          priceDesc: 'в месяц, подписка с автопродлением',
-          desc: 'Расширенный тариф для Мастеров-практиков и тех, кто ведёт других людей',
+          priceDesc: t('tariffs_modal.month_subscription', 'в месяц, подписка с автопродлением'),
+          desc: t('tariffs_modal.guardian_desc', 'Расширенный тариф для Мастеров-практиков и тех, кто ведёт других людей'),
           features: [
-            'Всё из тарифа «Мастер»',
-            '\u{1F5DD} Библиотека Практик (в разработке)',
-            'Раздел для ведущих и наставников'
+            t('tariffs_modal.guardian_f1', 'Всё из тарифа «Мастер»'),
+            '\u{1F5DD} ' + t('practices.title', 'Библиотека Практик') + ' (' + t('practices.in_development', 'в разработке') + ')',
+            t('tariffs_modal.guardian_f2', 'Раздел для ведущих и наставников')
           ],
           payBtns: [
-            { icon: '\u{1F4B3}', text: 'Подписаться (1 990 ₽ / мес)', action: 'buyKeeperSubscription' }
+            { icon: '\u{1F4B3}', text: t('tariffs_modal.btn_guardian_sub', 'Подписаться (1 990 ₽ / мес)'), action: 'buyKeeperSubscription' }
           ],
           isCurrent: currentLevel === 'extended',
           isIncluded: false,
@@ -3269,12 +3271,13 @@
       container.innerHTML = tariffs.map(t => {
         let borderStyle;
         let badge = '';
+        const tt = (key, fallback) => (window.i18n && i18n.t) ? i18n.t(key) : fallback;
         if (t.isCurrent) {
           borderStyle = 'border:2px solid #2ecc71;box-shadow:0 0 18px rgba(46,204,113,0.35)';
-          badge = '<div style="display:inline-block;background:#2ecc71;color:#080808;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:0.5px;margin-bottom:8px">\u2713 ТВОЙ ТЕКУЩИЙ ТАРИФ</div>';
+          badge = '<div style="display:inline-block;background:#2ecc71;color:#080808;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:0.5px;margin-bottom:8px">\u2713 ' + tt('tariffs_modal.current_badge', 'ТВОЙ ТЕКУЩИЙ ТАРИФ') + '</div>';
         } else if (t.isIncluded) {
           borderStyle = 'border:1px solid rgba(255,255,255,0.1);opacity:0.6';
-          badge = '<div style="display:inline-block;background:rgba(255,255,255,0.08);color:#aaa;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:600;letter-spacing:0.5px;margin-bottom:8px">\u2713 Уже включено в твой тариф</div>';
+          badge = '<div style="display:inline-block;background:rgba(255,255,255,0.08);color:#aaa;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:600;letter-spacing:0.5px;margin-bottom:8px">\u2713 ' + tt('tariffs_modal.included_badge', 'Уже включено в твой тариф') + '</div>';
         } else if (t.id === 'basic') {
           borderStyle = 'border:1px solid rgba(255,255,255,0.1)';
         } else {
@@ -3322,6 +3325,12 @@
       }
     }
 
+    // Перерисовываем открытую модалку тарифов при смене языка
+    document.addEventListener('i18n:changed', () => {
+      const modal = document.getElementById('tariffs-modal');
+      if (modal && modal.style.display !== 'none') openTariffsPage();
+    });
+
     function closeTariffsPage() {
       const modal = document.getElementById('tariffs-modal');
       if (modal) {
@@ -3333,10 +3342,12 @@
 
     // Заглушки для подписок (реальная интеграция ЮKassa пока в разработке)
     async function buyMasterSubscription() {
-      if (typeof showToast === 'function') showToast('Подписка «Мастер» скоро будет доступна. Следи за обновлениями!', 'info');
+      const msg = (window.i18n && i18n.t) ? i18n.t('tariffs_modal.master_soon') : 'Подписка «Мастер» скоро будет доступна. Следи за обновлениями!';
+      if (typeof showToast === 'function') showToast(msg, 'info');
     }
     async function buyKeeperSubscription() {
-      if (typeof showToast === 'function') showToast('Подписка «Хранитель» скоро будет доступна. Следи за обновлениями!', 'info');
+      const msg = (window.i18n && i18n.t) ? i18n.t('tariffs_modal.guardian_soon') : 'Подписка «Хранитель» скоро будет доступна. Следи за обновлениями!';
+      if (typeof showToast === 'function') showToast(msg, 'info');
     }
 
     // Экспорт функций в глобальный scope для onclick

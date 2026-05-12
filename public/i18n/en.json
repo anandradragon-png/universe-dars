@@ -270,6 +270,46 @@
     "coming_note": "This section will appear in future updates. For now the «Guardian» plan unlocks the other advanced features."
   },
 
+  "tariffs_modal": {
+    "header": "PLANS",
+    "free": "Free",
+    "current_badge": "YOUR CURRENT PLAN",
+    "included_badge": "Already included in your plan",
+    "month_subscription": "per month, auto-renewing subscription",
+
+    "basic_desc": "Basic features to get acquainted with the world of DARs",
+    "basic_f1": "Calculation of your DAR",
+    "basic_f2": "1 Oracle message per day",
+    "basic_f3": "Intuition trainer",
+    "basic_f4": "Preview of the Book of DARs (10 chapters)",
+
+    "book_pricedesc": "one-time purchase, lifetime access",
+    "book_desc": "Full Book of DARs (94 chapters) with interactive reader and PDF version",
+    "book_f1": "Full Book of DARs (94 chapters)",
+    "book_f2": "Interactive reader with bookmarks",
+    "book_f3": "Designer PDF version",
+    "book_f4": "Search and themes",
+    "btn_buy_book": "Buy (990 ₽)",
+
+    "master_desc": "Extended access to all main features. Cancel at any time.",
+    "master_f1": "Everything from «Book of DARs»",
+    "master_f2": "Unlimited Oracle",
+    "master_f3": "Unlimited slots for close ones",
+    "master_f4": "AI mentor without limits",
+    "master_f5": "DAR Diary with AI analysis",
+    "master_f6": "Couple compatibility",
+    "master_f7": "+50 wisdom crystals on subscription",
+    "btn_master_sub": "Subscribe (1 490 ₽ / month)",
+
+    "guardian_desc": "Extended plan for practicing Masters and facilitators who guide others",
+    "guardian_f1": "Everything from the «Master» plan",
+    "guardian_f2": "Section for facilitators and mentors",
+    "btn_guardian_sub": "Subscribe (1 990 ₽ / month)",
+
+    "master_soon": "«Master» subscription is coming soon. Stay tuned!",
+    "guardian_soon": "«Guardian» subscription is coming soon. Stay tuned!"
+  },
+
   "games": {
     "hub_title": "GAMES",
     "hub_sub": "Choose a game and develop your intuition",

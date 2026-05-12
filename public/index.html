@@ -762,12 +762,12 @@
         <!-- Карточка для шейринга -->
         <div id="share-card-cta" style="display:none;margin-top:14px;padding:14px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:16px;text-align:center;cursor:pointer" onclick="shareMyDar()">
           <div style="font-size:15px;color:#D4AF37;margin-bottom:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> <span data-i18n="dar.share_card">Создать карточку для соцсетей</span></div>
-          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Красивая картинка с твоим даром для Instagram, VK, Telegram</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5" data-i18n="dar.share_card_sub">Красивая картинка с твоим даром для Instagram, VK, Telegram</div>
         </div>
         <!-- Подробная карточка дара — для платных (А4 PNG, полное описание) -->
         <div id="share-info-cta" style="display:none;margin-top:10px;padding:14px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:16px;text-align:center;cursor:pointer" onclick="shareMyDarInfo()">
-          <div style="font-size:15px;color:#D4AF37;margin-bottom:4px">📄 Подробная карточка дара (A4)</div>
-          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Распечатать или подарить близкому на день рождения</div>
+          <div style="font-size:15px;color:#D4AF37;margin-bottom:4px">📄 <span data-i18n="dar.share_a4_title">Подробная карточка дара (A4)</span></div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5" data-i18n="dar.share_a4_sub">Распечатать или подарить близкому на день рождения</div>
         </div>
         <div id="share-section" style="display:none"></div>
         <div id="full-description-block" style="display:none">
@@ -1438,6 +1438,9 @@
         bigAvatar.textContent = (_userName || 'С').charAt(0).toUpperCase();
       }
 
+      // i18n хелпер с fallback на русский — для использования внутри шаблонных строк ниже
+      const _pt = (key, fallback) => (window.i18n && i18n.t) ? i18n.t(key) : fallback;
+
       // Дар
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -1467,55 +1470,55 @@
       document.getElementById('profile-level-info').innerHTML = `
         <div style="margin-bottom:8px"><span class="profile-level-badge ${lv.css}">${lv.icon} ${lv.name}</span></div>
         <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${lv.desc}</div>
-        <div style="margin-top:10px"><button onclick="openTariffsPage()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#128142; ${level === 'basic' ? 'Открыть все тарифы' : 'Улучшить тариф (Апгрейд)'}</button></div>
+        <div style="margin-top:10px"><button onclick="openTariffsPage()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#128142; ${level === 'basic' ? (_pt('lk_price.open_all', 'Открыть все тарифы')) : (_pt('lk_price.upgrade', 'Улучшить тариф (Апгрейд)'))}</button></div>
 
         <!-- Тарифы: прозрачный прайс-лист со всеми уровнями, виден всегда -->
         <div style="margin-top:14px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px">
-          <div style="font-size:13px;color:#D4AF37;margin-bottom:10px;font-weight:600;letter-spacing:0.5px">&#128142; <span data-i18n="tariffs_modal.header">ТАРИФЫ</span> YupDar</div>
+          <div style="font-size:13px;color:#D4AF37;margin-bottom:10px;font-weight:600;letter-spacing:0.5px">&#128142; ${_pt('tariffs_modal.header', 'ТАРИФЫ')} YupDar</div>
           <div style="display:grid;gap:6px">
 
             <div style="padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:8px;font-size:12px;line-height:1.5;${level === 'basic' ? 'border:2px solid #2ecc71;box-shadow:0 0 10px rgba(46,204,113,0.3)' : 'border:1px solid transparent'}">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-                <div style="color:#aaa;font-weight:600">Странник: <span style="color:#2ecc71">Бесплатно</span></div>
-                ${level === 'basic' ? '<span style="font-size:9px;background:#2ecc71;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ТВОЙ</span>' : ''}
+                <div style="color:#aaa;font-weight:600">Странник: <span style="color:#2ecc71">${_pt('tariffs_modal.free', 'Бесплатно')}</span></div>
+                ${level === 'basic' ? '<span style="font-size:9px;background:#2ecc71;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ' + _pt('lk_price.yours', 'ТВОЙ') + '</span>' : ''}
               </div>
-              <div style="color:var(--text-dim);font-size:11px">свой дар, 1 послание Оракула в день, тренажёр</div>
+              <div style="color:var(--text-dim);font-size:11px">${_pt('lk_price.basic_short', 'свой дар, 1 послание Оракула в день, тренажёр')}</div>
             </div>
 
             <div style="padding:8px 10px;background:rgba(212,175,55,0.05);border-radius:8px;font-size:12px;line-height:1.5;border:1px solid transparent">
-              <div style="color:#D4AF37;font-weight:600">📖 Книга Даров: 990 ₽ разово</div>
-              <div style="color:var(--text-dim);font-size:11px">полная Книга (94 главы) + PDF, доступ навсегда</div>
+              <div style="color:#D4AF37;font-weight:600">📖 ${_pt('tariffs.book_name', 'Книга Даров')}: ${_pt('lk_price.book_price_short', '990 ₽ разово')}</div>
+              <div style="color:var(--text-dim);font-size:11px">${_pt('lk_price.book_short', 'полная Книга (94 главы) + PDF, доступ навсегда')}</div>
             </div>
 
             <div style="padding:8px 10px;background:rgba(212,175,55,0.1);border-radius:8px;font-size:12px;line-height:1.5;${level === 'premium' ? 'border:2px solid #D4AF37;box-shadow:0 0 10px rgba(212,175,55,0.4)' : 'border:1px solid transparent'}">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-                <div style="color:#D4AF37;font-weight:700">⭐ Мастер: 1 490 ₽ / месяц</div>
-                ${level === 'premium' ? '<span style="font-size:9px;background:#D4AF37;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ТВОЙ</span>' : ''}
+                <div style="color:#D4AF37;font-weight:700">⭐ Мастер: ${_pt('lk_price.master_price', '1 490 ₽ / месяц')}</div>
+                ${level === 'premium' ? '<span style="font-size:9px;background:#D4AF37;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ' + _pt('lk_price.yours', 'ТВОЙ') + '</span>' : ''}
               </div>
-              <div style="color:var(--text-dim);font-size:11px">всё из Книги + безлимит Оракула + AI-наставник + Дневник Дара + совместимость</div>
-              <div style="color:#aaa;font-size:10px;margin-top:4px;font-style:italic">Подписка с автопродлением. Можно отменить в любой момент.</div>
+              <div style="color:var(--text-dim);font-size:11px">${_pt('lk_price.master_short', 'всё из Книги + безлимит Оракула + AI-наставник + Дневник Дара + совместимость')}</div>
+              <div style="color:#aaa;font-size:10px;margin-top:4px;font-style:italic">${_pt('lk_price.cancel_note', 'Подписка с автопродлением. Можно отменить в любой момент.')}</div>
             </div>
 
             <div style="padding:8px 10px;background:rgba(212,175,55,0.18);border-radius:8px;font-size:12px;line-height:1.5;${level === 'extended' ? 'border:2px solid #D4AF37;box-shadow:0 0 14px rgba(212,175,55,0.5)' : 'border:1px solid rgba(212,175,55,0.3)'}">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-                <div style="color:#D4AF37;font-weight:700">🗝 Хранитель: 1 990 ₽ / месяц</div>
-                ${level === 'extended' ? '<span style="font-size:9px;background:#D4AF37;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ТВОЙ</span>' : ''}
+                <div style="color:#D4AF37;font-weight:700">🗝 Хранитель: ${_pt('lk_price.guardian_price', '1 990 ₽ / месяц')}</div>
+                ${level === 'extended' ? '<span style="font-size:9px;background:#D4AF37;color:#080808;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px">✓ ' + _pt('lk_price.yours', 'ТВОЙ') + '</span>' : ''}
               </div>
-              <div style="color:var(--text-dim);font-size:11px">всё из Мастера + 🗝 Библиотека Практик <span style="color:#f39c12;font-style:italic">(в разработке)</span></div>
-              <div style="color:#aaa;font-size:10px;margin-top:4px;font-style:italic">Подписка с автопродлением.</div>
+              <div style="color:var(--text-dim);font-size:11px">${_pt('lk_price.guardian_short_pre', 'всё из Мастера')} + 🗝 ${_pt('practices.title', 'Библиотека Практик')} <span style="color:#f39c12;font-style:italic">(${_pt('practices.in_development', 'в разработке')})</span></div>
+              <div style="color:#aaa;font-size:10px;margin-top:4px;font-style:italic">${_pt('lk_price.autorenew_short', 'Подписка с автопродлением.')}</div>
             </div>
 
           </div>
           <div style="margin-top:10px;font-size:11px;color:var(--text-dim);text-align:center;line-height:1.4">
-            Подробнее на <a href="/index-landing" target="_blank" style="color:#D4AF37;text-decoration:none">сайте YupDar</a>
+            ${_pt('lk_price.more_on', 'Подробнее на')} <a href="/index-landing" target="_blank" style="color:#D4AF37;text-decoration:none">${_pt('lk_price.site_yupdar', 'сайте YupDar')}</a>
           </div>
         </div>
 
         <!-- Кнопка "Поддержать проект" — доступна всем уровням без исключений -->
         <div style="margin-top:14px;padding:14px;background:linear-gradient(135deg,rgba(233,30,99,0.1),rgba(156,39,176,0.08));border:1px solid rgba(233,30,99,0.4);border-radius:14px;text-align:center;box-shadow:0 0 14px rgba(233,30,99,0.12)">
-          <div style="font-size:13px;color:#e91e63;margin-bottom:10px;font-weight:600">💜 Нравится проект?</div>
-          <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">Твоя поддержка помогает развивать YupDar — новые дары, фичи и контент</div>
-          <button onclick="openDonationModal()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#e91e63,#9c27b0);color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;letter-spacing:0.5px;box-shadow:0 2px 10px rgba(233,30,99,0.25)">Поддержать проект</button>
+          <div style="font-size:13px;color:#e91e63;margin-bottom:10px;font-weight:600">💜 ${_pt('support.q_like', 'Нравится проект?')}</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">${_pt('support.help_grow', 'Твоя поддержка помогает развивать YupDar — новые дары, фичи и контент')}</div>
+          <button onclick="openDonationModal()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#e91e63,#9c27b0);color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;letter-spacing:0.5px;box-shadow:0 2px 10px rgba(233,30,99,0.25)">${_pt('support.button', 'Поддержать проект')}</button>
         </div>`;
 
       // Прогресс из localStorage

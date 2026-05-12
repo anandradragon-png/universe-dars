@@ -23,7 +23,8 @@
     "share": "Compartir",
     "copy": "Copiar",
     "copied": "Copiado",
-    "coming_soon": "Pronto"
+    "coming_soon": "Pronto",
+    "not_now": "Ahora no"
   },
 
   "app": {
@@ -142,7 +143,33 @@
   },
 
   "treasury": {
-    "empty_hint": "¡Calcula tu DAR para empezar tu colección de los 64 DARs!"
+    "empty_hint": "¡Calcula tu DAR para empezar tu colección de los 64 DARs!",
+    "quest_count_error": "No se pudo registrar la misión. Revisa tu conexión e inténtalo de nuevo.",
+    "meditation_count_error": "No se pudo registrar la meditación. Revisa tu conexión e inténtalo de nuevo."
+  },
+
+  "oracle": {
+    "forming": "El Oráculo está formando el mensaje...",
+    "message_forming": "El mensaje se está formando...",
+    "next_available": "Deja que el mensaje se despliegue en tu vida. El siguiente estará disponible en <b style=\"color:#D4AF37\">{time}</b>.",
+    "wisdom_slow": "La sabiduría se revela lentamente — vuelve mañana",
+    "read_in_book": "Leer en el Libro de los DARs",
+    "formulate_query": "Formula tu pregunta",
+    "query_hint": "¿Qué pregunta te preocupa? ¿Qué energías te ayudarán a encontrar la respuesta?",
+    "tap_card_hint": "Toca una carta para sacar una pista",
+    "calc_first_title": "Primero calcula tu DAR",
+    "calc_first_sub": "Para conocer tu DAR del Día personal, necesitas saber tu DAR por fecha de nacimiento",
+    "data_error": "Error de datos"
+  },
+
+  "book": {
+    "chapter_locked": "Este capítulo está disponible en la versión completa. Ingresa un código promocional abajo para desbloquear el libro entero.",
+    "confirm_clear_bookmarks": "¿Eliminar todos los marcadores? Esta acción no se puede deshacer.",
+    "enter_promo": "Ingresa un código promocional",
+    "full_access_unlocked": "¡Acceso completo al libro desbloqueado!",
+    "invalid_promo": "Código promocional inválido",
+    "promo_activation_failed": "No se pudo activar el código promocional",
+    "copy_card_manually": "Copia el número de tarjeta manualmente:"
   },
 
   "kb": {

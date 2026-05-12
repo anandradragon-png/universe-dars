@@ -21,7 +21,8 @@
     "share": "Share",
     "copy": "Copy",
     "copied": "Copied",
-    "coming_soon": "Soon"
+    "coming_soon": "Soon",
+    "not_now": "Not now"
   },
 
   "app": {
@@ -140,7 +141,33 @@
   },
 
   "treasury": {
-    "empty_hint": "Calculate your DAR to start your collection of 64 DARs!"
+    "empty_hint": "Calculate your DAR to start your collection of 64 DARs!",
+    "quest_count_error": "Could not count the quest. Check your connection and try again.",
+    "meditation_count_error": "Could not count the meditation. Check your connection and try again."
+  },
+
+  "oracle": {
+    "forming": "Oracle is forming the message...",
+    "message_forming": "Message is forming...",
+    "next_available": "Let the message unfold in your life. The new one will be available in <b style=\"color:#D4AF37\">{time}</b>.",
+    "wisdom_slow": "Wisdom unfolds slowly — come back tomorrow",
+    "read_in_book": "Read in the Book of DARs",
+    "formulate_query": "Formulate your request",
+    "query_hint": "What question troubles you? Which energies will help you find the answer?",
+    "tap_card_hint": "Tap a card to draw a hint",
+    "calc_first_title": "Calculate your DAR first",
+    "calc_first_sub": "To get your personal DAR of the Day, you need to know your DAR by birth date",
+    "data_error": "Data error"
+  },
+
+  "book": {
+    "chapter_locked": "This chapter is available in the full version. Enter a promo code below to unlock the whole book.",
+    "confirm_clear_bookmarks": "Remove all bookmarks? This action cannot be undone.",
+    "enter_promo": "Enter a promo code",
+    "full_access_unlocked": "Full access to the book is unlocked!",
+    "invalid_promo": "Invalid promo code",
+    "promo_activation_failed": "Could not activate the promo code",
+    "copy_card_manually": "Copy the card number manually:"
   },
 
   "kb": {

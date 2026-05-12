@@ -129,6 +129,50 @@
     "get_insight": "Получить инсайт от AI"
   },
 
+  "hero": {
+    "opening_gates": "Открываю врата путешествия...",
+    "start_failed": "Не удалось начать путешествие",
+    "time_up_q": "Время вышло! Задание выполнено?",
+    "yes_done": "✅ Да, выполнено!",
+    "skip": "Пропустить",
+    "journey_completed": "Путешествие завершено!",
+    "journey_passed": "Путешествие пройдено!",
+    "mentor_analyzing": "Наставник анализирует твой путь...",
+    "loading_history": "Загружаю историю...",
+    "back_to_treasury": "Вернуться в Сокровищницу",
+    "history_empty": "История пути пуста",
+    "analysis_failed": "Не удалось загрузить анализ пути"
+  },
+
+  "intuition": {
+    "guess_dar": "УГАДАЙ ДАР",
+    "games": "Игр",
+    "accuracy": "Точность",
+    "record": "Рекорд",
+    "loading_leaderboard": "Загружаю рейтинг...",
+    "leaderboard_title": "РЕЙТИНГ МАГОВ",
+    "leaderboard_sub": "Очки за сложность и серию, песочница не учитывается",
+    "leaderboard_failed": "Не удалось загрузить рейтинг. Проверь соединение.",
+    "leaderboard_empty": "Рейтинг пока пустой",
+    "be_first_mage": "Стань первым магом этого периода!",
+    "your_position": "Твоя позиция",
+    "light_card": "Карта Света",
+    "light_card_desc": "— даст x2 к выигрышу",
+    "shadow_card": "Карта Тени",
+    "shadow_card_desc": "— обнулит результат",
+    "cards_after_selection": "Все карты откроются после всех выборов",
+    "selected_prefix": "Выбрано:",
+    "daily_limit_reached": "Дневной лимит достигнут",
+    "come_tomorrow": "Вернусь завтра",
+    "buying": "Покупаем...",
+    "error_retry": "Ошибка, попробуй ещё раз",
+    "you": "Ты"
+  },
+
+  "atlantis": {
+    "no_cards_to_swap": "Нет карт для обмена"
+  },
+
   "games": {
     "hub_title": "ИГРЫ",
     "hub_sub": "Выбери игру и развивай интуицию",

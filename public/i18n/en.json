@@ -129,6 +129,50 @@
     "get_insight": "Get an AI insight"
   },
 
+  "hero": {
+    "opening_gates": "Opening the gates of the journey...",
+    "start_failed": "Could not start the journey",
+    "time_up_q": "Time's up! Did you complete the task?",
+    "yes_done": "✅ Yes, done!",
+    "skip": "Skip",
+    "journey_completed": "Journey completed!",
+    "journey_passed": "Journey passed!",
+    "mentor_analyzing": "Your mentor is analyzing your path...",
+    "loading_history": "Loading history...",
+    "back_to_treasury": "Back to Treasury",
+    "history_empty": "Journey history is empty",
+    "analysis_failed": "Could not load journey analysis"
+  },
+
+  "intuition": {
+    "guess_dar": "GUESS THE DAR",
+    "games": "Games",
+    "accuracy": "Accuracy",
+    "record": "Best",
+    "loading_leaderboard": "Loading leaderboard...",
+    "leaderboard_title": "LEADERBOARD",
+    "leaderboard_sub": "Points for difficulty and streak; sandbox not counted",
+    "leaderboard_failed": "Could not load the leaderboard. Check your connection.",
+    "leaderboard_empty": "Leaderboard is still empty",
+    "be_first_mage": "Be the first mage of this period!",
+    "your_position": "Your position",
+    "light_card": "Light Card",
+    "light_card_desc": "— gives x2 to your win",
+    "shadow_card": "Shadow Card",
+    "shadow_card_desc": "— resets the result",
+    "cards_after_selection": "All cards will open after your choices",
+    "selected_prefix": "Selected:",
+    "daily_limit_reached": "Daily limit reached",
+    "come_tomorrow": "Come back tomorrow",
+    "buying": "Buying...",
+    "error_retry": "Error, try again",
+    "you": "You"
+  },
+
+  "atlantis": {
+    "no_cards_to_swap": "No cards to swap"
+  },
+
   "games": {
     "hub_title": "GAMES",
     "hub_sub": "Choose a game and develop your intuition",

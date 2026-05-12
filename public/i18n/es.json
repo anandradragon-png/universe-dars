@@ -131,6 +131,50 @@
     "get_insight": "Recibir una idea de la IA"
   },
 
+  "hero": {
+    "opening_gates": "Abriendo las puertas del viaje...",
+    "start_failed": "No se pudo iniciar el viaje",
+    "time_up_q": "¡Se acabó el tiempo! ¿Completaste la tarea?",
+    "yes_done": "✅ ¡Sí, hecho!",
+    "skip": "Saltar",
+    "journey_completed": "¡Viaje completado!",
+    "journey_passed": "¡Viaje superado!",
+    "mentor_analyzing": "Tu mentor está analizando tu camino...",
+    "loading_history": "Cargando historial...",
+    "back_to_treasury": "Volver al Tesoro",
+    "history_empty": "El historial del viaje está vacío",
+    "analysis_failed": "No se pudo cargar el análisis del camino"
+  },
+
+  "intuition": {
+    "guess_dar": "ADIVINA EL DAR",
+    "games": "Juegos",
+    "accuracy": "Precisión",
+    "record": "Récord",
+    "loading_leaderboard": "Cargando ranking...",
+    "leaderboard_title": "RANKING DE MAGOS",
+    "leaderboard_sub": "Puntos por dificultad y racha; el modo arena no cuenta",
+    "leaderboard_failed": "No se pudo cargar el ranking. Revisa tu conexión.",
+    "leaderboard_empty": "El ranking aún está vacío",
+    "be_first_mage": "¡Sé el primer mago de este período!",
+    "your_position": "Tu posición",
+    "light_card": "Carta de Luz",
+    "light_card_desc": "— da x2 a tu victoria",
+    "shadow_card": "Carta de Sombra",
+    "shadow_card_desc": "— anula el resultado",
+    "cards_after_selection": "Todas las cartas se abrirán tras tus elecciones",
+    "selected_prefix": "Seleccionado:",
+    "daily_limit_reached": "Límite diario alcanzado",
+    "come_tomorrow": "Vuelvo mañana",
+    "buying": "Comprando...",
+    "error_retry": "Error, inténtalo de nuevo",
+    "you": "Tú"
+  },
+
+  "atlantis": {
+    "no_cards_to_swap": "No hay cartas para intercambiar"
+  },
+
   "games": {
     "hub_title": "JUEGOS",
     "hub_sub": "Elige un juego y desarrolla tu intuición",

@@ -62,9 +62,9 @@ const HeroJourney = (function() {
           block.innerHTML = `
             <div style="text-align:center;padding:20px">
               <div style="font-size:32px;margin-bottom:8px">🔥</div>
-              <div style="font-size:14px;color:#4CAF50;margin-bottom:12px">Время вышло! Задание выполнено?</div>
-              <button class="hero-btn hero-btn-primary" onclick="HeroJourney.completeFireTrial()">✅ Да, выполнено!</button>
-              <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.completeFireTrial()" style="margin-top:8px">Пропустить</button>
+              <div style="font-size:14px;color:#4CAF50;margin-bottom:12px">${(window.i18n && i18n.t) ? i18n.t('hero.time_up_q') : 'Время вышло! Задание выполнено?'}</div>
+              <button class="hero-btn hero-btn-primary" onclick="HeroJourney.completeFireTrial()">${(window.i18n && i18n.t) ? i18n.t('hero.yes_done') : '✅ Да, выполнено!'}</button>
+              <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.completeFireTrial()" style="margin-top:8px">${(window.i18n && i18n.t) ? i18n.t('hero.skip') : 'Пропустить'}</button>
             </div>`;
         }
         return;
@@ -105,7 +105,7 @@ const HeroJourney = (function() {
     container.innerHTML = `
       <div class="hero-journey-loading">
         <div class="hero-loading-spinner"></div>
-        <p id="hero-loading-text">Открываю врата путешествия...</p>
+        <p id="hero-loading-text">${(window.i18n && i18n.t) ? i18n.t('hero.opening_gates') : 'Открываю врата путешествия...'}</p>
       </div>`;
     container.style.display = 'block';
     container.scrollTop = 0;
@@ -137,7 +137,7 @@ const HeroJourney = (function() {
       currentContent = data.step_content || (data.journey && data.journey.step_state);
 
       if (!currentJourney) {
-        container.innerHTML = '<p style="text-align:center;padding:40px;color:#aaa">Не удалось начать путешествие</p>';
+        container.innerHTML = '<p style="text-align:center;padding:40px;color:#aaa">' + ((window.i18n && i18n.t) ? i18n.t('hero.start_failed') : 'Не удалось начать путешествие') + '</p>';
         return;
       }
 
@@ -161,7 +161,7 @@ const HeroJourney = (function() {
     }).catch(err => {
       clearPhrases();
       container.innerHTML = `<p style="text-align:center;padding:40px;color:#ff6b6b">${err.message || 'Ошибка загрузки'}</p>
-        <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.render('${darCode}')">Попробовать снова</button>`;
+        <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.render('${darCode}')">${(window.i18n && i18n.t) ? i18n.t('common.try_again') : 'Попробовать снова'}</button>`;
     });
   }
 
@@ -387,7 +387,7 @@ const HeroJourney = (function() {
             ${heroWon ? 'Завершить' : 'Вернуться'}
           </button>
         `}
-        ${!heroWon ? `<button class="hero-btn hero-btn-secondary" onclick="HeroJourney.retryBattle()">Попробовать снова</button>` : ''}
+        ${!heroWon ? `<button class="hero-btn hero-btn-secondary" onclick="HeroJourney.retryBattle()">${(window.i18n && i18n.t) ? i18n.t('common.try_again') : 'Попробовать снова'}</button>` : ''}
       </div>`;
   }
 
@@ -405,20 +405,20 @@ const HeroJourney = (function() {
       <div class="hero-journey-screen">
         <div class="hero-header">
           <button class="hero-back-btn" onclick="HeroJourney.close()">←</button>
-          <span>Путешествие завершено!</span>
+          <span>${(window.i18n && i18n.t) ? i18n.t('hero.journey_completed') : 'Путешествие завершено!'}</span>
         </div>
         ${renderProgress(7, completed)}
         <div class="hero-completed-info" style="padding:16px">
           <div style="text-align:center">
             <div style="font-size:48px;margin-bottom:12px">👑</div>
-            <h3 style="color:var(--text);margin-bottom:8px">Путешествие пройдено!</h3>
+            <h3 style="color:var(--text);margin-bottom:8px">${(window.i18n && i18n.t) ? i18n.t('hero.journey_passed') : 'Путешествие пройдено!'}</h3>
             <div class="hero-reward-badge" style="margin-bottom:16px">💎 ${crystals} кристаллов заработано</div>
           </div>
 
           <div id="hero-analysis-area">
             <div class="hero-journey-loading" style="padding:20px">
               <div class="hero-loading-spinner"></div>
-              <p>Наставник анализирует твой путь...</p>
+              <p>${(window.i18n && i18n.t) ? i18n.t('hero.mentor_analyzing') : 'Наставник анализирует твой путь...'}</p>
             </div>
           </div>
 
@@ -430,7 +430,7 @@ const HeroJourney = (function() {
               <span id="hero-path-history-arrow" style="transition:transform 0.3s">▼</span>
             </button>
             <div id="hero-path-history-body" style="display:none;padding:14px;background:rgba(0,0,0,0.15);max-height:500px;overflow-y:auto">
-              <div style="text-align:center;color:var(--text-dim);font-size:12px;padding:20px">Загружаю историю...</div>
+              <div style="text-align:center;color:var(--text-dim);font-size:12px;padding:20px">${(window.i18n && i18n.t) ? i18n.t('hero.loading_history') : 'Загружаю историю...'}</div>
             </div>
           </div>
 
@@ -444,7 +444,7 @@ const HeroJourney = (function() {
           </div>
 
           <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.restart('${darCode}')" style="margin-bottom:8px">🔄 Пройти заново (другой путь)</button>
-          <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">Вернуться в Сокровищницу</button>
+          <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">${(window.i18n && i18n.t) ? i18n.t('hero.back_to_treasury') : 'Вернуться в Сокровищницу'}</button>
         </div>
       </div>`;
     scrollToTop();
@@ -467,7 +467,7 @@ const HeroJourney = (function() {
       const pathLog = (data && data.path_log) || [];
       if (historyBody) {
         if (pathLog.length === 0) {
-          historyBody.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:20px">История пути пуста</div>';
+          historyBody.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:20px">' + ((window.i18n && i18n.t) ? i18n.t('hero.history_empty') : 'История пути пуста') + '</div>';
         } else {
           historyBody.innerHTML = pathLog.map((entry, idx) => {
             const stepInfo = STEPS.find(s => s.num === entry.step) || {};
@@ -494,7 +494,7 @@ const HeroJourney = (function() {
       }
     }).catch(() => {
       const area = document.getElementById('hero-analysis-area');
-      if (area) area.innerHTML = '<p style="color:#666;text-align:center;font-size:13px">Не удалось загрузить анализ пути</p>';
+      if (area) area.innerHTML = '<p style="color:#666;text-align:center;font-size:13px">' + ((window.i18n && i18n.t) ? i18n.t('hero.analysis_failed') : 'Не удалось загрузить анализ пути') + '</p>';
     });
   }
 

@@ -965,7 +965,7 @@ const AtlantisGame = (function() {
   function promptExchange() {
     if (state.phase !== 'choose_param' || state.exchangeUsed.user) return;
     if (!state.hands.user.length || !state.hands.rival.length) {
-      if (typeof showToast === 'function') showToast('Нет карт для обмена', 'info');
+      if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('atlantis.no_cards_to_swap') : 'Нет карт для обмена', 'info');
       return;
     }
     // Показываем выбор своей карты для обмена

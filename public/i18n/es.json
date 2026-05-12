@@ -189,7 +189,25 @@
   },
 
   "avatar": {
-    "too_large": "La foto es demasiado grande. Máximo 5 MB."
+    "too_large": "La foto es demasiado grande. Máximo 5 MB.",
+    "local_only": "El avatar se guardó localmente, pero no en el servidor. Inténtalo más tarde.",
+    "process_failed": "No se pudo procesar la imagen"
+  },
+
+  "access": {
+    "updated": "¡Acceso actualizado!",
+    "already_full": "¡Ya tienes acceso completo!"
+  },
+
+  "pay": {
+    "failed_retry": "El pago no se completó. Inténtalo de nuevo.",
+    "min_one_star": "Indica el monto (mínimo 1 Star)"
+  },
+
+  "book_pay": {
+    "creating_990": "Creando pago de 990 ₽...",
+    "opened_page": "Página de pago abierta. Después de pagar, vuelve a la aplicación.",
+    "creating_darai": "Creando pago en DarAI..."
   },
 
   "share": {
@@ -269,7 +287,8 @@
   },
 
   "reset": {
-    "error": "Error al restablecer:"
+    "error": "Error al restablecer:",
+    "success": "Datos locales restablecidos. Recargando..."
   },
 
   "practices": {
@@ -361,7 +380,8 @@
     "atlantis_name": "Leyendas de la Atlántida",
     "atlantis_desc": "Batalla de cartas de Magia, Vida, Fuerza y Poder. Tú contra una IA y las Fuerzas Superiores",
     "battles_name": "Batallas con amigos",
-    "battles_desc": "Desafía a un amigo, batalla en tiempo real y entra al Salón de la Fama"
+    "battles_desc": "Desafía a un amigo, batalla en tiempo real y entra al Salón de la Fama",
+    "battles_soon": "¡Las batallas con amigos llegarán pronto! Por ahora puedes luchar contra el Yupik de IA."
   },
 
   "treasury": {
@@ -408,7 +428,8 @@
     "err_min_amount": "Cantidad mínima — 10 ₽",
     "err_max_amount": "Máximo 100 000 ₽ por vez",
     "creating_payment": "Creando pago...",
-    "thank_btn": "Agradecer"
+    "thank_btn": "Agradecer",
+    "opened_payment": "Página de pago abierta por {amount} ₽. ¡Gracias! 💜"
   },
 
   "hof": {
@@ -440,6 +461,7 @@
   },
 
   "rel": {
+    "open_failed": "No se pudieron abrir los datos del ser querido",
     "title": "AÑADIR A UN SER QUERIDO",
     "warning": "⚠️ <b>Atención:</b> después de guardar a este ser querido <b>no será posible</b> editarlo ni eliminarlo. Es una protección contra suplantación y abuso. Revisa los datos antes de guardar.",
     "intro": "Completa los datos de tu ser querido para calcular su DAR.",

@@ -187,7 +187,25 @@
   },
 
   "avatar": {
-    "too_large": "Photo is too large. Maximum 5 MB."
+    "too_large": "Photo is too large. Maximum 5 MB.",
+    "local_only": "Avatar saved locally but not on the server. Try again later.",
+    "process_failed": "Could not process the image"
+  },
+
+  "access": {
+    "updated": "Access updated!",
+    "already_full": "You already have full access!"
+  },
+
+  "pay": {
+    "failed_retry": "Payment failed. Please try again.",
+    "min_one_star": "Enter an amount (minimum 1 Star)"
+  },
+
+  "book_pay": {
+    "creating_990": "Creating a 990 ₽ payment...",
+    "opened_page": "Payment page opened. Come back to the app after paying.",
+    "creating_darai": "Creating a DarAI payment..."
   },
 
   "share": {
@@ -267,7 +285,8 @@
   },
 
   "reset": {
-    "error": "Reset error:"
+    "error": "Reset error:",
+    "success": "Local data has been reset. Reloading..."
   },
 
   "practices": {
@@ -359,7 +378,8 @@
     "atlantis_name": "Legends of Atlantis",
     "atlantis_desc": "Card battle of Magic, Life, Power and Might. You against an AI opponent and the Higher Powers",
     "battles_name": "Battles with friends",
-    "battles_desc": "Challenge a friend, battle in real time and reach the Hall of Fame"
+    "battles_desc": "Challenge a friend, battle in real time and reach the Hall of Fame",
+    "battles_soon": "Battles with friends are coming soon! For now you can fight the AI Yupik."
   },
 
   "treasury": {
@@ -406,7 +426,8 @@
     "err_min_amount": "Minimum amount — 10 ₽",
     "err_max_amount": "Maximum 100 000 ₽ at a time",
     "creating_payment": "Creating payment...",
-    "thank_btn": "Thank"
+    "thank_btn": "Thank",
+    "opened_payment": "Opened payment page for {amount} ₽. Thank you! 💜"
   },
 
   "hof": {
@@ -438,6 +459,7 @@
   },
 
   "rel": {
+    "open_failed": "Could not open close one's data",
     "title": "ADD A CLOSE ONE",
     "warning": "⚠️ <b>Note:</b> once you save this person, you <b>cannot</b> edit or delete them. This protects against impersonation and abuse. Please check the data before saving.",
     "intro": "Fill in the data of your close one to calculate their DAR.",

@@ -22,7 +22,9 @@
     "open": "Abrir",
     "share": "Compartir",
     "copy": "Copiar",
-    "copied": "Copiado"
+    "copied": "Copiado",
+    "coming_soon": "Pronto",
+    "not_now": "Ahora no"
   },
 
   "app": {
@@ -93,7 +95,335 @@
     "admin_feedback": "Admin: Comentarios",
     "admin_feedback_sub": "Mensajes de los probadores",
     "admin_panel": "Admin: Panel de control",
-    "admin_panel_sub": "Panel, usuarios, códigos, pagos"
+    "admin_panel_sub": "Panel, usuarios, códigos, pagos",
+    "invite_friends": "¡Invita a tus amigos!",
+    "referral_hint": "El DAR de tu amigo se abrirá en el Tesoro, o recibirás cristales.",
+    "send_to_friend": "Enviar a un amigo",
+    "hall_of_fame_empty": "¡Juega en el entrenador y conviértete en el Mago del Día!",
+    "beta_chat": "Chat beta",
+    "language_hint": "El mensaje de IA se generará en el idioma seleccionado."
+  },
+
+  "daily": {
+    "section_title": "ACTIVIDADES DIARIAS",
+    "oracle_title": "Oráculo",
+    "oracle_sub": "Mensaje del día",
+    "compat_title": "Compatibilidad",
+    "compat_sub": "DARs de dos",
+    "research_title": "Conviértete en coautor de la investigación",
+    "research_sub": "Ayuda a la ciencia: completa un cuestionario de 28 afirmaciones (≈ 7 min) y sé parte del primer estudio científico de los DARs en Dubái",
+    "intuition_title": "Entrenador de intuición",
+    "intuition_sub": "Adivina el DAR y desarrolla tu intuición",
+    "feedback_sub_short": "¿Encontraste un error? ¿Tienes una idea? ¡Escríbenos!"
+  },
+
+  "diary": {
+    "title": "Diario del DAR",
+    "question": "¿Cómo te sientes ahora mismo?",
+    "mood_joy": "Alegría",
+    "mood_calm": "Calma",
+    "mood_energy": "Energía",
+    "mood_inspiration": "Inspiración",
+    "mood_anxiety": "Ansiedad",
+    "mood_sadness": "Tristeza",
+    "mood_irritation": "Irritación",
+    "mood_fatigue": "Cansancio",
+    "get_insight": "Recibir una idea de la IA"
+  },
+
+  "hero": {
+    "opening_gates": "Abriendo las puertas del viaje...",
+    "start_failed": "No se pudo iniciar el viaje",
+    "time_up_q": "¡Se acabó el tiempo! ¿Completaste la tarea?",
+    "yes_done": "✅ ¡Sí, hecho!",
+    "skip": "Saltar",
+    "journey_completed": "¡Viaje completado!",
+    "journey_passed": "¡Viaje superado!",
+    "mentor_analyzing": "Tu mentor está analizando tu camino...",
+    "loading_history": "Cargando historial...",
+    "back_to_treasury": "Volver al Tesoro",
+    "history_empty": "El historial del viaje está vacío",
+    "analysis_failed": "No se pudo cargar el análisis del camino"
+  },
+
+  "intuition": {
+    "guess_dar": "ADIVINA EL DAR",
+    "games": "Juegos",
+    "accuracy": "Precisión",
+    "record": "Récord",
+    "loading_leaderboard": "Cargando ranking...",
+    "leaderboard_title": "RANKING DE MAGOS",
+    "leaderboard_sub": "Puntos por dificultad y racha; el modo arena no cuenta",
+    "leaderboard_failed": "No se pudo cargar el ranking. Revisa tu conexión.",
+    "leaderboard_empty": "El ranking aún está vacío",
+    "be_first_mage": "¡Sé el primer mago de este período!",
+    "your_position": "Tu posición",
+    "light_card": "Carta de Luz",
+    "light_card_desc": "— da x2 a tu victoria",
+    "shadow_card": "Carta de Sombra",
+    "shadow_card_desc": "— anula el resultado",
+    "cards_after_selection": "Todas las cartas se abrirán tras tus elecciones",
+    "selected_prefix": "Seleccionado:",
+    "daily_limit_reached": "Límite diario alcanzado",
+    "come_tomorrow": "Vuelvo mañana",
+    "buying": "Comprando...",
+    "error_retry": "Error, inténtalo de nuevo",
+    "you": "Tú"
+  },
+
+  "atlantis": {
+    "no_cards_to_swap": "No hay cartas para intercambiar"
+  },
+
+  "donate": {
+    "title": "Agradecer al autor",
+    "sub": "Si YupDar resuena contigo, puedes apoyar el proyecto con cualquier cantidad. Eso ayuda a desarrollar el Universo de los DARs.",
+    "cta": "💳 Agradecer con tarjeta",
+    "legal": "Todos los precios están en rublos rusos. Las suscripciones se renuevan automáticamente. Puedes cancelar en cualquier momento desde tu cuenta.<br>Más información en nuestra <a href=\"/legal/offer\" target=\"_blank\" style=\"color:#D4AF37;text-decoration:none\">Oferta</a> y <a href=\"/legal/terms\" target=\"_blank\" style=\"color:#D4AF37;text-decoration:none\">Términos del Servicio</a>."
+  },
+
+  "avatar": {
+    "too_large": "La foto es demasiado grande. Máximo 5 MB."
+  },
+
+  "share": {
+    "link_copied": "¡Enlace copiado!",
+    "copy_link_prompt": "Copia el enlace:",
+    "download_failed": "Error al descargar:",
+    "card_downloaded": "Tarjeta descargada"
+  },
+
+  "referral": {
+    "share_title": "¡Comparte con un amigo!",
+    "share_text": "Si el DAR de tu amigo es distinto del tuyo, lo desbloquearás en tu Tesoro y ganarás cristales",
+    "send_link": "Enviar el enlace a un amigo",
+    "share_message": "Descubre YupDar — un viaje hacia tu DAR. Encuentra tu DAR por fecha de nacimiento y comienza el camino de la Alquimia.",
+    "welcome_unlocked": "¡Bienvenido a YupDar!\n\nTu DAR está desbloqueado en el Tesoro de quien te invitó. Es una conexión especial que inicia vuestro viaje compartido.\n\n+{crystals} cristales de sabiduría como bienvenida.",
+    "welcome_existing": "¡Bienvenido a YupDar!\n\nQuien te invitó ya tenía tu DAR en su Tesoro. Pero le traes cristales de sabiduría.\n\n+{crystals} cristales de sabiduría como bienvenida."
+  },
+
+  "landing": {
+    "subtitle": "Universo de los DARs",
+    "hero_text": "Descubre tu DAR único por fecha de nacimiento. Recibe mensajes personales del Oráculo. Desbloquea tu potencial con un mentor IA. Comprende a tus seres queridos.",
+    "open_yupdar": "Abrir YupDar",
+    "f1_title": "64 DARs únicos",
+    "f1_text": "Sistema original de autoconocimiento. Cálculo por fecha de nacimiento, descripción completa de la esencia, fuerza y facetas de cada DAR.",
+    "f2_title": "Oráculo Personal",
+    "f2_text": "Mensajes diarios generados por IA basados en tu DAR. Práctica diaria, energías, consejos.",
+    "f3_title": "Libro de los DARs",
+    "f3_text": "94 capítulos con descripciones completas de los 64 DARs. Lector interactivo con temas, marcadores y búsqueda.",
+    "f4_title": "Mentor IA",
+    "f4_text": "Un coach conversacional que ayuda a revelar las facetas de tu DAR. Funciona con DeepSeek AI, guía con cuidado hacia la conciencia.",
+    "f5_title": "Familia y seres queridos",
+    "f5_text": "Calcula los DARs de tus seres queridos, comprueba la compatibilidad, recibe un libro personal para padres sobre su hijo.",
+    "f6_title": "Entrenador de Intuición",
+    "f6_text": "Adivina el DAR entre las cartas. Batallas con el dragón IA Yupik. Rankings y torneos.",
+    "free": "Gratis",
+    "wanderer_desc": "Comienza tu acercamiento al mundo de los DARs",
+    "wanderer_f1": "Cálculo de tu DAR",
+    "wanderer_f2": "1 mensaje del Oráculo al día",
+    "wanderer_f3": "Entrenador de intuición",
+    "wanderer_f4": "Vista previa del Libro de los DARs (10 capítulos)",
+    "book_label": "LIBRO DE LOS DARS",
+    "book_alt_pay": "compra única, acceso para siempre<br>o 500 ⭐ Telegram Stars / 44M DarAI",
+    "book_desc": "Solo el Libro de los DARs completo: sin las demás funciones",
+    "book_f1": "Libro de los DARs completo (94 capítulos)",
+    "book_f2": "Lector interactivo con marcadores",
+    "book_f3": "Versión PDF de diseño",
+    "book_f4": "Búsqueda y temas",
+    "buy_book": "Comprar el libro",
+    "master_label": "MAESTRO",
+    "master_alt_pay": "suscripción mensual con renovación automática. Puedes cancelar en cualquier momento.<br>o 750 ⭐ Telegram Stars al mes / 66M DarAI al mes",
+    "master_desc": "Acceso ampliado a todas las funciones principales",
+    "master_f1": "Todo del plan «Libro de los DARs»",
+    "master_f2": "Oráculo sin límite",
+    "master_f3": "Espacios sin límite para seres queridos",
+    "master_f4": "Mentor IA sin restricciones",
+    "master_f5": "Diario del DAR con análisis de IA",
+    "master_f6": "Cálculo de compatibilidad en pareja",
+    "master_f7": "+50 cristales de sabiduría al suscribirse",
+    "subscribe": "Suscribirse",
+    "guardian_label": "GUARDIÁN",
+    "guardian_alt_pay": "suscripción mensual con renovación automática<br>o 1.000 ⭐ Telegram Stars al mes / 88M DarAI al mes",
+    "guardian_desc": "Plan ampliado para Maestros practicantes y facilitadores",
+    "guardian_f1": "Todo del plan «Maestro»",
+    "guardian_f2": "🔑 Biblioteca de Prácticas (en desarrollo)",
+    "guardian_f3": "Sección para facilitadores y mentores",
+    "guardian_f4": "Materiales avanzados — cuando se lance la Biblioteca",
+    "payment_methods": "MÉTODOS DE PAGO",
+    "legal_terms": "Acuerdo de Usuario",
+    "legal_privacy": "Política de Privacidad",
+    "legal_offer": "Acuerdo de Oferta"
+  },
+
+  "dar2": {
+    "unlocked_in_treasury": "¡El DAR {name} está desbloqueado en tu Tesoro! +10 cristales",
+    "calc_first": "Primero calcula tu DAR",
+    "confirm_change_date": "¿Cambiar la fecha de nacimiento?\n\nSi cometiste un error, puedes ingresar la fecha correcta. Tus DARs desbloqueados y cristales se conservarán."
+  },
+
+  "reset": {
+    "error": "Error al restablecer:"
+  },
+
+  "practices": {
+    "title": "Biblioteca de Prácticas",
+    "in_development": "en desarrollo",
+    "coming_note": "Esta sección aparecerá en próximas actualizaciones. Por ahora el plan «Guardián» desbloquea las demás funciones avanzadas."
+  },
+
+  "tariffs_modal": {
+    "header": "PLANES",
+    "free": "Gratis",
+    "current_badge": "TU PLAN ACTUAL",
+    "included_badge": "Ya incluido en tu plan",
+    "month_subscription": "al mes, suscripción con renovación automática",
+
+    "basic_desc": "Funciones básicas para acercarte al mundo de los DARs",
+    "basic_f1": "Cálculo de tu DAR",
+    "basic_f2": "1 mensaje del Oráculo al día",
+    "basic_f3": "Entrenador de intuición",
+    "basic_f4": "Vista previa del Libro de los DARs (10 capítulos)",
+
+    "book_pricedesc": "compra única, acceso para siempre",
+    "book_desc": "Libro de los DARs completo (94 capítulos) con lector interactivo y versión PDF",
+    "book_f1": "Libro de los DARs completo (94 capítulos)",
+    "book_f2": "Lector interactivo con marcadores",
+    "book_f3": "Versión PDF de diseño",
+    "book_f4": "Búsqueda y temas",
+    "btn_buy_book": "Comprar (990 ₽)",
+
+    "master_desc": "Acceso ampliado a todas las funciones principales. Cancela cuando quieras.",
+    "master_f1": "Todo del plan «Libro de los DARs»",
+    "master_f2": "Oráculo sin límite",
+    "master_f3": "Espacios sin límite para seres queridos",
+    "master_f4": "Mentor IA sin restricciones",
+    "master_f5": "Diario del DAR con análisis de IA",
+    "master_f6": "Cálculo de compatibilidad de pareja",
+    "master_f7": "+50 cristales de sabiduría al suscribirse",
+    "btn_master_sub": "Suscribirse (1 490 ₽ / mes)",
+
+    "guardian_desc": "Plan ampliado para Maestros practicantes y quienes guían a otros",
+    "guardian_f1": "Todo del plan «Maestro»",
+    "guardian_f2": "Sección para facilitadores y mentores",
+    "btn_guardian_sub": "Suscribirse (1 990 ₽ / mes)",
+
+    "master_soon": "La suscripción «Maestro» estará disponible pronto. ¡Mantente atento!",
+    "guardian_soon": "La suscripción «Guardián» estará disponible pronto. ¡Mantente atento!"
+  },
+
+  "games": {
+    "hub_title": "JUEGOS",
+    "hub_sub": "Elige un juego y desarrolla tu intuición",
+    "intuition_name": "Magia Intuitiva",
+    "intuition_desc": "Adivina el DAR entre las cartas. Clásico, multi-búsqueda, en solitario o batalla con el dragón IA Yupik",
+    "atlantis_name": "Leyendas de la Atlántida",
+    "atlantis_desc": "Batalla de cartas de Magia, Vida, Fuerza y Poder. Tú contra una IA y las Fuerzas Superiores",
+    "battles_name": "Batallas con amigos",
+    "battles_desc": "Desafía a un amigo, batalla en tiempo real y entra al Salón de la Fama"
+  },
+
+  "treasury": {
+    "empty_hint": "¡Calcula tu DAR para empezar tu colección de los 64 DARs!",
+    "quest_count_error": "No se pudo registrar la misión. Revisa tu conexión e inténtalo de nuevo.",
+    "meditation_count_error": "No se pudo registrar la meditación. Revisa tu conexión e inténtalo de nuevo."
+  },
+
+  "oracle": {
+    "forming": "El Oráculo está formando el mensaje...",
+    "message_forming": "El mensaje se está formando...",
+    "next_available": "Deja que el mensaje se despliegue en tu vida. El siguiente estará disponible en <b style=\"color:#D4AF37\">{time}</b>.",
+    "wisdom_slow": "La sabiduría se revela lentamente — vuelve mañana",
+    "read_in_book": "Leer en el Libro de los DARs",
+    "formulate_query": "Formula tu pregunta",
+    "query_hint": "¿Qué pregunta te preocupa? ¿Qué energías te ayudarán a encontrar la respuesta?",
+    "tap_card_hint": "Toca una carta para sacar una pista",
+    "calc_first_title": "Primero calcula tu DAR",
+    "calc_first_sub": "Para conocer tu DAR del Día personal, necesitas saber tu DAR por fecha de nacimiento",
+    "data_error": "Error de datos"
+  },
+
+  "book": {
+    "chapter_locked": "Este capítulo está disponible en la versión completa. Ingresa un código promocional abajo para desbloquear el libro entero.",
+    "confirm_clear_bookmarks": "¿Eliminar todos los marcadores? Esta acción no se puede deshacer.",
+    "enter_promo": "Ingresa un código promocional",
+    "full_access_unlocked": "¡Acceso completo al libro desbloqueado!",
+    "invalid_promo": "Código promocional inválido",
+    "promo_activation_failed": "No se pudo activar el código promocional",
+    "copy_card_manually": "Copia el número de tarjeta manualmente:"
+  },
+
+  "kb": {
+    "access_title": "Acceso a la Base de Conocimiento",
+    "access_sub": "Ingresa un código promocional para desbloquear la enciclopedia de los 64 DARs y 9 Campos",
+    "promo_placeholder_short": "Código promocional",
+    "open_access": "Desbloquear acceso",
+    "tab_dars": "DARs",
+    "tab_fields": "Campos",
+    "search_placeholder": "🔍 Buscar DARs (nombre, código, campo)"
+  },
+
+  "feedback": {
+    "title": "COMENTARIOS",
+    "category_label": "Categoría:",
+    "cat_bug": "Error",
+    "cat_idea": "Idea",
+    "cat_question": "Pregunta",
+    "cat_other": "Otro",
+    "text_placeholder": "Describe el problema o tu propuesta...",
+    "send": "Enviar"
+  },
+
+  "rel": {
+    "title": "AÑADIR A UN SER QUERIDO",
+    "warning": "⚠️ <b>Atención:</b> después de guardar a este ser querido <b>no será posible</b> editarlo ni eliminarlo. Es una protección contra suplantación y abuso. Revisa los datos antes de guardar.",
+    "intro": "Completa los datos de tu ser querido para calcular su DAR.",
+    "label_name": "NOMBRE",
+    "name_placeholder": "Por ejemplo: Ana",
+    "label_lastname": "APELLIDO <span style=\"opacity:0.5\">(opcional)</span>",
+    "lastname_placeholder": "Por ejemplo: García",
+    "label_birthdate": "FECHA DE NACIMIENTO",
+    "label_relationship": "PARENTESCO",
+    "rel_mother": "Madre",
+    "rel_father": "Padre",
+    "rel_son": "Hijo",
+    "rel_daughter": "Hija",
+    "rel_partner": "Pareja",
+    "rel_sibling": "Hermano/a",
+    "rel_grandson": "Nieto",
+    "rel_granddaughter": "Nieta",
+    "rel_friend": "Amigo/a",
+    "rel_other": "Otro",
+    "label_gender": "GÉNERO (opcional)",
+    "gender_male": "Masculino",
+    "gender_female": "Femenino"
+  },
+
+  "psu": {
+    "title": "TU CAMINO EMPIEZA",
+    "label_firstname": "Nombre (real)",
+    "firstname_placeholder": "Por ejemplo: Svetlana",
+    "label_lastname": "Apellido (real)",
+    "lastname_placeholder": "Por ejemplo: García",
+    "label_gender": "Género",
+    "label_birthdate": "Fecha de nacimiento (DD.MM.AAAA)",
+    "birthdate_hint": "La misma fecha que usaste al calcular tu DAR. Si está mal — corrígela aquí.",
+    "label_birthtime": "Hora de nacimiento (HH:MM)",
+    "birthtime_hint": "Si no sabes la hora exacta, usa 12:00",
+    "label_birthplace": "Lugar de nacimiento (ciudad)",
+    "birthplace_placeholder": "Empieza a escribir una ciudad...",
+    "accuracy_warning": "⚠️ Para lecturas precisas y profundas, todos los datos deben ser <b>reales</b>. Nombre, hora o lugar de nacimiento inventados llevarán a mensajes que no te corresponden.",
+    "save_and_continue": "Guardar y continuar",
+    "fill_later": "Completar más tarde",
+    "send_log": "Enviar registro al desarrollador"
+  },
+
+  "admin_fb": {
+    "title": "COMENTARIOS DE PROBADORES",
+    "all": "Todos",
+    "bugs": "Errores",
+    "ideas": "Ideas",
+    "questions": "Preguntas"
   },
 
   "tariffs": {
@@ -138,7 +468,9 @@
     "payment_ok": "¡Pago recibido! Actualizando…",
     "payment_failed": "El pago no se completó",
     "no_link": "No se pudo obtener el enlace de pago",
-    "connection_error": "Error de conexión: {message}"
+    "connection_error": "Error de conexión: {message}",
+    "free_for_all": "Disponible para todos, sin pago",
+    "email_prompt": "Ingresa tu correo para el recibo de YooKassa:"
   },
 
   "limits": {
@@ -151,7 +483,8 @@
     "hero_journey_locked_title": "El Camino del Héroe todavía está cerrado",
     "hero_journey_locked_msg": "Puedes abrir este Camino: invita a un amigo con este DAR (tendrás vista previa gratis), cómpralo por 300 cristales / 50 Stars / $0.99, u obtén Maestro — tiene los 64 DARs desbloqueados.",
     "open_tariffs": "🛡 Ver planes",
-    "footer_note": "Puedes cancelar la suscripción en cualquier momento"
+    "footer_note": "Puedes cancelar la suscripción en cualquier momento",
+    "access_restricted": "Acceso restringido"
   },
 
   "language_picker": {

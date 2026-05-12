@@ -870,7 +870,7 @@ const Treasury = (function() {
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, medIdx);
     } catch (e) {
       console.error('submitMeditationQuest error:', e);
-      if (typeof showToast === 'function') showToast('Не удалось засчитать медитацию. Проверь соединение и попробуй ещё раз.', 'error'); else alert('Не удалось засчитать медитацию. Проверь соединение и попробуй ещё раз.');
+      { const msg = (window.i18n && i18n.t) ? i18n.t('treasury.meditation_count_error') : 'Не удалось засчитать медитацию. Проверь соединение и попробуй ещё раз.'; if (typeof showToast === 'function') showToast(msg, 'error'); else alert(msg); }
       return;
     }
 
@@ -971,7 +971,7 @@ const Treasury = (function() {
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, ESSENCE_IDX);
     } catch (e) {
       console.error('submitEssenceQuest error:', e);
-      if (typeof showToast === 'function') showToast('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.', 'error'); else alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
+      { const msg = (window.i18n && i18n.t) ? i18n.t('treasury.quest_count_error') : 'Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.'; if (typeof showToast === 'function') showToast(msg, 'error'); else alert(msg); }
       return;
     }
 
@@ -1150,7 +1150,7 @@ const Treasury = (function() {
       if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
     } catch (e) {
       console.error('submitShadowQuest error:', e);
-      if (typeof showToast === 'function') showToast('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.', 'error'); else alert('Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.');
+      { const msg = (window.i18n && i18n.t) ? i18n.t('treasury.quest_count_error') : 'Не удалось засчитать квест. Проверь соединение и попробуй ещё раз.'; if (typeof showToast === 'function') showToast(msg, 'error'); else alert(msg); }
       return;
     }
 

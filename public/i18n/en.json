@@ -20,7 +20,9 @@
     "open": "Open",
     "share": "Share",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "coming_soon": "Soon",
+    "not_now": "Not now"
   },
 
   "app": {
@@ -91,7 +93,335 @@
     "admin_feedback": "Admin: Feedback",
     "admin_feedback_sub": "Tester messages",
     "admin_panel": "Admin: Control panel",
-    "admin_panel_sub": "Dashboard, users, promo codes, payments"
+    "admin_panel_sub": "Dashboard, users, promo codes, payments",
+    "invite_friends": "Invite your friends!",
+    "referral_hint": "Your friend's DAR will be unlocked in the Treasury, or you'll get crystals.",
+    "send_to_friend": "Send to a friend",
+    "hall_of_fame_empty": "Play the trainer and become the Mage of the Day!",
+    "beta_chat": "Beta chat",
+    "language_hint": "AI message will be generated in the selected language."
+  },
+
+  "daily": {
+    "section_title": "DAILY ACTIVITIES",
+    "oracle_title": "Oracle",
+    "oracle_sub": "Message of the day",
+    "compat_title": "Compatibility",
+    "compat_sub": "DARs of two",
+    "research_title": "Become a research co-author",
+    "research_sub": "Help science: take a 28-statement survey (about 7 min) and become part of the first scientific study of DARs in Dubai",
+    "intuition_title": "Intuition trainer",
+    "intuition_sub": "Guess the DAR and develop your inner sense",
+    "feedback_sub_short": "Found a bug? Have an idea? Write to us!"
+  },
+
+  "diary": {
+    "title": "DAR Diary",
+    "question": "How do you feel right now?",
+    "mood_joy": "Joy",
+    "mood_calm": "Calm",
+    "mood_energy": "Energy",
+    "mood_inspiration": "Inspiration",
+    "mood_anxiety": "Anxiety",
+    "mood_sadness": "Sadness",
+    "mood_irritation": "Irritation",
+    "mood_fatigue": "Fatigue",
+    "get_insight": "Get an AI insight"
+  },
+
+  "hero": {
+    "opening_gates": "Opening the gates of the journey...",
+    "start_failed": "Could not start the journey",
+    "time_up_q": "Time's up! Did you complete the task?",
+    "yes_done": "✅ Yes, done!",
+    "skip": "Skip",
+    "journey_completed": "Journey completed!",
+    "journey_passed": "Journey passed!",
+    "mentor_analyzing": "Your mentor is analyzing your path...",
+    "loading_history": "Loading history...",
+    "back_to_treasury": "Back to Treasury",
+    "history_empty": "Journey history is empty",
+    "analysis_failed": "Could not load journey analysis"
+  },
+
+  "intuition": {
+    "guess_dar": "GUESS THE DAR",
+    "games": "Games",
+    "accuracy": "Accuracy",
+    "record": "Best",
+    "loading_leaderboard": "Loading leaderboard...",
+    "leaderboard_title": "LEADERBOARD",
+    "leaderboard_sub": "Points for difficulty and streak; sandbox not counted",
+    "leaderboard_failed": "Could not load the leaderboard. Check your connection.",
+    "leaderboard_empty": "Leaderboard is still empty",
+    "be_first_mage": "Be the first mage of this period!",
+    "your_position": "Your position",
+    "light_card": "Light Card",
+    "light_card_desc": "— gives x2 to your win",
+    "shadow_card": "Shadow Card",
+    "shadow_card_desc": "— resets the result",
+    "cards_after_selection": "All cards will open after your choices",
+    "selected_prefix": "Selected:",
+    "daily_limit_reached": "Daily limit reached",
+    "come_tomorrow": "Come back tomorrow",
+    "buying": "Buying...",
+    "error_retry": "Error, try again",
+    "you": "You"
+  },
+
+  "atlantis": {
+    "no_cards_to_swap": "No cards to swap"
+  },
+
+  "donate": {
+    "title": "Thank the author",
+    "sub": "If YupDar resonates with you, you can support the project with any amount. It helps the Universe of DARs grow.",
+    "cta": "💳 Thank with card",
+    "legal": "All prices are in Russian rubles. Subscriptions renew automatically. You can cancel at any time in your account.<br>Learn more in our <a href=\"/legal/offer\" target=\"_blank\" style=\"color:#D4AF37;text-decoration:none\">Offer</a> and <a href=\"/legal/terms\" target=\"_blank\" style=\"color:#D4AF37;text-decoration:none\">Terms of Service</a>."
+  },
+
+  "avatar": {
+    "too_large": "Photo is too large. Maximum 5 MB."
+  },
+
+  "share": {
+    "link_copied": "Link copied!",
+    "copy_link_prompt": "Copy the link:",
+    "download_failed": "Download failed:",
+    "card_downloaded": "Card downloaded"
+  },
+
+  "referral": {
+    "share_title": "Share with a friend!",
+    "share_text": "If your friend's DAR differs from yours, you'll unlock it in your Treasury and earn crystals",
+    "send_link": "Send a link to a friend",
+    "share_message": "Discover YupDar — a journey to your DAR. Find your DAR by birth date and start the path of Alchemy.",
+    "welcome_unlocked": "Welcome to YupDar!\n\nYour DAR is now unlocked in the Treasury of the person who invited you. It's a special connection that begins your shared journey.\n\n+{crystals} wisdom crystals as a welcome.",
+    "welcome_existing": "Welcome to YupDar!\n\nThe person who invited you already had your DAR in their Treasury. But you bring them wisdom crystals.\n\n+{crystals} wisdom crystals as a welcome."
+  },
+
+  "landing": {
+    "subtitle": "Universe of DARs",
+    "hero_text": "Discover your unique DAR by date of birth. Receive personal Oracle messages. Unlock your potential with an AI mentor. Understand your close ones.",
+    "open_yupdar": "Open YupDar",
+    "f1_title": "64 unique DARs",
+    "f1_text": "Original system of self-discovery. Calculation by birth date, full description of essence, power and facets of each DAR.",
+    "f2_title": "Personal Oracle",
+    "f2_text": "AI-generated daily messages based on your DAR. Daily practice, energies, advice.",
+    "f3_title": "Book of DARs",
+    "f3_text": "94 chapters with full descriptions of all 64 DARs. Interactive reader with themes, bookmarks and search.",
+    "f4_title": "AI Mentor",
+    "f4_text": "A dialogue coach that helps reveal facets of your DAR. Powered by DeepSeek AI, gently guiding awareness.",
+    "f5_title": "Family and close ones",
+    "f5_text": "Calculate DARs of your loved ones, check compatibility, get a personal book for parents about their child.",
+    "f6_title": "Intuition Trainer",
+    "f6_text": "Guess the DAR among cards. Battles with the AI dragon Yupik. Leaderboards and tournaments.",
+    "free": "Free",
+    "wanderer_desc": "Start your acquaintance with the world of DARs",
+    "wanderer_f1": "Calculation of your DAR",
+    "wanderer_f2": "1 Oracle message per day",
+    "wanderer_f3": "Intuition trainer",
+    "wanderer_f4": "Preview of the Book of DARs (10 chapters)",
+    "book_label": "BOOK OF DARS",
+    "book_alt_pay": "one-time purchase, lifetime access<br>or 500 ⭐ Telegram Stars / 44M DarAI",
+    "book_desc": "Only the full Book of DARs: without the other features",
+    "book_f1": "Full Book of DARs (94 chapters)",
+    "book_f2": "Interactive reader with bookmarks",
+    "book_f3": "Designer PDF version",
+    "book_f4": "Search and themes",
+    "buy_book": "Buy the book",
+    "master_label": "MASTER",
+    "master_alt_pay": "monthly auto-renewing subscription. Cancel anytime.<br>or 750 ⭐ Telegram Stars / month / 66M DarAI per month",
+    "master_desc": "Extended access to all main features",
+    "master_f1": "Everything from the «Book of DARs» plan",
+    "master_f2": "Unlimited Oracle",
+    "master_f3": "Unlimited slots for close ones",
+    "master_f4": "AI mentor without limits",
+    "master_f5": "DAR Diary with AI analysis",
+    "master_f6": "Couple compatibility",
+    "master_f7": "+50 wisdom crystals on subscription",
+    "subscribe": "Subscribe",
+    "guardian_label": "GUARDIAN",
+    "guardian_alt_pay": "monthly auto-renewing subscription<br>or 1,000 ⭐ Telegram Stars / month / 88M DarAI per month",
+    "guardian_desc": "Extended plan for practicing Masters and facilitators",
+    "guardian_f1": "Everything from the «Master» plan",
+    "guardian_f2": "🔑 Library of Practices (in development)",
+    "guardian_f3": "Section for facilitators and mentors",
+    "guardian_f4": "Advanced materials — once the Library launches",
+    "payment_methods": "PAYMENT METHODS",
+    "legal_terms": "Terms of Service",
+    "legal_privacy": "Privacy Policy",
+    "legal_offer": "Offer Agreement"
+  },
+
+  "dar2": {
+    "unlocked_in_treasury": "DAR {name} is unlocked in your Treasury! +10 crystals",
+    "calc_first": "Calculate your DAR first",
+    "confirm_change_date": "Change date of birth?\n\nIf you made a mistake, you can enter the correct date. Your unlocked DARs and crystals will be kept."
+  },
+
+  "reset": {
+    "error": "Reset error:"
+  },
+
+  "practices": {
+    "title": "Library of Practices",
+    "in_development": "in development",
+    "coming_note": "This section will appear in future updates. For now the «Guardian» plan unlocks the other advanced features."
+  },
+
+  "tariffs_modal": {
+    "header": "PLANS",
+    "free": "Free",
+    "current_badge": "YOUR CURRENT PLAN",
+    "included_badge": "Already included in your plan",
+    "month_subscription": "per month, auto-renewing subscription",
+
+    "basic_desc": "Basic features to get acquainted with the world of DARs",
+    "basic_f1": "Calculation of your DAR",
+    "basic_f2": "1 Oracle message per day",
+    "basic_f3": "Intuition trainer",
+    "basic_f4": "Preview of the Book of DARs (10 chapters)",
+
+    "book_pricedesc": "one-time purchase, lifetime access",
+    "book_desc": "Full Book of DARs (94 chapters) with interactive reader and PDF version",
+    "book_f1": "Full Book of DARs (94 chapters)",
+    "book_f2": "Interactive reader with bookmarks",
+    "book_f3": "Designer PDF version",
+    "book_f4": "Search and themes",
+    "btn_buy_book": "Buy (990 ₽)",
+
+    "master_desc": "Extended access to all main features. Cancel at any time.",
+    "master_f1": "Everything from «Book of DARs»",
+    "master_f2": "Unlimited Oracle",
+    "master_f3": "Unlimited slots for close ones",
+    "master_f4": "AI mentor without limits",
+    "master_f5": "DAR Diary with AI analysis",
+    "master_f6": "Couple compatibility",
+    "master_f7": "+50 wisdom crystals on subscription",
+    "btn_master_sub": "Subscribe (1 490 ₽ / month)",
+
+    "guardian_desc": "Extended plan for practicing Masters and facilitators who guide others",
+    "guardian_f1": "Everything from the «Master» plan",
+    "guardian_f2": "Section for facilitators and mentors",
+    "btn_guardian_sub": "Subscribe (1 990 ₽ / month)",
+
+    "master_soon": "«Master» subscription is coming soon. Stay tuned!",
+    "guardian_soon": "«Guardian» subscription is coming soon. Stay tuned!"
+  },
+
+  "games": {
+    "hub_title": "GAMES",
+    "hub_sub": "Choose a game and develop your intuition",
+    "intuition_name": "Intuitive Magic",
+    "intuition_desc": "Guess the DAR among cards. Classic, multi-search, solo or battle with the AI dragon Yupik",
+    "atlantis_name": "Legends of Atlantis",
+    "atlantis_desc": "Card battle of Magic, Life, Power and Might. You against an AI opponent and the Higher Powers",
+    "battles_name": "Battles with friends",
+    "battles_desc": "Challenge a friend, battle in real time and reach the Hall of Fame"
+  },
+
+  "treasury": {
+    "empty_hint": "Calculate your DAR to start your collection of 64 DARs!",
+    "quest_count_error": "Could not count the quest. Check your connection and try again.",
+    "meditation_count_error": "Could not count the meditation. Check your connection and try again."
+  },
+
+  "oracle": {
+    "forming": "Oracle is forming the message...",
+    "message_forming": "Message is forming...",
+    "next_available": "Let the message unfold in your life. The new one will be available in <b style=\"color:#D4AF37\">{time}</b>.",
+    "wisdom_slow": "Wisdom unfolds slowly — come back tomorrow",
+    "read_in_book": "Read in the Book of DARs",
+    "formulate_query": "Formulate your request",
+    "query_hint": "What question troubles you? Which energies will help you find the answer?",
+    "tap_card_hint": "Tap a card to draw a hint",
+    "calc_first_title": "Calculate your DAR first",
+    "calc_first_sub": "To get your personal DAR of the Day, you need to know your DAR by birth date",
+    "data_error": "Data error"
+  },
+
+  "book": {
+    "chapter_locked": "This chapter is available in the full version. Enter a promo code below to unlock the whole book.",
+    "confirm_clear_bookmarks": "Remove all bookmarks? This action cannot be undone.",
+    "enter_promo": "Enter a promo code",
+    "full_access_unlocked": "Full access to the book is unlocked!",
+    "invalid_promo": "Invalid promo code",
+    "promo_activation_failed": "Could not activate the promo code",
+    "copy_card_manually": "Copy the card number manually:"
+  },
+
+  "kb": {
+    "access_title": "Knowledge Base access",
+    "access_sub": "Enter a promo code to unlock the encyclopedia of all 64 DARs and 9 Fields",
+    "promo_placeholder_short": "Promo code",
+    "open_access": "Unlock access",
+    "tab_dars": "DARs",
+    "tab_fields": "Fields",
+    "search_placeholder": "🔍 Search DARs (name, code, field)"
+  },
+
+  "feedback": {
+    "title": "FEEDBACK",
+    "category_label": "Category:",
+    "cat_bug": "Bug",
+    "cat_idea": "Idea",
+    "cat_question": "Question",
+    "cat_other": "Other",
+    "text_placeholder": "Describe the issue or your idea...",
+    "send": "Send"
+  },
+
+  "rel": {
+    "title": "ADD A CLOSE ONE",
+    "warning": "⚠️ <b>Note:</b> once you save this person, you <b>cannot</b> edit or delete them. This protects against impersonation and abuse. Please check the data before saving.",
+    "intro": "Fill in the data of your close one to calculate their DAR.",
+    "label_name": "FIRST NAME",
+    "name_placeholder": "For example: Anna",
+    "label_lastname": "LAST NAME <span style=\"opacity:0.5\">(optional)</span>",
+    "lastname_placeholder": "For example: Smith",
+    "label_birthdate": "DATE OF BIRTH",
+    "label_relationship": "RELATIONSHIP",
+    "rel_mother": "Mother",
+    "rel_father": "Father",
+    "rel_son": "Son",
+    "rel_daughter": "Daughter",
+    "rel_partner": "Partner",
+    "rel_sibling": "Sibling",
+    "rel_grandson": "Grandson",
+    "rel_granddaughter": "Granddaughter",
+    "rel_friend": "Friend",
+    "rel_other": "Other",
+    "label_gender": "GENDER (optional)",
+    "gender_male": "Male",
+    "gender_female": "Female"
+  },
+
+  "psu": {
+    "title": "YOUR PATH BEGINS",
+    "label_firstname": "First name (real)",
+    "firstname_placeholder": "For example: Svetlana",
+    "label_lastname": "Last name (real)",
+    "lastname_placeholder": "For example: Smith",
+    "label_gender": "Gender",
+    "label_birthdate": "Date of birth (DD.MM.YYYY)",
+    "birthdate_hint": "Same date you used when calculating your DAR. If wrong — fix it here.",
+    "label_birthtime": "Time of birth (HH:MM)",
+    "birthtime_hint": "If you don't know the exact time, use 12:00",
+    "label_birthplace": "Place of birth (city)",
+    "birthplace_placeholder": "Start typing a city...",
+    "accuracy_warning": "⚠️ For accurate and deep readings, all data must be <b>real</b>. Made-up name, time or place of birth will lead to messages that don't fit you.",
+    "save_and_continue": "Save and continue",
+    "fill_later": "Fill in later",
+    "send_log": "Send log to developer"
+  },
+
+  "admin_fb": {
+    "title": "TESTER FEEDBACK",
+    "all": "All",
+    "bugs": "Bugs",
+    "ideas": "Ideas",
+    "questions": "Questions"
   },
 
   "tariffs": {
@@ -136,7 +466,9 @@
     "payment_ok": "Payment received! Refreshing…",
     "payment_failed": "Payment failed",
     "no_link": "Could not retrieve payment link",
-    "connection_error": "Connection error: {message}"
+    "connection_error": "Connection error: {message}",
+    "free_for_all": "Available to everyone, no payment needed",
+    "email_prompt": "Enter your email for the YooKassa receipt:"
   },
 
   "limits": {
@@ -149,7 +481,8 @@
     "hero_journey_locked_title": "The Hero's Path is still closed",
     "hero_journey_locked_msg": "You can open this Path: invite a friend with this DAR (you'll get a preview for free), buy for 300 crystals / 50 Stars / $0.99, or get Master — they have all 64 DARs unlocked.",
     "open_tariffs": "🛡 Open plans",
-    "footer_note": "You can cancel the subscription at any moment"
+    "footer_note": "You can cancel the subscription at any moment",
+    "access_restricted": "Access restricted"
   },
 
   "language_picker": {

@@ -123,7 +123,7 @@ const DailyDar = (function() {
     return `<div style="padding:20px 16px">
       <div style="text-align:center;margin-bottom:18px">
         <div style="font-size:32px;margin-bottom:8px;animation:pulse 1.5s ease-in-out infinite">&#128302;</div>
-        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px">Оракул формирует послание...</div>
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px">${(window.i18n && i18n.t) ? i18n.t('oracle.forming') : 'Оракул формирует послание...'}</div>
       </div>
       <div class="skeleton-card">
         <div class="skeleton skeleton-line"></div>
@@ -204,7 +204,7 @@ const DailyDar = (function() {
         };
       }
     }
-    if (!dar) return '<div style="color:var(--text-muted);text-align:center;padding:16px">Послание формируется...</div>';
+    if (!dar) return '<div style="color:var(--text-muted);text-align:center;padding:16px">' + ((window.i18n && i18n.t) ? i18n.t('oracle.message_forming') : 'Послание формируется...') + '</div>';
     let html = '';
 
     // Essence как пророчество
@@ -335,8 +335,8 @@ const DailyDar = (function() {
     return `<div style="text-align:center;padding:32px 20px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(212,175,55,0.04));border:1px solid rgba(212,175,55,0.25);border-radius:18px">
       <div style="font-size:42px;margin-bottom:14px">&#128170;</div>
       <div style="font-size:16px;color:#D4AF37;margin-bottom:12px;line-height:1.4;letter-spacing:0.5px">${title}</div>
-      <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">Дай посланию раскрыться в твоей жизни. Новое будет доступно через <b style="color:#D4AF37">${timeUntilReset()}</b>.</div>
-      <div style="font-size:11px;color:var(--text-muted);font-style:italic">Мудрость раскрывается медленно - возвращайся завтра</div>
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">${(window.i18n && i18n.t) ? i18n.t('oracle.next_available', { time: timeUntilReset() }) : ('Дай посланию раскрыться в твоей жизни. Новое будет доступно через <b style=\"color:#D4AF37\">' + timeUntilReset() + '</b>.')}</div>
+      <div style="font-size:11px;color:var(--text-muted);font-style:italic">${(window.i18n && i18n.t) ? i18n.t('oracle.wisdom_slow') : 'Мудрость раскрывается медленно - возвращайся завтра'}</div>
       ${upsellBlock}
     </div>`;
   }
@@ -355,7 +355,7 @@ const DailyDar = (function() {
         <div style="font-size:17px;color:#D4AF37;margin-bottom:12px;letter-spacing:1px;line-height:1.4">Полный доступ к YupDar</div>
         <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">Безлимитный Оракул, полная Книга Даров (94 главы), 3 слота для близких, 50 кристаллов мудрости + дизайнерская PDF</div>
         <button onclick="document.getElementById('upgrade-msg-modal').remove();if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3);margin-bottom:10px">&#11088; Купить за 500 ⭐ (~$10)</button>
-        <button onclick="document.getElementById('upgrade-msg-modal').remove()" style="width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">Не сейчас</button>
+        <button onclick="document.getElementById('upgrade-msg-modal').remove()" style="width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">${(window.i18n && i18n.t) ? i18n.t('common.not_now') : 'Не сейчас'}</button>
       </div>`;
     document.body.appendChild(modal);
     modal.addEventListener('click', (e) => {
@@ -387,7 +387,7 @@ const DailyDar = (function() {
         ${subtitle ? `<div style="font-size:12px;color:var(--text-dim);margin-top:8px">${subtitle}</div>` : ''}
         ${!isIntegrator ? `<button onclick="DailyDar.openInBook('${code}')" style="margin-top:14px;padding:10px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;display:inline-flex;align-items:center;gap:6px">
           <span>&#128214;</span>
-          <span>Читать в Книге Даров</span>
+          <span>${(window.i18n && i18n.t) ? i18n.t('oracle.read_in_book') : 'Читать в Книге Даров'}</span>
         </button>` : ''}
       </div>`;
   }
@@ -557,12 +557,12 @@ const DailyDar = (function() {
       container.innerHTML = `
         ${limitInfo}
         <div style="text-align:center;margin-bottom:16px">
-          <div style="font-size:14px;color:var(--text);margin-bottom:8px">Сформулируй свой запрос</div>
-          <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">Какой вопрос тебя волнует? Какие энергии помогут приблизиться к решению?</div>
+          <div style="font-size:14px;color:var(--text);margin-bottom:8px">${(window.i18n && i18n.t) ? i18n.t('oracle.formulate_query') : 'Сформулируй свой запрос'}</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">${(window.i18n && i18n.t) ? i18n.t('oracle.query_hint') : 'Какой вопрос тебя волнует? Какие энергии помогут приблизиться к решению?'}</div>
           <textarea id="daily-card-query" placeholder="Например: Как мне найти баланс между работой и отдыхом?..." style="width:100%;min-height:70px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5"></textarea>
         </div>
         ${renderCardBack()}
-        <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:8px">Нажми на карту, чтобы вытянуть подсказку</div>`;
+        <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:8px">${(window.i18n && i18n.t) ? i18n.t('oracle.tap_card_hint') : 'Нажми на карту, чтобы вытянуть подсказку'}</div>`;
     } else {
       // Показать результат
       let html = limitInfo;
@@ -638,16 +638,16 @@ const DailyDar = (function() {
       container.innerHTML = `
         <div style="text-align:center;padding:40px 16px">
           <div style="font-size:40px;margin-bottom:16px">&#128302;</div>
-          <div style="font-size:16px;color:var(--text);margin-bottom:10px">Сначала рассчитай свой Дар</div>
-          <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:20px">Чтобы узнать индивидуальный Дар Дня, нужно знать твой личный дар по дате рождения</div>
-          <button onclick="DailyDar.close();switchNav('calc')" style="padding:12px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#D4AF37,#b8860b);color:var(--text);font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px">Рассчитать мой дар</button>
+          <div style="font-size:16px;color:var(--text);margin-bottom:10px">${(window.i18n && i18n.t) ? i18n.t('oracle.calc_first_title') : 'Сначала рассчитай свой Дар'}</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:20px">${(window.i18n && i18n.t) ? i18n.t('oracle.calc_first_sub') : 'Чтобы узнать индивидуальный Дар Дня, нужно знать твой личный дар по дате рождения'}</div>
+          <button onclick="DailyDar.close();switchNav('calc')" style="padding:12px 24px;border-radius:14px;border:none;background:linear-gradient(135deg,#D4AF37,#b8860b);color:var(--text);font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px">${(window.i18n && i18n.t) ? i18n.t('home.calculate_btn') : 'Рассчитать мой дар'}</button>
         </div>`;
       return;
     }
 
     let userGift;
     try { userGift = JSON.parse(saved).gift; } catch(e) {
-      container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px">Ошибка данных</div>';
+      container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px">' + ((window.i18n && i18n.t) ? i18n.t('oracle.data_error') : 'Ошибка данных') + '</div>';
       return;
     }
 

@@ -128,19 +128,19 @@ const IntuitionGame = (function() {
     container.innerHTML = `
       <div style="text-align:center;padding:16px 16px 0">
         <div style="font-size:32px;margin-bottom:6px">&#128302;</div>
-        <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:12px">УГАДАЙ ДАР</div>
+        <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:12px">${(window.i18n && i18n.t) ? i18n.t('intuition.guess_dar') : 'УГАДАЙ ДАР'}</div>
         <div style="display:flex;gap:10px;justify-content:center;margin-bottom:16px">
           <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 14px;text-align:center">
             <div style="font-size:16px;color:var(--text)">${stats.played}</div>
-            <div style="font-size:9px;color:var(--text-dim)">Игр</div>
+            <div style="font-size:9px;color:var(--text-dim)">${(window.i18n && i18n.t) ? i18n.t('intuition.games') : 'Игр'}</div>
           </div>
           <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 14px;text-align:center">
             <div style="font-size:16px;color:#2ecc71">${pct}%</div>
-            <div style="font-size:9px;color:var(--text-dim)">Точность</div>
+            <div style="font-size:9px;color:var(--text-dim)">${(window.i18n && i18n.t) ? i18n.t('intuition.accuracy') : 'Точность'}</div>
           </div>
           <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 14px;text-align:center">
             <div style="font-size:16px;color:#D4AF37">${stats.bestStreak}</div>
-            <div style="font-size:9px;color:var(--text-dim)">Рекорд</div>
+            <div style="font-size:9px;color:var(--text-dim)">${(window.i18n && i18n.t) ? i18n.t('intuition.record') : 'Рекорд'}</div>
           </div>
           <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 14px;text-align:center">
             <div style="font-size:16px;color:#D4AF37">${stats.totalCrystals || 0}</div>
@@ -277,7 +277,7 @@ const IntuitionGame = (function() {
     container.innerHTML = `
       <div style="text-align:center;padding:40px 16px">
         <div style="font-size:32px;margin-bottom:12px;animation:pulse 1.5s infinite">&#127942;</div>
-        <div style="color:var(--text-dim);font-size:14px">Загружаю рейтинг...</div>
+        <div style="color:var(--text-dim);font-size:14px">${(window.i18n && i18n.t) ? i18n.t('intuition.loading_leaderboard') : 'Загружаю рейтинг...'}</div>
       </div>
     `;
     try {
@@ -346,8 +346,8 @@ const IntuitionGame = (function() {
 
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:28px;margin-bottom:6px">&#127942;</div>
-          <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">РЕЙТИНГ МАГОВ</div>
-          <div style="font-size:12px;color:var(--text-dim)">Очки за сложность и серию, песочница не учитывается</div>
+          <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">${(window.i18n && i18n.t) ? i18n.t('intuition.leaderboard_title') : 'РЕЙТИНГ МАГОВ'}</div>
+          <div style="font-size:12px;color:var(--text-dim)">${(window.i18n && i18n.t) ? i18n.t('intuition.leaderboard_sub') : 'Очки за сложность и серию, песочница не учитывается'}</div>
         </div>
 
         <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">
@@ -383,13 +383,13 @@ const IntuitionGame = (function() {
     `;
 
     if (data.error) {
-      html += `<div style="text-align:center;color:var(--text-muted);padding:40px 20px;font-size:13px">Не удалось загрузить рейтинг. Проверь соединение.</div>`;
+      html += `<div style="text-align:center;color:var(--text-muted);padding:40px 20px;font-size:13px">${(window.i18n && i18n.t) ? i18n.t('intuition.leaderboard_failed') : 'Не удалось загрузить рейтинг. Проверь соединение.'}</div>`;
     } else if (!data.leaders || data.leaders.length === 0) {
       html += `
         <div style="text-align:center;color:var(--text-muted);padding:40px 20px">
           <div style="font-size:32px;margin-bottom:10px">&#127776;</div>
-          <div style="font-size:14px;color:var(--text-dim);margin-bottom:6px">Рейтинг пока пустой</div>
-          <div style="font-size:12px">Стань первым магом этого периода!</div>
+          <div style="font-size:14px;color:var(--text-dim);margin-bottom:6px">${(window.i18n && i18n.t) ? i18n.t('intuition.leaderboard_empty') : 'Рейтинг пока пустой'}</div>
+          <div style="font-size:12px">${(window.i18n && i18n.t) ? i18n.t('intuition.be_first_mage') : 'Стань первым магом этого периода!'}</div>
         </div>`;
     } else {
       html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden">`;
@@ -415,7 +415,7 @@ const IntuitionGame = (function() {
         html += `
           <div style="margin-top:12px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
             <div style="width:28px;text-align:center;font-size:14px;color:#D4AF37">#${data.me.rank}</div>
-            <div style="flex:1;font-size:13px;color:var(--text)">Твоя позиция</div>
+            <div style="flex:1;font-size:13px;color:var(--text)">${(window.i18n && i18n.t) ? i18n.t('intuition.your_position') : 'Твоя позиция'}</div>
             <div style="font-size:16px;color:#D4AF37;font-weight:bold">${data.me.score}</div>
           </div>
         `;
@@ -456,9 +456,9 @@ const IntuitionGame = (function() {
           <div style="color:var(--text);margin-bottom:4px">&#127183; Правила:</div>
           &#10024; Найди <strong>${lvl.targets}</strong> одинаковых дара<br>
           &#128994; Можно выбрать <strong>${lvl.opens}</strong> карты<br>
-          &#11088; <span style="color:#2ecc71">Карта Света</span> — даст x2 к выигрышу<br>
-          &#128165; <span style="color:#e74c3c">Карта Тени</span> — обнулит результат<br>
-          <em style="font-size:10px">Все карты откроются после всех выборов</em>
+          &#11088; <span style="color:#2ecc71">${(window.i18n && i18n.t) ? i18n.t('intuition.light_card') : 'Карта Света'}</span> ${(window.i18n && i18n.t) ? i18n.t('intuition.light_card_desc') : '— даст x2 к выигрышу'}<br>
+          &#128165; <span style="color:#e74c3c">${(window.i18n && i18n.t) ? i18n.t('intuition.shadow_card') : 'Карта Тени'}</span> ${(window.i18n && i18n.t) ? i18n.t('intuition.shadow_card_desc') : '— обнулит результат'}<br>
+          <em style="font-size:10px">${(window.i18n && i18n.t) ? i18n.t('intuition.cards_after_selection') : 'Все карты откроются после всех выборов'}</em>
         </div>
       </div>
     `;
@@ -755,7 +755,7 @@ const IntuitionGame = (function() {
     });
 
     const counter = document.getElementById('card-counter');
-    if (counter) counter.textContent = 'Выбрано: ' + selected.length + ' / ' + maxOpens;
+    if (counter) counter.textContent = ((window.i18n && i18n.t) ? i18n.t('intuition.selected_prefix') : 'Выбрано:') + ' ' + selected.length + ' / ' + maxOpens;
 
     const revealContainer = document.getElementById('reveal-btn-container');
     if (revealContainer) {
@@ -920,7 +920,7 @@ const IntuitionGame = (function() {
         <button id="ilim-close" style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:16px;cursor:pointer">&#10005;</button>
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:32px;margin-bottom:6px">✨</div>
-          <div style="font-size:16px;color:var(--text);margin-bottom:6px;font-weight:600">Дневной лимит достигнут</div>
+          <div style="font-size:16px;color:var(--text);margin-bottom:6px;font-weight:600">${(window.i18n && i18n.t) ? i18n.t('intuition.daily_limit_reached') : 'Дневной лимит достигнут'}</div>
           <div style="font-size:13px;color:var(--text-dim);line-height:1.55">
             Ты сыграл${(resp.rounds_today || 0)} раунд${(resp.rounds_today === 1) ? '' : ((resp.rounds_today || 0) < 5 ? 'а' : 'ов')} сегодня.<br>
             Возвращайся завтра — лимит сбросится. Или купи дополнительную попытку прямо сейчас.
@@ -931,7 +931,7 @@ const IntuitionGame = (function() {
             💎 Купить +1 попытку за ${cost} ⭐
           </button>
           <div style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5">У тебя сейчас: ${have} ⭐${canBuy ? '' : ` · нужно ещё ${cost - have} ⭐`}</div>
-          <button id="ilim-tomorrow" style="width:100%;padding:11px;border-radius:11px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">Вернусь завтра</button>
+          <button id="ilim-tomorrow" style="width:100%;padding:11px;border-radius:11px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">${(window.i18n && i18n.t) ? i18n.t('intuition.come_tomorrow') : 'Вернусь завтра'}</button>
         </div>
       </div>
     `;
@@ -944,7 +944,7 @@ const IntuitionGame = (function() {
     const buyBtn = modal.querySelector('#ilim-buy');
     if (canBuy) {
       buyBtn.addEventListener('click', async () => {
-        buyBtn.textContent = 'Покупаем...';
+        buyBtn.textContent = (window.i18n && i18n.t) ? i18n.t('intuition.buying') : 'Покупаем...';
         buyBtn.disabled = true;
         try {
           const result = await DarAPI.buyExtraIntuitionAttempt();
@@ -965,7 +965,7 @@ const IntuitionGame = (function() {
           }
         } catch (e) {
           console.error('[intuition] buy extra failed:', e);
-          buyBtn.textContent = 'Ошибка, попробуй ещё раз';
+          buyBtn.textContent = (window.i18n && i18n.t) ? i18n.t('intuition.error_retry') : 'Ошибка, попробуй ещё раз';
           setTimeout(() => {
             buyBtn.textContent = `💎 Купить +1 попытку за ${cost} ⭐`;
             buyBtn.disabled = false;
@@ -1018,7 +1018,7 @@ const IntuitionGame = (function() {
           <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:10px">
             <div style="text-align:center">
               <div style="font-size:22px">&#128100;</div>
-              <div style="font-size:11px;color:var(--text)">Ты</div>
+              <div style="font-size:11px;color:var(--text)">${(window.i18n && i18n.t) ? i18n.t('intuition.you') : 'Ты'}</div>
               <div style="font-size:13px;color:${won ? '#2ecc71' : '#e74c3c'};font-weight:bold">${won ? 'Угадал' : 'Мимо'}</div>
             </div>
             <div style="font-size:22px;color:${battleColor}">${battleEmoji}</div>

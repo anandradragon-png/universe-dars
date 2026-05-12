@@ -51,10 +51,13 @@ window.UpgradeModal = (function() {
   function show(opts) {
     const m = ensureModal();
     m.style.display = 'flex';
+    // Перевод текста кнопки «Открыть тарифы» (динамический контент модалки)
+    const openBtn = m.querySelector('#upgrade-modal-open-pricing');
+    if (openBtn && window.i18n && i18n.t) openBtn.textContent = i18n.t('limits.open_tariffs');
     m.querySelector('#upgrade-modal-icon').textContent = opts.icon || '🔒';
-    m.querySelector('#upgrade-modal-title').textContent = opts.title || 'Доступ ограничен';
+    m.querySelector('#upgrade-modal-title').textContent = opts.title || (window.i18n && i18n.t ? i18n.t('limits.access_restricted') : 'Доступ ограничен');
     m.querySelector('#upgrade-modal-message').textContent = opts.message || '';
-    m.querySelector('#upgrade-modal-footer').textContent = opts.footer || 'Подписку можно отменить в любой момент';
+    m.querySelector('#upgrade-modal-footer').textContent = opts.footer || (window.i18n && i18n.t ? i18n.t('limits.footer_note') : 'Подписку можно отменить в любой момент');
 
     const addonBtn = m.querySelector('#upgrade-modal-buy-addon');
     if (opts.addonKey && opts.addonLabel) {
@@ -87,13 +90,17 @@ window.UpgradeModal = (function() {
       const r = await fetch('/api/payment', { method: 'POST', headers, body: JSON.stringify(body) });
       const j = await r.json();
       if (!r.ok) {
-        alert('Ошибка: ' + (j.error || r.status));
+        const errPrefix = (window.i18n && i18n.t) ? i18n.t('common.error') : 'Ошибка';
+        alert(errPrefix + ': ' + (j.error || r.status));
         return;
       }
 
       if (provider === 'stars' && j.invoice_url && tg?.openInvoice) {
         tg.openInvoice(j.invoice_url, (status) => {
-          if (status === 'paid' && tg.showAlert) tg.showAlert('Оплата прошла, обновляю…');
+          if (status === 'paid' && tg.showAlert) {
+            const msg = (window.i18n && i18n.t) ? i18n.t('tariffs.payment_ok') : 'Оплата прошла, обновляю…';
+            tg.showAlert(msg);
+          }
           if (status === 'paid') setTimeout(() => location.reload(), 1500);
         });
       } else if (j.invoice_url) {
@@ -101,7 +108,8 @@ window.UpgradeModal = (function() {
         else window.open(j.invoice_url, '_blank');
       }
     } catch (e) {
-      alert('Ошибка соединения: ' + e.message);
+      const msg = (window.i18n && i18n.t) ? i18n.t('tariffs.connection_error', { message: e.message }) : ('Ошибка соединения: ' + e.message);
+      alert(msg);
     }
   }
 
@@ -109,27 +117,31 @@ window.UpgradeModal = (function() {
   // Перехватывает все fetch-ответы из приложения и показывает модалку,
   // если сервер вернул один из известных лимит-кодов.
   // Это самый чистый способ — не приходится менять каждую ручку отдельно.
-  const KNOWN_LIMIT_REASONS = {
-    'oracle_limit_reached': {
-      icon: '🔮',
-      title: 'Дневной лимит Оракула',
-      message: 'На бесплатном тарифе доступно 1 предсказание в день. Открой Хранителя — 3 в день. Или Мастер — безлимит.',
-      addonKey: 'oracle_unlimited_7d',
-      addonLabel: 'Безлимит на 7 дней — 149 ₽'
-    },
-    'compatibility_limit_reached': {
-      icon: '💑',
-      title: 'Лимит совместимости',
-      message: 'Бесплатная проверка уже использована. У Хранителя 5 проверок в месяц, у Мастера — безлимит.',
-      addonKey: 'compatibility_pdf',
-      addonLabel: 'Глубокая совместимость PDF — 249 ₽'
-    },
-    'hero_journey_locked': {
-      icon: '🗺',
-      title: 'Путь Героя ещё закрыт',
-      message: 'Этот Путь Героя можно открыть: пригласи друга с этим даром (тебе откроется превью бесплатно), купи за 300 кристаллов / 50 звёзд / 99 ₽, или возьми Мастера — у него открыты все 64 дара.',
-    }
-  };
+  // Конфиги через геттер чтобы i18n.t() вызывался во время показа (после init), а не на парсинге модуля
+  function getLimitReasons() {
+    const t = (key) => (window.i18n && i18n.t) ? i18n.t(key) : key;
+    return {
+      'oracle_limit_reached': {
+        icon: '🔮',
+        title: t('limits.oracle_locked_title'),
+        message: t('limits.oracle_locked_msg'),
+        addonKey: 'oracle_unlimited_7d',
+        addonLabel: t('limits.oracle_addon_label')
+      },
+      'compatibility_limit_reached': {
+        icon: '💑',
+        title: t('limits.compatibility_locked_title'),
+        message: t('limits.compatibility_locked_msg'),
+        addonKey: 'compatibility_pdf',
+        addonLabel: t('limits.compatibility_addon_label')
+      },
+      'hero_journey_locked': {
+        icon: '🗺',
+        title: t('limits.hero_journey_locked_title'),
+        message: t('limits.hero_journey_locked_msg')
+      }
+    };
+  }
 
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
     const _origFetch = window.fetch.bind(window);
@@ -152,8 +164,9 @@ window.UpgradeModal = (function() {
           const cloned = resp.clone();
           const data = await cloned.json();
           const reason = data.error || data.reason;
-          if (reason && KNOWN_LIMIT_REASONS[reason]) {
-            const cfg = KNOWN_LIMIT_REASONS[reason];
+          const reasons = getLimitReasons();
+          if (reason && reasons[reason]) {
+            const cfg = reasons[reason];
             show({
               icon: cfg.icon,
               title: cfg.title,

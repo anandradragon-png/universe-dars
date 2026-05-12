@@ -258,7 +258,9 @@
     "payment_ok": "Payment received! Refreshing…",
     "payment_failed": "Payment failed",
     "no_link": "Could not retrieve payment link",
-    "connection_error": "Connection error: {message}"
+    "connection_error": "Connection error: {message}",
+    "free_for_all": "Available to everyone, no payment needed",
+    "email_prompt": "Enter your email for the YooKassa receipt:"
   },
 
   "limits": {
@@ -271,7 +273,8 @@
     "hero_journey_locked_title": "The Hero's Path is still closed",
     "hero_journey_locked_msg": "You can open this Path: invite a friend with this DAR (you'll get a preview for free), buy for 300 crystals / 50 Stars / $0.99, or get Master — they have all 64 DARs unlocked.",
     "open_tariffs": "🛡 Open plans",
-    "footer_note": "You can cancel the subscription at any moment"
+    "footer_note": "You can cancel the subscription at any moment",
+    "access_restricted": "Access restricted"
   },
 
   "language_picker": {

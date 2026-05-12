@@ -260,7 +260,9 @@
     "payment_ok": "¡Pago recibido! Actualizando…",
     "payment_failed": "El pago no se completó",
     "no_link": "No se pudo obtener el enlace de pago",
-    "connection_error": "Error de conexión: {message}"
+    "connection_error": "Error de conexión: {message}",
+    "free_for_all": "Disponible para todos, sin pago",
+    "email_prompt": "Ingresa tu correo para el recibo de YooKassa:"
   },
 
   "limits": {
@@ -273,7 +275,8 @@
     "hero_journey_locked_title": "El Camino del Héroe todavía está cerrado",
     "hero_journey_locked_msg": "Puedes abrir este Camino: invita a un amigo con este DAR (tendrás vista previa gratis), cómpralo por 300 cristales / 50 Stars / $0.99, u obtén Maestro — tiene los 64 DARs desbloqueados.",
     "open_tariffs": "🛡 Ver planes",
-    "footer_note": "Puedes cancelar la suscripción en cualquier momento"
+    "footer_note": "Puedes cancelar la suscripción en cualquier momento",
+    "access_restricted": "Acceso restringido"
   },
 
   "language_picker": {

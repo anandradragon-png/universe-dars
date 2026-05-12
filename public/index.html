@@ -993,7 +993,7 @@
       <div style="max-width:480px;margin:0 auto">
         <div style="text-align:center;margin-bottom:20px">
           <div style="font-size:20px;color:#D4AF37;font-weight:700;letter-spacing:1px">YupDar</div>
-          <div style="font-size:11px;color:#D4AF37;letter-spacing:3px;font-weight:600;margin-top:2px;opacity:0.75">ВСЕЛЕННАЯ ДАРОВ</div>
+          <div style="font-size:11px;color:#D4AF37;letter-spacing:3px;font-weight:600;margin-top:2px;opacity:0.75" data-i18n="app.tagline">ВСЕЛЕННАЯ ДАРОВ</div>
         </div>
 
       <div id="tariffs-list" style="display:flex;flex-direction:column;gap:14px"></div>
@@ -1001,12 +1001,12 @@
         <!-- Поблагодарить автора (произвольная сумма через ЮKassa) -->
         <div style="margin-top:22px;padding:18px 16px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(184,134,11,0.04));border:1px dashed rgba(212,175,55,0.4);border-radius:16px;text-align:center">
           <div style="font-size:24px;margin-bottom:6px">💜</div>
-          <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:6px">Поблагодарить автора</div>
-          <div style="font-size:12px;color:var(--text-dim);line-height:1.55;margin-bottom:12px">Если YupDar тебе откликается — ты можешь поддержать проект любой суммой. Это помогает развивать Вселенную Даров.</div>
-          <button onclick="openYookassaDonationModal()" style="padding:11px 22px;border-radius:10px;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(135deg,rgba(212,175,55,0.18),rgba(184,134,11,0.1));color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600">💳 Поблагодарить картой</button>
+          <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:6px" data-i18n="donate.title">Поблагодарить автора</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.55;margin-bottom:12px" data-i18n="donate.sub">Если YupDar тебе откликается — ты можешь поддержать проект любой суммой. Это помогает развивать Вселенную Даров.</div>
+          <button onclick="openYookassaDonationModal()" style="padding:11px 22px;border-radius:10px;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(135deg,rgba(212,175,55,0.18),rgba(184,134,11,0.1));color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600" data-i18n="donate.cta">💳 Поблагодарить картой</button>
         </div>
 
-        <div style="margin-top:18px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;font-size:12px;color:var(--text-dim);line-height:1.6;text-align:center">
+        <div style="margin-top:18px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;font-size:12px;color:var(--text-dim);line-height:1.6;text-align:center" data-i18n-html="donate.legal">
           Все цены указаны в рублях Российской Федерации. Подписки продлеваются автоматически. Отмена в любой момент в Личном Кабинете.<br>
           Подробнее в <a href="/legal/offer" target="_blank" style="color:#D4AF37;text-decoration:none">Договоре оферты</a> и <a href="/legal/terms" target="_blank" style="color:#D4AF37;text-decoration:none">Пользовательском соглашении</a>.
         </div>
@@ -1635,7 +1635,7 @@
       if (!file) return;
       if (file.size > 5000000) {
         if (typeof showToast === 'function') showToast('Фото слишком большое. Максимум 5 МБ.', 'error');
-        else alert('Фото слишком большое. Максимум 5 МБ.');
+        else alert((window.i18n && i18n.t) ? i18n.t('avatar.too_large') : 'Фото слишком большое. Максимум 5 МБ.');
         return;
       }
       const reader = new FileReader();
@@ -1749,9 +1749,9 @@
         const tgId = tg?.initDataUnsafe?.user?.id || USER_ID;
         const link = `https://t.me/YupDarBot?startapp=ref_${tgId}`;
         if (navigator.clipboard) {
-          navigator.clipboard.writeText(link).then(() => alert('Ссылка скопирована!'));
+          navigator.clipboard.writeText(link).then(() => alert((window.i18n && i18n.t) ? i18n.t('share.link_copied') : 'Ссылка скопирована!'));
         } else {
-          prompt('Скопируй ссылку:', link);
+          prompt((window.i18n && i18n.t) ? i18n.t('share.copy_link_prompt') : 'Скопируй ссылку:', link);
         }
       }
     }
@@ -2114,7 +2114,7 @@
       const modal = document.getElementById('integrator-modal');
       if (modal) modal.remove();
       // Показать уведомление
-      alert('Дар ' + darName + ' открыт в твоей Сокровищнице! +10 кристаллов');
+      alert(((window.i18n && i18n.t) ? i18n.t('dar2.unlocked_in_treasury', { name: darName }) : ('Дар ' + darName + ' открыт в твоей Сокровищнице! +10 кристаллов')));
     }
 
     function init(){
@@ -2283,7 +2283,7 @@
 
     async function requestMessage(){
       const saved=localStorage.getItem(STORAGE_KEY);
-      if(!saved){ alert('Сначала рассчитайте дар'); return; }
+      if(!saved){ alert((window.i18n && i18n.t) ? i18n.t('dar2.calc_first') : 'Сначала рассчитайте дар'); return; }
       const{gift}=JSON.parse(saved);
       const btn=document.getElementById('btn-get-message');
       // Сразу прячем кнопки и запускаем анимацию загрузки на месте кнопки.
@@ -2969,7 +2969,7 @@
     // закрывает ЛК, показывает стартовый экран ввода даты (сохранённый дар при этом
     // не удаляется — просто откроется форма заново).
     function changeBirthDateFromProfile() {
-      if (!confirm('Изменить дату рождения?\n\nПри ошибке ввода ты можешь указать правильную дату. Прежние открытые дары и кристаллы сохранятся.')) return;
+      if (!confirm((window.i18n && i18n.t) ? i18n.t('dar2.confirm_change_date') : 'Изменить дату рождения?\n\nПри ошибке ввода ты можешь указать правильную дату. Прежние открытые дары и кристаллы сохранятся.')) return;
       try { closeProfile(); } catch(e) {}
       setTimeout(() => {
         try {
@@ -3015,7 +3015,7 @@
         if (typeof showToast === 'function') showToast('Локальные данные сброшены. Перезагрузка...', 'success');
         setTimeout(() => location.reload(), 800);
       } catch (e) {
-        alert('Ошибка сброса: ' + e.message);
+        alert(((window.i18n && i18n.t) ? i18n.t('reset.error') : 'Ошибка сброса:') + ' ' + e.message);
       }
     }
     window.confirmFullReset = confirmFullReset;
@@ -4917,7 +4917,7 @@
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) {
         if (typeof showToast === 'function') showToast('Сначала рассчитай свой дар', 'warning');
-        else alert('Сначала рассчитай свой дар');
+        else alert((window.i18n && i18n.t) ? i18n.t('dar2.calc_first') : 'Сначала рассчитай свой дар');
         return;
       }
 

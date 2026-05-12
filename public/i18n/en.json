@@ -173,6 +173,32 @@
     "no_cards_to_swap": "No cards to swap"
   },
 
+  "donate": {
+    "title": "Thank the author",
+    "sub": "If YupDar resonates with you, you can support the project with any amount. It helps the Universe of DARs grow.",
+    "cta": "💳 Thank with card",
+    "legal": "All prices are in Russian rubles. Subscriptions renew automatically. You can cancel at any time in your account.<br>Learn more in our <a href=\"/legal/offer\" target=\"_blank\" style=\"color:#D4AF37;text-decoration:none\">Offer</a> and <a href=\"/legal/terms\" target=\"_blank\" style=\"color:#D4AF37;text-decoration:none\">Terms of Service</a>."
+  },
+
+  "avatar": {
+    "too_large": "Photo is too large. Maximum 5 MB."
+  },
+
+  "share": {
+    "link_copied": "Link copied!",
+    "copy_link_prompt": "Copy the link:"
+  },
+
+  "dar2": {
+    "unlocked_in_treasury": "DAR {name} is unlocked in your Treasury! +10 crystals",
+    "calc_first": "Calculate your DAR first",
+    "confirm_change_date": "Change date of birth?\n\nIf you made a mistake, you can enter the correct date. Your unlocked DARs and crystals will be kept."
+  },
+
+  "reset": {
+    "error": "Reset error:"
+  },
+
   "games": {
     "hub_title": "GAMES",
     "hub_sub": "Choose a game and develop your intuition",

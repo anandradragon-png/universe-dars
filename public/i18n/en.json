@@ -153,6 +153,69 @@
     "search_placeholder": "🔍 Search DARs (name, code, field)"
   },
 
+  "feedback": {
+    "title": "FEEDBACK",
+    "category_label": "Category:",
+    "cat_bug": "Bug",
+    "cat_idea": "Idea",
+    "cat_question": "Question",
+    "cat_other": "Other",
+    "text_placeholder": "Describe the issue or your idea...",
+    "send": "Send"
+  },
+
+  "rel": {
+    "title": "ADD A CLOSE ONE",
+    "warning": "⚠️ <b>Note:</b> once you save this person, you <b>cannot</b> edit or delete them. This protects against impersonation and abuse. Please check the data before saving.",
+    "intro": "Fill in the data of your close one to calculate their DAR.",
+    "label_name": "FIRST NAME",
+    "name_placeholder": "For example: Anna",
+    "label_lastname": "LAST NAME <span style=\"opacity:0.5\">(optional)</span>",
+    "lastname_placeholder": "For example: Smith",
+    "label_birthdate": "DATE OF BIRTH",
+    "label_relationship": "RELATIONSHIP",
+    "rel_mother": "Mother",
+    "rel_father": "Father",
+    "rel_son": "Son",
+    "rel_daughter": "Daughter",
+    "rel_partner": "Partner",
+    "rel_sibling": "Sibling",
+    "rel_grandson": "Grandson",
+    "rel_granddaughter": "Granddaughter",
+    "rel_friend": "Friend",
+    "rel_other": "Other",
+    "label_gender": "GENDER (optional)",
+    "gender_male": "Male",
+    "gender_female": "Female"
+  },
+
+  "psu": {
+    "title": "YOUR PATH BEGINS",
+    "label_firstname": "First name (real)",
+    "firstname_placeholder": "For example: Svetlana",
+    "label_lastname": "Last name (real)",
+    "lastname_placeholder": "For example: Smith",
+    "label_gender": "Gender",
+    "label_birthdate": "Date of birth (DD.MM.YYYY)",
+    "birthdate_hint": "Same date you used when calculating your DAR. If wrong — fix it here.",
+    "label_birthtime": "Time of birth (HH:MM)",
+    "birthtime_hint": "If you don't know the exact time, use 12:00",
+    "label_birthplace": "Place of birth (city)",
+    "birthplace_placeholder": "Start typing a city...",
+    "accuracy_warning": "⚠️ For accurate and deep readings, all data must be <b>real</b>. Made-up name, time or place of birth will lead to messages that don't fit you.",
+    "save_and_continue": "Save and continue",
+    "fill_later": "Fill in later",
+    "send_log": "Send log to developer"
+  },
+
+  "admin_fb": {
+    "title": "TESTER FEEDBACK",
+    "all": "All",
+    "bugs": "Bugs",
+    "ideas": "Ideas",
+    "questions": "Questions"
+  },
+
   "tariffs": {
     "page_title": "Plans",
     "current": "Your current plan",

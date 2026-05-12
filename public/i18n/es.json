@@ -155,6 +155,69 @@
     "search_placeholder": "🔍 Buscar DARs (nombre, código, campo)"
   },
 
+  "feedback": {
+    "title": "COMENTARIOS",
+    "category_label": "Categoría:",
+    "cat_bug": "Error",
+    "cat_idea": "Idea",
+    "cat_question": "Pregunta",
+    "cat_other": "Otro",
+    "text_placeholder": "Describe el problema o tu propuesta...",
+    "send": "Enviar"
+  },
+
+  "rel": {
+    "title": "AÑADIR A UN SER QUERIDO",
+    "warning": "⚠️ <b>Atención:</b> después de guardar a este ser querido <b>no será posible</b> editarlo ni eliminarlo. Es una protección contra suplantación y abuso. Revisa los datos antes de guardar.",
+    "intro": "Completa los datos de tu ser querido para calcular su DAR.",
+    "label_name": "NOMBRE",
+    "name_placeholder": "Por ejemplo: Ana",
+    "label_lastname": "APELLIDO <span style=\"opacity:0.5\">(opcional)</span>",
+    "lastname_placeholder": "Por ejemplo: García",
+    "label_birthdate": "FECHA DE NACIMIENTO",
+    "label_relationship": "PARENTESCO",
+    "rel_mother": "Madre",
+    "rel_father": "Padre",
+    "rel_son": "Hijo",
+    "rel_daughter": "Hija",
+    "rel_partner": "Pareja",
+    "rel_sibling": "Hermano/a",
+    "rel_grandson": "Nieto",
+    "rel_granddaughter": "Nieta",
+    "rel_friend": "Amigo/a",
+    "rel_other": "Otro",
+    "label_gender": "GÉNERO (opcional)",
+    "gender_male": "Masculino",
+    "gender_female": "Femenino"
+  },
+
+  "psu": {
+    "title": "TU CAMINO EMPIEZA",
+    "label_firstname": "Nombre (real)",
+    "firstname_placeholder": "Por ejemplo: Svetlana",
+    "label_lastname": "Apellido (real)",
+    "lastname_placeholder": "Por ejemplo: García",
+    "label_gender": "Género",
+    "label_birthdate": "Fecha de nacimiento (DD.MM.AAAA)",
+    "birthdate_hint": "La misma fecha que usaste al calcular tu DAR. Si está mal — corrígela aquí.",
+    "label_birthtime": "Hora de nacimiento (HH:MM)",
+    "birthtime_hint": "Si no sabes la hora exacta, usa 12:00",
+    "label_birthplace": "Lugar de nacimiento (ciudad)",
+    "birthplace_placeholder": "Empieza a escribir una ciudad...",
+    "accuracy_warning": "⚠️ Para lecturas precisas y profundas, todos los datos deben ser <b>reales</b>. Nombre, hora o lugar de nacimiento inventados llevarán a mensajes que no te corresponden.",
+    "save_and_continue": "Guardar y continuar",
+    "fill_later": "Completar más tarde",
+    "send_log": "Enviar registro al desarrollador"
+  },
+
+  "admin_fb": {
+    "title": "COMENTARIOS DE PROBADORES",
+    "all": "Todos",
+    "bugs": "Errores",
+    "ideas": "Ideas",
+    "questions": "Preguntas"
+  },
+
   "tariffs": {
     "page_title": "Planes",
     "current": "Tu plan actual",

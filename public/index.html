@@ -2008,7 +2008,7 @@
       // Сброс блока описания
       document.getElementById('full-description-block').style.display='none';
       const btn=document.getElementById('btn-get-message');
-      btn.textContent='📩 Получить полное послание';
+      btn.textContent = '📩 ' + ((window.i18n && i18n.t) ? i18n.t('dar.get_full_message') : 'Получить полное послание');
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';
@@ -2353,7 +2353,7 @@
         console.error('requestMessage error:', e.message);
         // При ошибке возвращаем кнопки на место (раньше было disabled=false,
         // но теперь мы скрываем кнопки через display:none при старте).
-        btn.textContent='📩 Получить полное послание';
+        btn.textContent = '📩 ' + ((window.i18n && i18n.t) ? i18n.t('dar.get_full_message') : 'Получить полное послание');
         btn.style.display='';
         const btnChange2=document.getElementById('btn-change-date');
         if(btnChange2) btnChange2.style.display='';
@@ -2579,7 +2579,7 @@
     function hideDescription(){
       document.getElementById('full-description-block').style.display='none';
       const btn=document.getElementById('btn-get-message');
-      btn.textContent='📩 Получить полное послание';
+      btn.textContent = '📩 ' + ((window.i18n && i18n.t) ? i18n.t('dar.get_full_message') : 'Получить полное послание');
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';
@@ -2630,7 +2630,7 @@
       const input = document.getElementById('promoInput');
       const err = document.getElementById('promoError');
       const code = input.value.trim();
-      if(!code){err.textContent='Введите промо-код';return;}
+      if(!code){err.textContent=(window.i18n && i18n.t) ? i18n.t('kb.promo_required') : 'Введите промо-код';return;}
       err.textContent='';
       try{
         const resp = await fetch(API_URL+'/api/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
@@ -2642,7 +2642,7 @@
           err.textContent = result.error||'Неверный промо-код';
         }
       }catch(e){
-        err.textContent='Ошибка проверки. Попробуйте позже.';
+        err.textContent=(window.i18n && i18n.t) ? i18n.t('kb.check_error') : 'Ошибка проверки. Попробуйте позже.';
       }
     }
 
@@ -3578,17 +3578,17 @@
           const errEl = modal.querySelector('#yk-err');
           // Должно быть заполнено хотя бы одно: TG-username или email
           if (!tg && !email) {
-            errEl.textContent = 'Оставь Telegram-username или email — иначе мы не сможем открыть доступ';
+            errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_contact_required') : 'Оставь Telegram-username или email — иначе мы не сможем открыть доступ';
             return;
           }
           // Если email указан — проверим что он корректный
           if (email && !_yookassaIsValidEmail(email)) {
-            errEl.textContent = 'Похоже, в email опечатка — проверь, пожалуйста';
+            errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_email_typo') : 'Похоже, в email опечатка — проверь, пожалуйста';
             return;
           }
           // Если TG-username указан — проверим что он похож на username
           if (tg && !/^[a-zA-Z0-9_]{4,32}$/.test(tg)) {
-            errEl.textContent = 'Telegram-username из 4–32 латинских букв, цифр или «_». Без пробелов.';
+            errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_username') : 'Telegram-username из 4–32 латинских букв, цифр или «_». Без пробелов.';
             return;
           }
           _yookassaSaveContact(email, tg);
@@ -3657,15 +3657,15 @@
         const errEl = modal.querySelector('#ykd-err');
         const custom = parseInt(modal.querySelector('#ykd-custom').value, 10);
         const amount = selectedAmount || custom;
-        if (!amount || amount < 10) { errEl.textContent = 'Минимальная сумма — 10 ₽'; return; }
-        if (amount > 100000) { errEl.textContent = 'Максимум 100 000 ₽ за раз'; return; }
+        if (!amount || amount < 10) { errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_min_amount') : 'Минимальная сумма — 10 ₽'; return; }
+        if (amount > 100000) { errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_max_amount') : 'Максимум 100 000 ₽ за раз'; return; }
 
         // Контакты для веб-юзеров (вне Telegram Mini App). В Mini App вернётся {skip:true}.
         const contact = await _yookassaAskContact();
         if (contact && contact.cancelled) return;
 
         errEl.textContent = '';
-        modal.querySelector('#ykd-pay').textContent = 'Создаём платёж...';
+        modal.querySelector('#ykd-pay').textContent = (window.i18n && i18n.t) ? i18n.t('ykd.creating_payment') : 'Создаём платёж...';
         modal.querySelector('#ykd-pay').disabled = true;
 
         try {
@@ -3688,7 +3688,7 @@
         } catch (e) {
           console.error('[payment] yookassa donation error:', e);
           errEl.textContent = e.message || 'Не удалось создать платёж';
-          modal.querySelector('#ykd-pay').textContent = '💜 Поблагодарить';
+          modal.querySelector('#ykd-pay').textContent = '💜 ' + ((window.i18n && i18n.t) ? i18n.t('ykd.thank_btn') : 'Поблагодарить');
           modal.querySelector('#ykd-pay').disabled = false;
         }
       });
@@ -3851,7 +3851,7 @@
         if (_diaryTodayMood) {
           // Уже отметила сегодня
           const statusEl = document.getElementById('diary-status');
-          if (statusEl) statusEl.textContent = 'Сегодня: отмечено \u2714';
+          if (statusEl) statusEl.textContent = ((window.i18n && i18n.t) ? i18n.t('diary.today_marked') : 'Сегодня: отмечено') + ' \u2714';
           document.querySelectorAll('.diary-mood-btn').forEach(b => {
             if (b.dataset.mood === _diaryTodayMood) b.classList.add('saved');
             else b.style.opacity = '0.4';
@@ -3876,7 +3876,7 @@
           else b.style.opacity = '0.4';
         });
         const statusEl = document.getElementById('diary-status');
-        if (statusEl) statusEl.textContent = 'Сегодня: отмечено \u2714';
+        if (statusEl) statusEl.textContent = ((window.i18n && i18n.t) ? i18n.t('diary.today_marked') : 'Сегодня: отмечено') + ' \u2714';
         if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
           CrystalsUI.animateEarn(result.crystals_earned);
         }
@@ -4003,9 +4003,9 @@
       _psuIsNewUser = isNew !== false;
       const intro = document.getElementById('profile-setup-intro');
       if (_psuIsNewUser) {
-        intro.innerHTML = 'Чтобы твои предсказания были по-настоящему личными и точными, поделись несколькими деталями о себе. Это займёт минуту.';
+        intro.innerHTML = (window.i18n && i18n.t) ? i18n.t('psu.intro_new') : 'Чтобы твои предсказания были по-настоящему личными и точными, поделись несколькими деталями о себе. Это займёт минуту.';
       } else {
-        intro.innerHTML = 'Ты давно с нами, спасибо! Чтобы послания Оракула стали по-настоящему твоими - с правильным обращением и глубиной - заполни пожалуйста эти поля. Это важно для точности расшифровок.';
+        intro.innerHTML = (window.i18n && i18n.t) ? i18n.t('psu.intro_returning') : 'Ты давно с нами, спасибо! Чтобы послания Оракула стали по-настоящему твоими - с правильным обращением и глубиной - заполни пожалуйста эти поля. Это важно для точности расшифровок.';
       }
 
       // Предзаполнить если что-то уже есть
@@ -4156,25 +4156,26 @@
       const status = document.getElementById('psu-status');
 
       // Валидация
-      if (!firstName) { status.textContent = 'Укажи своё настоящее имя'; return; }
-      if (!lastName) { status.textContent = 'Укажи свою настоящую фамилию'; return; }
-      if (_psuGender !== 'male' && _psuGender !== 'female') { status.textContent = 'Укажи свой пол'; return; }
+      const _t = (k, f) => (window.i18n && i18n.t) ? i18n.t(k) : f;
+      if (!firstName) { status.textContent = _t('psu.err_firstname', 'Укажи своё настоящее имя'); return; }
+      if (!lastName) { status.textContent = _t('psu.err_lastname', 'Укажи свою настоящую фамилию'); return; }
+      if (_psuGender !== 'male' && _psuGender !== 'female') { status.textContent = _t('psu.err_gender', 'Укажи свой пол'); return; }
       if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(birthDate)) {
-        status.textContent = 'Дата рождения в формате ДД.ММ.ГГГГ';
+        status.textContent = _t('psu.err_date_format', 'Дата рождения в формате ДД.ММ.ГГГГ');
         return;
       }
       const [dd, mm, yyyy] = birthDate.split('.').map(Number);
       const nowYear = new Date().getFullYear();
       if (dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy < 1900 || yyyy > nowYear) {
-        status.textContent = 'Проверь дату — что-то не так';
+        status.textContent = _t('psu.err_date_invalid', 'Проверь дату — что-то не так');
         return;
       }
-      if (!/^\d{1,2}:\d{2}$/.test(birthTime)) { status.textContent = 'Время в формате ЧЧ:ММ (например 14:30)'; return; }
+      if (!/^\d{1,2}:\d{2}$/.test(birthTime)) { status.textContent = _t('psu.err_time_format', 'Время в формате ЧЧ:ММ (например 14:30)'); return; }
       const [h, m] = birthTime.split(':').map(Number);
-      if (h > 23 || m > 59) { status.textContent = 'Проверь время: часы 00-23, минуты 00-59'; return; }
-      if (!birthPlace) { status.textContent = 'Укажи место рождения'; return; }
+      if (h > 23 || m > 59) { status.textContent = _t('psu.err_time_range', 'Проверь время: часы 00-23, минуты 00-59'); return; }
+      if (!birthPlace) { status.textContent = _t('psu.err_place', 'Укажи место рождения'); return; }
       if (_psuCityLat === null || _psuCityLon === null) {
-        status.textContent = 'Выбери город из списка подсказок (для точных координат)';
+        status.textContent = _t('psu.err_city_pick', 'Выбери город из списка подсказок (для точных координат)');
         return;
       }
 
@@ -4195,7 +4196,7 @@
       // Пытаемся сохранить на сервер
       const btn = document.getElementById('psu-save-btn');
       btn.disabled = true;
-      btn.textContent = 'Сохраняю...';
+      btn.textContent = _t('common.saving', 'Сохраняю...');
       let serverOk = false;
       let serverErr = '';
       let errKind = '';
@@ -4223,12 +4224,12 @@
         } catch (lsErr) {}
       }
       btn.disabled = false;
-      btn.textContent = 'Сохранить и продолжить';
+      btn.textContent = (window.i18n && i18n.t) ? i18n.t('psu.save_and_continue') : 'Сохранить и продолжить';
 
       if (serverOk) {
         // Полный успех - показываем зелёное сообщение, закрываем через секунду
         status.style.color = '#4ade80';
-        status.innerHTML = '&#10003; Данные сохранены';
+        status.innerHTML = '&#10003; ' + ((window.i18n && i18n.t) ? i18n.t('psu.data_saved') : 'Данные сохранены');
         setTimeout(() => {
           status.style.color = '#f87171';
           status.textContent = '';
@@ -4423,18 +4424,18 @@
 
     async function saveLeaderboardName() {
       const status = document.getElementById('leaderboard-name-status');
-      if (status) { status.style.color = 'var(--text-muted)'; status.textContent = 'Сохраняю...'; }
+      if (status) { status.style.color = 'var(--text-muted)'; status.textContent = (window.i18n && i18n.t) ? i18n.t('common.saving') : 'Сохраняю...'; }
 
       let customName = '';
       if (_leaderboardNameType === 'custom') {
         const input = document.getElementById('leaderboard-custom-input');
         customName = (input?.value || '').trim();
         if (customName.length < 2) {
-          if (status) { status.style.color = '#f87171'; status.textContent = 'Минимум 2 символа'; }
+          if (status) { status.style.color = '#f87171'; status.textContent = (window.i18n && i18n.t) ? i18n.t('hof.min_chars') : 'Минимум 2 символа'; }
           return;
         }
         if (customName.length > 30) {
-          if (status) { status.style.color = '#f87171'; status.textContent = 'Максимум 30 символов'; }
+          if (status) { status.style.color = '#f87171'; status.textContent = (window.i18n && i18n.t) ? i18n.t('hof.max_chars') : 'Максимум 30 символов'; }
           return;
         }
       }
@@ -4442,7 +4443,7 @@
       try {
         await DarAPI.saveLeaderboardName(_leaderboardNameType, customName);
         _leaderboardCustomName = customName;
-        if (status) { status.style.color = '#4ade80'; status.textContent = '\u2713 Сохранено'; }
+        if (status) { status.style.color = '#4ade80'; status.textContent = '\u2713 ' + ((window.i18n && i18n.t) ? i18n.t('common.saved') : 'Сохранено'); }
         setTimeout(() => { if (status) status.textContent = ''; }, 2000);
         renderLeaderboardNameBlock();
       } catch (e) {
@@ -4717,7 +4718,7 @@
       const confirmMsg = `Сохранить близкого?\n\nИмя: ${name}\nДата рождения: ${birth_date}\nКем приходится: ${relLabel}\n\n⚠️ После сохранения изменить или удалить эту запись будет НЕЛЬЗЯ. Это защита от подмены.\n\nПроверь данные внимательно.`;
       if (!confirm(confirmMsg)) return;
 
-      if (status) { status.style.color = 'var(--text-dim)'; status.textContent = 'Сохраняем...'; }
+      if (status) { status.style.color = 'var(--text-dim)'; status.textContent = (window.i18n && i18n.t) ? i18n.t('common.saving') : 'Сохраняем...'; }
       btn.disabled = true;
 
       try {
@@ -5026,18 +5027,19 @@
       const dateStr = (dateInput.value || '').trim();
       errEl.textContent = '';
 
-      if (!name || name.length < 1) { errEl.textContent = 'Укажи имя партнёра'; return; }
-      if (!/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) { errEl.textContent = 'Дата в формате ДД.ММ.ГГГГ'; return; }
+      const _tc = (k, f) => (window.i18n && i18n.t) ? i18n.t(k) : f;
+      if (!name || name.length < 1) { errEl.textContent = _tc('compat.err_name', 'Укажи имя партнёра'); return; }
+      if (!/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) { errEl.textContent = _tc('compat.err_date_format', 'Дата в формате ДД.ММ.ГГГГ'); return; }
       const [d, m, y] = dateStr.split('.').map(Number);
-      if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900) { errEl.textContent = 'Проверь правильность даты'; return; }
+      if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900) { errEl.textContent = _tc('compat.err_date_invalid', 'Проверь правильность даты'); return; }
 
       // Считаем код дара партнёра
       const partnerGift = calcGift(d, m, y);
-      if (!partnerGift || !partnerGift.code) { errEl.textContent = 'Не удалось рассчитать дар'; return; }
+      if (!partnerGift || !partnerGift.code) { errEl.textContent = _tc('compat.err_calc', 'Не удалось рассчитать дар'); return; }
 
       // Свой код
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) { errEl.textContent = 'Сначала рассчитай свой дар'; return; }
+      if (!saved) { errEl.textContent = _tc('dar2.calc_first', 'Сначала рассчитай свой дар'); return; }
       const { gift } = JSON.parse(saved);
       const myCode = gift.code;
       const myName = (function(){
@@ -5557,7 +5559,7 @@
       try {
         const data = await DarAPI.adminGetFeedback();
         _adminFeedbackCache = data.feedback || [];
-        count.textContent = `Всего: ${_adminFeedbackCache.length}`;
+        count.textContent = `${(window.i18n && i18n.t) ? i18n.t('admin_fb.total') : 'Всего'}: ${_adminFeedbackCache.length}`;
         renderAdminFeedback();
       } catch (e) {
         list.innerHTML = `<div style="color:#f87171;text-align:center;padding:20px">Ошибка: ${escapeAdminHtml(e.message || 'неизвестная')}</div>`;

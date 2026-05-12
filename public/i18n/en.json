@@ -22,7 +22,9 @@
     "copy": "Copy",
     "copied": "Copied",
     "coming_soon": "Soon",
-    "not_now": "Not now"
+    "not_now": "Not now",
+    "saving": "Saving...",
+    "saved": "Saved"
   },
 
   "app": {
@@ -129,7 +131,8 @@
     "mood_sadness": "Sadness",
     "mood_irritation": "Irritation",
     "mood_fatigue": "Fatigue",
-    "get_insight": "Get an AI insight"
+    "get_insight": "Get an AI insight",
+    "today_marked": "Today: marked"
   },
 
   "hero": {
@@ -389,10 +392,34 @@
     "copy_card_manually": "Copy the card number manually:"
   },
 
+  "compat": {
+    "err_name": "Enter your partner's name",
+    "err_date_format": "Date format is DD.MM.YYYY",
+    "err_date_invalid": "Please check the date",
+    "err_calc": "Could not calculate the DAR"
+  },
+
+  "ykd": {
+    "err_contact_required": "Leave a Telegram username or email — otherwise we won't be able to give you access",
+    "err_email_typo": "Looks like there's a typo in the email — please check",
+    "err_username": "Telegram username must be 4–32 Latin letters, digits or «_». No spaces.",
+    "err_min_amount": "Minimum amount — 10 ₽",
+    "err_max_amount": "Maximum 100 000 ₽ at a time",
+    "creating_payment": "Creating payment...",
+    "thank_btn": "Thank"
+  },
+
+  "hof": {
+    "min_chars": "Minimum 2 characters",
+    "max_chars": "Maximum 30 characters"
+  },
+
   "kb": {
     "access_title": "Knowledge Base access",
     "access_sub": "Enter a promo code to unlock the encyclopedia of all 64 DARs and 9 Fields",
     "promo_placeholder_short": "Promo code",
+    "promo_required": "Enter the promo code",
+    "check_error": "Check error. Please try again later.",
     "open_access": "Unlock access",
     "tab_dars": "DARs",
     "tab_fields": "Fields",
@@ -451,7 +478,19 @@
     "accuracy_warning": "⚠️ For accurate and deep readings, all data must be <b>real</b>. Made-up name, time or place of birth will lead to messages that don't fit you.",
     "save_and_continue": "Save and continue",
     "fill_later": "Fill in later",
-    "send_log": "Send log to developer"
+    "send_log": "Send log to developer",
+    "err_firstname": "Enter your real first name",
+    "err_lastname": "Enter your real last name",
+    "err_gender": "Select your gender",
+    "err_date_format": "Date of birth in DD.MM.YYYY format",
+    "err_date_invalid": "Please check the date — something's off",
+    "err_time_format": "Time in HH:MM format (e.g. 14:30)",
+    "err_time_range": "Check the time: hours 00-23, minutes 00-59",
+    "err_place": "Enter the place of birth",
+    "err_city_pick": "Pick a city from the suggestions (for accurate coordinates)",
+    "data_saved": "Data saved",
+    "intro_new": "For your predictions to be truly personal and accurate, share a few details about yourself. It will take a minute.",
+    "intro_returning": "You've been with us for a while, thank you! For the Oracle messages to truly become yours — with the right tone and depth — please fill in these fields. It's important for accurate readings."
   },
 
   "admin_fb": {
@@ -459,7 +498,8 @@
     "all": "All",
     "bugs": "Bugs",
     "ideas": "Ideas",
-    "questions": "Questions"
+    "questions": "Questions",
+    "total": "Total"
   },
 
   "tariffs": {

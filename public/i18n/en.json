@@ -20,7 +20,8 @@
     "open": "Open",
     "share": "Share",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "coming_soon": "Soon"
   },
 
   "app": {
@@ -91,7 +92,65 @@
     "admin_feedback": "Admin: Feedback",
     "admin_feedback_sub": "Tester messages",
     "admin_panel": "Admin: Control panel",
-    "admin_panel_sub": "Dashboard, users, promo codes, payments"
+    "admin_panel_sub": "Dashboard, users, promo codes, payments",
+    "invite_friends": "Invite your friends!",
+    "referral_hint": "Your friend's DAR will be unlocked in the Treasury, or you'll get crystals.",
+    "send_to_friend": "Send to a friend",
+    "hall_of_fame_empty": "Play the trainer and become the Mage of the Day!",
+    "beta_chat": "Beta chat",
+    "language_hint": "AI message will be generated in the selected language."
+  },
+
+  "daily": {
+    "section_title": "DAILY ACTIVITIES",
+    "oracle_title": "Oracle",
+    "oracle_sub": "Message of the day",
+    "compat_title": "Compatibility",
+    "compat_sub": "DARs of two",
+    "research_title": "Become a research co-author",
+    "research_sub": "Help science: take a 28-statement survey (about 7 min) and become part of the first scientific study of DARs in Dubai",
+    "intuition_title": "Intuition trainer",
+    "intuition_sub": "Guess the DAR and develop your inner sense",
+    "feedback_sub_short": "Found a bug? Have an idea? Write to us!"
+  },
+
+  "diary": {
+    "title": "DAR Diary",
+    "question": "How do you feel right now?",
+    "mood_joy": "Joy",
+    "mood_calm": "Calm",
+    "mood_energy": "Energy",
+    "mood_inspiration": "Inspiration",
+    "mood_anxiety": "Anxiety",
+    "mood_sadness": "Sadness",
+    "mood_irritation": "Irritation",
+    "mood_fatigue": "Fatigue",
+    "get_insight": "Get an AI insight"
+  },
+
+  "games": {
+    "hub_title": "GAMES",
+    "hub_sub": "Choose a game and develop your intuition",
+    "intuition_name": "Intuitive Magic",
+    "intuition_desc": "Guess the DAR among cards. Classic, multi-search, solo or battle with the AI dragon Yupik",
+    "atlantis_name": "Legends of Atlantis",
+    "atlantis_desc": "Card battle of Magic, Life, Power and Might. You against an AI opponent and the Higher Powers",
+    "battles_name": "Battles with friends",
+    "battles_desc": "Challenge a friend, battle in real time and reach the Hall of Fame"
+  },
+
+  "treasury": {
+    "empty_hint": "Calculate your DAR to start your collection of 64 DARs!"
+  },
+
+  "kb": {
+    "access_title": "Knowledge Base access",
+    "access_sub": "Enter a promo code to unlock the encyclopedia of all 64 DARs and 9 Fields",
+    "promo_placeholder_short": "Promo code",
+    "open_access": "Unlock access",
+    "tab_dars": "DARs",
+    "tab_fields": "Fields",
+    "search_placeholder": "🔍 Search DARs (name, code, field)"
   },
 
   "tariffs": {

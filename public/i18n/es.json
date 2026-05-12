@@ -22,7 +22,8 @@
     "open": "Abrir",
     "share": "Compartir",
     "copy": "Copiar",
-    "copied": "Copiado"
+    "copied": "Copiado",
+    "coming_soon": "Pronto"
   },
 
   "app": {
@@ -93,7 +94,65 @@
     "admin_feedback": "Admin: Comentarios",
     "admin_feedback_sub": "Mensajes de los probadores",
     "admin_panel": "Admin: Panel de control",
-    "admin_panel_sub": "Panel, usuarios, códigos, pagos"
+    "admin_panel_sub": "Panel, usuarios, códigos, pagos",
+    "invite_friends": "¡Invita a tus amigos!",
+    "referral_hint": "El DAR de tu amigo se abrirá en el Tesoro, o recibirás cristales.",
+    "send_to_friend": "Enviar a un amigo",
+    "hall_of_fame_empty": "¡Juega en el entrenador y conviértete en el Mago del Día!",
+    "beta_chat": "Chat beta",
+    "language_hint": "El mensaje de IA se generará en el idioma seleccionado."
+  },
+
+  "daily": {
+    "section_title": "ACTIVIDADES DIARIAS",
+    "oracle_title": "Oráculo",
+    "oracle_sub": "Mensaje del día",
+    "compat_title": "Compatibilidad",
+    "compat_sub": "DARs de dos",
+    "research_title": "Conviértete en coautor de la investigación",
+    "research_sub": "Ayuda a la ciencia: completa un cuestionario de 28 afirmaciones (≈ 7 min) y sé parte del primer estudio científico de los DARs en Dubái",
+    "intuition_title": "Entrenador de intuición",
+    "intuition_sub": "Adivina el DAR y desarrolla tu intuición",
+    "feedback_sub_short": "¿Encontraste un error? ¿Tienes una idea? ¡Escríbenos!"
+  },
+
+  "diary": {
+    "title": "Diario del DAR",
+    "question": "¿Cómo te sientes ahora mismo?",
+    "mood_joy": "Alegría",
+    "mood_calm": "Calma",
+    "mood_energy": "Energía",
+    "mood_inspiration": "Inspiración",
+    "mood_anxiety": "Ansiedad",
+    "mood_sadness": "Tristeza",
+    "mood_irritation": "Irritación",
+    "mood_fatigue": "Cansancio",
+    "get_insight": "Recibir una idea de la IA"
+  },
+
+  "games": {
+    "hub_title": "JUEGOS",
+    "hub_sub": "Elige un juego y desarrolla tu intuición",
+    "intuition_name": "Magia Intuitiva",
+    "intuition_desc": "Adivina el DAR entre las cartas. Clásico, multi-búsqueda, en solitario o batalla con el dragón IA Yupik",
+    "atlantis_name": "Leyendas de la Atlántida",
+    "atlantis_desc": "Batalla de cartas de Magia, Vida, Fuerza y Poder. Tú contra una IA y las Fuerzas Superiores",
+    "battles_name": "Batallas con amigos",
+    "battles_desc": "Desafía a un amigo, batalla en tiempo real y entra al Salón de la Fama"
+  },
+
+  "treasury": {
+    "empty_hint": "¡Calcula tu DAR para empezar tu colección de los 64 DARs!"
+  },
+
+  "kb": {
+    "access_title": "Acceso a la Base de Conocimiento",
+    "access_sub": "Ingresa un código promocional para desbloquear la enciclopedia de los 64 DARs y 9 Campos",
+    "promo_placeholder_short": "Código promocional",
+    "open_access": "Desbloquear acceso",
+    "tab_dars": "DARs",
+    "tab_fields": "Campos",
+    "search_placeholder": "🔍 Buscar DARs (nombre, código, campo)"
   },
 
   "tariffs": {

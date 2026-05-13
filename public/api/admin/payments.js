@@ -3,7 +3,8 @@
  *
  * GET /api/admin/payments?period=7d|30d|90d|all&provider=stars|yookassa|all&limit=200
  *
- * Источник — crystal_log с reason типа 'telegram_stars_*', 'yookassa_*', 'telegram_payment_*'.
+ * Источник — crystal_log с reason типа 'telegram_stars_*', 'yookassa_*',
+ * 'telegram_payment_*', 'purchase_book', 'donation'.
  * Подтягиваем имена пользователей по user_id.
  */
 
@@ -20,11 +21,27 @@ function periodToFrom(period) {
   return new Date(Date.now() - ms).toISOString();
 }
 
-function classifyReason(reason) {
+function classifyReason(reason, metadata) {
   const r = (reason || '').toLowerCase();
+  const m = metadata || {};
   if (r.includes('yookassa') || r.includes('yoomoney')) return 'yookassa';
   if (r.includes('stars') || r.includes('telegram_payment')) return 'stars';
+  // Книга и донейшны идут через Telegram Stars (currency = 'XTR')
+  if (r === 'purchase_book' || r === 'donation') return 'stars';
+  // Запас: если currency XTR — это Stars, иначе если RUB — ЮKassa
+  if ((m.currency || '').toUpperCase() === 'XTR') return 'stars';
+  if ((m.currency || '').toUpperCase() === 'RUB') return 'yookassa';
   return 'other';
+}
+
+function productLabel(reason, metadata) {
+  const m = metadata || {};
+  if (m.product) return m.product;
+  if (m.description) return m.description;
+  const r = (reason || '').toLowerCase();
+  if (r === 'purchase_book') return 'Книга Даров (полный доступ)';
+  if (r === 'donation') return 'Донат';
+  return '';
 }
 
 module.exports = async function handler(req, res) {
@@ -48,7 +65,14 @@ module.exports = async function handler(req, res) {
     let q = db
       .from('crystal_log')
       .select('id, user_id, amount, reason, metadata, created_at')
-      .or('reason.ilike.%stars%,reason.ilike.%yookassa%,reason.ilike.%yoomoney%,reason.ilike.%telegram_payment%')
+      .or([
+        'reason.ilike.%stars%',
+        'reason.ilike.%yookassa%',
+        'reason.ilike.%yoomoney%',
+        'reason.ilike.%telegram_payment%',
+        'reason.eq.purchase_book',
+        'reason.eq.donation'
+      ].join(','))
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -58,7 +82,7 @@ module.exports = async function handler(req, res) {
     if (error) return res.status(500).json({ error: error.message });
 
     // Фильтр по провайдеру (если выбран)
-    let payments = (data || []).map(r => ({ ...r, provider: classifyReason(r.reason) }));
+    let payments = (data || []).map(r => ({ ...r, provider: classifyReason(r.reason, r.metadata) }));
     if (provider === 'stars' || provider === 'yookassa') {
       payments = payments.filter(p => p.provider === provider);
     }
@@ -78,8 +102,20 @@ module.exports = async function handler(req, res) {
     let starsSum = 0, rubSum = 0;
     const enriched = payments.map(p => {
       const m = p.metadata || {};
-      const stars = parseInt(m.stars || m.amount_stars || 0) || 0;
-      const rub = parseFloat(m.amount_rub || (p.provider === 'yookassa' ? m.amount : 0) || 0) || 0;
+      // Stars: явное поле stars/amount_stars или metadata.amount при currency='XTR'
+      const currencyUp = (m.currency || '').toUpperCase();
+      const stars = parseInt(
+        m.stars || m.amount_stars ||
+        (currencyUp === 'XTR' ? m.amount : 0) ||
+        0
+      ) || 0;
+      // Рубли: amount_rub или metadata.amount при currency='RUB' / провайдере yookassa
+      const rub = parseFloat(
+        m.amount_rub ||
+        (currencyUp === 'RUB' ? m.amount : 0) ||
+        (p.provider === 'yookassa' ? m.amount : 0) ||
+        0
+      ) || 0;
       starsSum += stars;
       rubSum += rub;
       return {
@@ -90,7 +126,7 @@ module.exports = async function handler(req, res) {
         user: usersMap[p.user_id] || { id: p.user_id },
         amount_stars: stars,
         amount_rub: rub,
-        product: m.product || m.description || '',
+        product: productLabel(p.reason, m),
         metadata: m
       };
     });

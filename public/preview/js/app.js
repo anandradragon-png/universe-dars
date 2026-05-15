@@ -38,8 +38,11 @@
           contents.forEach(c => c.classList.toggle('active', c.getAttribute('data-subtab-content') === target));
           // При открытии «Моя коллекция» — отрендерить сетку
           if (target === 'collection') renderCollection();
-          // При открытии «Энциклопедия» — отрендерить список даров
-          if (target === 'search') renderEncyclopedia();
+          // При открытии «Энциклопедия» — отрендерить список даров и полей
+          if (target === 'search') {
+            renderEncyclopedia();
+            renderEncycFields();
+          }
         });
       });
     });
@@ -402,11 +405,174 @@
   }
   window.renderEncyclopedia = renderEncyclopedia;
 
-  function openDarDetail(code) {
-    // Заглушка — полная карточка Дара с деталями подключим к dar-content.json позже.
-    alert('Дар ' + code + ' — подробная карточка появится после подключения dar-content.json.');
+  // === Детальная карточка Дара (по образцу прода: 9 секций из dar-content.json) ===
+
+  let darContentCache = null;
+
+  async function loadDarContent() {
+    if (darContentCache) return darContentCache;
+    try {
+      const resp = await fetch('/dar-content.json?v=1');
+      if (resp.ok) darContentCache = await resp.json();
+      else darContentCache = {};
+    } catch (e) {
+      darContentCache = {};
+    }
+    return darContentCache;
+  }
+
+  // Простой markdown → HTML для содержимого dar-content
+  function mdToHtml(text) {
+    if (!text) return '';
+    let s = String(text);
+    // Экранируем HTML
+    s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // **bold**
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // *italic*
+    s = s.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+    // Списки (строки начинаются с - или •)
+    const lines = s.split(/\r?\n/);
+    let html = '';
+    let inList = false;
+    for (const line of lines) {
+      const m = line.match(/^\s*[-•]\s+(.+)$/);
+      if (m) {
+        if (!inList) { html += '<ul>'; inList = true; }
+        html += '<li>' + m[1] + '</li>';
+      } else {
+        if (inList) { html += '</ul>'; inList = false; }
+        const trimmed = line.trim();
+        if (trimmed) html += '<p>' + trimmed + '</p>';
+      }
+    }
+    if (inList) html += '</ul>';
+    return html;
+  }
+
+  const DAR_SECTIONS_RU = [
+    { key: 'essence',         title: 'Суть' },
+    { key: 'energy_pattern',  title: 'Энергетический рисунок' },
+    { key: 'light_power',     title: 'Светлая сила' },
+    { key: 'shadow',          title: 'Тень' },
+    { key: 'activation',      title: 'Активация' },
+    { key: 'meditation',      title: 'Медитация' },
+    { key: 'application',     title: 'Применение' },
+    { key: 'safety',          title: 'Безопасность' },
+    { key: 'attributes',      title: 'Атрибуты' }
+  ];
+
+  async function openDarDetail(code) {
+    const screen = document.getElementById('dar-detail-screen');
+    if (!screen) return;
+    screen.classList.add('open');
+    const content = document.getElementById('dar-detail-content');
+    const headerName = document.getElementById('dar-detail-header-name');
+    if (!content) return;
+    content.innerHTML = '<div class="placeholder">Загружаю…</div>';
+
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const name = DarsLib.getDarName(code, lang);
+    const archetype = DarsLib.getDarArchetype(code, lang);
+    const svgPath = DarsLib.getDarSvgPath(code);
+    if (headerName) headerName.textContent = name;
+
+    // Hero-шапка
+    let html = `<div class="dar-detail-hero">
+      <img src="${svgPath}" alt="" onerror="this.style.display='none'">
+      <div class="dar-detail-hero-name">${escapeHtml(name)}</div>
+      <div class="dar-detail-hero-code">${code}</div>
+      ${archetype ? `<div class="dar-detail-hero-archetype">${escapeHtml(archetype)}</div>` : ''}
+    </div>`;
+
+    // 9 секций из dar-content.json
+    const data = await loadDarContent();
+    const dar = data[code];
+    if (!dar) {
+      html += '<div class="placeholder">Контент этого Дара пока не загружен. Скоро добавим.</div>';
+    } else {
+      for (const sec of DAR_SECTIONS_RU) {
+        const raw = dar[sec.key];
+        if (!raw) continue;
+        // attributes — это объект, обрабатываем отдельно
+        let bodyHtml;
+        if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) {
+          bodyHtml = '<ul>' + Object.entries(raw).map(([k, v]) =>
+            `<li><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v))}</li>`
+          ).join('') + '</ul>';
+        } else {
+          bodyHtml = mdToHtml(raw);
+        }
+        html += `<div class="dar-detail-section">
+          <h3>${sec.title}</h3>
+          <div class="dar-detail-section-body">${bodyHtml}</div>
+        </div>`;
+      }
+    }
+
+    content.innerHTML = html;
+    screen.scrollTop = 0;
   }
   window.openDarDetail = openDarDetail;
+
+  function closeDarDetail() {
+    document.getElementById('dar-detail-screen')?.classList.remove('open');
+  }
+  window.closeDarDetail = closeDarDetail;
+
+  // Мини-табы Энциклопедии Дары/Поля
+  function switchEncycTab(name) {
+    document.querySelectorAll('.encyc-mini-tab').forEach(b =>
+      b.classList.toggle('active', b.getAttribute('data-encyc') === name)
+    );
+    document.querySelectorAll('.encyc-tab-content').forEach(c =>
+      c.classList.toggle('active', c.getAttribute('data-encyc-content') === name)
+    );
+    if (name === 'fields') renderEncycFields();
+  }
+  window.switchEncycTab = switchEncycTab;
+
+  function renderEncycFields() {
+    const list = document.getElementById('encyc-fields-list');
+    if (!list || !window.DarsLib) return;
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    // Считаем сколько даров в каждом поле
+    const byField = {};
+    Object.keys(DarsLib.DARS).forEach(code => {
+      const f = DarsLib.getFieldId(code);
+      byField[f] = (byField[f] || 0) + 1;
+    });
+    const html = [];
+    for (let f = 1; f <= 9; f++) {
+      const data = DarsLib.FIELDS[f];
+      if (!data) continue;
+      const fieldName = data['name_' + lang] || data.name_ru;
+      const count = byField[f] || 0;
+      html.push(`<div class="encyc-field-card" style="--field-color:${data.color}" onclick="openFieldDetail(${f})">
+        <div class="encyc-field-card-dot"></div>
+        <div class="encyc-field-card-text">
+          <div class="encyc-field-card-name">${escapeHtml(fieldName)}</div>
+          <div class="encyc-field-card-meta">Поле ${f}</div>
+        </div>
+        <div class="encyc-field-card-count">${count} даров</div>
+      </div>`);
+    }
+    list.innerHTML = html.join('');
+  }
+
+  function openFieldDetail(fieldId) {
+    // Переключаемся обратно на «Дары» и фильтруем по полю
+    switchEncycTab('dars');
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const fieldData = DarsLib.FIELDS[fieldId];
+    const fieldName = fieldData['name_' + lang] || fieldData.name_ru;
+    const input = document.getElementById('encyc-search-input');
+    if (input) {
+      input.value = fieldName;
+      encycSearch(fieldName);
+    }
+  }
+  window.openFieldDetail = openFieldDetail;
 
   function encycSearch(query) {
     const results = document.getElementById('encyc-results');
@@ -539,9 +705,21 @@
     document.getElementById('book-reader-chapter').textContent = ch.title || '—';
     document.getElementById('book-nav-info').textContent = (bookState.currentIndex + 1) + ' / ' + total;
     const content = document.getElementById('book-reader-content');
-    content.innerHTML = `<h2>${ch.title || ''}</h2>` + (ch.html || '<p>—</p>');
+    // Подставляем реальные ссылки на картинки книги.
+    // Исходный тег: <img src="" data-ref="img-001.jpg" alt="" />
+    // 1) Извлекаем data-ref → подставляем в src
+    // 2) Убираем пустой src=""
+    let html = (ch.html || '<p>—</p>')
+      .replace(/<img\b([^>]*?)\sdata-ref="([^"]+)"([^>]*?)>/g,
+        (m, before, ref, after) => {
+          // Удаляем пустой src="" из before/after
+          const cleanBefore = before.replace(/\ssrc="[^"]*"/, '');
+          const cleanAfter = after.replace(/\ssrc="[^"]*"/, '');
+          return `<img${cleanBefore} src="/book-images/${ref}" loading="lazy"${cleanAfter}>`;
+        }
+      );
+    content.innerHTML = `<h2>${ch.title || ''}</h2>` + html;
     content.scrollTop = 0;
-    // Скроллим хедер в начало
     document.getElementById('book-reader').scrollTop = 0;
   }
 

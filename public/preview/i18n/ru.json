@@ -45,6 +45,11 @@
     "synthesis_edit": "Изменить данные"
   },
 
+  "encyc": {
+    "tab_dars": "Дары",
+    "tab_fields": "Поля"
+  },
+
   "book": {
     "loading": "Загружаю книгу…",
     "contents": "Оглавление",

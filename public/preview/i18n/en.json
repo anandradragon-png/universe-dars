@@ -100,6 +100,11 @@
     "unlock_master": "Open Master"
   },
 
+  "encyc": {
+    "tab_dars": "DARs",
+    "tab_fields": "Fields"
+  },
+
   "book": {
     "loading": "Loading the book…",
     "contents": "Contents",

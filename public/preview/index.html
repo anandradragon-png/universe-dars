@@ -1088,6 +1088,14 @@
     }
     .book-reader-content li { margin-bottom: 4px; }
     .book-reader-content strong { color: var(--gold); }
+    .book-reader-content img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 14px auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    }
     .book-reader-content table {
       width: 100%;
       border-collapse: collapse;
@@ -1264,6 +1272,170 @@
       font-size: 9px;
       opacity: 0.45;
     }
+
+    /* === Энциклопедия — мини-табы Дары/Поля === */
+    .encyc-mini-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      background: rgba(255,255,255,0.03);
+      padding: 4px;
+      border-radius: 12px;
+    }
+    .encyc-mini-tab {
+      flex: 1;
+      padding: 9px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      border-radius: 8px;
+      transition: all 0.15s;
+    }
+    .encyc-mini-tab.active {
+      background: var(--accent);
+      color: #080808;
+      font-weight: 700;
+    }
+    .encyc-tab-content { display: none; }
+    .encyc-tab-content.active { display: block; }
+
+    /* Поля */
+    .encyc-field-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .encyc-field-card:hover {
+      border-color: rgba(212,175,55,0.4);
+    }
+    .encyc-field-card-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--field-color);
+      box-shadow: 0 0 10px var(--field-color);
+      flex-shrink: 0;
+    }
+    .encyc-field-card-text { flex: 1; min-width: 0; }
+    .encyc-field-card-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .encyc-field-card-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .encyc-field-card-count {
+      font-size: 11px;
+      color: var(--gold);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* === Детали Дара (fullscreen overlay) === */
+    .dar-detail-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      z-index: 600;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.25s ease-out;
+      padding: 0;
+    }
+    .dar-detail-screen.open { transform: translateY(0); }
+    .dar-detail-header {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+    .dar-detail-header-name {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    .dar-detail-content {
+      padding: 16px;
+      max-width: 720px;
+      margin: 0 auto 60px;
+    }
+    .dar-detail-hero {
+      text-align: center;
+      padding: 20px 0 8px;
+    }
+    .dar-detail-hero img {
+      width: 120px; height: 120px;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 12px #D4AF37);
+      margin: 0 auto;
+      display: block;
+    }
+    .dar-detail-hero-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 3px;
+      margin-top: 12px;
+    }
+    .dar-detail-hero-code {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-top: 2px;
+    }
+    .dar-detail-hero-archetype {
+      font-size: 14px;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-top: 6px;
+    }
+    .dar-detail-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 12px;
+    }
+    .dar-detail-section h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--gold);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .dar-detail-section-body {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .dar-detail-section-body p { margin-bottom: 10px; }
+    .dar-detail-section-body strong { color: var(--gold); }
+    .dar-detail-section-body ul, .dar-detail-section-body ol {
+      margin: 8px 0 10px 18px;
+    }
+    .dar-detail-section-body li { margin-bottom: 4px; }
 
     /* === Энциклопедия === */
     .encyc-search-box { margin-bottom: 12px; }
@@ -1674,17 +1846,31 @@
         </div>
       </div>
 
-      <!-- Энциклопедия (поиск + список по полям) -->
+      <!-- Энциклопедия: 2 подвкладки (Дары/Поля) + поиск + детали -->
       <div class="subtab-content" data-subtab-content="search">
-        <div class="encyc-search-box">
-          <input id="encyc-search-input" type="text"
-            placeholder="🔍 Поиск по коду, имени или полю"
-            data-i18n="treasury.search_placeholder" data-i18n-attr="placeholder"
-            oninput="encycSearch(this.value)"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
+        <!-- Вложенные мини-подвкладки Дары/Поля -->
+        <div class="encyc-mini-tabs">
+          <button class="encyc-mini-tab active" data-encyc="dars" onclick="switchEncycTab('dars')" data-i18n="encyc.tab_dars">Дары</button>
+          <button class="encyc-mini-tab" data-encyc="fields" onclick="switchEncycTab('fields')" data-i18n="encyc.tab_fields">Поля</button>
         </div>
-        <div id="encyc-results" hidden></div>
-        <div id="encyc-list"></div>
+
+        <!-- Дары: поиск + список по полям -->
+        <div class="encyc-tab-content active" data-encyc-content="dars">
+          <div class="encyc-search-box">
+            <input id="encyc-search-input" type="text"
+              placeholder="🔍 Поиск по коду, имени или полю"
+              data-i18n="treasury.search_placeholder" data-i18n-attr="placeholder"
+              oninput="encycSearch(this.value)"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
+          </div>
+          <div id="encyc-results" hidden></div>
+          <div id="encyc-list"></div>
+        </div>
+
+        <!-- Поля: 9 полей с описанием -->
+        <div class="encyc-tab-content" data-encyc-content="fields">
+          <div id="encyc-fields-list"></div>
+        </div>
       </div>
 
       <!-- Игры (включая Путешествие героя + Зал Славы) -->
@@ -1825,6 +2011,17 @@
       <div class="lk-link" data-i18n="account.feedback">Обратная связь</div>
       <div class="lk-link" data-i18n="account.about">О приложении</div>
       <div class="lk-link danger" data-i18n="account.reset">Полный сброс</div>
+    </div>
+  </aside>
+
+  <!-- ============ ДЕТАЛИ ДАРА ============ -->
+  <aside class="dar-detail-screen" id="dar-detail-screen">
+    <div class="dar-detail-header">
+      <button class="book-reader-back" onclick="closeDarDetail()" aria-label="Назад">←</button>
+      <div class="dar-detail-header-name" id="dar-detail-header-name">—</div>
+    </div>
+    <div class="dar-detail-content" id="dar-detail-content">
+      <div class="placeholder">Загружаю…</div>
     </div>
   </aside>
 

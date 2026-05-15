@@ -542,6 +542,22 @@
     .lk-link:hover { color: var(--gold); }
     .lk-link.danger { color: #b95252; }
     .lk-link.admin { color: var(--gold); font-weight: 600; }
+    .lk-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0 12px;
+    }
+    .lk-readonly-note {
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -680,9 +696,13 @@
         <span class="lk-row-value"><span class="lk-tier-badge">Странник</span></span>
       </div>
       <button class="lk-btn" data-i18n="account.tier_change">Сменить тариф</button>
+      <div class="lk-divider"></div>
+      <div class="lk-row-label" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;color:var(--text-muted)" data-i18n="account.section_promo">Промо-код</div>
+      <input class="lk-input" type="text" placeholder="Введи код" data-i18n="account.promo_placeholder" data-i18n-attr="placeholder">
+      <button class="lk-btn" data-i18n="account.promo_activate">Активировать</button>
     </div>
 
-    <!-- Мои данные -->
+    <!-- Мои данные (read-only — изменения только через админку) -->
     <div class="lk-section">
       <div class="lk-section-title" data-i18n="account.section_profile">Мои данные</div>
       <div class="lk-row">
@@ -705,14 +725,7 @@
         <span class="lk-row-label" data-i18n="account.profile_gender">Пол</span>
         <span class="lk-row-value">—</span>
       </div>
-      <button class="lk-btn" data-i18n="account.profile_edit">Изменить</button>
-    </div>
-
-    <!-- Промо-код -->
-    <div class="lk-section">
-      <div class="lk-section-title" data-i18n="account.section_promo">Промо-код</div>
-      <input class="lk-input" type="text" placeholder="Введи код" data-i18n="account.promo_placeholder" data-i18n-attr="placeholder">
-      <button class="lk-btn" data-i18n="account.promo_activate">Активировать</button>
+      <div class="lk-readonly-note" data-i18n="account.profile_readonly_note">Данные нельзя изменить. Если есть ошибка — напиши в поддержку.</div>
     </div>
 
     <!-- Кристаллы -->

@@ -77,7 +77,7 @@
     "profile_birth_time": "Time of birth",
     "profile_birth_place": "Place of birth",
     "profile_gender": "Gender",
-    "profile_edit": "Edit",
+    "profile_readonly_note": "Data can't be changed. If there's a mistake — contact support.",
     "section_tier": "My plan",
     "section_promo": "Promo code",
     "promo_placeholder": "Enter code",

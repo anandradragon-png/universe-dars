@@ -77,7 +77,7 @@
     "profile_birth_time": "Время рождения",
     "profile_birth_place": "Место рождения",
     "profile_gender": "Пол",
-    "profile_edit": "Изменить",
+    "profile_readonly_note": "Данные нельзя изменить. Если есть ошибка — напиши в поддержку.",
     "section_tier": "Мой тариф",
     "section_promo": "Промо-код",
     "promo_placeholder": "Введи код",

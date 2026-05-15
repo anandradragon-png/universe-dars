@@ -47,7 +47,9 @@
 
   "encyc": {
     "tab_dars": "Дары",
-    "tab_fields": "Поля"
+    "tab_fields": "Поля",
+    "dars_count_label": "даров",
+    "back_to_fields": "← Все поля"
   },
 
   "oracle": {
@@ -94,6 +96,7 @@
     "collection_title": "Коллекция",
     "collection_sub": "Сетка 64 даров с подсветкой открытых.",
     "collection_unlocked_label": "Открыто",
+    "collection_progress_label": "даров открыто",
     "book_dars_title": "Книга Даров",
     "book_dars_sub": "Полное руководство по 64 Дарам — на твоём языке (RU / EN / ES).",
     "book_parents_title": "Книга для Родителей",

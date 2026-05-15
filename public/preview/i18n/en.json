@@ -64,6 +64,7 @@
     "collection_title": "Collection",
     "collection_sub": "Grid of 64 DARs with highlighted unlocked ones.",
     "collection_unlocked_label": "Unlocked",
+    "collection_progress_label": "DARs unlocked",
     "book_dars_title": "Book of DARs",
     "book_dars_sub": "Complete guide to 64 DARs — in your language (RU / EN / ES).",
     "book_parents_title": "Book for Parents",
@@ -102,7 +103,9 @@
 
   "encyc": {
     "tab_dars": "DARs",
-    "tab_fields": "Fields"
+    "tab_fields": "Fields",
+    "dars_count_label": "DARs",
+    "back_to_fields": "← All fields"
   },
 
   "oracle": {

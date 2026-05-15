@@ -38,19 +38,16 @@
           contents.forEach(c => c.classList.toggle('active', c.getAttribute('data-subtab-content') === target));
           // При открытии «Моя коллекция» — отрендерить сетку
           if (target === 'collection') renderCollection();
-          // При открытии «Энциклопедия» — отрендерить список даров и полей
-          if (target === 'search') {
-            renderEncyclopedia();
-            renderEncycFields();
-          }
+          // При открытии «Энциклопедия» — отрендерить список 9 полей
+          if (target === 'search') renderEncyclopedia();
         });
       });
     });
   }
 
-  // Рендер сетки 64 даров (Сокровищница → Моя коллекция).
-  // Группировка по полям (КУН), имена на текущем языке, имя видно
-  // даже у закрытых (как в проде).
+  // Рендер сетки 64 даров (Сокровищница → Коллекция).
+  // Как в проде: 3 колонки, заголовок поля + счётчик «N/7»,
+  // закрытые показываются как 🔒 + ??? (без имени).
   function renderCollection() {
     const grid = document.getElementById('collection-grid');
     if (!grid || !window.DarsLib) return;
@@ -77,33 +74,44 @@
       const codes = byField[f];
       if (!codes || !codes.length) continue;
       const fieldData = DarsLib.FIELDS[f];
-      const fieldName = (fieldData && fieldData['name_' + lang]) || (fieldData && fieldData.name_ru) || ('Поле ' + f);
+      const fieldName = (fieldData && fieldData['name_' + lang]) || fieldData?.name_ru || ('Поле ' + f);
+      const fieldUnlocked = codes.filter(c => unlocked.has(c)).length;
       html.push(`<div class="collection-field" style="--field-color:${fieldData?.color || '#fff'}">
         <div class="collection-field-header">
-          <span class="collection-field-dot"></span>
+          <span class="collection-field-glyph">${fieldData?.glyph || '◇'}</span>
           <span class="collection-field-name">${fieldName}</span>
-          <span class="collection-field-id">${f}</span>
+          <span class="collection-field-counter">${fieldUnlocked}/${codes.length}</span>
         </div>
         <div class="collection-grid-inner">`);
       codes.forEach(code => {
-        const name = DarsLib.getDarName(code, lang);
         const isMine = code === myCode;
         const isUnlocked = unlocked.has(code);
         if (isUnlocked) unlockedCount++;
-        const cls = isMine ? 'mine' : (isUnlocked ? 'unlocked' : 'locked');
-        const svgPath = DarsLib.getDarSvgPath(code);
-        html.push(`<div class="collection-cell ${cls}" data-code="${code}" onclick="openDarDetail('${code}')">
-          <div class="collection-cell-img"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
-          <div class="collection-cell-name">${escapeHtml(name)}</div>
-          <div class="collection-cell-code">${code}</div>
-          ${!isUnlocked ? '<div class="collection-cell-overlay">🔒</div>' : ''}
-        </div>`);
+        if (isUnlocked) {
+          const name = DarsLib.getDarName(code, lang);
+          const svgPath = DarsLib.getDarSvgPath(code);
+          const cls = isMine ? 'mine unlocked' : 'unlocked';
+          html.push(`<div class="collection-cell ${cls}" data-code="${code}" onclick="openDarDetail('${code}')">
+            <div class="collection-cell-img"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
+            <div class="collection-cell-name">${escapeHtml(name)}</div>
+          </div>`);
+        } else {
+          // Закрытые: только замок и «???» как в проде
+          html.push(`<div class="collection-cell locked">
+            <div class="collection-cell-lock-icon">🔒</div>
+            <div class="collection-cell-name">???</div>
+          </div>`);
+        }
       });
       html.push(`</div></div>`);
     }
     grid.innerHTML = html.join('');
+
+    // Прогрессбар вверху сетки
     const cnt = document.getElementById('collection-unlocked-count');
     if (cnt) cnt.textContent = unlockedCount;
+    const bar = document.getElementById('collection-progress-bar');
+    if (bar) bar.style.width = ((unlockedCount / 64) * 100) + '%';
   }
   window.renderCollection = renderCollection;
 
@@ -368,6 +376,8 @@
 
   // === Энциклопедия Даров ===
 
+  // Энциклопедия — список 9 полей по образцу прода:
+  // [глиф] [Название]  [Стихия]                 [N даров >]
   function renderEncyclopedia() {
     const list = document.getElementById('encyc-list');
     if (!list || !window.DarsLib) return;
@@ -382,28 +392,53 @@
     for (let f = 1; f <= 9; f++) {
       const codes = byField[f];
       if (!codes) continue;
-      const fieldData = DarsLib.FIELDS[f];
-      const fieldName = (fieldData && fieldData['name_' + lang]) || fieldData?.name_ru || ('Поле ' + f);
-      html.push(`<div class="encyc-field-block" style="--field-color:${fieldData?.color || '#fff'}">
-        <div class="encyc-field-header">
-          <span class="encyc-field-dot"></span>
-          <span class="encyc-field-name">${escapeHtml(fieldName)}</span>
-          <span class="encyc-field-id">${f}</span>
-        </div>`);
-      codes.forEach(code => {
-        const name = DarsLib.getDarName(code, lang);
-        const svgPath = DarsLib.getDarSvgPath(code);
-        html.push(`<div class="encyc-dar-row" onclick="openDarDetail('${code}')">
-          <div class="encyc-dar-img"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
-          <div class="encyc-dar-name">${escapeHtml(name)}</div>
-          <div class="encyc-dar-code">${code}</div>
-        </div>`);
-      });
-      html.push(`</div>`);
+      const fd = DarsLib.FIELDS[f] || {};
+      const fieldName = fd['name_' + lang] || fd.name_ru || ('Поле ' + f);
+      const element = fd['element_' + lang] || fd.element_ru || '';
+      const tLabel = (window.previewI18n && previewI18n.t('encyc.dars_count_label')) || 'даров';
+      html.push(`<div class="encyc-field-prod-row" style="--field-color:${fd.color || '#fff'}" onclick="openFieldList(${f})">
+        <div class="encyc-field-prod-glyph">${fd.glyph || '◇'}</div>
+        <div class="encyc-field-prod-text">
+          <div class="encyc-field-prod-name">${escapeHtml(fieldName)}</div>
+          <div class="encyc-field-prod-element">${escapeHtml(element)}</div>
+        </div>
+        <div class="encyc-field-prod-count">${codes.length} ${tLabel} <span style="opacity:0.6">›</span></div>
+      </div>`);
     }
     list.innerHTML = html.join('');
   }
   window.renderEncyclopedia = renderEncyclopedia;
+
+  // Открыть список Даров одного поля (после клика на карточку поля)
+  function openFieldList(fieldId) {
+    const list = document.getElementById('encyc-list');
+    if (!list || !window.DarsLib) return;
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const fd = DarsLib.FIELDS[fieldId] || {};
+    const fieldName = fd['name_' + lang] || fd.name_ru;
+    const element = fd['element_' + lang] || fd.element_ru || '';
+    const codes = Object.keys(DarsLib.DARS).filter(c => DarsLib.getFieldId(c) === fieldId);
+    const tBack = (window.previewI18n && previewI18n.t('encyc.back_to_fields')) || '← Все поля';
+    let html = `<div class="encyc-back-btn" onclick="renderEncyclopedia()">${tBack}</div>
+      <div class="encyc-field-prod-row" style="--field-color:${fd.color};margin-bottom:14px;cursor:default">
+        <div class="encyc-field-prod-glyph">${fd.glyph || '◇'}</div>
+        <div class="encyc-field-prod-text">
+          <div class="encyc-field-prod-name">${escapeHtml(fieldName)}</div>
+          <div class="encyc-field-prod-element">${escapeHtml(element)}</div>
+        </div>
+      </div>`;
+    codes.forEach(code => {
+      const name = DarsLib.getDarName(code, lang);
+      const svgPath = DarsLib.getDarSvgPath(code);
+      html += `<div class="encyc-dar-row" onclick="openDarDetail('${code}')">
+        <div class="encyc-dar-img"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
+        <div class="encyc-dar-name">${escapeHtml(name)}</div>
+        <div class="encyc-dar-code">${code}</div>
+      </div>`;
+    });
+    list.innerHTML = html;
+  }
+  window.openFieldList = openFieldList;
 
   // === Детальная карточка Дара (по образцу прода: 9 секций из dar-content.json) ===
 

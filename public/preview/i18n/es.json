@@ -64,6 +64,7 @@
     "collection_title": "Colección",
     "collection_sub": "Cuadrícula de 64 DARs con los desbloqueados resaltados.",
     "collection_unlocked_label": "Desbloqueados",
+    "collection_progress_label": "DARs desbloqueados",
     "book_dars_title": "Libro de los DARs",
     "book_dars_sub": "Guía completa de los 64 DARs — en tu idioma (RU / EN / ES).",
     "book_parents_title": "Libro para Padres",
@@ -102,7 +103,9 @@
 
   "encyc": {
     "tab_dars": "DARs",
-    "tab_fields": "Campos"
+    "tab_fields": "Campos",
+    "dars_count_label": "DARs",
+    "back_to_fields": "← Todos los campos"
   },
 
   "oracle": {

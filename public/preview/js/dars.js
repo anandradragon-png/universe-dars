@@ -7,16 +7,17 @@
   'use strict';
 
   // Поля (9 секторов вселенной Даров). KUN = 3-я цифра кода = индекс поля.
+  // element/archetype синхронизированы с public/fields.json основного приложения.
   const FIELDS = {
-    1: { name_ru: 'ЛОГОС',   name_en: 'LOGOS',   name_es: 'LOGOS',   color: '#e74c3c' },
-    2: { name_ru: 'НИМА',    name_en: 'NIMA',    name_es: 'NIMA',    color: '#87ceeb' },
-    3: { name_ru: 'АНДРА',   name_en: 'ANDRA',   name_es: 'ANDRA',   color: '#2ecc71' },
-    4: { name_ru: 'ЗИНГРА',  name_en: 'ZINGRA',  name_es: 'ZINGRA',  color: '#f39c12' },
-    5: { name_ru: 'ЛУБА',    name_en: 'LUBA',    name_es: 'LUBA',    color: '#ffffff' },
-    6: { name_ru: 'ТУМА',    name_en: 'TUMA',    name_es: 'TUMA',    color: '#1a1a4e' },
-    7: { name_ru: 'АСТРА',   name_en: 'ASTRA',   name_es: 'ASTRA',   color: '#9b59b6' },
-    8: { name_ru: 'БИТРА',   name_en: 'BITRA',   name_es: 'BITRA',   color: '#5dade2' },
-    9: { name_ru: 'ОМА',     name_en: 'OMA',     name_es: 'OMA',     color: '#e8d5ff' }
+    1: { name_ru: 'ЛОГОС',   name_en: 'LOGOS',   name_es: 'LOGOS',   color: '#e74c3c', element_ru: 'Земля внутренняя',  element_en: 'Inner Earth',  element_es: 'Tierra interior',  glyph: '△'  },
+    2: { name_ru: 'НИМА',    name_en: 'NIMA',    name_es: 'NIMA',    color: '#87ceeb', element_ru: 'Воздух внутренний', element_en: 'Inner Air',    element_es: 'Aire interior',    glyph: '✳'  },
+    3: { name_ru: 'АНДРА',   name_en: 'ANDRA',   name_es: 'ANDRA',   color: '#2ecc71', element_ru: 'Вода внутренняя',   element_en: 'Inner Water',  element_es: 'Agua interior',    glyph: '☌'  },
+    4: { name_ru: 'ЗИНГРА',  name_en: 'ZINGRA',  name_es: 'ZINGRA',  color: '#f39c12', element_ru: 'Огонь внутренний',  element_en: 'Inner Fire',   element_es: 'Fuego interior',   glyph: '↻'  },
+    5: { name_ru: 'ЛУБА',    name_en: 'LUBA',    name_es: 'LUBA',    color: '#ffffff', element_ru: 'Огонь внешний',     element_en: 'Outer Fire',   element_es: 'Fuego exterior',   glyph: '☀'  },
+    6: { name_ru: 'ТУМА',    name_en: 'TUMA',    name_es: 'TUMA',    color: '#3498db', element_ru: 'Вода внешняя',      element_en: 'Outer Water',  element_es: 'Agua exterior',    glyph: '〰'  },
+    7: { name_ru: 'АСТРА',   name_en: 'ASTRA',   name_es: 'ASTRA',   color: '#9b59b6', element_ru: 'Воздух внешний',    element_en: 'Outer Air',    element_es: 'Aire exterior',    glyph: '☉'  },
+    8: { name_ru: 'БИТРА',   name_en: 'BITRA',   name_es: 'BITRA',   color: '#5dade2', element_ru: 'Земля внешняя',     element_en: 'Outer Earth',  element_es: 'Tierra exterior',  glyph: '◯'  },
+    9: { name_ru: 'ОМА',     name_en: 'OMA',     name_es: 'OMA',     color: '#e8d5ff', element_ru: 'Эфир',              element_en: 'Aether',       element_es: 'Éter',             glyph: '✺'  }
   };
 
   // 64 Дара: код → имя

@@ -49,7 +49,11 @@ const Referral = (function() {
     const container = document.getElementById('share-section');
     if (!container) return;
 
-    const t = (k) => (window.i18n && i18n.t) ? i18n.t(k) : null;
+    // Сохраняем параметры на DOM, чтобы перерисовать после загрузки i18n
+    container.dataset.darCode = darCode || '';
+    container.dataset.darName = darName || '';
+
+    const t = (k) => ((window.i18n && i18n.t && i18n.t(k)) || null);
     container.innerHTML = `
       <div class="share-block">
         <div class="share-title">&#127873; ${t('referral.share_title') || 'Поделись с другом!'}</div>
@@ -61,6 +65,24 @@ const Referral = (function() {
     `;
     container.style.display = 'block';
   }
+
+  // Перерисовать кнопку шеринга после загрузки/смены языка.
+  // Это спасает от того, что в момент первого рендера i18n ещё не загружен
+  // и пользователь видит русский fallback вместо переведённого текста.
+  try {
+    document.addEventListener('i18n:ready', () => {
+      const c = document.getElementById('share-section');
+      if (c && c.dataset.darCode) {
+        renderShareButton(c.dataset.darCode, c.dataset.darName);
+      }
+    });
+    document.addEventListener('i18n:changed', () => {
+      const c = document.getElementById('share-section');
+      if (c && c.dataset.darCode) {
+        renderShareButton(c.dataset.darCode, c.dataset.darName);
+      }
+    });
+  } catch (e) {}
 
   /**
    * Получить реферальную ссылку текущего пользователя
@@ -76,7 +98,7 @@ const Referral = (function() {
    */
   function shareLink() {
     const link = getMyLink();
-    const text = (window.i18n && i18n.t) ? i18n.t('referral.share_message') : 'Открой для себя YupDar - путешествие к своему Дару. Узнай свой дар по дате рождения и начни путь Алхимии.';
+    const text = ((window.i18n && i18n.t && i18n.t('referral.share_message')) || 'Открой для себя YupDar - путешествие к своему Дару. Узнай свой дар по дате рождения и начни путь Алхимии.');
 
     if (tg?.openTelegramLink) {
       tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
@@ -99,7 +121,7 @@ const Referral = (function() {
       }
     } catch (e) {}
     // Fallback: prompt
-    prompt((window.i18n && i18n.t) ? i18n.t('share.copy_link_prompt') : 'Скопируй эту ссылку:', link);
+    prompt(((window.i18n && i18n.t && i18n.t('share.copy_link_prompt')) || 'Скопируй эту ссылку:'), link);
     return false;
   }
 

@@ -90,7 +90,7 @@ window.UpgradeModal = (function() {
       const r = await fetch('/api/payment', { method: 'POST', headers, body: JSON.stringify(body) });
       const j = await r.json();
       if (!r.ok) {
-        const errPrefix = (window.i18n && i18n.t) ? i18n.t('common.error') : 'Ошибка';
+        const errPrefix = ((window.i18n && i18n.t && i18n.t('common.error')) || 'Ошибка');
         alert(errPrefix + ': ' + (j.error || r.status));
         return;
       }
@@ -98,7 +98,7 @@ window.UpgradeModal = (function() {
       if (provider === 'stars' && j.invoice_url && tg?.openInvoice) {
         tg.openInvoice(j.invoice_url, (status) => {
           if (status === 'paid' && tg.showAlert) {
-            const msg = (window.i18n && i18n.t) ? i18n.t('tariffs.payment_ok') : 'Оплата прошла, обновляю…';
+            const msg = ((window.i18n && i18n.t && i18n.t('tariffs.payment_ok')) || 'Оплата прошла, обновляю…');
             tg.showAlert(msg);
           }
           if (status === 'paid') setTimeout(() => location.reload(), 1500);
@@ -108,7 +108,7 @@ window.UpgradeModal = (function() {
         else window.open(j.invoice_url, '_blank');
       }
     } catch (e) {
-      const msg = (window.i18n && i18n.t) ? i18n.t('tariffs.connection_error', { message: e.message }) : ('Ошибка соединения: ' + e.message);
+      const msg = ((window.i18n && i18n.t && i18n.t('tariffs.connection_error', { message: e.message })) || ('Ошибка соединения: ' + e.message));
       alert(msg);
     }
   }
@@ -119,26 +119,28 @@ window.UpgradeModal = (function() {
   // Это самый чистый способ — не приходится менять каждую ручку отдельно.
   // Конфиги через геттер чтобы i18n.t() вызывался во время показа (после init), а не на парсинге модуля
   function getLimitReasons() {
-    const t = (key) => (window.i18n && i18n.t) ? i18n.t(key) : key;
+    // RU fallback: если словарь не загружен или ключа нет — показываем
+    // русский текст. ЗАКОН: в русской версии не должно быть ключей-айди.
+    const t = (key, ruFallback) => ((window.i18n && i18n.t && i18n.t(key)) || ruFallback);
     return {
       'oracle_limit_reached': {
         icon: '🔮',
-        title: t('limits.oracle_locked_title'),
-        message: t('limits.oracle_locked_msg'),
+        title: t('limits.oracle_locked_title', 'Оракул на сегодня молчит'),
+        message: t('limits.oracle_locked_msg', 'Дневной лимит послания Оракула исчерпан. Возвращайся завтра или открой больше через Хранителя.'),
         addonKey: 'oracle_unlimited_7d',
-        addonLabel: t('limits.oracle_addon_label')
+        addonLabel: t('limits.oracle_addon_label', 'Безлимит Оракула на 7 дней')
       },
       'compatibility_limit_reached': {
         icon: '💑',
-        title: t('limits.compatibility_locked_title'),
-        message: t('limits.compatibility_locked_msg'),
+        title: t('limits.compatibility_locked_title', 'Совместимость закрыта'),
+        message: t('limits.compatibility_locked_msg', 'Чтобы посмотреть совместимость даров, открой Хранителя или возьми разовый PDF-разбор.'),
         addonKey: 'compatibility_pdf',
-        addonLabel: t('limits.compatibility_addon_label')
+        addonLabel: t('limits.compatibility_addon_label', 'PDF-разбор совместимости')
       },
       'hero_journey_locked': {
         icon: '🗺',
-        title: t('limits.hero_journey_locked_title'),
-        message: t('limits.hero_journey_locked_msg')
+        title: t('limits.hero_journey_locked_title', 'Путешествие Героя закрыто'),
+        message: t('limits.hero_journey_locked_msg', 'Чтобы открыть путешествие по чужому Дару, нужен Хранитель или прямая разовая покупка.')
       }
     };
   }

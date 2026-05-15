@@ -38,8 +38,11 @@
           contents.forEach(c => c.classList.toggle('active', c.getAttribute('data-subtab-content') === target));
           // При открытии «Моя коллекция» — отрендерить сетку
           if (target === 'collection') renderCollection();
-          // При открытии «Энциклопедия» — отрендерить список 9 полей
-          if (target === 'search') renderEncyclopedia();
+          // При открытии «Энциклопедия» — рендер активной подвкладки
+          if (target === 'search') {
+            if (encycCurrentSubtab === 'fields') renderFieldCards();
+            else renderFieldFolders();
+          }
         });
       });
     });
@@ -376,69 +379,250 @@
 
   // === Энциклопедия Даров ===
 
-  // Энциклопедия — список 9 полей по образцу прода:
-  // [глиф] [Название]  [Стихия]                 [N даров >]
-  function renderEncyclopedia() {
-    const list = document.getElementById('encyc-list');
-    if (!list || !window.DarsLib) return;
+  // === Энциклопедия — 1:1 как в прод-приложении (index.html:2675-3139) ===
+  //
+  // Структура:
+  //   Вкладка «Дары»  → Ур.1: список 9 полей → Ур.2: сетка даров → Ур.3: детали
+  //   Вкладка «Поля»  → Ур.1: сетка 9 карточек → Ур.2: детали поля с 4 табами
+  //
+  // Поиск работает поверх всего (показывает результаты в encyc-results)
+
+  let fieldsFullCache = null;
+  async function loadFieldsFull() {
+    if (fieldsFullCache !== null) return fieldsFullCache;
+    try {
+      const resp = await fetch('/fields.json?v=1');
+      if (resp.ok) {
+        const j = await resp.json();
+        const map = {};
+        (j.fields || []).forEach(f => { map[f.id] = f; });
+        fieldsFullCache = map;
+      } else {
+        fieldsFullCache = {};
+      }
+    } catch (e) {
+      fieldsFullCache = {};
+    }
+    return fieldsFullCache;
+  }
+
+  // SVG-иконки рисунков энергии для каждого поля (1:1 из прода)
+  const FIELD_PATTERN_SVG = {
+    1: '<svg viewBox="0 0 40 40" width="36" height="36"><polygon points="20,6 34,34 6,34" fill="none" stroke="#D4AF37" stroke-width="1.5"/></svg>',
+    2: '<svg viewBox="0 0 40 40" width="36" height="36"><circle cx="20" cy="20" r="2" fill="#66bbff"/><line x1="20" y1="20" x2="20" y2="4" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="34" y2="12" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="34" y2="28" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="20" y2="36" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="6" y2="28" stroke="#66bbff" stroke-width="1" opacity="0.7"/><line x1="20" y1="20" x2="6" y2="12" stroke="#66bbff" stroke-width="1" opacity="0.7"/></svg>',
+    3: '<svg viewBox="0 0 40 40" width="36" height="36"><path d="M28,20 C28,14 24,10 20,10 C14,10 12,16 16,19 C19,21 22,18 20,16" fill="none" stroke="#50c878" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="16" r="1.5" fill="#50c878"/></svg>',
+    4: '<svg viewBox="0 0 40 40" width="36" height="36"><path d="M12,20 C12,26 16,30 20,30 C26,30 28,24 24,21 C21,19 18,22 20,24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="24" r="1.5" fill="#D4AF37"/></svg>',
+    5: '<svg viewBox="0 0 40 40" width="36" height="36"><circle cx="20" cy="20" r="4" fill="#eee"/><circle cx="20" cy="20" r="8" fill="none" stroke="#eee" stroke-width="0.5" opacity="0.4"/><circle cx="20" cy="20" r="13" fill="none" stroke="#eee" stroke-width="0.3" opacity="0.25"/></svg>',
+    6: '<svg viewBox="0 0 40 40" width="36" height="36"><path d="M4,20 Q10,10 16,20 Q22,30 28,20 Q34,10 40,20" fill="none" stroke="#5577cc" stroke-width="1.5"/><circle cx="10" cy="20" r="1.5" fill="#5577cc"/><circle cx="22" cy="20" r="1.5" fill="#5577cc"/><circle cx="34" cy="20" r="1.5" fill="#5577cc"/></svg>',
+    7: '<svg viewBox="0 0 40 40" width="36" height="36"><line x1="8" y1="20" x2="32" y2="20" stroke="#9966cc" stroke-width="1.5"/><circle cx="8" cy="20" r="3" fill="#9966cc"/><circle cx="32" cy="20" r="3" fill="#9966cc"/></svg>',
+    8: '<svg viewBox="0 0 40 40" width="36" height="36"><circle cx="20" cy="20" r="13" fill="none" stroke="#88bbdd" stroke-width="1.5"/></svg>',
+    9: '<svg viewBox="0 0 40 40" width="36" height="36"><polygon points="20,5 35,20 20,35 5,20" fill="none" stroke="#D4AF37" stroke-width="1.5"/></svg>'
+  };
+
+  // Текущее состояние навигации внутри Энциклопедии
+  let encycCurrentSubtab = 'dars';   // 'dars' | 'fields'
+  let encycCurrentFieldKun = null;   // для возврата из деталей в Ур.2 Даров
+
+  // Переключение мини-табов Дары / Поля
+  function switchBaseSubTab(name) {
+    encycCurrentSubtab = name;
+    document.querySelectorAll('.base-sub-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('base-btn-' + name)?.classList.add('active');
+    document.getElementById('base-subtab-dars').hidden = name !== 'dars';
+    document.getElementById('base-subtab-fields').hidden = name !== 'fields';
+    encycSearchClear();
+    if (name === 'dars') renderFieldFolders();
+    else renderFieldCards();
+  }
+  window.switchBaseSubTab = switchBaseSubTab;
+
+  // === Вкладка «Дары» — Уровень 1: список 9 полей (полоски) ===
+  async function renderFieldFolders() {
+    const container = document.getElementById('dars-list-view');
+    const fieldView = document.getElementById('dars-field-view');
+    const detailView = document.getElementById('dars-detail-view');
+    if (!container) return;
+    if (fieldView) fieldView.hidden = true;
+    if (detailView) detailView.hidden = true;
+    container.hidden = false;
+
     const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const ff = await loadFieldsFull();
     const byField = {};
-    Object.keys(DarsLib.DARS).forEach(code => {
-      const f = DarsLib.getFieldId(code);
+    Object.keys(DarsLib.DARS).forEach(c => {
+      const f = DarsLib.getFieldId(c);
       if (!byField[f]) byField[f] = [];
-      byField[f].push(code);
+      byField[f].push(c);
     });
-    const html = [];
-    for (let f = 1; f <= 9; f++) {
-      const codes = byField[f];
-      if (!codes) continue;
-      const fd = DarsLib.FIELDS[f] || {};
-      const fieldName = fd['name_' + lang] || fd.name_ru || ('Поле ' + f);
-      const element = fd['element_' + lang] || fd.element_ru || '';
-      const tLabel = (window.previewI18n && previewI18n.t('encyc.dars_count_label')) || 'даров';
-      html.push(`<div class="encyc-field-prod-row" style="--field-color:${fd.color || '#fff'}" onclick="openFieldList(${f})">
-        <div class="encyc-field-prod-glyph">${fd.glyph || '◇'}</div>
+    const tLabel = (window.previewI18n && previewI18n.t('encyc.dars_count_label')) || 'даров';
+    let html = '';
+    for (let i = 1; i <= 9; i++) {
+      const f = ff[i] || {};
+      const fdLib = DarsLib.FIELDS[i] || {};
+      const name = f.name || fdLib['name_' + lang] || fdLib.name_ru || ('Поле ' + i);
+      const element = f.element || fdLib['element_' + lang] || fdLib.element_ru || '';
+      const count = (byField[i] || []).length;
+      html += `<div class="encyc-field-prod-row" style="--field-color:${fdLib.color || '#fff'}" onclick="openFieldFolder(${i})">
+        <div class="encyc-field-prod-glyph">${FIELD_PATTERN_SVG[i] || ''}</div>
         <div class="encyc-field-prod-text">
-          <div class="encyc-field-prod-name">${escapeHtml(fieldName)}</div>
+          <div class="encyc-field-prod-name">${escapeHtml(name)}</div>
           <div class="encyc-field-prod-element">${escapeHtml(element)}</div>
         </div>
-        <div class="encyc-field-prod-count">${codes.length} ${tLabel} <span style="opacity:0.6">›</span></div>
-      </div>`);
+        <div class="encyc-field-prod-count">${count} ${tLabel} <span style="opacity:0.6">›</span></div>
+      </div>`;
     }
-    list.innerHTML = html.join('');
+    container.innerHTML = html;
   }
+  window.renderFieldFolders = renderFieldFolders;
+  // Старое имя для совместимости
+  function renderEncyclopedia() { renderFieldFolders(); }
   window.renderEncyclopedia = renderEncyclopedia;
 
-  // Открыть список Даров одного поля (после клика на карточку поля)
-  function openFieldList(fieldId) {
-    const list = document.getElementById('encyc-list');
-    if (!list || !window.DarsLib) return;
+  // === Вкладка «Дары» — Уровень 2: сетка карточек даров поля ===
+  async function openFieldFolder(kunId) {
+    encycCurrentFieldKun = kunId;
+    const ff = await loadFieldsFull();
     const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
-    const fd = DarsLib.FIELDS[fieldId] || {};
-    const fieldName = fd['name_' + lang] || fd.name_ru;
-    const element = fd['element_' + lang] || fd.element_ru || '';
-    const codes = Object.keys(DarsLib.DARS).filter(c => DarsLib.getFieldId(c) === fieldId);
-    const tBack = (window.previewI18n && previewI18n.t('encyc.back_to_fields')) || '← Все поля';
-    let html = `<div class="encyc-back-btn" onclick="renderEncyclopedia()">${tBack}</div>
-      <div class="encyc-field-prod-row" style="--field-color:${fd.color};margin-bottom:14px;cursor:default">
-        <div class="encyc-field-prod-glyph">${fd.glyph || '◇'}</div>
-        <div class="encyc-field-prod-text">
-          <div class="encyc-field-prod-name">${escapeHtml(fieldName)}</div>
-          <div class="encyc-field-prod-element">${escapeHtml(element)}</div>
-        </div>
-      </div>`;
+    const f = ff[kunId] || DarsLib.FIELDS[kunId] || {};
+    const fieldName = f.name || f['name_' + lang] || f.name_ru || ('Поле ' + kunId);
+    const element = f.element || f['element_' + lang] || f.element_ru || '';
+    const codes = Object.keys(DarsLib.DARS).filter(c => DarsLib.getFieldId(c) === kunId);
+
+    const view = document.getElementById('dars-field-view');
+    let cards = '';
     codes.forEach(code => {
       const name = DarsLib.getDarName(code, lang);
+      const arch = DarsLib.getDarArchetype(code, lang);
       const svgPath = DarsLib.getDarSvgPath(code);
-      html += `<div class="encyc-dar-row" onclick="openDarDetail('${code}')">
-        <div class="encyc-dar-img"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
-        <div class="encyc-dar-name">${escapeHtml(name)}</div>
-        <div class="encyc-dar-code">${code}</div>
+      cards += `<div class="dar-card" onclick="openDarDetail('${code}')">
+        <div class="dar-card-img"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
+        <div class="dar-card-name">${escapeHtml(name)}</div>
+        ${arch ? `<div class="dar-card-arch">${escapeHtml(arch)}</div>` : ''}
       </div>`;
     });
-    list.innerHTML = html;
+    view.innerHTML = `<button class="btn-back" onclick="backToFieldFolders()">← Все поля</button>
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:16px;color:var(--text);letter-spacing:2px;font-weight:800">${escapeHtml(fieldName)}</div>
+        <div style="font-size:12px;color:var(--text-dim);font-style:italic">${escapeHtml(element)}</div>
+      </div>
+      <div class="dar-grid">${cards}</div>`;
+    document.getElementById('dars-list-view').hidden = true;
+    document.getElementById('dars-detail-view').hidden = true;
+    view.hidden = false;
   }
-  window.openFieldList = openFieldList;
+  window.openFieldFolder = openFieldFolder;
+
+  function backToFieldFolders() {
+    document.getElementById('dars-field-view').hidden = true;
+    document.getElementById('dars-list-view').hidden = false;
+    encycCurrentFieldKun = null;
+  }
+  window.backToFieldFolders = backToFieldFolders;
+
+  // === Вкладка «Поля» — Уровень 1: сетка карточек ===
+  async function renderFieldCards() {
+    const container = document.getElementById('fields-list-view');
+    if (!container) return;
+    const ff = await loadFieldsFull();
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    let html = '<div class="field-grid">';
+    for (let i = 1; i <= 9; i++) {
+      const f = ff[i] || DarsLib.FIELDS[i] || {};
+      const name = f.name || f['name_' + lang] || f.name_ru || ('Поле ' + i);
+      const element = f.element || f['element_' + lang] || f.element_ru || '';
+      html += `<div class="field-folder" onclick="openFieldDetail(${i})">
+        <div style="margin-bottom:6px">${FIELD_PATTERN_SVG[i] || ''}</div>
+        <div class="field-folder-name">${escapeHtml(name)}</div>
+        <div class="field-folder-arch">${escapeHtml(element)}</div>
+      </div>`;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  }
+  window.renderFieldCards = renderFieldCards;
+
+  // === Вкладка «Поля» — Уровень 2: детальная страница поля с 4 табами ===
+  const FIELD_INNER_TABS = [
+    { id: 'essence', label: 'Суть поля' },
+    { id: 'energy', label: 'Течение энергии' },
+    { id: 'body', label: 'Расположение в теле' },
+    { id: 'shadows', label: 'Теневые аспекты' }
+  ];
+
+  async function openFieldDetail(fieldId) {
+    const ff = await loadFieldsFull();
+    const f = ff[fieldId] || {};
+    const container = document.getElementById('fields-list-view');
+    const tabsHtml = FIELD_INNER_TABS.map((t, i) =>
+      `<button class="dar-inner-tab${i === 0 ? ' active' : ''}" onclick="switchFieldInnerTab('${t.id}',this,${fieldId})">${t.label}</button>`
+    ).join('');
+    container.innerHTML = `<button class="btn-back" onclick="backToFieldsList()">← Все поля</button>
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="margin-bottom:6px">${FIELD_PATTERN_SVG[fieldId] || ''}</div>
+        <div style="font-size:24px;letter-spacing:3px;color:var(--text);font-weight:800">${escapeHtml(f.name || '')}</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:4px">${escapeHtml(f.element || '')}${f.pattern ? ' · ' + escapeHtml(f.pattern) : ''}</div>
+        ${f.archetype ? `<div style="font-size:12px;color:var(--gold);font-style:italic;margin-top:4px">${escapeHtml(f.archetype)}</div>` : ''}
+      </div>
+      <div class="dar-inner-tabs">${tabsHtml}</div>
+      <div id="field-inner-content-area"></div>`;
+    renderFieldInnerTab('essence', fieldId);
+  }
+  window.openFieldDetail = openFieldDetail;
+
+  function switchFieldInnerTab(tabId, btn, fieldId) {
+    document.querySelectorAll('#fields-list-view .dar-inner-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderFieldInnerTab(tabId, fieldId);
+  }
+  window.switchFieldInnerTab = switchFieldInnerTab;
+
+  async function renderFieldInnerTab(tabId, fieldId) {
+    const ff = await loadFieldsFull();
+    const f = ff[fieldId] || {};
+    const area = document.getElementById('field-inner-content-area');
+    if (!area) return;
+    const row = (label, value) => value ? `<div class="dar-meta-row">
+      <div class="dar-meta-label">${escapeHtml(label)}</div>
+      <div class="dar-meta-value">${escapeHtml(value)}</div>
+    </div>` : '';
+    let html = '<div class="dar-inner-content">';
+    if (tabId === 'essence') {
+      html += row('Суть', f.essence);
+      html += row('Архетип', f.archetype);
+      html += row('Ключ гармонии', f.harmony_key);
+    } else if (tabId === 'energy') {
+      html += row('Рисунок', f.pattern);
+      html += row('Как течёт энергия', f.flow);
+    } else if (tabId === 'body') {
+      html += row('Расположение', f.body);
+      html += row('Ощущение в теле', f.body_sensation);
+    } else if (tabId === 'shadows') {
+      html += row('Пассивная тень (МА)', f.shadow_ma);
+      html += row('Активная тень (ЖИ)', f.shadow_zhi);
+      html += row('Тень соединения (КУН)', f.shadow_kun);
+      if (Array.isArray(f.risk_zones) && f.risk_zones.length) {
+        html += `<div class="dar-meta-row">
+          <div class="dar-meta-label">Зоны риска</div>
+          <div class="dar-meta-value"><ul>${f.risk_zones.map(z => `<li>${escapeHtml(z)}</li>`).join('')}</ul></div>
+        </div>`;
+      }
+    }
+    html += '</div>';
+    area.innerHTML = html;
+  }
+
+  function backToFieldsList() {
+    renderFieldCards();
+  }
+  window.backToFieldsList = backToFieldsList;
+
+  function encycSearchClear() {
+    const input = document.getElementById('encyc-search-input');
+    if (input) input.value = '';
+    const results = document.getElementById('encyc-results');
+    if (results) { results.hidden = true; results.innerHTML = ''; }
+  }
+  window.encycSearchClear = encycSearchClear;
 
   // === Детальная карточка Дара (по образцу прода: 9 секций из dar-content.json) ===
 
@@ -627,90 +811,58 @@
   window.closeDarDetail = closeDarDetail;
 
   // Мини-табы Энциклопедии Дары/Поля
-  function switchEncycTab(name) {
-    document.querySelectorAll('.encyc-mini-tab').forEach(b =>
-      b.classList.toggle('active', b.getAttribute('data-encyc') === name)
-    );
-    document.querySelectorAll('.encyc-tab-content').forEach(c =>
-      c.classList.toggle('active', c.getAttribute('data-encyc-content') === name)
-    );
-    if (name === 'fields') renderEncycFields();
-  }
-  window.switchEncycTab = switchEncycTab;
-
-  function renderEncycFields() {
-    const list = document.getElementById('encyc-fields-list');
-    if (!list || !window.DarsLib) return;
-    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
-    // Считаем сколько даров в каждом поле
-    const byField = {};
-    Object.keys(DarsLib.DARS).forEach(code => {
-      const f = DarsLib.getFieldId(code);
-      byField[f] = (byField[f] || 0) + 1;
-    });
-    const html = [];
-    for (let f = 1; f <= 9; f++) {
-      const data = DarsLib.FIELDS[f];
-      if (!data) continue;
-      const fieldName = data['name_' + lang] || data.name_ru;
-      const count = byField[f] || 0;
-      html.push(`<div class="encyc-field-card" style="--field-color:${data.color}" onclick="openFieldDetail(${f})">
-        <div class="encyc-field-card-dot"></div>
-        <div class="encyc-field-card-text">
-          <div class="encyc-field-card-name">${escapeHtml(fieldName)}</div>
-          <div class="encyc-field-card-meta">Поле ${f}</div>
-        </div>
-        <div class="encyc-field-card-count">${count} даров</div>
-      </div>`);
-    }
-    list.innerHTML = html.join('');
+  // Нормализация для поиска (ё→е, убираем дефисы/пробелы, регистр) — 1:1 как в проде
+  function baseSearchNorm(s) {
+    return String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[\s\-_.,!?:;'"()]+/g, '');
   }
 
-  function openFieldDetail(fieldId) {
-    // Переключаемся обратно на «Дары» и фильтруем по полю
-    switchEncycTab('dars');
-    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
-    const fieldData = DarsLib.FIELDS[fieldId];
-    const fieldName = fieldData['name_' + lang] || fieldData.name_ru;
-    const input = document.getElementById('encyc-search-input');
-    if (input) {
-      input.value = fieldName;
-      encycSearch(fieldName);
-    }
-  }
-  window.openFieldDetail = openFieldDetail;
-
+  // Поиск по дарам в Энциклопедии (точно как в проде).
+  // Показывает результаты в encyc-results, скрывая обе вкладки.
   function encycSearch(query) {
     const results = document.getElementById('encyc-results');
-    const list = document.getElementById('encyc-list');
-    if (!results || !list) return;
-    const q = (query || '').trim().toLowerCase();
-    if (!q) {
+    const darsTab = document.getElementById('base-subtab-dars');
+    const fieldsTab = document.getElementById('base-subtab-fields');
+    if (!results) return;
+    const q = (query || '').trim();
+    if (q.length < 2) {
       results.hidden = true;
-      list.hidden = false;
+      results.innerHTML = '';
+      darsTab.hidden = encycCurrentSubtab !== 'dars';
+      fieldsTab.hidden = encycCurrentSubtab !== 'fields';
       return;
     }
+    const qn = baseSearchNorm(q);
     const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
     const matches = [];
-    Object.keys(DarsLib.DARS).forEach(code => {
-      const name = DarsLib.getDarName(code, lang).toLowerCase();
-      const fieldData = DarsLib.FIELDS[DarsLib.getFieldId(code)];
-      const fieldName = (fieldData?.['name_' + lang] || fieldData?.name_ru || '').toLowerCase();
-      if (code.includes(q) || name.includes(q) || fieldName.includes(q)) {
-        matches.push({ code, name: DarsLib.getDarName(code, lang) });
+    Object.entries(DarsLib.DARS).forEach(([code, name]) => {
+      const arch = DarsLib.getDarArchetype(code, lang) || '';
+      const fd = DarsLib.FIELDS[DarsLib.getFieldId(code)] || {};
+      const fieldName = fd['name_' + lang] || fd.name_ru || '';
+      const localName = DarsLib.getDarName(code, lang);
+      const searchable = baseSearchNorm(code + name + localName + arch + fieldName);
+      if (searchable.includes(qn)) {
+        matches.push({ code, name: localName, arch, fieldName });
+      }
+    });
+    Object.entries(DarsLib.INTEGRATORS).forEach(([code, name]) => {
+      if (baseSearchNorm(code + name).includes(qn)) {
+        matches.push({ code, name, arch: 'Интегратор', fieldName: '' });
       }
     });
     if (matches.length === 0) {
-      results.innerHTML = '<div class="placeholder">Ничего не найдено</div>';
+      results.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:13px">Ничего не найдено по запросу «${escapeHtml(q)}»</div>`;
     } else {
-      results.innerHTML = matches.map(m => `<div class="encyc-dar-row" onclick="openDarDetail('${m.code}')">
-        <div class="encyc-dar-img"><img src="${DarsLib.getDarSvgPath(m.code)}" alt="" onerror="this.style.display='none'"></div>
-        <div class="encyc-dar-name">${escapeHtml(m.name)}</div>
-        <div class="encyc-dar-code">${m.code}</div>
-      </div>`).join('');
+      results.innerHTML = `<div style="padding:6px 0 4px;color:var(--text-dim);font-size:11px">Найдено: ${matches.length}</div>` +
+        matches.slice(0, 30).map(m =>
+          `<div onclick="encycSearchClear();switchBaseSubTab('dars');openDarDetail('${m.code}')" style="padding:12px 14px;margin:6px 0;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer">
+            <div style="font-size:16px;color:#D4AF37;letter-spacing:2px">${escapeHtml(m.name)}</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:3px">${m.code}${m.fieldName ? ' · ' + escapeHtml(m.fieldName) : ''}${m.arch ? ' · ' + escapeHtml(m.arch) : ''}</div>
+          </div>`
+        ).join('');
     }
+    darsTab.hidden = true;
+    fieldsTab.hidden = true;
     results.hidden = false;
-    list.hidden = true;
   }
   window.encycSearch = encycSearch;
 
@@ -883,8 +1035,11 @@
     try { renderMeResult(); } catch (e) {}
     // Перерендерим сетку коллекции (имена даров на новом языке)
     try { renderCollection(); } catch (e) {}
-    // Перерендерим энциклопедию
-    try { renderEncyclopedia(); } catch (e) {}
+    // Перерендерим Энциклопедию (текущую активную подвкладку)
+    try {
+      if (encycCurrentSubtab === 'fields') renderFieldCards();
+      else renderFieldFolders();
+    } catch (e) {}
   });
 
   // === Кнопки-действия на вкладке «Я» ===

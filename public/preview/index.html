@@ -1648,6 +1648,179 @@
     }
     .encyc-search-box input:focus { border-color: var(--gold); }
     #encyc-results { margin-bottom: 12px; max-height: 60vh; overflow-y: auto; }
+    /* === Энциклопедия — мини-табы Дары / Поля === */
+    .base-sub-nav {
+      display: flex;
+      gap: 6px;
+      background: rgba(255,255,255,0.03);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+    .base-sub-btn {
+      flex: 1;
+      padding: 10px 14px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      border-radius: 8px;
+      letter-spacing: 0.3px;
+      transition: all 0.15s;
+    }
+    .base-sub-btn.active {
+      background: var(--accent);
+      color: #080808;
+      font-weight: 700;
+    }
+
+    /* === Кнопка «Назад» === */
+    .btn-back {
+      display: inline-block;
+      padding: 8px 14px;
+      margin-bottom: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--gold);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-back:hover { background: rgba(212,175,55,0.08); }
+
+    /* === Сетка карточек Даров поля (Уровень 2 Даров) === */
+    .dar-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .dar-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dar-card:hover {
+      border-color: rgba(212,175,55,0.4);
+      background: rgba(212,175,55,0.04);
+      transform: translateY(-2px);
+    }
+    .dar-card-img {
+      width: 56px; height: 56px;
+      margin: 0 auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dar-card-img img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px #D4AF37);
+    }
+    .dar-card-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1.5px;
+      margin-bottom: 2px;
+    }
+    .dar-card-arch {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* === Сетка карточек Полей (Уровень 1 Полей) === */
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .field-folder {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .field-folder:hover {
+      border-color: rgba(212,175,55,0.4);
+      transform: translateY(-2px);
+    }
+    .field-folder-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: 2px;
+      margin-top: 6px;
+    }
+    .field-folder-arch {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    /* === Внутренние табы детальной страницы поля === */
+    .dar-inner-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .dar-inner-tab {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .dar-inner-tab.active {
+      background: rgba(212,175,55,0.1);
+      border-color: rgba(212,175,55,0.4);
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .dar-inner-content {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .dar-meta-row {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .dar-meta-row:last-child { border-bottom: none; }
+    .dar-meta-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--gold);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .dar-meta-value {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
     /* Энциклопедия — строки полей как в проде */
     .encyc-field-prod-row {
       display: flex;
@@ -1670,12 +1843,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 30px;
-      color: var(--field-color);
-      filter: drop-shadow(0 0 8px var(--field-color));
       flex-shrink: 0;
-      font-family: Georgia, serif;
     }
+    .encyc-field-prod-glyph svg { width: 36px; height: 36px; }
     .encyc-field-prod-text { flex: 1; min-width: 0; }
     .encyc-field-prod-name {
       font-size: 16px;
@@ -2106,8 +2276,15 @@
         </div>
       </div>
 
-      <!-- Энциклопедия (как в проде): поиск + 9 полей сверху, дары по клику на поле -->
+      <!-- Энциклопедия — 1:1 как в проде: 2 мини-таба Дары/Поля + поиск -->
       <div class="subtab-content" data-subtab-content="search">
+        <!-- Мини-табы Дары / Поля -->
+        <div class="base-sub-nav">
+          <button class="base-sub-btn active" id="base-btn-dars" onclick="switchBaseSubTab('dars')" data-i18n="encyc.tab_dars">Дары</button>
+          <button class="base-sub-btn" id="base-btn-fields" onclick="switchBaseSubTab('fields')" data-i18n="encyc.tab_fields">Поля</button>
+        </div>
+
+        <!-- Поиск (работает для обеих вкладок) -->
         <div class="encyc-search-box">
           <input id="encyc-search-input" type="text"
             placeholder="🔍 Поиск по дарам (название, код, поле)"
@@ -2116,7 +2293,18 @@
             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
         </div>
         <div id="encyc-results" hidden></div>
-        <div id="encyc-list"></div>
+
+        <!-- Вкладка Дары: 3 уровня -->
+        <div id="base-subtab-dars">
+          <div id="dars-list-view"></div>           <!-- Ур. 1: список 9 полей -->
+          <div id="dars-field-view" hidden></div>   <!-- Ур. 2: сетка даров поля -->
+          <div id="dars-detail-view" hidden></div>  <!-- Ур. 3: детальная карточка Дара -->
+        </div>
+
+        <!-- Вкладка Поля: 2 уровня -->
+        <div id="base-subtab-fields" hidden>
+          <div id="fields-list-view"></div>         <!-- Сетка/детали полей -->
+        </div>
       </div>
 
       <!-- Игры (включая Путешествие героя + Зал Славы) -->

@@ -1273,6 +1273,116 @@
       opacity: 0.45;
     }
 
+    /* === Оракул Дня === */
+    .oracle-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      z-index: 600;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.25s ease-out;
+    }
+    .oracle-screen.open { transform: translateY(0); }
+    .oracle-content {
+      padding: 16px 16px 60px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .oracle-date {
+      text-align: center;
+      font-size: 12px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 8px 0 18px;
+      font-weight: 600;
+    }
+    .oracle-card {
+      background: linear-gradient(160deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02));
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 16px;
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .oracle-card-personal {
+      background: linear-gradient(160deg, rgba(212,175,55,0.14), rgba(212,175,55,0.04));
+      border-color: rgba(212,175,55,0.5);
+      box-shadow: 0 0 20px rgba(212,175,55,0.12);
+    }
+    .oracle-card-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .oracle-card-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .oracle-card-image {
+      width: 100px; height: 100px;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .oracle-card-image img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 10px #D4AF37);
+    }
+    .oracle-card-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 3px;
+    }
+    .oracle-card-code {
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+    .oracle-card-archetype {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-top: 6px;
+    }
+    .oracle-card-message {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed rgba(212,175,55,0.2);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+      text-align: left;
+    }
+    .oracle-empty {
+      text-align: center;
+      padding: 30px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .oracle-empty-text {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .oracle-hint {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 16px;
+      font-style: italic;
+    }
+
     /* === Энциклопедия — мини-табы Дары/Поля === */
     .encyc-mini-tabs {
       display: flex;
@@ -2011,6 +2121,47 @@
       <div class="lk-link" data-i18n="account.feedback">Обратная связь</div>
       <div class="lk-link" data-i18n="account.about">О приложении</div>
       <div class="lk-link danger" data-i18n="account.reset">Полный сброс</div>
+    </div>
+  </aside>
+
+  <!-- ============ ОРАКУЛ ДНЯ ============ -->
+  <aside class="oracle-screen" id="oracle-screen">
+    <div class="dar-detail-header">
+      <button class="book-reader-back" onclick="closeOracle()" aria-label="Назад">←</button>
+      <div class="dar-detail-header-name" data-i18n="oracle.title">Оракул дня</div>
+    </div>
+
+    <div class="oracle-content">
+      <div class="oracle-date" id="oracle-date">—</div>
+
+      <!-- Общий Дар Дня (для всех) -->
+      <div class="oracle-card oracle-card-general">
+        <div class="oracle-card-title" data-i18n="oracle.general_title">Общий Дар Дня</div>
+        <div class="oracle-card-sub" data-i18n="oracle.general_sub">Энергия дня для всех</div>
+        <div class="oracle-card-image"><img id="oracle-general-img" alt="" onerror="this.style.display='none'"></div>
+        <div class="oracle-card-name" id="oracle-general-name">—</div>
+        <div class="oracle-card-code" id="oracle-general-code">—</div>
+        <div class="oracle-card-archetype" id="oracle-general-archetype"></div>
+      </div>
+
+      <!-- Личный Дар Дня (только если есть свой Дар) -->
+      <div class="oracle-card oracle-card-personal" id="oracle-personal-card">
+        <div class="oracle-card-title" data-i18n="oracle.personal_title">Твой Дар Дня</div>
+        <div class="oracle-card-sub" data-i18n="oracle.personal_sub">Энергия дня для тебя лично</div>
+        <div class="oracle-card-image"><img id="oracle-personal-img" alt="" onerror="this.style.display='none'"></div>
+        <div class="oracle-card-name" id="oracle-personal-name">—</div>
+        <div class="oracle-card-code" id="oracle-personal-code">—</div>
+        <div class="oracle-card-archetype" id="oracle-personal-archetype"></div>
+        <div class="oracle-card-message" id="oracle-personal-message"></div>
+      </div>
+
+      <!-- Если Дар не рассчитан -->
+      <div class="oracle-empty" id="oracle-empty" hidden>
+        <div style="font-size:48px;margin-bottom:12px">🔮</div>
+        <div class="oracle-empty-text" data-i18n="oracle.empty">Чтобы получить личное послание, рассчитай свой Дар на вкладке «Я».</div>
+      </div>
+
+      <div class="oracle-hint" data-i18n="oracle.hint">Дар Дня обновляется каждое утро.</div>
     </div>
   </aside>
 

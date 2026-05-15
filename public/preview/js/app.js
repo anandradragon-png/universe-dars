@@ -783,12 +783,90 @@
 
   // === Кнопки-действия на вкладке «Я» ===
 
-  function openMyOracle() {
-    // Оракул дня живёт во вкладке «Я» (а не в Арке).
-    // В прототипе пока заглушка — модалка с Дар Дня + посланием.
-    alert('🔮 Оракул дня — следующий этап реализации.');
+  // === Оракул Дня ===
+  // Логика: Общий Дар Дня = код от текущей даты (как ОДА от даты дня).
+  // Личный Дар Дня = сумма моего ОДА + Общего Дара Дня (покомпонентно, с reduce).
+
+  function calcGeneralDayDar(date) {
+    const d = date || new Date();
+    return DarsLib.calcOda({ day: d.getDate(), month: d.getMonth() + 1, year: d.getFullYear() });
+  }
+
+  function calcPersonalDayDar(myCode, generalCode) {
+    const [uMa, uJi, uKun] = myCode.split('-').map(Number);
+    const [gMa, gJi, gKun] = generalCode.split('-').map(Number);
+    const ma = DarsLib.reduce(uMa + gMa);
+    const ji = DarsLib.reduce(uJi + gJi);
+    const kun = DarsLib.reduce(uKun + gKun);
+    return { ma, ji, kun, code: `${ma}-${ji}-${kun}` };
+  }
+
+  async function openMyOracle() {
+    const screen = document.getElementById('oracle-screen');
+    if (!screen) return;
+    screen.classList.add('open');
+    screen.scrollTop = 0;
+
+    // Дата сегодня
+    const today = new Date();
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const opts = { day: 'numeric', month: 'long', year: 'numeric' };
+    document.getElementById('oracle-date').textContent = today.toLocaleDateString(
+      lang === 'ru' ? 'ru-RU' : (lang === 'es' ? 'es-ES' : 'en-US'), opts
+    );
+
+    // Общий Дар Дня
+    const general = calcGeneralDayDar(today);
+    const genName = DarsLib.getDarName(general.code, lang);
+    const genArch = DarsLib.getDarArchetype(general.code, lang);
+    document.getElementById('oracle-general-name').textContent = genName;
+    document.getElementById('oracle-general-code').textContent = general.code;
+    document.getElementById('oracle-general-archetype').textContent = genArch || '';
+    document.getElementById('oracle-general-img').src = DarsLib.getDarSvgPath(general.code);
+
+    // Личный Дар Дня — если есть свой Дар
+    const profile = loadProfile();
+    const personalCard = document.getElementById('oracle-personal-card');
+    const emptyBlock = document.getElementById('oracle-empty');
+    if (profile && profile.date) {
+      const my = DarsLib.calcOda(profile.date);
+      const personal = calcPersonalDayDar(my.code, general.code);
+      const persName = DarsLib.getDarName(personal.code, lang);
+      const persArch = DarsLib.getDarArchetype(personal.code, lang);
+      document.getElementById('oracle-personal-name').textContent = persName;
+      document.getElementById('oracle-personal-code').textContent = personal.code;
+      document.getElementById('oracle-personal-archetype').textContent = persArch || '';
+      document.getElementById('oracle-personal-img').src = DarsLib.getDarSvgPath(personal.code);
+
+      // Краткое послание: первая фраза из 'essence' этого Дара
+      const msgEl = document.getElementById('oracle-personal-message');
+      msgEl.innerHTML = '<div class="placeholder">Загружаю послание…</div>';
+      try {
+        const data = await loadDarContent();
+        const ess = data[personal.code]?.essence || data[personal.code]?.energy_pattern || '';
+        if (ess) {
+          // Берём первые 2 параграфа
+          const short = String(ess).split(/\n\n/).slice(0, 2).join('\n\n');
+          msgEl.innerHTML = mdToHtml(short);
+        } else {
+          msgEl.innerHTML = '<p style="color:var(--text-muted);font-style:italic">Послание от AI скоро будет доступно — на основе твоего личного Дара дня.</p>';
+        }
+      } catch (e) {
+        msgEl.textContent = '';
+      }
+      personalCard.style.display = '';
+      if (emptyBlock) emptyBlock.hidden = true;
+    } else {
+      personalCard.style.display = 'none';
+      if (emptyBlock) emptyBlock.hidden = false;
+    }
   }
   window.openMyOracle = openMyOracle;
+
+  function closeOracle() {
+    document.getElementById('oracle-screen')?.classList.remove('open');
+  }
+  window.closeOracle = closeOracle;
 
   function openMyShare() {
     // Поделиться карточкой Дара (share-card + A4 — обе опции в одной модалке).

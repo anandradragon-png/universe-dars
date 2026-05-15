@@ -105,6 +105,16 @@
     "tab_fields": "Fields"
   },
 
+  "oracle": {
+    "title": "Daily Oracle",
+    "general_title": "DAR of the Day",
+    "general_sub": "Today's energy for everyone",
+    "personal_title": "Your DAR of the Day",
+    "personal_sub": "Today's energy for you personally",
+    "empty": "To get a personal message, calculate your DAR on the «Me» tab.",
+    "hint": "The DAR of the Day refreshes every morning."
+  },
+
   "book": {
     "loading": "Loading the book…",
     "contents": "Contents",

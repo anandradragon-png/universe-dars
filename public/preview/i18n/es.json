@@ -105,6 +105,16 @@
     "tab_fields": "Campos"
   },
 
+  "oracle": {
+    "title": "Oráculo del día",
+    "general_title": "DAR del Día",
+    "general_sub": "La energía del día para todos",
+    "personal_title": "Tu DAR del Día",
+    "personal_sub": "La energía del día para ti personalmente",
+    "empty": "Para recibir un mensaje personal, calcula tu DAR en la pestaña «Yo».",
+    "hint": "El DAR del Día se actualiza cada mañana."
+  },
+
   "book": {
     "loading": "Cargando el libro…",
     "contents": "Índice",

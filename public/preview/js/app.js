@@ -387,23 +387,11 @@
   //
   // Поиск работает поверх всего (показывает результаты в encyc-results)
 
-  let fieldsFullCache = null;
+  // FIELDS_FULL — inline-объект, точная копия из прода (fields-full.js).
+  // Содержит ВСЕ поля (color, location, layers_ma/zhi/kun, energy_flow,
+  // shadow_ma_image, shadow_zhi_image), которых нет в fields.json.
   async function loadFieldsFull() {
-    if (fieldsFullCache !== null) return fieldsFullCache;
-    try {
-      const resp = await fetch('/fields.json?v=1');
-      if (resp.ok) {
-        const j = await resp.json();
-        const map = {};
-        (j.fields || []).forEach(f => { map[f.id] = f; });
-        fieldsFullCache = map;
-      } else {
-        fieldsFullCache = {};
-      }
-    } catch (e) {
-      fieldsFullCache = {};
-    }
-    return fieldsFullCache;
+    return window.FIELDS_FULL || {};
   }
 
   // SVG-иконки рисунков энергии для каждого поля (1:1 из прода)
@@ -549,19 +537,19 @@
     { id: 'shadows', label: 'Теневые аспекты' }
   ];
 
+  // === 100% точная копия openFieldDetail из прода (index.html:3093-3134) ===
   async function openFieldDetail(fieldId) {
     const ff = await loadFieldsFull();
     const f = ff[fieldId] || {};
     const container = document.getElementById('fields-list-view');
     const tabsHtml = FIELD_INNER_TABS.map((t, i) =>
-      `<button class="dar-inner-tab${i === 0 ? ' active' : ''}" onclick="switchFieldInnerTab('${t.id}',this,${fieldId})">${t.label}</button>`
+      `<button class="dar-inner-tab${i === 0 ? ' active' : ''}" onclick="switchFieldInnerTab('${t.id}',this,${fieldId})">${escapeHtml(t.icon || '')} ${escapeHtml(t.label)}</button>`
     ).join('');
-    container.innerHTML = `<button class="btn-back" onclick="backToFieldsList()">← Все поля</button>
+    // Прод-точная разметка (index.html:3098)
+    container.innerHTML = `<button class="btn-back" style="display:block" onclick="backToFieldsList()">← Все поля</button>
       <div style="text-align:center;margin-bottom:14px">
-        <div style="margin-bottom:6px">${FIELD_PATTERN_SVG[fieldId] || ''}</div>
-        <div style="font-size:24px;letter-spacing:3px;color:var(--text);font-weight:800">${escapeHtml(f.name || '')}</div>
-        <div style="font-size:13px;color:var(--text-dim);margin-top:4px">${escapeHtml(f.element || '')}${f.pattern ? ' · ' + escapeHtml(f.pattern) : ''}</div>
-        ${f.archetype ? `<div style="font-size:12px;color:var(--gold);font-style:italic;margin-top:4px">${escapeHtml(f.archetype)}</div>` : ''}
+        <div style="font-size:28px;letter-spacing:3px;color:var(--text)">${escapeHtml(f.name || '')}</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:4px">${escapeHtml(f.element || '')} | ${escapeHtml(f.pattern || '')} | ${escapeHtml(f.color || '')}</div>
       </div>
       <div class="dar-inner-tabs">${tabsHtml}</div>
       <div id="field-inner-content-area"></div>`;
@@ -576,36 +564,31 @@
   }
   window.switchFieldInnerTab = switchFieldInnerTab;
 
+  // === 100% точная копия renderFieldInnerTab из прода (index.html:3110-3134) ===
+  // Берёт данные из FIELDS_FULL (inline-объект в fields-full.js).
   async function renderFieldInnerTab(tabId, fieldId) {
     const ff = await loadFieldsFull();
     const f = ff[fieldId] || {};
     const area = document.getElementById('field-inner-content-area');
     if (!area) return;
-    const row = (label, value) => value ? `<div class="dar-meta-row">
-      <div class="dar-meta-label">${escapeHtml(label)}</div>
-      <div class="dar-meta-value">${escapeHtml(value)}</div>
-    </div>` : '';
     let html = '<div class="dar-inner-content">';
     if (tabId === 'essence') {
-      html += row('Суть', f.essence);
-      html += row('Архетип', f.archetype);
-      html += row('Ключ гармонии', f.harmony_key);
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Суть</div><div class="dar-meta-value">${escapeHtml(f.essence || '')}</div></div>`;
     } else if (tabId === 'energy') {
-      html += row('Рисунок', f.pattern);
-      html += row('Как течёт энергия', f.flow);
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Рисунок</div><div class="dar-meta-value">${escapeHtml(f.pattern || '')}</div></div>`;
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Как течет энергия</div><div class="dar-meta-value">${escapeHtml(f.energy_flow || '')}</div></div>`;
     } else if (tabId === 'body') {
-      html += row('Расположение', f.body);
-      html += row('Ощущение в теле', f.body_sensation);
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Расположение</div><div class="dar-meta-value">${escapeHtml(f.location || '')}</div></div>`;
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Цвет струны</div><div class="dar-meta-value">${escapeHtml(f.color || '')}</div></div>`;
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Сзади (МА)</div><div class="dar-meta-value">${escapeHtml(f.layers_ma || '')}</div></div>`;
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Спереди (ЖИ)</div><div class="dar-meta-value">${escapeHtml(f.layers_zhi || '')}</div></div>`;
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Посередине (КУН)</div><div class="dar-meta-value">${escapeHtml(f.layers_kun || '')}</div></div>`;
     } else if (tabId === 'shadows') {
-      html += row('Пассивная тень (МА)', f.shadow_ma);
-      html += row('Активная тень (ЖИ)', f.shadow_zhi);
-      html += row('Тень соединения (КУН)', f.shadow_kun);
-      if (Array.isArray(f.risk_zones) && f.risk_zones.length) {
-        html += `<div class="dar-meta-row">
-          <div class="dar-meta-label">Зоны риска</div>
-          <div class="dar-meta-value"><ul>${f.risk_zones.map(z => `<li>${escapeHtml(z)}</li>`).join('')}</ul></div>
-        </div>`;
-      }
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Пассивная тень (МА)</div><div class="dar-meta-value">${escapeHtml(f.shadow_ma || '')}</div></div>`;
+      if (f.shadow_ma_image) html += `<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#D4AF37;font-style:italic">${escapeHtml(f.shadow_ma_image)}</div></div>`;
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Активная тень (ЖИ)</div><div class="dar-meta-value">${escapeHtml(f.shadow_zhi || '')}</div></div>`;
+      if (f.shadow_zhi_image) html += `<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#D4AF37;font-style:italic">${escapeHtml(f.shadow_zhi_image)}</div></div>`;
+      html += `<div class="dar-meta-row"><div class="dar-meta-label">Тень соединения (КУН)</div><div class="dar-meta-value">${escapeHtml(f.shadow_kun || '')}</div></div>`;
     }
     html += '</div>';
     area.innerHTML = html;

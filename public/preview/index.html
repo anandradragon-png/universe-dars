@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>YupDar — прототип архитектуры</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f14;
+      --card: #1a1a25;
+      --text: #eaeaea;
+      --text-dim: #aaa;
+      --text-muted: #777;
+      --border: rgba(255,255,255,0.08);
+      --gold: #D4AF37;
+      --gold-soft: rgba(212,175,55,0.12);
+      --accent: linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);
+    }
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body {
+      padding-bottom: 72px; /* место для нижней навигации */
+    }
+
+    /* === Preview-баннер (виден всегда, напоминает что это прототип) === */
+    .preview-banner {
+      background: linear-gradient(90deg, rgba(212,175,55,0.18), rgba(212,175,55,0.06));
+      border-bottom: 1px solid rgba(212,175,55,0.3);
+      padding: 6px 14px;
+      font-size: 11px;
+      color: var(--gold);
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    /* === Шапка === */
+    header.app-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, #1a1a25, #0f0f14);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header .logo {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    header .title-block { flex: 1; min-width: 0; }
+    header h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+    header .tagline {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 1px;
+      letter-spacing: 1px;
+    }
+    .header-action {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .header-action:hover {
+      background: rgba(212,175,55,0.08);
+      border-color: rgba(212,175,55,0.3);
+      color: var(--gold);
+    }
+    .crystal-counter {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* === Выпадашка языка === */
+    #lang-picker {
+      position: absolute;
+      top: 56px;
+      right: 60px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      display: none;
+      min-width: 100px;
+    }
+    #lang-picker.open { display: block; }
+    .lang-option {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 6px;
+      text-align: left;
+      font-family: inherit;
+    }
+    .lang-option:hover { background: rgba(212,175,55,0.1); color: var(--gold); }
+
+    /* === Контент вкладок === */
+    main {
+      padding: 16px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .tab { display: none; }
+    .tab.active { display: block; }
+
+    .screen-headline {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .screen-subhead {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    /* === Вкладка «Я» — форма === */
+    .calc-form {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .date-input {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-align: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: inherit;
+      margin-bottom: 14px;
+    }
+    .date-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      background: rgba(212,175,55,0.04);
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      background: var(--accent);
+      color: #080808;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 0 15px rgba(212,175,55,0.25);
+    }
+
+    /* === «Что ты получишь» (маркетинг) === */
+    .value-list {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .value-list h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .value-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .value-item::before {
+      content: "✦";
+      color: var(--gold);
+      font-size: 14px;
+    }
+
+    /* === Empty state === */
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.8; }
+    .empty-text {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    /* === Подвкладки внутри Сокровищницы === */
+    .subtabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+    }
+    .subtab {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .subtab.active {
+      background: var(--gold-soft);
+      border-color: rgba(212,175,55,0.5);
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* === Заглушки контента === */
+    .placeholder {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 30px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .placeholder strong {
+      color: var(--text-dim);
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    /* === Arka layers === */
+    .arka-layer {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .arka-layer.unlocked { border-color: rgba(212,175,55,0.3); }
+    .arka-layer.locked { opacity: 0.65; }
+    .arka-layer:hover { transform: translateY(-1px); }
+    .arka-layer-title {
+      font-size: 16px;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .arka-layer-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .arka-lock-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      font-size: 10px;
+      color: var(--gold);
+      background: var(--gold-soft);
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .btn-unlock {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--accent);
+      color: #080808;
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* === Science block === */
+    .science-block {
+      background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(212,175,55,0.02));
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+    }
+    .science-block h3 {
+      font-size: 16px;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .science-block p {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .btn-secondary {
+      display: inline-block;
+      padding: 10px 20px;
+      border: 1px solid var(--gold);
+      background: transparent;
+      color: var(--gold);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: inherit;
+    }
+    .btn-secondary:hover { background: var(--gold-soft); }
+
+    /* === Нижняя навигация === */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: linear-gradient(180deg, rgba(15,15,20,0.95), rgba(15,15,20,1));
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      z-index: 50;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 6px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      transition: color 0.2s;
+    }
+    .nav-btn .nav-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .nav-btn.active {
+      color: var(--gold);
+    }
+    .nav-btn:hover { color: var(--gold); }
+
+    /* === Личный Кабинет (оверлей) === */
+    .lk-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      display: none;
+    }
+    .lk-backdrop.open { display: block; }
+    .lk-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg);
+      border-left: 1px solid var(--border);
+      z-index: 501;
+      overflow-y: auto;
+      padding: 16px;
+      transform: translateX(100%);
+      transition: transform 0.25s ease-out;
+    }
+    .lk-panel.open { transform: translateX(0); }
+    .lk-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .lk-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .lk-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .lk-dar-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .lk-close {
+      margin-left: auto;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: inherit;
+    }
+    .lk-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .lk-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .lk-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      font-size: 13px;
+    }
+    .lk-row-label { color: var(--text-dim); }
+    .lk-row-value { color: var(--text); text-align: right; }
+    .lk-btn {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(212,175,55,0.08);
+      border: 1px solid rgba(212,175,55,0.3);
+      color: var(--gold);
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+    .lk-btn:hover { background: rgba(212,175,55,0.15); }
+    .lk-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .lk-btn-row .lk-btn { margin-top: 0; }
+    .lk-input {
+      width: 100%;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .lk-tier-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--accent);
+      color: #080808;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .lk-link {
+      display: block;
+      padding: 10px 0;
+      font-size: 13px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .lk-link:first-child { border-top: none; }
+    .lk-link:hover { color: var(--gold); }
+    .lk-link.danger { color: #b95252; }
+    .lk-link.admin { color: var(--gold); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="preview-banner" data-i18n="common.preview_warning">
+    Прототип. Это копия для проверки новой архитектуры — данные не сохраняются.
+  </div>
+
+  <header class="app-header">
+    <div class="logo"></div>
+    <div class="title-block">
+      <h1 data-i18n="app.title">YupDar</h1>
+      <div class="tagline" data-i18n="app.tagline">ВСЕЛЕННАЯ ДАРОВ</div>
+    </div>
+    <div class="crystal-counter" onclick="openProfile()" style="cursor:pointer" title="Кристаллы">💎 <span id="crystal-amount">0</span></div>
+    <button class="header-action" id="btn-lang" onclick="toggleLangPicker(event)" title="Язык">
+      🌐 <span id="lang-btn-label">RU</span>
+    </button>
+    <button class="header-action" onclick="openProfile()" title="Личный кабинет">
+      👤
+    </button>
+  </header>
+
+  <div id="lang-picker">
+    <button class="lang-option" onclick="setLang('ru')">🇷🇺 Русский</button>
+    <button class="lang-option" onclick="setLang('en')">🇬🇧 English</button>
+    <button class="lang-option" onclick="setLang('es')">🇪🇸 Español</button>
+  </div>
+
+  <main>
+    <!-- ============ ВКЛАДКА «Я» ============ -->
+    <section class="tab active" id="tab-me">
+      <h2 class="screen-headline" data-i18n="me.headline">Узнай свой Дар</h2>
+      <p class="screen-subhead" data-i18n="me.subhead">Введи дату рождения — получи послание о своей природе, силе и пути</p>
+
+      <div class="calc-form">
+        <input class="date-input" type="text" inputmode="numeric" maxlength="10"
+               placeholder="ДД.ММ.ГГГГ" data-i18n="me.date_placeholder" data-i18n-attr="placeholder">
+        <button class="btn-primary" data-i18n="me.calculate_btn">Рассчитать мой Дар</button>
+      </div>
+
+      <div class="value-list">
+        <h3>Что ты получишь</h3>
+        <div class="value-item" data-i18n="me.value_dar">Имя и описание Дара</div>
+        <div class="value-item" data-i18n="me.value_message">Послание про твою природу</div>
+        <div class="value-item" data-i18n="me.value_oracle">Оракул каждый день</div>
+        <div class="value-item" data-i18n="me.value_compat">Совместимость с близкими</div>
+      </div>
+    </section>
+
+    <!-- ============ ВКЛАДКА «СЕМЬЯ» ============ -->
+    <section class="tab" id="tab-family">
+      <h2 class="screen-headline" data-i18n="family.headline">Узнай своих близких</h2>
+
+      <div class="empty">
+        <div class="empty-icon">👨‍👩‍👧</div>
+        <div class="empty-text" data-i18n="family.empty_text">
+          Пойми ребёнка, почему конфликтуете с мамой, что объединяет с любимым.
+        </div>
+        <button class="btn-primary" data-i18n="family.add_btn">+ Добавить близкого</button>
+      </div>
+    </section>
+
+    <!-- ============ ВКЛАДКА «СОКРОВИЩНИЦА» ============ -->
+    <section class="tab" id="tab-treasury">
+      <h2 class="screen-headline" data-i18n="treasury.headline">Сокровищница Даров</h2>
+
+      <div class="subtabs">
+        <button class="subtab active" data-i18n="treasury.tab_collection">Мои дары</button>
+        <button class="subtab" data-i18n="treasury.tab_book">Книга Даров</button>
+        <button class="subtab" data-i18n="treasury.tab_search">Найти Дар</button>
+        <button class="subtab" data-i18n="treasury.tab_science">Наука</button>
+      </div>
+
+      <div class="placeholder">
+        <strong>Контент подвкладки</strong>
+        Здесь будет сетка 64 даров (моя коллекция).
+      </div>
+
+      <div class="science-block" style="margin-top:20px">
+        <h3 data-i18n="science.title">Научные исследования</h3>
+        <p data-i18n="science.description">Помоги учёным проверить точность системы Даров.</p>
+        <a href="#" class="btn-secondary" onclick="openScienceSurvey();return false;" data-i18n="science.open_survey">Пройти опрос</a>
+      </div>
+    </section>
+
+    <!-- ============ ВКЛАДКА «АРКА» ============ -->
+    <section class="tab" id="tab-arka">
+      <h2 class="screen-headline" data-i18n="arka.headline">Арка</h2>
+      <p class="screen-subhead" data-i18n="arka.subhead">Личный путь в ритме твоего Дара</p>
+
+      <div class="arka-layer unlocked">
+        <div class="arka-layer-title">🌞 <span data-i18n="arka.layer_day">День</span></div>
+        <div class="arka-layer-sub">Ритуалы, окна силы, дневник</div>
+      </div>
+
+      <div class="arka-layer locked">
+        <div class="arka-layer-title">🌿 <span data-i18n="arka.layer_body">Тело</span></div>
+        <div class="arka-layer-sub">Практики, масла, камни под твой Дар</div>
+        <div class="arka-lock-badge" data-i18n="arka.locked_label">В тарифе Мастер</div>
+      </div>
+
+      <div class="arka-layer locked">
+        <div class="arka-layer-title">✨ <span data-i18n="arka.layer_dream">Мечта</span></div>
+        <div class="arka-layer-sub">Цели и стратегии в ритме Дара</div>
+        <div class="arka-lock-badge" data-i18n="arka.locked_label">В тарифе Мастер</div>
+      </div>
+
+      <div class="arka-layer locked">
+        <div class="arka-layer-title">🧭 <span data-i18n="arka.layer_path">Путь</span></div>
+        <div class="arka-layer-sub">AI-наставник, разбор недели, потоки дохода</div>
+        <div class="arka-lock-badge" data-i18n="arka.locked_label">В тарифе Мастер</div>
+      </div>
+
+      <button class="btn-unlock" data-i18n="arka.unlock_btn">Открыть Арку</button>
+    </section>
+  </main>
+
+  <!-- ============ ЛИЧНЫЙ КАБИНЕТ ============ -->
+  <div class="lk-backdrop" id="lk-backdrop" onclick="closeLK()"></div>
+  <aside class="lk-panel" id="lk-panel" role="dialog" aria-labelledby="lk-title">
+    <div class="lk-header">
+      <div class="lk-avatar">👤</div>
+      <div>
+        <div class="lk-name">Гость</div>
+        <div class="lk-dar-label" id="lk-title" data-i18n="account.title">Личный кабинет</div>
+      </div>
+      <button class="lk-close" onclick="closeLK()" aria-label="Закрыть">✕</button>
+    </div>
+
+    <!-- Тариф (на самом видном месте — главная конверсия) -->
+    <div class="lk-section">
+      <div class="lk-section-title" data-i18n="account.section_tier">Мой тариф</div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.tier_status">Тариф</span>
+        <span class="lk-row-value"><span class="lk-tier-badge">Странник</span></span>
+      </div>
+      <button class="lk-btn" data-i18n="account.tier_change">Сменить тариф</button>
+    </div>
+
+    <!-- Мои данные -->
+    <div class="lk-section">
+      <div class="lk-section-title" data-i18n="account.section_profile">Мои данные</div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_name">Имя и фамилия</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_birth_date">Дата рождения</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_birth_time">Время рождения</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_birth_place">Место рождения</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_gender">Пол</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <button class="lk-btn" data-i18n="account.profile_edit">Изменить</button>
+    </div>
+
+    <!-- Промо-код -->
+    <div class="lk-section">
+      <div class="lk-section-title" data-i18n="account.section_promo">Промо-код</div>
+      <input class="lk-input" type="text" placeholder="Введи код" data-i18n="account.promo_placeholder" data-i18n-attr="placeholder">
+      <button class="lk-btn" data-i18n="account.promo_activate">Активировать</button>
+    </div>
+
+    <!-- Кристаллы -->
+    <div class="lk-section">
+      <div class="lk-section-title" data-i18n="account.section_crystals">Кристаллы</div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.crystals_balance">Баланс</span>
+        <span class="lk-row-value">💎 0</span>
+      </div>
+      <button class="lk-btn" data-i18n="account.crystals_history">История</button>
+    </div>
+
+    <!-- Дополнительно -->
+    <div class="lk-section">
+      <div class="lk-link" data-i18n="account.support_project">Поддержать проект</div>
+      <div class="lk-link" data-i18n="account.feedback">Обратная связь</div>
+      <div class="lk-link" data-i18n="account.about">О приложении</div>
+      <div class="lk-link danger" data-i18n="account.reset">Полный сброс</div>
+    </div>
+  </aside>
+
+  <nav class="nav-bar" id="nav-bar">
+    <button class="nav-btn active" id="nav-me" onclick="switchTab('me')">
+      <span class="nav-icon">🌟</span>
+      <span data-i18n="nav.me">Я</span>
+    </button>
+    <button class="nav-btn" id="nav-family" onclick="switchTab('family')">
+      <span class="nav-icon">👨‍👩‍👧</span>
+      <span data-i18n="nav.family">Семья</span>
+    </button>
+    <button class="nav-btn" id="nav-treasury" onclick="switchTab('treasury')">
+      <span class="nav-icon">🔮</span>
+      <span data-i18n="nav.treasury">Сокровищница</span>
+    </button>
+    <button class="nav-btn" id="nav-arka" onclick="switchTab('arka')">
+      <span class="nav-icon">🏛</span>
+      <span data-i18n="nav.arka">Арка</span>
+    </button>
+  </nav>
+
+  <script src="/preview/js/i18n.js?v=2"></script>
+  <script src="/preview/js/app.js?v=2"></script>
+</body>
+</html>

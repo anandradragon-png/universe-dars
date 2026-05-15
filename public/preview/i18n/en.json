@@ -1,0 +1,100 @@
+{
+  "app": {
+    "title": "YupDar",
+    "tagline": "UNIVERSE OF DARS",
+    "preview_label": "Architecture preview"
+  },
+
+  "nav": {
+    "me": "Me",
+    "family": "Family",
+    "treasury": "Treasury",
+    "arka": "Arka"
+  },
+
+  "header": {
+    "crystals": "crystals",
+    "language": "Language",
+    "profile": "Account"
+  },
+
+  "me": {
+    "headline": "Discover your DAR",
+    "subhead": "Enter your birth date — get a message about your nature, strength and path",
+    "date_placeholder": "DD.MM.YYYY",
+    "calculate_btn": "Calculate my DAR",
+    "value_dar": "Name and description of your DAR",
+    "value_message": "A message about your nature",
+    "value_oracle": "Oracle every day",
+    "value_compat": "Compatibility with loved ones"
+  },
+
+  "family": {
+    "headline": "Discover your loved ones",
+    "empty_text": "Understand your child, why you clash with your mother, what unites you with your partner.",
+    "add_btn": "Add a loved one"
+  },
+
+  "treasury": {
+    "headline": "Treasury of DARs",
+    "tab_collection": "My DARs",
+    "tab_book": "Book of DARs",
+    "tab_search": "Find a DAR",
+    "tab_science": "Science"
+  },
+
+  "arka": {
+    "headline": "Arka",
+    "subhead": "Your personal path in the rhythm of your DAR",
+    "layer_day": "Day",
+    "layer_body": "Body",
+    "layer_dream": "Dream",
+    "layer_path": "Path",
+    "locked_label": "Included in Master",
+    "unlock_btn": "Open Arka"
+  },
+
+  "science": {
+    "title": "Scientific research",
+    "description": "Help researchers verify the DAR system.",
+    "open_survey": "Take the survey"
+  },
+
+  "common": {
+    "soon": "Coming soon",
+    "close": "Close",
+    "preview_warning": "Prototype. This is a copy for testing the new architecture — data is not saved."
+  },
+
+  "account": {
+    "title": "Account",
+    "tier_status": "Plan",
+    "tier_until": "until",
+    "tier_change": "Change plan",
+    "section_profile": "My data",
+    "profile_name": "First and last name",
+    "profile_birth_date": "Date of birth",
+    "profile_birth_time": "Time of birth",
+    "profile_birth_place": "Place of birth",
+    "profile_gender": "Gender",
+    "profile_edit": "Edit",
+    "section_tier": "My plan",
+    "section_promo": "Promo code",
+    "promo_placeholder": "Enter code",
+    "promo_activate": "Activate",
+    "section_referral": "Friends",
+    "referral_invited": "Friends invited",
+    "referral_crystals": "Crystals earned",
+    "referral_my_link": "My link",
+    "referral_send": "Send to a friend",
+    "referral_copy": "Copy",
+    "section_crystals": "Crystals",
+    "crystals_balance": "Balance",
+    "crystals_history": "History",
+    "support_project": "Support the project",
+    "feedback": "Feedback",
+    "about": "About",
+    "reset": "Full reset",
+    "admin": "Admin panel"
+  }
+}

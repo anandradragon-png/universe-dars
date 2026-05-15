@@ -1,0 +1,100 @@
+{
+  "app": {
+    "title": "YupDar",
+    "tagline": "ВСЕЛЕННАЯ ДАРОВ",
+    "preview_label": "Прототип архитектуры"
+  },
+
+  "nav": {
+    "me": "Я",
+    "family": "Семья",
+    "treasury": "Сокровищница",
+    "arka": "Арка"
+  },
+
+  "header": {
+    "crystals": "кристаллов",
+    "language": "Язык",
+    "profile": "Личный кабинет"
+  },
+
+  "me": {
+    "headline": "Узнай свой Дар",
+    "subhead": "Введи дату рождения — получи послание о своей природе, силе и пути",
+    "date_placeholder": "ДД.ММ.ГГГГ",
+    "calculate_btn": "Рассчитать мой Дар",
+    "value_dar": "Имя и описание Дара",
+    "value_message": "Послание про твою природу",
+    "value_oracle": "Оракул каждый день",
+    "value_compat": "Совместимость с близкими"
+  },
+
+  "family": {
+    "headline": "Узнай своих близких",
+    "empty_text": "Пойми ребёнка, почему конфликтуете с мамой, что объединяет с любимым.",
+    "add_btn": "Добавить близкого"
+  },
+
+  "treasury": {
+    "headline": "Сокровищница Даров",
+    "tab_collection": "Мои дары",
+    "tab_book": "Книга Даров",
+    "tab_search": "Найти Дар",
+    "tab_science": "Наука"
+  },
+
+  "arka": {
+    "headline": "Арка",
+    "subhead": "Личный путь в ритме твоего Дара",
+    "layer_day": "День",
+    "layer_body": "Тело",
+    "layer_dream": "Мечта",
+    "layer_path": "Путь",
+    "locked_label": "В тарифе Мастер",
+    "unlock_btn": "Открыть Арку"
+  },
+
+  "science": {
+    "title": "Научные исследования",
+    "description": "Помоги учёным проверить точность системы Даров.",
+    "open_survey": "Пройти опрос"
+  },
+
+  "common": {
+    "soon": "Скоро",
+    "close": "Закрыть",
+    "preview_warning": "Прототип. Это копия для проверки новой архитектуры — данные не сохраняются."
+  },
+
+  "account": {
+    "title": "Личный кабинет",
+    "tier_status": "Тариф",
+    "tier_until": "до",
+    "tier_change": "Сменить тариф",
+    "section_profile": "Мои данные",
+    "profile_name": "Имя и фамилия",
+    "profile_birth_date": "Дата рождения",
+    "profile_birth_time": "Время рождения",
+    "profile_birth_place": "Место рождения",
+    "profile_gender": "Пол",
+    "profile_edit": "Изменить",
+    "section_tier": "Мой тариф",
+    "section_promo": "Промо-код",
+    "promo_placeholder": "Введи код",
+    "promo_activate": "Активировать",
+    "section_referral": "Друзья",
+    "referral_invited": "Приглашено друзей",
+    "referral_crystals": "Получено кристаллов",
+    "referral_my_link": "Моя ссылка",
+    "referral_send": "Отправить другу",
+    "referral_copy": "Скопировать",
+    "section_crystals": "Кристаллы",
+    "crystals_balance": "Баланс",
+    "crystals_history": "История",
+    "support_project": "Поддержать проект",
+    "feedback": "Обратная связь",
+    "about": "О приложении",
+    "reset": "Полный сброс",
+    "admin": "Админ-панель"
+  }
+}

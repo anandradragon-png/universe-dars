@@ -1,0 +1,100 @@
+{
+  "app": {
+    "title": "YupDar",
+    "tagline": "UNIVERSO DE LOS DARS",
+    "preview_label": "Prototipo de arquitectura"
+  },
+
+  "nav": {
+    "me": "Yo",
+    "family": "Familia",
+    "treasury": "Tesoro",
+    "arka": "Arka"
+  },
+
+  "header": {
+    "crystals": "cristales",
+    "language": "Idioma",
+    "profile": "Cuenta"
+  },
+
+  "me": {
+    "headline": "Descubre tu DAR",
+    "subhead": "Introduce tu fecha de nacimiento — recibe un mensaje sobre tu naturaleza, fuerza y camino",
+    "date_placeholder": "DD.MM.AAAA",
+    "calculate_btn": "Calcular mi DAR",
+    "value_dar": "Nombre y descripción de tu DAR",
+    "value_message": "Un mensaje sobre tu naturaleza",
+    "value_oracle": "Oráculo cada día",
+    "value_compat": "Compatibilidad con tus seres queridos"
+  },
+
+  "family": {
+    "headline": "Descubre a tus seres queridos",
+    "empty_text": "Comprende a tu hijo, por qué chocas con tu madre, qué te une con tu pareja.",
+    "add_btn": "Añadir a un ser querido"
+  },
+
+  "treasury": {
+    "headline": "Tesoro de los DARs",
+    "tab_collection": "Mis DARs",
+    "tab_book": "Libro de los DARs",
+    "tab_search": "Buscar un DAR",
+    "tab_science": "Ciencia"
+  },
+
+  "arka": {
+    "headline": "Arka",
+    "subhead": "Tu camino personal en el ritmo de tu DAR",
+    "layer_day": "Día",
+    "layer_body": "Cuerpo",
+    "layer_dream": "Sueño",
+    "layer_path": "Camino",
+    "locked_label": "Incluido en Maestro",
+    "unlock_btn": "Abrir Arka"
+  },
+
+  "science": {
+    "title": "Investigación científica",
+    "description": "Ayuda a los investigadores a verificar el sistema DAR.",
+    "open_survey": "Hacer la encuesta"
+  },
+
+  "common": {
+    "soon": "Próximamente",
+    "close": "Cerrar",
+    "preview_warning": "Prototipo. Es una copia para probar la nueva arquitectura — los datos no se guardan."
+  },
+
+  "account": {
+    "title": "Cuenta",
+    "tier_status": "Plan",
+    "tier_until": "hasta",
+    "tier_change": "Cambiar plan",
+    "section_profile": "Mis datos",
+    "profile_name": "Nombre y apellido",
+    "profile_birth_date": "Fecha de nacimiento",
+    "profile_birth_time": "Hora de nacimiento",
+    "profile_birth_place": "Lugar de nacimiento",
+    "profile_gender": "Género",
+    "profile_edit": "Editar",
+    "section_tier": "Mi plan",
+    "section_promo": "Código promocional",
+    "promo_placeholder": "Introduce el código",
+    "promo_activate": "Activar",
+    "section_referral": "Amigos",
+    "referral_invited": "Amigos invitados",
+    "referral_crystals": "Cristales ganados",
+    "referral_my_link": "Mi enlace",
+    "referral_send": "Enviar a un amigo",
+    "referral_copy": "Copiar",
+    "section_crystals": "Cristales",
+    "crystals_balance": "Saldo",
+    "crystals_history": "Historial",
+    "support_project": "Apoyar el proyecto",
+    "feedback": "Comentarios",
+    "about": "Acerca de",
+    "reset": "Restablecer todo",
+    "admin": "Panel de administración"
+  }
+}

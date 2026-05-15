@@ -36,6 +36,7 @@
   },
 
   "nav": {
+    "home": "Inicio",
     "treasury": "Tesoro",
     "games": "Juegos",
     "book": "Libro",

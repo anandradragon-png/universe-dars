@@ -34,6 +34,7 @@
   },
 
   "nav": {
+    "home": "Home",
     "treasury": "Treasury",
     "games": "Games",
     "book": "Book",

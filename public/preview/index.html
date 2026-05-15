@@ -923,7 +923,7 @@
       <button class="lk-close" onclick="closeLK()" aria-label="Закрыть">✕</button>
     </div>
 
-    <!-- Тариф (на самом видном месте — главная конверсия) -->
+    <!-- Тариф (главная конверсия). Промо-код появляется только при смене тарифа, не здесь. -->
     <div class="lk-section">
       <div class="lk-section-title" data-i18n="account.section_tier">Мой тариф</div>
       <div class="lk-row">
@@ -931,10 +931,6 @@
         <span class="lk-row-value"><span class="lk-tier-badge">Странник</span></span>
       </div>
       <button class="lk-btn" data-i18n="account.tier_change">Сменить тариф</button>
-      <div class="lk-divider"></div>
-      <div class="lk-row-label" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;color:var(--text-muted)" data-i18n="account.section_promo">Промо-код</div>
-      <input class="lk-input" type="text" placeholder="Введи код" data-i18n="account.promo_placeholder" data-i18n-attr="placeholder">
-      <button class="lk-btn" data-i18n="account.promo_activate">Активировать</button>
     </div>
 
     <!-- Мои данные (read-only — изменения только через админку) -->
@@ -961,16 +957,6 @@
         <span class="lk-row-value">—</span>
       </div>
       <div class="lk-readonly-note" data-i18n="account.profile_readonly_note">Данные нельзя изменить. Если есть ошибка — напиши в поддержку.</div>
-    </div>
-
-    <!-- Кристаллы -->
-    <div class="lk-section">
-      <div class="lk-section-title" data-i18n="account.section_crystals">Кристаллы</div>
-      <div class="lk-row">
-        <span class="lk-row-label" data-i18n="account.crystals_balance">Баланс</span>
-        <span class="lk-row-value">💎 0</span>
-      </div>
-      <button class="lk-btn" data-i18n="account.crystals_history">История</button>
     </div>
 
     <!-- Дополнительно -->

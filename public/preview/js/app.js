@@ -485,17 +485,52 @@
     return html;
   }
 
-  const DAR_SECTIONS_RU = [
-    { key: 'essence',         title: 'Суть' },
-    { key: 'energy_pattern',  title: 'Энергетический рисунок' },
-    { key: 'light_power',     title: 'Светлая сила' },
-    { key: 'shadow',          title: 'Тень' },
-    { key: 'activation',      title: 'Активация' },
-    { key: 'meditation',      title: 'Медитация' },
-    { key: 'application',     title: 'Применение' },
-    { key: 'safety',          title: 'Безопасность' },
-    { key: 'attributes',      title: 'Атрибуты' }
+  // 9 секций Дара (точно как в проде — иконки, названия, порядок).
+  // Источник: public/index.html DAR_SECTIONS на строке 2863
+  const DAR_SECTIONS = [
+    { key: 'essence',         icon: '🔮',   title: 'Суть Дара' },
+    { key: 'energy_pattern',  icon: '⚙️',   title: 'Энергетический Рисунок' },
+    { key: 'light_power',     icon: '☀️',   title: 'Световая Сила Дара' },
+    { key: 'shadow',          icon: '🌑',   title: 'Тень Дара' },
+    { key: 'activation',      icon: '🛠',   title: 'Активация Дара' },
+    { key: 'meditation',      icon: '🧘',   title: 'Медитация' },
+    { key: 'application',     icon: '💡',   title: 'Сфера Применения' },
+    { key: 'safety',          icon: '⚠️',   title: 'Техника Безопасности' },
+    { key: 'attributes',      icon: '✨',   title: 'Атрибуты и Якоря' }
   ];
+
+  // Расширенные данные даров (fields.json → dars_extended) — fallback
+  // когда в dar-content.json пусто. Содержит essence_short, energy_flow,
+  // metaphor, warning.
+  let darsExtendedCache = null;
+  async function loadDarsExtended() {
+    if (darsExtendedCache !== null) return darsExtendedCache;
+    try {
+      const resp = await fetch('/fields.json?v=1');
+      if (resp.ok) {
+        const j = await resp.json();
+        darsExtendedCache = j.dars_extended || {};
+      } else {
+        darsExtendedCache = {};
+      }
+    } catch (e) {
+      darsExtendedCache = {};
+    }
+    return darsExtendedCache;
+  }
+
+  // Получить контент секции (приоритет: dar-content.json → dars_extended)
+  function getDarSectionContent(sectionKey, code, content, extended) {
+    const c = content && content[code];
+    if (c && c[sectionKey]) return c[sectionKey];
+    const ext = extended && extended[code];
+    if (ext) {
+      if (sectionKey === 'essence') return ext.essence_short || ext.metaphor || null;
+      if (sectionKey === 'energy_pattern') return ext.energy_flow || null;
+      if (sectionKey === 'safety') return ext.warning || null;
+    }
+    return null;
+  }
 
   async function openDarDetail(code) {
     const screen = document.getElementById('dar-detail-screen');
@@ -512,43 +547,79 @@
     const svgPath = DarsLib.getDarSvgPath(code);
     if (headerName) headerName.textContent = name;
 
-    // Hero-шапка
+    // Hero-шапка + 2 кнопки (Книга / Путешествие Героя) — как в проде
     let html = `<div class="dar-detail-hero">
       <img src="${svgPath}" alt="" onerror="this.style.display='none'">
       <div class="dar-detail-hero-name">${escapeHtml(name)}</div>
-      <div class="dar-detail-hero-code">${code}</div>
+      <div class="dar-detail-hero-code">Код: ${code}</div>
       ${archetype ? `<div class="dar-detail-hero-archetype">${escapeHtml(archetype)}</div>` : ''}
+      <div class="dar-detail-actions">
+        <button class="dar-detail-btn dar-detail-btn-book" onclick="openBookOfDars()">
+          <span>📖</span> <span>Книга Даров</span>
+        </button>
+        <button class="dar-detail-btn dar-detail-btn-hero">
+          <span>🌅</span> <span>Путешествие Героя</span>
+        </button>
+      </div>
     </div>`;
 
-    // 9 секций из dar-content.json
+    // 9 секций — аккордеон. Первая с контентом раскрыта.
     const data = await loadDarContent();
-    const dar = data[code];
-    if (!dar) {
-      html += '<div class="placeholder">Контент этого Дара пока не загружен. Скоро добавим.</div>';
-    } else {
-      for (const sec of DAR_SECTIONS_RU) {
-        const raw = dar[sec.key];
-        if (!raw) continue;
-        // attributes — это объект, обрабатываем отдельно
-        let bodyHtml;
-        if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) {
-          bodyHtml = '<ul>' + Object.entries(raw).map(([k, v]) =>
-            `<li><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v))}</li>`
-          ).join('') + '</ul>';
-        } else {
-          bodyHtml = mdToHtml(raw);
-        }
-        html += `<div class="dar-detail-section">
-          <h3>${sec.title}</h3>
-          <div class="dar-detail-section-body">${bodyHtml}</div>
-        </div>`;
+    const extended = await loadDarsExtended();
+    let firstOpened = false;
+    let sectionsHtml = '<div class="dar-accordion">';
+    for (const sec of DAR_SECTIONS) {
+      const raw = getDarSectionContent(sec.key, code, data, extended);
+      const hasContent = !!raw;
+      const isOpen = hasContent && !firstOpened;
+      if (isOpen) firstOpened = true;
+      let bodyHtml;
+      if (!hasContent) {
+        bodyHtml = '<p style="color:var(--text-muted);text-align:center;padding:12px;font-style:italic">Раздел заполняется</p>';
+      } else if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) {
+        bodyHtml = '<ul>' + Object.entries(raw).map(([k, v]) =>
+          `<li><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v))}</li>`
+        ).join('') + '</ul>';
+      } else {
+        bodyHtml = mdToHtml(raw);
       }
+      sectionsHtml += `<div class="accordion-item">
+        <button class="accordion-header${isOpen ? ' open' : ''}" onclick="toggleAccordion(this)">
+          <span class="accordion-icon">${sec.icon}</span>
+          <span class="accordion-title">${sec.title}</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body${isOpen ? ' open' : ''}">${bodyHtml}</div>
+      </div>`;
     }
+    sectionsHtml += '</div>';
+    html += sectionsHtml;
 
     content.innerHTML = html;
     screen.scrollTop = 0;
   }
   window.openDarDetail = openDarDetail;
+
+  // Тогглим аккордеон. Закрываем все остальные в этом аккордеоне.
+  function toggleAccordion(btn) {
+    const body = btn.nextElementSibling;
+    const isOpen = body.classList.contains('open');
+    const parent = btn.closest('.dar-accordion');
+    if (parent) {
+      parent.querySelectorAll('.accordion-header.open').forEach(h => {
+        h.classList.remove('open');
+        h.nextElementSibling?.classList.remove('open');
+      });
+    }
+    if (!isOpen) {
+      btn.classList.add('open');
+      body.classList.add('open');
+      setTimeout(() => {
+        try { btn.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      }, 120);
+    }
+  }
+  window.toggleAccordion = toggleAccordion;
 
   function closeDarDetail() {
     document.getElementById('dar-detail-screen')?.classList.remove('open');

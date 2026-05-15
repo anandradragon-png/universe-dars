@@ -1532,32 +1532,106 @@
       font-style: italic;
       margin-top: 6px;
     }
-    .dar-detail-section {
+    /* Кнопки на hero (Книга / Путешествие Героя) */
+    .dar-detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .dar-detail-btn {
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: 1px solid;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dar-detail-btn-book {
+      border-color: rgba(212,175,55,0.4);
+      background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05));
+      color: var(--gold);
+    }
+    .dar-detail-btn-hero {
+      border-color: rgba(255,140,0,0.5);
+      background: linear-gradient(135deg, rgba(255,100,0,0.2), rgba(255,200,0,0.08));
+      color: #FFA500;
+    }
+
+    /* Аккордеон 9 секций (как в проде) */
+    .dar-accordion {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .accordion-item {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
+      overflow: hidden;
+    }
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
       padding: 14px 16px;
-      margin-top: 12px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      transition: background 0.2s;
     }
-    .dar-detail-section h3 {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
+    .accordion-header:hover { background: rgba(212,175,55,0.04); }
+    .accordion-header.open {
+      background: rgba(212,175,55,0.06);
       color: var(--gold);
-      margin-bottom: 10px;
-      font-weight: 600;
     }
-    .dar-detail-section-body {
+    .accordion-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .accordion-title {
+      flex: 1;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .accordion-arrow {
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+    .accordion-header.open .accordion-arrow {
+      transform: rotate(180deg);
+      color: var(--gold);
+    }
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, padding 0.2s;
+      padding: 0 16px;
       font-size: 14px;
       line-height: 1.7;
       color: var(--text);
     }
-    .dar-detail-section-body p { margin-bottom: 10px; }
-    .dar-detail-section-body strong { color: var(--gold); }
-    .dar-detail-section-body ul, .dar-detail-section-body ol {
+    .accordion-body.open {
+      max-height: 5000px;
+      padding: 4px 16px 16px;
+    }
+    .accordion-body p { margin-bottom: 10px; }
+    .accordion-body strong { color: var(--gold); }
+    .accordion-body ul, .accordion-body ol {
       margin: 8px 0 10px 18px;
     }
-    .dar-detail-section-body li { margin-bottom: 4px; }
+    .accordion-body li { margin-bottom: 6px; }
 
     /* === Энциклопедия === */
     .encyc-search-box { margin-bottom: 12px; }

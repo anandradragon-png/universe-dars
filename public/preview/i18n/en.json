@@ -39,7 +39,10 @@
     "depth_name_hint": "The name people know you by.",
     "action_oracle": "Daily Oracle",
     "action_share": "Share",
-    "more_about_me": "Learn more about yourself"
+    "more_about_me": "Learn more about yourself",
+    "synthesis_title": "Your archetype — synthesis of 4 levels",
+    "synthesis_sub": "DARs combined by weight. The higher the percentage — the stronger the influence.",
+    "synthesis_edit": "Edit data"
   },
 
   "family": {
@@ -54,11 +57,11 @@
 
   "treasury": {
     "headline": "Treasury of DARs",
-    "tab_collection": "My collection",
+    "tab_collection": "Collection",
     "tab_books": "Books",
     "tab_search": "Encyclopedia",
     "tab_games": "Games",
-    "collection_title": "My collection",
+    "collection_title": "Collection",
     "collection_sub": "Grid of 64 DARs with highlighted unlocked ones.",
     "collection_unlocked_label": "Unlocked",
     "book_dars_title": "Book of DARs",
@@ -71,10 +74,10 @@
     "search_placeholder": "🔍 Search by code, name or field",
     "game_hero_title": "Hero's journey",
     "game_hero_sub": "Unlock loved ones' DARs via referrals or crystals — go through their story.",
-    "game_intuition_title": "Intuition trainer",
-    "game_intuition_sub": "Guess the DAR from hints, sharpen your intuition. Leaderboard included.",
-    "game_atlantis_title": "Strategic game of DARs",
-    "game_atlantis_sub": "Card battle based on the powers of your DAR.",
+    "game_intuition_title": "Guess the DAR",
+    "game_intuition_sub": "Intuition trainer with player leaderboard.",
+    "game_atlantis_title": "Legends of Atlantis",
+    "game_atlantis_sub": "Strategic game with DARs.",
     "game_pvp_title": "Friend battles",
     "game_pvp_sub": "PvP battles on DARs. Coming soon.",
     "hof_title": "Hall of Fame",

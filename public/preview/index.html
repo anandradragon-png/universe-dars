@@ -563,14 +563,22 @@
       margin-bottom: 14px;
     }
     .dar-image {
-      width: 96px; height: 96px;
+      width: 140px; height: 140px;
       margin: 0 auto 14px;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(212,175,55,0.35), rgba(212,175,55,0.05));
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 48px;
+      font-size: 56px;
+      overflow: hidden;
+      border: 2px solid rgba(212,175,55,0.4);
+      box-shadow: 0 0 24px rgba(212,175,55,0.18);
+    }
+    .dar-image img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
     .dar-name {
       font-size: 28px;
@@ -675,6 +683,79 @@
       text-decoration: underline dotted;
       cursor: pointer;
     }
+
+    /* === Синтез архетипа (после ввода всех 3 параметров) === */
+    .synthesis-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .synthesis-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+    .synthesis-levels {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .synthesis-level {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .synthesis-level-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      background-color: rgba(212,175,55,0.08);
+      flex-shrink: 0;
+      border: 1px solid rgba(212,175,55,0.3);
+    }
+    .synthesis-level-text { flex: 1; min-width: 0; }
+    .synthesis-level-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+    .synthesis-level-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .synthesis-level-influence {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+      padding: 4px 10px;
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .synthesis-edit {
+      width: 100%;
+      margin-top: 14px;
+      padding: 10px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+    }
+    .synthesis-edit:hover { color: var(--gold); border-color: rgba(212,175,55,0.3); }
 
     /* === Модалки углубления === */
     .depth-modal {
@@ -1115,20 +1196,33 @@
       gap: 8px;
     }
     .collection-cell {
-      aspect-ratio: 1;
+      aspect-ratio: 0.85;
       background: rgba(255,255,255,0.02);
       border: 1px solid var(--border);
       border-radius: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
       gap: 2px;
       cursor: pointer;
       transition: all 0.2s;
       padding: 4px;
       position: relative;
       overflow: hidden;
+    }
+    .collection-cell-img {
+      width: 100%;
+      flex: 1;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      min-height: 0;
+    }
+    .collection-cell.locked .collection-cell-img {
+      filter: grayscale(80%) brightness(0.5);
     }
     .collection-cell:hover { transform: scale(1.04); }
     .collection-cell.unlocked {
@@ -1211,14 +1305,23 @@
     .encyc-dar-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
+      gap: 12px;
+      padding: 8px 10px;
       background: rgba(255,255,255,0.02);
       border: 1px solid var(--border);
       border-radius: 10px;
       margin-bottom: 6px;
       cursor: pointer;
       transition: all 0.2s;
+    }
+    .encyc-dar-img {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      background-color: rgba(212,175,55,0.08);
+      flex-shrink: 0;
+      border: 1px solid rgba(212,175,55,0.25);
     }
     .encyc-dar-row:hover {
       background: rgba(212,175,55,0.05);
@@ -1366,8 +1469,9 @@
       <!-- Состояние Б: после расчёта (карточка Дара + действия) -->
       <div id="me-result-state" style="display:none">
         <div class="dar-card">
-          <div class="dar-image">
-            <span id="me-dar-emoji">✨</span>
+          <div class="dar-image" id="me-dar-image-wrap">
+            <span id="me-dar-emoji" style="display:none">✨</span>
+            <img id="me-dar-image" alt="" style="display:none">
           </div>
           <div class="dar-name" id="me-dar-name">—</div>
           <div class="dar-code" id="me-dar-code">—</div>
@@ -1398,33 +1502,44 @@
           <span class="me-more-chevron" id="me-more-chevron">▾</span>
         </button>
         <div class="me-more-content" id="me-more-content" hidden>
-          <div class="depth-sub" data-i18n="me.depth_sub">Добавь время, место и имя — расчёт точнее, послание глубже.</div>
+          <!-- Шаги ввода — скрываются после ввода всех 3 -->
+          <div id="depth-steps-block">
+            <div class="depth-sub" data-i18n="me.depth_sub">Добавь время, место и имя — расчёт точнее, послание глубже.</div>
 
-          <div class="depth-step" id="depth-time">
-            <span class="depth-icon">🕐</span>
-            <div class="depth-step-text">
-              <div class="depth-step-title" data-i18n="me.depth_time_title">Время рождения</div>
-              <div class="depth-step-value" id="depth-time-value">—</div>
+            <div class="depth-step" id="depth-time">
+              <span class="depth-icon">🕐</span>
+              <div class="depth-step-text">
+                <div class="depth-step-title" data-i18n="me.depth_time_title">Время рождения</div>
+                <div class="depth-step-value" id="depth-time-value">—</div>
+              </div>
+              <button class="depth-step-btn" onclick="openDepthTime()" data-i18n="common.add">Добавить</button>
             </div>
-            <button class="depth-step-btn" onclick="openDepthTime()" data-i18n="common.add">Добавить</button>
+
+            <div class="depth-step" id="depth-place">
+              <span class="depth-icon">📍</span>
+              <div class="depth-step-text">
+                <div class="depth-step-title" data-i18n="me.depth_place_title">Место рождения</div>
+                <div class="depth-step-value" id="depth-place-value">—</div>
+              </div>
+              <button class="depth-step-btn" onclick="openDepthPlace()" data-i18n="common.add">Добавить</button>
+            </div>
+
+            <div class="depth-step" id="depth-name">
+              <span class="depth-icon">🪪</span>
+              <div class="depth-step-text">
+                <div class="depth-step-title" data-i18n="me.depth_name_title">Имя и фамилия</div>
+                <div class="depth-step-value" id="depth-name-value">—</div>
+              </div>
+              <button class="depth-step-btn" onclick="openDepthName()" data-i18n="common.add">Добавить</button>
+            </div>
           </div>
 
-          <div class="depth-step" id="depth-place">
-            <span class="depth-icon">📍</span>
-            <div class="depth-step-text">
-              <div class="depth-step-title" data-i18n="me.depth_place_title">Место рождения</div>
-              <div class="depth-step-value" id="depth-place-value">—</div>
-            </div>
-            <button class="depth-step-btn" onclick="openDepthPlace()" data-i18n="common.add">Добавить</button>
-          </div>
-
-          <div class="depth-step" id="depth-name">
-            <span class="depth-icon">🪪</span>
-            <div class="depth-step-text">
-              <div class="depth-step-title" data-i18n="me.depth_name_title">Имя и фамилия</div>
-              <div class="depth-step-value" id="depth-name-value">—</div>
-            </div>
-            <button class="depth-step-btn" onclick="openDepthName()" data-i18n="common.add">Добавить</button>
+          <!-- Синтез архетипа — после ввода всех 3 параметров -->
+          <div id="synthesis-block" hidden>
+            <div class="synthesis-title" data-i18n="me.synthesis_title">Твой архетип — синтез 4 уровней</div>
+            <div class="synthesis-sub" data-i18n="me.synthesis_sub">Объединение Даров с учётом веса каждого уровня.</div>
+            <div class="synthesis-levels" id="synthesis-levels"></div>
+            <button class="synthesis-edit" onclick="editDepthAgain()" data-i18n="me.synthesis_edit">Изменить данные</button>
           </div>
         </div>
 

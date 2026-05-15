@@ -39,7 +39,10 @@
     "depth_name_hint": "Имя и фамилия, под которыми тебя знают чаще всего.",
     "action_oracle": "Оракул дня",
     "action_share": "Поделиться",
-    "more_about_me": "Узнать о себе больше"
+    "more_about_me": "Узнать о себе больше",
+    "synthesis_title": "Твой архетип — синтез 4 уровней",
+    "synthesis_sub": "Объединение Даров с учётом веса каждого уровня. Чем выше процент — тем сильнее влияет на тебя.",
+    "synthesis_edit": "Изменить данные"
   },
 
   "book": {
@@ -69,11 +72,11 @@
 
   "treasury": {
     "headline": "Сокровищница Даров",
-    "tab_collection": "Моя коллекция",
+    "tab_collection": "Коллекция",
     "tab_books": "Книги",
     "tab_search": "Энциклопедия",
     "tab_games": "Игры",
-    "collection_title": "Моя коллекция",
+    "collection_title": "Коллекция",
     "collection_sub": "Сетка 64 даров с подсветкой открытых.",
     "collection_unlocked_label": "Открыто",
     "book_dars_title": "Книга Даров",
@@ -86,10 +89,10 @@
     "search_placeholder": "🔍 Поиск по коду, имени или полю",
     "game_hero_title": "Путешествие героя",
     "game_hero_sub": "Открой Дары близких через рефералы или кристаллы — пройди их историю.",
-    "game_intuition_title": "Тренажёр интуиции",
-    "game_intuition_sub": "Угадай Дар по подсказкам, развивай чутьё. Есть рейтинг игроков.",
-    "game_atlantis_title": "Стратегическая игра с Дарами",
-    "game_atlantis_sub": "Карточная битва на силах твоего Дара.",
+    "game_intuition_title": "Угадай Дар",
+    "game_intuition_sub": "Тренажёр интуиции с рейтингом игроков.",
+    "game_atlantis_title": "Легенды Атлантиды",
+    "game_atlantis_sub": "Стратегическая игра с Дарами.",
     "game_pvp_title": "Батлы с друзьями",
     "game_pvp_sub": "PvP-сражения на Дарах. Скоро.",
     "hof_title": "Зал Славы",

@@ -88,8 +88,9 @@
         const isUnlocked = unlocked.has(code);
         if (isUnlocked) unlockedCount++;
         const cls = isMine ? 'mine' : (isUnlocked ? 'unlocked' : 'locked');
-        html.push(`<div class="collection-cell ${cls}" data-code="${code}">
-          <div class="collection-cell-name">${name}</div>
+        html.push(`<div class="collection-cell ${cls}" data-code="${code}" onclick="openDarDetail('${code}')">
+          <div class="collection-cell-img" style="background-image:url('/cards/${code}.jpg')"></div>
+          <div class="collection-cell-name">${escapeHtml(name)}</div>
           <div class="collection-cell-code">${code}</div>
           ${!isUnlocked ? '<div class="collection-cell-overlay">🔒</div>' : ''}
         </div>`);
@@ -254,6 +255,21 @@
     document.getElementById('me-dar-code').textContent = syn.code;
     document.getElementById('me-dar-archetype').textContent = syn.archetype || '';
 
+    // Картинка Дара: /cards/{code}.jpg, при ошибке — fallback на ✨
+    const img = document.getElementById('me-dar-image');
+    const emoji = document.getElementById('me-dar-emoji');
+    if (img && emoji) {
+      img.onerror = () => {
+        img.style.display = 'none';
+        emoji.style.display = '';
+      };
+      img.onload = () => {
+        img.style.display = '';
+        emoji.style.display = 'none';
+      };
+      img.src = '/cards/' + syn.code + '.jpg';
+    }
+
     // Подсветка пройденных шагов с расчётом каждого уровня
     setDepthStep('depth-time', p.time
       ? String(p.time.hour).padStart(2,'0') + ':' + String(p.time.minute).padStart(2,'0')
@@ -268,7 +284,52 @@
       : null,
       profile.chia ? `ЧИА: ${profile.chia.code} · ${profile.chia.name}` : null
     );
+
+    // Если все 3 уровня заполнены — показываем синтез, скрываем поля ввода
+    const allFilled = !!(profile.tuna && profile.tria && profile.chia);
+    const stepsBlock = document.getElementById('depth-steps-block');
+    const synBlock = document.getElementById('synthesis-block');
+    if (allFilled && stepsBlock && synBlock) {
+      stepsBlock.hidden = true;
+      synBlock.hidden = false;
+      renderSynthesis(profile);
+    } else if (stepsBlock && synBlock) {
+      stepsBlock.hidden = false;
+      synBlock.hidden = true;
+    }
   }
+
+  function renderSynthesis(profile) {
+    const wrap = document.getElementById('synthesis-levels');
+    if (!wrap) return;
+    const t = (k, fb) => ((window.previewI18n && previewI18n.t(k)) || fb);
+    const levels = [
+      { key: 'oda',  label: 'ОДА',  sub: t('me.depth_date_title',  'Дата рождения'),  data: profile.oda  },
+      { key: 'tuna', label: 'ТУНА', sub: t('me.depth_time_title',  'Время рождения'), data: profile.tuna },
+      { key: 'tria', label: 'ТРИА', sub: t('me.depth_place_title', 'Место рождения'), data: profile.tria },
+      { key: 'chia', label: 'ЧИА',  sub: t('me.depth_name_title',  'Имя и фамилия'),  data: profile.chia }
+    ];
+    wrap.innerHTML = levels.map(lvl => {
+      if (!lvl.data) return '';
+      return `<div class="synthesis-level">
+        <div class="synthesis-level-icon" style="background-image:url('/cards/${lvl.data.code}.jpg')"></div>
+        <div class="synthesis-level-text">
+          <div class="synthesis-level-name">${lvl.data.name} <span style="color:var(--text-muted);font-weight:400">· ${lvl.data.code}</span></div>
+          <div class="synthesis-level-meta">${lvl.label} — ${lvl.sub}${lvl.data.archetype ? ' · ' + lvl.data.archetype : ''}</div>
+        </div>
+        <div class="synthesis-level-influence">${lvl.data.influence}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  function editDepthAgain() {
+    // Раскрываем поля для редактирования
+    const stepsBlock = document.getElementById('depth-steps-block');
+    const synBlock = document.getElementById('synthesis-block');
+    if (stepsBlock) stepsBlock.hidden = false;
+    if (synBlock) synBlock.hidden = true;
+  }
+  window.editDepthAgain = editDepthAgain;
 
   function setDepthStep(id, value, levelInfo) {
     const block = document.getElementById(id);
@@ -326,6 +387,7 @@
       codes.forEach(code => {
         const name = DarsLib.getDarName(code, lang);
         html.push(`<div class="encyc-dar-row" onclick="openDarDetail('${code}')">
+          <div class="encyc-dar-img" style="background-image:url('/cards/${code}.jpg')"></div>
           <div class="encyc-dar-name">${escapeHtml(name)}</div>
           <div class="encyc-dar-code">${code}</div>
         </div>`);
@@ -366,6 +428,7 @@
       results.innerHTML = '<div class="placeholder">Ничего не найдено</div>';
     } else {
       results.innerHTML = matches.map(m => `<div class="encyc-dar-row" onclick="openDarDetail('${m.code}')">
+        <div class="encyc-dar-img" style="background-image:url('/cards/${m.code}.jpg')"></div>
         <div class="encyc-dar-name">${escapeHtml(m.name)}</div>
         <div class="encyc-dar-code">${m.code}</div>
       </div>`).join('');

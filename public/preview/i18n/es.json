@@ -39,7 +39,10 @@
     "depth_name_hint": "Nombre y apellido por los que te conocen.",
     "action_oracle": "Oráculo del día",
     "action_share": "Compartir",
-    "more_about_me": "Saber más sobre ti"
+    "more_about_me": "Saber más sobre ti",
+    "synthesis_title": "Tu arquetipo — síntesis de 4 niveles",
+    "synthesis_sub": "Combinación de DARs según el peso. Cuanto mayor el porcentaje, mayor la influencia.",
+    "synthesis_edit": "Editar datos"
   },
 
   "family": {
@@ -54,11 +57,11 @@
 
   "treasury": {
     "headline": "Tesoro de los DARs",
-    "tab_collection": "Mi colección",
+    "tab_collection": "Colección",
     "tab_books": "Libros",
     "tab_search": "Enciclopedia",
     "tab_games": "Juegos",
-    "collection_title": "Mi colección",
+    "collection_title": "Colección",
     "collection_sub": "Cuadrícula de 64 DARs con los desbloqueados resaltados.",
     "collection_unlocked_label": "Desbloqueados",
     "book_dars_title": "Libro de los DARs",
@@ -71,10 +74,10 @@
     "search_placeholder": "🔍 Buscar por código, nombre o campo",
     "game_hero_title": "Viaje del héroe",
     "game_hero_sub": "Desbloquea los DARs de tus seres queridos mediante referidos o cristales — vive su historia.",
-    "game_intuition_title": "Entrenador de intuición",
-    "game_intuition_sub": "Adivina el DAR por pistas, agudiza tu intuición. Tabla de clasificación incluida.",
-    "game_atlantis_title": "Juego estratégico de DARs",
-    "game_atlantis_sub": "Batalla de cartas según los poderes de tu DAR.",
+    "game_intuition_title": "Adivina el DAR",
+    "game_intuition_sub": "Entrenador de intuición con tabla de clasificación.",
+    "game_atlantis_title": "Leyendas de la Atlántida",
+    "game_atlantis_sub": "Juego estratégico con los DARs.",
     "game_pvp_title": "Batallas con amigos",
     "game_pvp_sub": "Batallas PvP de DARs. Próximamente.",
     "hof_title": "Salón de la Fama",

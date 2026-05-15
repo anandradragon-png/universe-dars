@@ -640,6 +640,18 @@
       color: var(--text-muted);
       margin-top: 1px;
     }
+    .depth-level-result {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 5px;
+      color: var(--gold);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
     .depth-step-btn {
       background: rgba(212,175,55,0.1);
       border: 1px solid rgba(212,175,55,0.3);
@@ -1067,7 +1079,37 @@
       text-align: center;
     }
     .collection-stats strong { color: var(--gold); }
-    .collection-grid {
+    .collection-grid { display: block; }
+    .collection-field {
+      margin-bottom: 18px;
+    }
+    .collection-field-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 4px 2px;
+    }
+    .collection-field-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--field-color, var(--gold));
+      box-shadow: 0 0 6px var(--field-color, var(--gold));
+      flex-shrink: 0;
+    }
+    .collection-field-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+      flex: 1;
+    }
+    .collection-field-id {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+    .collection-grid-inner {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
@@ -1085,6 +1127,8 @@
       cursor: pointer;
       transition: all 0.2s;
       padding: 4px;
+      position: relative;
+      overflow: hidden;
     }
     .collection-cell:hover { transform: scale(1.04); }
     .collection-cell.unlocked {
@@ -1096,6 +1140,7 @@
       border-color: var(--gold);
       box-shadow: 0 0 10px rgba(212,175,55,0.25);
     }
+    .collection-cell.locked { opacity: 0.55; }
     .collection-cell-name {
       font-size: 10px;
       font-weight: 700;
@@ -1103,6 +1148,10 @@
       letter-spacing: 1px;
       line-height: 1.1;
       text-align: center;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .collection-cell.locked .collection-cell-name { color: var(--text-muted); }
     .collection-cell-code {
@@ -1110,9 +1159,82 @@
       color: var(--text-muted);
       letter-spacing: 0.5px;
     }
-    .collection-cell-lock {
+    .collection-cell-overlay {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 9px;
+      opacity: 0.45;
+    }
+
+    /* === Энциклопедия === */
+    .encyc-search-box { margin-bottom: 12px; }
+    .encyc-search-box input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #111;
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 12px;
+      color: var(--text);
       font-size: 14px;
-      opacity: 0.5;
+      font-family: inherit;
+      outline: none;
+    }
+    .encyc-search-box input:focus { border-color: var(--gold); }
+    #encyc-results { margin-bottom: 12px; max-height: 60vh; overflow-y: auto; }
+    .encyc-field-block { margin-bottom: 16px; }
+    .encyc-field-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 2px;
+      margin-bottom: 6px;
+    }
+    .encyc-field-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--field-color, var(--gold));
+      box-shadow: 0 0 6px var(--field-color);
+    }
+    .encyc-field-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+      flex: 1;
+    }
+    .encyc-field-id {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+    .encyc-dar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .encyc-dar-row:hover {
+      background: rgba(212,175,55,0.05);
+      border-color: rgba(212,175,55,0.3);
+    }
+    .encyc-dar-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+      flex: 1;
+    }
+    .encyc-dar-code {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: monospace;
     }
 
     /* === Сокровищница: карточки игр === */
@@ -1430,12 +1552,17 @@
         </div>
       </div>
 
-      <!-- Энциклопедия (поиск) -->
+      <!-- Энциклопедия (поиск + список по полям) -->
       <div class="subtab-content" data-subtab-content="search">
-        <div class="placeholder">
-          <strong data-i18n="treasury.search_title">Энциклопедия Даров</strong>
-          <span data-i18n="treasury.search_sub">Найди любой Дар по коду (1-6-7), имени (З-МАН) или полю. Поиск — следующий этап.</span>
+        <div class="encyc-search-box">
+          <input id="encyc-search-input" type="text"
+            placeholder="🔍 Поиск по коду, имени или полю"
+            data-i18n="treasury.search_placeholder" data-i18n-attr="placeholder"
+            oninput="encycSearch(this.value)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
         </div>
+        <div id="encyc-results" hidden></div>
+        <div id="encyc-list"></div>
       </div>
 
       <!-- Игры (включая Путешествие героя + Зал Славы) -->

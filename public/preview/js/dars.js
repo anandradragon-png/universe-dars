@@ -6,6 +6,19 @@
 (function (global) {
   'use strict';
 
+  // Поля (9 секторов вселенной Даров). KUN = 3-я цифра кода = индекс поля.
+  const FIELDS = {
+    1: { name_ru: 'ЛОГОС',   name_en: 'LOGOS',   name_es: 'LOGOS',   color: '#e74c3c' },
+    2: { name_ru: 'НИМА',    name_en: 'NIMA',    name_es: 'NIMA',    color: '#87ceeb' },
+    3: { name_ru: 'АНДРА',   name_en: 'ANDRA',   name_es: 'ANDRA',   color: '#2ecc71' },
+    4: { name_ru: 'ЗИНГРА',  name_en: 'ZINGRA',  name_es: 'ZINGRA',  color: '#f39c12' },
+    5: { name_ru: 'ЛУБА',    name_en: 'LUBA',    name_es: 'LUBA',    color: '#ffffff' },
+    6: { name_ru: 'ТУМА',    name_en: 'TUMA',    name_es: 'TUMA',    color: '#1a1a4e' },
+    7: { name_ru: 'АСТРА',   name_en: 'ASTRA',   name_es: 'ASTRA',   color: '#9b59b6' },
+    8: { name_ru: 'БИТРА',   name_en: 'BITRA',   name_es: 'BITRA',   color: '#5dade2' },
+    9: { name_ru: 'ОМА',     name_en: 'OMA',     name_es: 'OMA',     color: '#e8d5ff' }
+  };
+
   // 64 Дара: код → имя
   const DARS = {
     "4-6-1":"ЖАР","3-7-1":"И-СТОК","2-8-1":"ЛА-ДА","8-2-1":"ЛЕ-ЛИ",
@@ -26,6 +39,50 @@
     "4-4-8":"ЛИ-КО","7-1-8":"МИ-ДА","2-6-8":"СО-ЛАР",
     "3-6-9":"ИРИЙ","5-4-9":"МИ-РА","1-8-9":"РАЙ","8-1-9":"РОЙ",
     "7-2-9":"ТО-РА","6-3-9":"ТОТ","2-7-9":"ФА-НА","4-5-9":"ШИ-ВА"
+  };
+
+  // Имена 64 Даров на английском (из book-chapters.en.json — транслитерация автора)
+  const DARS_EN = {
+    "4-6-1":"ZHAR","3-7-1":"IS-TOK","2-8-1":"LA-DA","8-2-1":"LE-LI",
+    "7-3-1":"PRI-TOK","6-4-1":"SVE-TO","5-5-1":"TE-LO",
+    "1-1-2":"BRA-MA","3-8-2":"GO-RA","4-7-2":"GU-NA","8-3-2":"ME-RU",
+    "7-4-2":"RO-DA","5-6-2":"SO-NA","6-5-2":"U-MA",
+    "8-4-3":"ANAN-D-RA","2-1-3":"VI-RA","1-2-3":"LI-RA","7-5-3":"MA-TA",
+    "5-7-3":"MAT-KA","6-6-3":"PARA","4-8-3":"SI-LA",
+    "1-3-4":"AR-KA","6-7-4":"VOS-KHA","2-2-4":"ZI-MA","3-1-4":"LA-NA",
+    "7-6-4":"MA-AT","5-8-4":"RO-SA","8-5-4":"SE-MA",
+    "8-6-5":"A-MA","2-3-5":"AR-MA","7-7-5":"ZHI-VA","1-4-5":"ZHIMA",
+    "3-2-5":"RA-MA","4-1-5":"RIMA","6-8-5":"TRO-NA",
+    "1-5-6":"KU-NA","5-1-6":"LU-NA","8-7-6":"SO-KHA","7-8-6":"TA-RA",
+    "2-4-6":"TOTA","3-3-6":"TURA","4-2-6":"E-MA",
+    "4-3-7":"AR-KHEI","2-5-7":"BRA-KH-MA","3-4-7":"G-RAD","1-6-7":"Z-MAN",
+    "6-1-7":"MANA","5-2-7":"NI-RA","8-8-7":"PRANA",
+    "6-2-8":"BI-MA","1-7-8":"BI-RA","5-3-8":"ZLA-TO","3-5-8":"KODA",
+    "4-4-8":"LI-KO","7-1-8":"MI-DA","2-6-8":"SO-LAR",
+    "3-6-9":"I-RIY","5-4-9":"MI-RA","1-8-9":"RAY","8-1-9":"ROY",
+    "7-2-9":"TO-RA","6-3-9":"TOT","2-7-9":"FA-NA","4-5-9":"SHI-VA"
+  };
+
+  // Имена 64 Даров на испанском
+  const DARS_ES = {
+    "4-6-1":"ZHAR","3-7-1":"IS-TOK","2-8-1":"LA-DA","8-2-1":"LE-LI",
+    "7-3-1":"PRI-TOK","6-4-1":"SVE-TO","5-5-1":"TE-LO",
+    "1-1-2":"BRA-MA","3-8-2":"GO-RA","4-7-2":"GU-NA","8-3-2":"ME-RU",
+    "7-4-2":"RO-DA","5-6-2":"SO-NA","6-5-2":"U-MA",
+    "8-4-3":"ANAN-D-RA","2-1-3":"VI-RA","1-2-3":"LI-RA","7-5-3":"MA-TA",
+    "5-7-3":"MAT-KA","6-6-3":"PA-RA","4-8-3":"SI-LA",
+    "1-3-4":"AR-KA","6-7-4":"VOS-KHA","2-2-4":"ZI-MA","3-1-4":"LA-NA",
+    "7-6-4":"MA-AT","5-8-4":"RO-SA","8-5-4":"SE-MA",
+    "8-6-5":"A-MA","2-3-5":"AR-MA","7-7-5":"ZHI-VA","1-4-5":"ZHI-MA",
+    "3-2-5":"RA-MA","4-1-5":"RI-MA","6-8-5":"TRO-NA",
+    "1-5-6":"KU-NA","5-1-6":"LU-NA","8-7-6":"SO-KHA","7-8-6":"TA-RA",
+    "2-4-6":"TO-TA","3-3-6":"TU-RA","4-2-6":"E-MA",
+    "4-3-7":"AR-KHEY","2-5-7":"BRA-KH-MA","3-4-7":"G-RAD","1-6-7":"Z-MAN",
+    "6-1-7":"MA-NA","5-2-7":"NI-RA","8-8-7":"PRA-NA",
+    "6-2-8":"BI-MA","1-7-8":"BI-RA","5-3-8":"ZLA-TO","3-5-8":"KO-DA",
+    "4-4-8":"LI-KO","7-1-8":"MI-DA","2-6-8":"SO-LAR",
+    "3-6-9":"IRIY","5-4-9":"MI-RA","1-8-9":"RAY","8-1-9":"ROY",
+    "7-2-9":"TO-RA","6-3-9":"TOT","2-7-9":"FA-NA","4-5-9":"SHI-VA"
   };
 
   // Универсалы-интеграторы (когда 1-я, 2-я или 3-я = 9)
@@ -80,6 +137,15 @@
 
   // === МАТЕМАТИКА ===
 
+  function currentLang() {
+    try {
+      if (global.previewI18n && typeof global.previewI18n.getLang === 'function') {
+        return global.previewI18n.getLang();
+      }
+    } catch (e) {}
+    return 'ru';
+  }
+
   function reduce(n) {
     n = Math.abs(parseInt(n) || 0);
     while (n > 9) {
@@ -92,12 +158,30 @@
     return String(s).replace(/\D/g, '').split('').reduce((acc, d) => acc + parseInt(d, 10), 0);
   }
 
-  function getDarName(code) {
+  function getDarName(code, lang) {
+    lang = lang || 'ru';
+    if (lang === 'en' && DARS_EN[code]) return DARS_EN[code];
+    if (lang === 'es' && DARS_ES[code]) return DARS_ES[code];
     return DARS[code] || INTEGRATORS[code] || code;
   }
 
-  function getDarArchetype(code) {
-    return ARCHETYPES[code] || (INTEGRATORS[code] || '');
+  function getDarArchetype(code, lang) {
+    // Архетипы пока только на RU. Для en/es возвращаем имя дара
+    // (это лучше пустой строки, и при наполнении контента архетипов
+    //  через AI добавим переводы. Пока показываем сам Дар.)
+    lang = lang || 'ru';
+    if (lang === 'ru') return ARCHETYPES[code] || (INTEGRATORS[code] || '');
+    return ''; // На EN/ES архетип скроется (см. CSS dar-archetype:empty)
+  }
+
+  // Поле Дара (по 3-й цифре кода = KUN)
+  function getField(code) {
+    const kun = parseInt(String(code).split('-')[2], 10);
+    return FIELDS[kun] || null;
+  }
+
+  function getFieldId(code) {
+    return parseInt(String(code).split('-')[2], 10) || 0;
   }
 
   // === ОДА (дата · 100%) ===
@@ -107,7 +191,7 @@
     const ji = reduce(sumDigits(date.year));
     const kun = reduce(ma + ji);
     const code = `${ma}-${ji}-${kun}`;
-    return { ma, ji, kun, code, name: getDarName(code), archetype: getDarArchetype(code), influence: 100 };
+    return { ma, ji, kun, code, name: getDarName(code, currentLang()), archetype: getDarArchetype(code, currentLang()), influence: 100 };
   }
 
   // === ТУНА (время + Кун ОДА · 70%) ===
@@ -119,7 +203,7 @@
     // Важно: сначала Кун ОДА, потом сумма времени (порядок имеет значение)
     const kun = reduce(kunOda + timeSum);
     const code = `${ma}-${ji}-${kun}`;
-    return { ma, ji, kun, code, name: getDarName(code), archetype: getDarArchetype(code), influence: 70 };
+    return { ma, ji, kun, code, name: getDarName(code, currentLang()), archetype: getDarArchetype(code, currentLang()), influence: 70 };
   }
 
   // === ТРИА (координаты · 40%) ===
@@ -131,7 +215,7 @@
     const ji = reduce(sumDigits(lonInt));
     const kun = reduce(ma + ji);
     const code = `${ma}-${ji}-${kun}`;
-    return { ma, ji, kun, code, name: getDarName(code), archetype: getDarArchetype(code), influence: 40 };
+    return { ma, ji, kun, code, name: getDarName(code, currentLang()), archetype: getDarArchetype(code, currentLang()), influence: 40 };
   }
 
   // === ЧИА (имя+фамилия · 20%) ===
@@ -148,7 +232,7 @@
     const ji = reduce(nameSum(person.lastName));
     const kun = reduce(ma + ji);
     const code = `${ma}-${ji}-${kun}`;
-    return { ma, ji, kun, code, name: getDarName(code), archetype: getDarArchetype(code), influence: 20 };
+    return { ma, ji, kun, code, name: getDarName(code, currentLang()), archetype: getDarArchetype(code, currentLang()), influence: 20 };
   }
 
   // === ПОЛНЫЙ ПРОФИЛЬ ===
@@ -171,16 +255,16 @@
     // Когда автор пришлёт промт синтеза — заменим эту строку на правильный расчёт.
     result.synthesis = {
       code: oda.code,
-      name: oda.name,
-      archetype: oda.archetype,
+      name: getDarName(oda.code, currentLang()),
+      archetype: getDarArchetype(oda.code, currentLang()),
       note: 'Синтез пока показывает ОДА. Промт синтеза 4 уровней — в работе.'
     };
     return result;
   }
 
   global.DarsLib = {
-    DARS, INTEGRATORS, ARCHETYPES, LETTER_VALUES,
-    reduce, sumDigits, getDarName, getDarArchetype,
+    DARS, DARS_EN, DARS_ES, INTEGRATORS, ARCHETYPES, FIELDS, LETTER_VALUES,
+    reduce, sumDigits, getDarName, getDarArchetype, getField, getFieldId,
     calcOda, calcTuna, calcTria, calcChia, calcProfile
   };
 })(window);

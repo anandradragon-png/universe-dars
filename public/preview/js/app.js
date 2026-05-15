@@ -38,40 +38,65 @@
           contents.forEach(c => c.classList.toggle('active', c.getAttribute('data-subtab-content') === target));
           // При открытии «Моя коллекция» — отрендерить сетку
           if (target === 'collection') renderCollection();
+          // При открытии «Энциклопедия» — отрендерить список даров
+          if (target === 'search') renderEncyclopedia();
         });
       });
     });
   }
 
-  // Рендер сетки 64 даров (Сокровищница → Моя коллекция)
+  // Рендер сетки 64 даров (Сокровищница → Моя коллекция).
+  // Группировка по полям (КУН), имена на текущем языке, имя видно
+  // даже у закрытых (как в проде).
   function renderCollection() {
     const grid = document.getElementById('collection-grid');
     if (!grid || !window.DarsLib) return;
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
     const profile = loadProfile();
     const myCode = profile && profile.date
       ? DarsLib.calcOda(profile.date).code
       : null;
-    // Открытые дары: пока только свой (в проде есть unlock через рефералов/кристаллы).
+    // Открытые дары: свой Дар + дары близких (заглушка: пока только свой)
     const unlocked = new Set();
     if (myCode) unlocked.add(myCode);
 
-    const allCodes = Object.keys(DarsLib.DARS);
+    // Группируем по полю (КУН)
+    const byField = {};
+    Object.keys(DarsLib.DARS).forEach(code => {
+      const f = DarsLib.getFieldId(code);
+      if (!byField[f]) byField[f] = [];
+      byField[f].push(code);
+    });
+
     let unlockedCount = 0;
-    grid.innerHTML = allCodes.map(code => {
-      const name = DarsLib.DARS[code];
-      const isMine = code === myCode;
-      const isUnlocked = unlocked.has(code);
-      if (isUnlocked) unlockedCount++;
-      const cls = isMine ? 'mine' : (isUnlocked ? 'unlocked' : 'locked');
-      return `<div class="collection-cell ${cls}" data-code="${code}">
-        ${isUnlocked
-          ? `<div class="collection-cell-name">${name}</div>
-             <div class="collection-cell-code">${code}</div>`
-          : `<div class="collection-cell-lock">🔒</div>
-             <div class="collection-cell-code">${code}</div>`
-        }
-      </div>`;
-    }).join('');
+    const html = [];
+    for (let f = 1; f <= 9; f++) {
+      const codes = byField[f];
+      if (!codes || !codes.length) continue;
+      const fieldData = DarsLib.FIELDS[f];
+      const fieldName = (fieldData && fieldData['name_' + lang]) || (fieldData && fieldData.name_ru) || ('Поле ' + f);
+      html.push(`<div class="collection-field" style="--field-color:${fieldData?.color || '#fff'}">
+        <div class="collection-field-header">
+          <span class="collection-field-dot"></span>
+          <span class="collection-field-name">${fieldName}</span>
+          <span class="collection-field-id">${f}</span>
+        </div>
+        <div class="collection-grid-inner">`);
+      codes.forEach(code => {
+        const name = DarsLib.getDarName(code, lang);
+        const isMine = code === myCode;
+        const isUnlocked = unlocked.has(code);
+        if (isUnlocked) unlockedCount++;
+        const cls = isMine ? 'mine' : (isUnlocked ? 'unlocked' : 'locked');
+        html.push(`<div class="collection-cell ${cls}" data-code="${code}">
+          <div class="collection-cell-name">${name}</div>
+          <div class="collection-cell-code">${code}</div>
+          ${!isUnlocked ? '<div class="collection-cell-overlay">🔒</div>' : ''}
+        </div>`);
+      });
+      html.push(`</div></div>`);
+    }
+    grid.innerHTML = html.join('');
     const cnt = document.getElementById('collection-unlocked-count');
     if (cnt) cnt.textContent = unlockedCount;
   }
@@ -229,24 +254,37 @@
     document.getElementById('me-dar-code').textContent = syn.code;
     document.getElementById('me-dar-archetype').textContent = syn.archetype || '';
 
-    // Подсветка пройденных шагов
+    // Подсветка пройденных шагов с расчётом каждого уровня
     setDepthStep('depth-time', p.time
       ? String(p.time.hour).padStart(2,'0') + ':' + String(p.time.minute).padStart(2,'0')
-      : null);
-    setDepthStep('depth-place', p.coords && p.coords.label ? p.coords.label : null);
+      : null,
+      profile.tuna ? `ТУНА: ${profile.tuna.code} · ${profile.tuna.name}` : null
+    );
+    setDepthStep('depth-place', p.coords && p.coords.label ? p.coords.label : null,
+      profile.tria ? `ТРИА: ${profile.tria.code} · ${profile.tria.name}` : null
+    );
     setDepthStep('depth-name', p.person
       ? [p.person.firstName, p.person.lastName].filter(Boolean).join(' ')
-      : null);
+      : null,
+      profile.chia ? `ЧИА: ${profile.chia.code} · ${profile.chia.name}` : null
+    );
   }
 
-  function setDepthStep(id, value) {
+  function setDepthStep(id, value, levelInfo) {
     const block = document.getElementById(id);
     if (!block) return;
     const val = block.querySelector('.depth-step-value');
     const btn = block.querySelector('.depth-step-btn');
     if (value) {
       block.classList.add('filled');
-      if (val) val.textContent = value;
+      if (val) {
+        // Показываем введённое значение + рядом результат расчёта уровня
+        if (levelInfo) {
+          val.innerHTML = `${escapeHtml(value)} <span class="depth-level-result">${escapeHtml(levelInfo)}</span>`;
+        } else {
+          val.textContent = value;
+        }
+      }
       if (btn) {
         btn.textContent = previewI18n?.t('common.change') || 'Изменить';
       }
@@ -256,6 +294,86 @@
       if (btn) btn.textContent = previewI18n?.t('common.add') || 'Добавить';
     }
   }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' })[c]);
+  }
+
+  // === Энциклопедия Даров ===
+
+  function renderEncyclopedia() {
+    const list = document.getElementById('encyc-list');
+    if (!list || !window.DarsLib) return;
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const byField = {};
+    Object.keys(DarsLib.DARS).forEach(code => {
+      const f = DarsLib.getFieldId(code);
+      if (!byField[f]) byField[f] = [];
+      byField[f].push(code);
+    });
+    const html = [];
+    for (let f = 1; f <= 9; f++) {
+      const codes = byField[f];
+      if (!codes) continue;
+      const fieldData = DarsLib.FIELDS[f];
+      const fieldName = (fieldData && fieldData['name_' + lang]) || fieldData?.name_ru || ('Поле ' + f);
+      html.push(`<div class="encyc-field-block" style="--field-color:${fieldData?.color || '#fff'}">
+        <div class="encyc-field-header">
+          <span class="encyc-field-dot"></span>
+          <span class="encyc-field-name">${escapeHtml(fieldName)}</span>
+          <span class="encyc-field-id">${f}</span>
+        </div>`);
+      codes.forEach(code => {
+        const name = DarsLib.getDarName(code, lang);
+        html.push(`<div class="encyc-dar-row" onclick="openDarDetail('${code}')">
+          <div class="encyc-dar-name">${escapeHtml(name)}</div>
+          <div class="encyc-dar-code">${code}</div>
+        </div>`);
+      });
+      html.push(`</div>`);
+    }
+    list.innerHTML = html.join('');
+  }
+  window.renderEncyclopedia = renderEncyclopedia;
+
+  function openDarDetail(code) {
+    // Заглушка — полная карточка Дара с деталями подключим к dar-content.json позже.
+    alert('Дар ' + code + ' — подробная карточка появится после подключения dar-content.json.');
+  }
+  window.openDarDetail = openDarDetail;
+
+  function encycSearch(query) {
+    const results = document.getElementById('encyc-results');
+    const list = document.getElementById('encyc-list');
+    if (!results || !list) return;
+    const q = (query || '').trim().toLowerCase();
+    if (!q) {
+      results.hidden = true;
+      list.hidden = false;
+      return;
+    }
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const matches = [];
+    Object.keys(DarsLib.DARS).forEach(code => {
+      const name = DarsLib.getDarName(code, lang).toLowerCase();
+      const fieldData = DarsLib.FIELDS[DarsLib.getFieldId(code)];
+      const fieldName = (fieldData?.['name_' + lang] || fieldData?.name_ru || '').toLowerCase();
+      if (code.includes(q) || name.includes(q) || fieldName.includes(q)) {
+        matches.push({ code, name: DarsLib.getDarName(code, lang) });
+      }
+    });
+    if (matches.length === 0) {
+      results.innerHTML = '<div class="placeholder">Ничего не найдено</div>';
+    } else {
+      results.innerHTML = matches.map(m => `<div class="encyc-dar-row" onclick="openDarDetail('${m.code}')">
+        <div class="encyc-dar-name">${escapeHtml(m.name)}</div>
+        <div class="encyc-dar-code">${m.code}</div>
+      </div>`).join('');
+    }
+    results.hidden = false;
+    list.hidden = true;
+  }
+  window.encycSearch = encycSearch;
 
   // === Читалка Книги Даров ===
 
@@ -410,6 +528,12 @@
   document.addEventListener('i18n:changed', () => {
     bookState.data = null;
     bookState.lang = null;
+    // Перерендерим карточку Дара (имя и архетип на новом языке)
+    try { renderMeResult(); } catch (e) {}
+    // Перерендерим сетку коллекции (имена даров на новом языке)
+    try { renderCollection(); } catch (e) {}
+    // Перерендерим энциклопедию
+    try { renderEncyclopedia(); } catch (e) {}
   });
 
   // === Кнопки-действия на вкладке «Я» ===

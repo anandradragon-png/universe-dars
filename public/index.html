@@ -4204,27 +4204,39 @@
       let serverErr = '';
       let errKind = '';
       let errStatus = 0;
-      try {
-        if (typeof DarAPI !== 'undefined' && DarAPI.saveProfile) {
-          await DarAPI.saveProfile(profile);
-          serverOk = true;
-        } else {
-          serverOk = true; // Нет DarAPI (dev preview) - считаем успехом
-        }
-      } catch (e) {
-        serverErr = e.message || 'Неизвестная ошибка';
-        errKind = e.kind || '';
-        errStatus = e.status || 0;
-        console.warn('Server profile save failed:', serverErr, 'kind:', errKind, 'status:', errStatus);
-        // Сохраняем детали ошибки для диагностики
+      // Детект: юзер не в Telegram WebApp (зашёл через веб-ссылку портала).
+      // В этом случае initData пустой и сервер вернёт 401 «нужно перезайти».
+      // Не стучимся на сервер вообще — сразу показываем нужное сообщение,
+      // данные уже сохранены в localStorage.
+      const _tgRef = window.Telegram?.WebApp;
+      const _hasInitData = !!(_tgRef && _tgRef.initData);
+      if (!_hasInitData) {
+        serverErr = 'Не в Telegram WebApp';
+        errKind = 'no-telegram';
+        errStatus = 401; // Чтобы попасть в ветку isAuthErr + isWebBrowser ниже
+      } else {
         try {
-          localStorage.setItem('_psu_last_error', JSON.stringify({
-            ts: new Date().toISOString(),
-            msg: serverErr,
-            kind: errKind,
-            status: errStatus
-          }));
-        } catch (lsErr) {}
+          if (typeof DarAPI !== 'undefined' && DarAPI.saveProfile) {
+            await DarAPI.saveProfile(profile);
+            serverOk = true;
+          } else {
+            serverOk = true; // Нет DarAPI (dev preview) - считаем успехом
+          }
+        } catch (e) {
+          serverErr = e.message || 'Неизвестная ошибка';
+          errKind = e.kind || '';
+          errStatus = e.status || 0;
+          console.warn('Server profile save failed:', serverErr, 'kind:', errKind, 'status:', errStatus);
+          // Сохраняем детали ошибки для диагностики
+          try {
+            localStorage.setItem('_psu_last_error', JSON.stringify({
+              ts: new Date().toISOString(),
+              msg: serverErr,
+              kind: errKind,
+              status: errStatus
+            }));
+          } catch (lsErr) {}
+        }
       }
       btn.disabled = false;
       btn.textContent = ((window.i18n && i18n.t && i18n.t('psu.save_and_continue')) || 'Сохранить и продолжить');
@@ -4252,12 +4264,21 @@
         const isMigrationErr = serverErr.includes('миграцию') || serverErr.includes('column') || serverErr.includes('birth_lat') || serverErr.includes('birth_lon');
         const isAuthErr = errStatus === 401 || serverErr.includes('перезайти');
         const isNetworkErr = errKind === 'network' || serverErr.includes('связи');
+        // Определяем: юзер вообще не в Telegram WebView? (открыл через веб-ссылку)
+        const tgRef = window.Telegram?.WebApp;
+        const hasInitData = !!(tgRef && tgRef.initData);
+        const isWebBrowser = !hasInitData;
 
         let color, title, hint;
         if (isMigrationErr) {
           color = '#F4511E';
           title = 'База данных не обновлена';
           hint = 'Запусти обновлённую миграцию SQL в Supabase (колонки birth_lat, birth_lon). Данные сохранены в браузере.';
+        } else if (isAuthErr && isWebBrowser) {
+          // Не в Telegram WebApp — это веб-вход из портала. Не пугаем «сессией».
+          color = '#fbbf24';
+          title = 'Открой через Telegram-бота';
+          hint = 'Чтобы сохранить данные на аккаунт, открой YupDar через бот @YupDarBot в Telegram. Сейчас твои данные сохранены только в этом браузере и при следующем заходе могут не загрузиться.';
         } else if (isAuthErr) {
           color = '#F4511E';
           title = 'Сессия Telegram устарела';

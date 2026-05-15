@@ -36,38 +36,64 @@
     "depth_place_title": "Place of birth",
     "depth_place_hint": "City of birth. Coordinates will be filled automatically.",
     "depth_name_title": "First and last name",
-    "depth_name_hint": "The name people know you by."
+    "depth_name_hint": "The name people know you by.",
+    "action_oracle": "Daily Oracle",
+    "action_share": "Share",
+    "more_about_me": "Learn more about yourself"
   },
 
   "family": {
-    "headline": "Discover your loved ones",
+    "headline": "Family",
+    "subhead": "Loved ones and invited friends — all in one place.",
     "empty_text": "Understand your child, why you clash with your mother, what unites you with your partner.",
-    "add_btn": "Add a loved one"
+    "add_btn": "+ Add a loved one",
+    "invite_title": "Invite a friend",
+    "invite_sub": "Your friend calculates their DAR — appears in your Family, you earn crystals.",
+    "invite_btn": "Share"
   },
 
   "treasury": {
     "headline": "Treasury of DARs",
-    "tab_collection": "My DARs",
-    "tab_book": "Book of DARs",
-    "tab_search": "Find a DAR",
-    "tab_science": "Science"
+    "tab_collection": "My collection",
+    "tab_books": "Books",
+    "tab_search": "Encyclopedia",
+    "tab_hero": "Hero's journey",
+    "collection_title": "My collection",
+    "collection_sub": "Grid of 64 DARs with highlighted unlocked ones will appear here. Coming next.",
+    "book_dars_title": "Book of DARs",
+    "book_dars_sub": "Complete guide to 64 DARs — in your language (RU / EN / ES).",
+    "book_parents_title": "Book for Parents",
+    "book_parents_sub": "Personal guide for your child's DAR. Opens from the child's card in Family.",
+    "book_parents_price": "from $1.99",
+    "search_title": "Encyclopedia of DARs",
+    "search_sub": "Find any DAR by code (1-6-7), name (Z-MAN) or field. Search — coming next.",
+    "hero_title": "Hero's journey",
+    "hero_sub": "Unlock loved ones' DARs via referrals or crystals — go through their story and complete the collection. Coming next."
   },
 
   "arka": {
     "headline": "Arka",
     "subhead": "Your personal path in the rhythm of your DAR",
-    "layer_day": "Day",
-    "layer_body": "Body",
-    "layer_dream": "Dream",
-    "layer_path": "Path",
-    "locked_label": "Included in Master",
-    "unlock_btn": "Open Arka"
+    "tab_today": "Today",
+    "tab_strategy": "Strategy",
+    "tab_path": "Path",
+    "today_title": "Your day's rhythm",
+    "today_sub": "Morning, daytime and evening rituals for your DAR. Gratitude journal. Oils gently woven into practice. Coming next.",
+    "strategy_title": "Strategy in the rhythm of your DAR",
+    "strategy_sub": "Goals, steps and an AI helper that thinks like your DAR. Available in the Guardian plan.",
+    "unlock_guardian": "Open Guardian",
+    "path_title": "Your personal AI mentor",
+    "path_sub": "Mentor's brief, week analysis, income flows and growth plan. Available in the Master plan.",
+    "unlock_master": "Open Master"
   },
 
   "science": {
     "title": "Scientific research",
     "description": "Help researchers verify the DAR system.",
-    "open_survey": "Take the survey"
+    "open_survey": "Take the survey",
+    "header_tooltip": "Scientific research on DARs",
+    "banner_title": "Become a co-author of the research",
+    "banner_sub": "Help science: take a 28-statement survey (≈ 7 min) and be part of the first scientific paper on DARs in Dubai"
   },
 
   "common": {

@@ -698,6 +698,216 @@
       line-height: 1.4;
       font-style: italic;
     }
+
+    /* === Кнопки-действия на вкладке «Я» (Оракул / Поделиться) === */
+    .me-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .me-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 8px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .me-action-btn:hover {
+      border-color: rgba(212,175,55,0.4);
+      background: rgba(212,175,55,0.04);
+    }
+    .me-action-icon { font-size: 22px; line-height: 1; }
+    .me-action-label { font-size: 12px; color: var(--text-dim); }
+
+    /* === Сворачивающийся блок «Узнать о себе больше» === */
+    .me-more-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .me-more-toggle:hover { background: rgba(212,175,55,0.05); }
+    .me-more-toggle[aria-expanded="true"] { color: var(--gold); border-color: rgba(212,175,55,0.3); }
+    .me-more-icon { font-size: 16px; }
+    .me-more-label { flex: 1; text-align: left; }
+    .me-more-chevron {
+      font-size: 14px;
+      transition: transform 0.2s;
+    }
+    .me-more-toggle[aria-expanded="true"] .me-more-chevron {
+      transform: rotate(180deg);
+    }
+    .me-more-content {
+      margin-top: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .me-more-content[hidden] { display: none; }
+
+    /* === Баннер «Наука» на вкладке «Я» === */
+    .science-banner {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: linear-gradient(135deg, rgba(135,206,235,0.06), rgba(212,175,55,0.04));
+      border: 1px solid rgba(135,206,235,0.25);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .science-banner:hover {
+      border-color: rgba(135,206,235,0.5);
+      background: linear-gradient(135deg, rgba(135,206,235,0.1), rgba(212,175,55,0.07));
+    }
+    .science-banner-emoji { font-size: 28px; flex-shrink: 0; }
+    .science-banner-text { flex: 1; min-width: 0; }
+    .science-banner-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+    }
+    .science-banner-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+    .science-banner-arrow {
+      color: var(--gold);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* === Иконка «Наука» в шапке (специально для учёных) === */
+    .header-action-science {
+      background: rgba(135,206,235,0.08);
+      border-color: rgba(135,206,235,0.3);
+    }
+    .header-action-science:hover {
+      background: rgba(135,206,235,0.18);
+      border-color: rgba(135,206,235,0.6);
+    }
+
+    /* === Подвкладки контента (Сокровищница / Арка) === */
+    .subtab-content { display: none; }
+    .subtab-content.active { display: block; }
+
+    /* === Семья: реф-карточка === */
+    .family-invite-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-top: 16px;
+    }
+    .family-invite-emoji { font-size: 28px; flex-shrink: 0; }
+    .family-invite-text { flex: 1; min-width: 0; }
+    .family-invite-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .family-invite-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .family-invite-btn {
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.3);
+      color: var(--gold);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* === Сокровищница: карточки книг === */
+    .treasury-book-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .treasury-book-card:hover {
+      border-color: rgba(212,175,55,0.4);
+      background: rgba(212,175,55,0.03);
+    }
+    .treasury-book-icon { font-size: 32px; flex-shrink: 0; }
+    .treasury-book-text { flex: 1; min-width: 0; }
+    .treasury-book-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .treasury-book-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .treasury-book-price {
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* === Арка: paywall для премиум-уровней === */
+    .arka-paywall {
+      text-align: center;
+      padding: 30px 20px;
+      background: linear-gradient(160deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02));
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 16px;
+    }
+    .arka-paywall-icon { font-size: 48px; margin-bottom: 12px; }
+    .arka-paywall-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .arka-paywall-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
@@ -715,6 +925,9 @@
     <div class="crystal-counter" onclick="openProfile()" style="cursor:pointer" title="Кристаллы">💎 <span id="crystal-amount">0</span></div>
     <button class="header-action" id="btn-lang" onclick="toggleLangPicker(event)" title="Язык">
       🌐 <span id="lang-btn-label">RU</span>
+    </button>
+    <button class="header-action header-action-science" onclick="openScienceSurvey()" title="Научное исследование о Дарах" data-i18n="science.header_tooltip" data-i18n-attr="title">
+      🔬
     </button>
     <button class="header-action" onclick="openProfile()" title="Личный кабинет">
       👤
@@ -751,7 +964,7 @@
         </div>
       </div>
 
-      <!-- Состояние Б: после расчёта (карточка Дара + углубление) -->
+      <!-- Состояние Б: после расчёта (карточка Дара + действия) -->
       <div id="me-result-state" style="display:none">
         <div class="dar-card">
           <div class="dar-image">
@@ -762,11 +975,30 @@
           <div class="dar-archetype" id="me-dar-archetype"></div>
         </div>
 
+        <!-- Главная конверсия -->
         <button class="btn-primary" data-i18n="me.full_message">📜 Полное послание</button>
 
-        <!-- Углубление: время → место → имя -->
-        <div class="depth-section">
-          <div class="depth-title" data-i18n="me.depth_title">Сделать профиль глубже</div>
+        <!-- Действия по своему Дару (не дублируют другие вкладки):
+             Оракул дня — здесь, потому что это персональное послание про МЕНЯ.
+             Поделиться — здесь, потому что карточка моего Дара. -->
+        <div class="me-actions">
+          <button class="me-action-btn" onclick="openMyOracle()">
+            <span class="me-action-icon">🔮</span>
+            <span class="me-action-label" data-i18n="me.action_oracle">Оракул дня</span>
+          </button>
+          <button class="me-action-btn" onclick="openMyShare()">
+            <span class="me-action-icon">🖼</span>
+            <span class="me-action-label" data-i18n="me.action_share">Поделиться</span>
+          </button>
+        </div>
+
+        <!-- Свёрнутый по умолчанию блок «Узнать о себе больше». Раскрывается по клику. -->
+        <button class="me-more-toggle" id="me-more-toggle" onclick="toggleMeMore()" aria-expanded="false">
+          <span class="me-more-icon" id="me-more-icon">🔍</span>
+          <span class="me-more-label" data-i18n="me.more_about_me">Узнать о себе больше</span>
+          <span class="me-more-chevron" id="me-more-chevron">▾</span>
+        </button>
+        <div class="me-more-content" id="me-more-content" hidden>
           <div class="depth-sub" data-i18n="me.depth_sub">Добавь время, место и имя — расчёт точнее, послание глубже.</div>
 
           <div class="depth-step" id="depth-time">
@@ -798,9 +1030,17 @@
         </div>
 
         <!-- Закон: личные данные неизменяемы (law_personal_data_immutable.md).
-             Кнопка «Изменить дату рождения» удалена. При ошибке — через
-             поддержку (Обратная связь в ЛК → админка). -->
+             Кнопки «Изменить дату» нет. При ошибке — через поддержку. -->
 
+        <!-- Наука: вариант A (баннер на главной после расчёта Дара) + вариант B (иконка в шапке). -->
+        <div class="science-banner" onclick="openScienceSurvey()" role="button" tabindex="0">
+          <div class="science-banner-emoji">🌍</div>
+          <div class="science-banner-text">
+            <div class="science-banner-title" data-i18n="science.banner_title">Стать соавтором исследования</div>
+            <div class="science-banner-sub" data-i18n="science.banner_sub">Помоги науке: пройди опросник из 28 утверждений (≈ 7 мин) и стань частью первой научной работы о Дарах в Дубае</div>
+          </div>
+          <div class="science-banner-arrow">→</div>
+        </div>
       </div>
     </section>
 
@@ -845,70 +1085,129 @@
     </div>
 
     <!-- ============ ВКЛАДКА «СЕМЬЯ» ============ -->
+    <!-- Тут: близкие + приглашённые друзья. Не дублируем рефералку в ЛК. -->
     <section class="tab" id="tab-family">
-      <h2 class="screen-headline" data-i18n="family.headline">Узнай своих близких</h2>
+      <h2 class="screen-headline" data-i18n="family.headline">Семья</h2>
+      <p class="screen-subhead" data-i18n="family.subhead">Близкие и приглашённые друзья — в одном месте.</p>
 
-      <div class="empty">
+      <!-- Empty state, пока никого нет -->
+      <div class="empty" id="family-empty">
         <div class="empty-icon">👨‍👩‍👧</div>
         <div class="empty-text" data-i18n="family.empty_text">
           Пойми ребёнка, почему конфликтуете с мамой, что объединяет с любимым.
         </div>
         <button class="btn-primary" data-i18n="family.add_btn">+ Добавить близкого</button>
       </div>
+
+      <!-- Заглушка реф-блока, отображается под списком близких (потом) -->
+      <div class="family-invite-card">
+        <div class="family-invite-emoji">🤝</div>
+        <div class="family-invite-text">
+          <div class="family-invite-title" data-i18n="family.invite_title">Пригласи друга</div>
+          <div class="family-invite-sub" data-i18n="family.invite_sub">Друг рассчитает свой Дар — он появится у тебя в Семье, ты получишь кристаллы.</div>
+        </div>
+        <button class="family-invite-btn" data-i18n="family.invite_btn">Поделиться</button>
+      </div>
     </section>
 
     <!-- ============ ВКЛАДКА «СОКРОВИЩНИЦА» ============ -->
+    <!-- Состав: Моя коллекция / Книги (Даров + для Родителей) / Энциклопедия / Путешествие героя.
+         Наука НЕ здесь — она вынесена отдельно (шапка + баннер на «Я»). -->
     <section class="tab" id="tab-treasury">
       <h2 class="screen-headline" data-i18n="treasury.headline">Сокровищница Даров</h2>
 
       <div class="subtabs">
-        <button class="subtab active" data-i18n="treasury.tab_collection">Мои дары</button>
-        <button class="subtab" data-i18n="treasury.tab_book">Книга Даров</button>
-        <button class="subtab" data-i18n="treasury.tab_search">Найти Дар</button>
-        <button class="subtab" data-i18n="treasury.tab_science">Наука</button>
+        <button class="subtab active" data-subtab="collection" data-i18n="treasury.tab_collection">Моя коллекция</button>
+        <button class="subtab" data-subtab="books" data-i18n="treasury.tab_books">Книги</button>
+        <button class="subtab" data-subtab="search" data-i18n="treasury.tab_search">Энциклопедия</button>
+        <button class="subtab" data-subtab="hero" data-i18n="treasury.tab_hero">Путешествие героя</button>
       </div>
 
-      <div class="placeholder">
-        <strong>Контент подвкладки</strong>
-        Здесь будет сетка 64 даров (моя коллекция).
+      <!-- Моя коллекция -->
+      <div class="subtab-content active" data-subtab-content="collection">
+        <div class="placeholder">
+          <strong data-i18n="treasury.collection_title">Моя коллекция</strong>
+          <span data-i18n="treasury.collection_sub">Здесь появится сетка 64 даров с подсветкой открытых. Наполнение — следующий этап.</span>
+        </div>
       </div>
 
-      <div class="science-block" style="margin-top:20px">
-        <h3 data-i18n="science.title">Научные исследования</h3>
-        <p data-i18n="science.description">Помоги учёным проверить точность системы Даров.</p>
-        <a href="#" class="btn-secondary" onclick="openScienceSurvey();return false;" data-i18n="science.open_survey">Пройти опрос</a>
+      <!-- Книги -->
+      <div class="subtab-content" data-subtab-content="books">
+        <div class="treasury-book-card">
+          <div class="treasury-book-icon">📖</div>
+          <div class="treasury-book-text">
+            <div class="treasury-book-title" data-i18n="treasury.book_dars_title">Книга Даров</div>
+            <div class="treasury-book-sub" data-i18n="treasury.book_dars_sub">Полное руководство по 64 Дарам — на твоём языке (RU / EN / ES).</div>
+          </div>
+          <div class="treasury-book-price">990 ₽</div>
+        </div>
+        <div class="treasury-book-card">
+          <div class="treasury-book-icon">👶</div>
+          <div class="treasury-book-text">
+            <div class="treasury-book-title" data-i18n="treasury.book_parents_title">Книга для Родителей</div>
+            <div class="treasury-book-sub" data-i18n="treasury.book_parents_sub">Персональный разбор по Дару твоего ребёнка. Открывается на карточке ребёнка в Семье.</div>
+          </div>
+          <div class="treasury-book-price" data-i18n="treasury.book_parents_price">от 199 ₽</div>
+        </div>
+      </div>
+
+      <!-- Энциклопедия (поиск) -->
+      <div class="subtab-content" data-subtab-content="search">
+        <div class="placeholder">
+          <strong data-i18n="treasury.search_title">Энциклопедия Даров</strong>
+          <span data-i18n="treasury.search_sub">Найди любой Дар по коду (1-6-7), имени (З-МАН) или полю. Поиск — следующий этап.</span>
+        </div>
+      </div>
+
+      <!-- Путешествие героя -->
+      <div class="subtab-content" data-subtab-content="hero">
+        <div class="placeholder">
+          <strong data-i18n="treasury.hero_title">Путешествие героя</strong>
+          <span data-i18n="treasury.hero_sub">Открой Дары близких через рефералы или кристаллы — пройди их историю и собери коллекцию. Реализация — следующий этап.</span>
+        </div>
       </div>
     </section>
 
     <!-- ============ ВКЛАДКА «АРКА» ============ -->
+    <!-- 3 подвкладки: Сегодня (бесплатно) / Стратегия (Хранитель) / Путь (Мастер).
+         Оракул живёт в «Я», тут только ритм жизни. -->
     <section class="tab" id="tab-arka">
       <h2 class="screen-headline" data-i18n="arka.headline">Арка</h2>
       <p class="screen-subhead" data-i18n="arka.subhead">Личный путь в ритме твоего Дара</p>
 
-      <div class="arka-layer unlocked">
-        <div class="arka-layer-title">🌞 <span data-i18n="arka.layer_day">День</span></div>
-        <div class="arka-layer-sub">Ритуалы, окна силы, дневник</div>
+      <div class="subtabs">
+        <button class="subtab active" data-subtab="today" data-i18n="arka.tab_today">Сегодня</button>
+        <button class="subtab" data-subtab="strategy" data-i18n="arka.tab_strategy">Стратегия</button>
+        <button class="subtab" data-subtab="path" data-i18n="arka.tab_path">Путь</button>
       </div>
 
-      <div class="arka-layer locked">
-        <div class="arka-layer-title">🌿 <span data-i18n="arka.layer_body">Тело</span></div>
-        <div class="arka-layer-sub">Практики, масла, камни под твой Дар</div>
-        <div class="arka-lock-badge" data-i18n="arka.locked_label">В тарифе Мастер</div>
+      <!-- Сегодня (для всех бесплатно) -->
+      <div class="subtab-content active" data-subtab-content="today">
+        <div class="placeholder">
+          <strong data-i18n="arka.today_title">Ритм твоего дня</strong>
+          <span data-i18n="arka.today_sub">Утренние, дневные и вечерние ритуалы под твой Дар. Дневник благодарности. Масла мягко вплетены в практики. Реализация — следующий этап (по образцу прототипа iram-prototype).</span>
+        </div>
       </div>
 
-      <div class="arka-layer locked">
-        <div class="arka-layer-title">✨ <span data-i18n="arka.layer_dream">Мечта</span></div>
-        <div class="arka-layer-sub">Цели и стратегии в ритме Дара</div>
-        <div class="arka-lock-badge" data-i18n="arka.locked_label">В тарифе Мастер</div>
+      <!-- Стратегия (Хранитель) -->
+      <div class="subtab-content" data-subtab-content="strategy">
+        <div class="arka-paywall">
+          <div class="arka-paywall-icon">🛡</div>
+          <div class="arka-paywall-title" data-i18n="arka.strategy_title">Стратегия в ритме твоего Дара</div>
+          <div class="arka-paywall-sub" data-i18n="arka.strategy_sub">Цели, шаги и AI-помощник, который думает как твой Дар. Доступно в тарифе Хранитель.</div>
+          <button class="btn-primary" data-i18n="arka.unlock_guardian">Открыть Хранителя</button>
+        </div>
       </div>
 
-      <div class="arka-layer locked">
-        <div class="arka-layer-title">🧭 <span data-i18n="arka.layer_path">Путь</span></div>
-        <div class="arka-layer-sub">AI-наставник, разбор недели, потоки дохода</div>
-        <div class="arka-lock-badge" data-i18n="arka.locked_label">В тарифе Мастер</div>
+      <!-- Путь (Мастер) -->
+      <div class="subtab-content" data-subtab-content="path">
+        <div class="arka-paywall">
+          <div class="arka-paywall-icon">👑</div>
+          <div class="arka-paywall-title" data-i18n="arka.path_title">Личный AI-наставник</div>
+          <div class="arka-paywall-sub" data-i18n="arka.path_sub">Бриф наставника, разбор недели, потоки дохода и план продвижения. Доступно в тарифе Мастер.</div>
+          <button class="btn-primary" data-i18n="arka.unlock_master">Открыть Мастера</button>
+        </div>
       </div>
-
-      <button class="btn-unlock" data-i18n="arka.unlock_btn">Открыть Арку</button>
     </section>
   </main>
 

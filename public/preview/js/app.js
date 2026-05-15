@@ -21,6 +21,22 @@
   }
   window.switchTab = switchTab;
 
+  // Переключение подвкладок внутри секций (Сокровищница, Арка)
+  function attachSubtabs() {
+    document.querySelectorAll('.tab').forEach(tab => {
+      const buttons = tab.querySelectorAll('.subtab[data-subtab]');
+      const contents = tab.querySelectorAll('.subtab-content[data-subtab-content]');
+      if (!buttons.length || !contents.length) return;
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-subtab');
+          buttons.forEach(b => b.classList.toggle('active', b === btn));
+          contents.forEach(c => c.classList.toggle('active', c.getAttribute('data-subtab-content') === target));
+        });
+      });
+    });
+  }
+
   // Переключение языка
   function setLang(lang) {
     if (!window.previewI18n) return;
@@ -201,6 +217,37 @@
     }
   }
 
+  // === Кнопки-действия на вкладке «Я» ===
+
+  function openMyOracle() {
+    // Оракул дня живёт во вкладке «Я» (а не в Арке).
+    // В прототипе пока заглушка — модалка с Дар Дня + посланием.
+    alert('🔮 Оракул дня — следующий этап реализации.');
+  }
+  window.openMyOracle = openMyOracle;
+
+  function openMyShare() {
+    // Поделиться карточкой Дара (share-card + A4 — обе опции в одной модалке).
+    alert('🖼 Поделиться — модалка выбора (карточка для соцсетей / A4 для печати).');
+  }
+  window.openMyShare = openMyShare;
+
+  // Сворачивающийся блок «Узнать о себе больше»
+  function toggleMeMore() {
+    const toggle = document.getElementById('me-more-toggle');
+    const content = document.getElementById('me-more-content');
+    if (!toggle || !content) return;
+    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+    if (isOpen) {
+      toggle.setAttribute('aria-expanded', 'false');
+      content.hidden = true;
+    } else {
+      toggle.setAttribute('aria-expanded', 'true');
+      content.hidden = false;
+    }
+  }
+  window.toggleMeMore = toggleMeMore;
+
   // === Модалки углубления ===
 
   function closeDepthModals() {
@@ -296,6 +343,8 @@
     // Маски ввода
     attachDateMask(document.getElementById('me-date'));
     attachTimeMask(document.getElementById('depth-time-input'));
+    // Подвкладки внутри Сокровищницы и Арки
+    attachSubtabs();
     // Рендер вкладки Я в зависимости от того, был ли расчёт
     renderMeState();
     // Закрывать выпадашку языка по клику вне

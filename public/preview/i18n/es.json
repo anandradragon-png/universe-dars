@@ -36,38 +36,64 @@
     "depth_place_title": "Lugar de nacimiento",
     "depth_place_hint": "Ciudad de nacimiento. Las coordenadas se rellenarán automáticamente.",
     "depth_name_title": "Nombre y apellido",
-    "depth_name_hint": "Nombre y apellido por los que te conocen."
+    "depth_name_hint": "Nombre y apellido por los que te conocen.",
+    "action_oracle": "Oráculo del día",
+    "action_share": "Compartir",
+    "more_about_me": "Saber más sobre ti"
   },
 
   "family": {
-    "headline": "Descubre a tus seres queridos",
+    "headline": "Familia",
+    "subhead": "Tus seres queridos y amigos invitados — todo en un solo lugar.",
     "empty_text": "Comprende a tu hijo, por qué chocas con tu madre, qué te une con tu pareja.",
-    "add_btn": "Añadir a un ser querido"
+    "add_btn": "+ Añadir a un ser querido",
+    "invite_title": "Invita a un amigo",
+    "invite_sub": "Tu amigo calcula su DAR — aparece en tu Familia, tú recibes cristales.",
+    "invite_btn": "Compartir"
   },
 
   "treasury": {
     "headline": "Tesoro de los DARs",
-    "tab_collection": "Mis DARs",
-    "tab_book": "Libro de los DARs",
-    "tab_search": "Buscar un DAR",
-    "tab_science": "Ciencia"
+    "tab_collection": "Mi colección",
+    "tab_books": "Libros",
+    "tab_search": "Enciclopedia",
+    "tab_hero": "Viaje del héroe",
+    "collection_title": "Mi colección",
+    "collection_sub": "Aquí aparecerá la cuadrícula de 64 DARs con los desbloqueados resaltados. Próxima etapa.",
+    "book_dars_title": "Libro de los DARs",
+    "book_dars_sub": "Guía completa de los 64 DARs — en tu idioma (RU / EN / ES).",
+    "book_parents_title": "Libro para Padres",
+    "book_parents_sub": "Guía personalizada según el DAR de tu hijo. Se abre desde la tarjeta del hijo en Familia.",
+    "book_parents_price": "desde 1,99 $",
+    "search_title": "Enciclopedia de los DARs",
+    "search_sub": "Encuentra cualquier DAR por código (1-6-7), nombre (Z-MAN) o campo. Búsqueda — próxima etapa.",
+    "hero_title": "Viaje del héroe",
+    "hero_sub": "Desbloquea los DARs de tus seres queridos mediante referidos o cristales — vive su historia y completa la colección. Próxima etapa."
   },
 
   "arka": {
     "headline": "Arka",
     "subhead": "Tu camino personal en el ritmo de tu DAR",
-    "layer_day": "Día",
-    "layer_body": "Cuerpo",
-    "layer_dream": "Sueño",
-    "layer_path": "Camino",
-    "locked_label": "Incluido en Maestro",
-    "unlock_btn": "Abrir Arka"
+    "tab_today": "Hoy",
+    "tab_strategy": "Estrategia",
+    "tab_path": "Camino",
+    "today_title": "El ritmo de tu día",
+    "today_sub": "Rituales de mañana, día y noche según tu DAR. Diario de gratitud. Aceites integrados con suavidad en la práctica. Próxima etapa.",
+    "strategy_title": "Estrategia en el ritmo de tu DAR",
+    "strategy_sub": "Objetivos, pasos y un asistente IA que piensa como tu DAR. Disponible en el plan Guardián.",
+    "unlock_guardian": "Abrir Guardián",
+    "path_title": "Tu mentor personal IA",
+    "path_sub": "Resumen del mentor, análisis de la semana, flujos de ingresos y plan de crecimiento. Disponible en el plan Maestro.",
+    "unlock_master": "Abrir Maestro"
   },
 
   "science": {
     "title": "Investigación científica",
     "description": "Ayuda a los investigadores a verificar el sistema DAR.",
-    "open_survey": "Hacer la encuesta"
+    "open_survey": "Hacer la encuesta",
+    "header_tooltip": "Investigación científica sobre los DARs",
+    "banner_title": "Conviértete en coautor de la investigación",
+    "banner_sub": "Ayuda a la ciencia: responde a 28 afirmaciones (≈ 7 min) y forma parte del primer trabajo científico sobre los DARs en Dubái"
   },
 
   "common": {

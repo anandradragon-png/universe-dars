@@ -23,10 +23,21 @@
     "subhead": "Enter your birth date — get a message about your nature, strength and path",
     "date_placeholder": "DD.MM.YYYY",
     "calculate_btn": "Calculate my DAR",
+    "value_title": "What you'll get",
     "value_dar": "Name and description of your DAR",
     "value_message": "A message about your nature",
     "value_oracle": "Oracle every day",
-    "value_compat": "Compatibility with loved ones"
+    "value_compat": "Compatibility with loved ones",
+    "full_message": "📜 Full message",
+    "depth_title": "Go deeper",
+    "depth_sub": "Add time, place and name — more precise calculation, deeper message.",
+    "depth_time_title": "Time of birth",
+    "depth_time_hint": "If unknown — enter 12:00",
+    "depth_place_title": "Place of birth",
+    "depth_place_hint": "City of birth. Coordinates will be filled automatically.",
+    "depth_name_title": "First and last name",
+    "depth_name_hint": "The name people know you by.",
+    "recalculate": "Change birth date"
   },
 
   "family": {
@@ -63,6 +74,10 @@
   "common": {
     "soon": "Coming soon",
     "close": "Close",
+    "add": "Add",
+    "change": "Change",
+    "save": "Save",
+    "cancel": "Cancel",
     "preview_warning": "Prototype. This is a copy for testing the new architecture — data is not saved."
   },
 

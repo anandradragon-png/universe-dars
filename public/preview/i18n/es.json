@@ -23,10 +23,21 @@
     "subhead": "Introduce tu fecha de nacimiento — recibe un mensaje sobre tu naturaleza, fuerza y camino",
     "date_placeholder": "DD.MM.AAAA",
     "calculate_btn": "Calcular mi DAR",
+    "value_title": "Lo que vas a recibir",
     "value_dar": "Nombre y descripción de tu DAR",
     "value_message": "Un mensaje sobre tu naturaleza",
     "value_oracle": "Oráculo cada día",
-    "value_compat": "Compatibilidad con tus seres queridos"
+    "value_compat": "Compatibilidad con tus seres queridos",
+    "full_message": "📜 Mensaje completo",
+    "depth_title": "Profundiza tu perfil",
+    "depth_sub": "Añade hora, lugar y nombre — el cálculo será más preciso, el mensaje más profundo.",
+    "depth_time_title": "Hora de nacimiento",
+    "depth_time_hint": "Si no la sabes — pon 12:00",
+    "depth_place_title": "Lugar de nacimiento",
+    "depth_place_hint": "Ciudad de nacimiento. Las coordenadas se rellenarán automáticamente.",
+    "depth_name_title": "Nombre y apellido",
+    "depth_name_hint": "Nombre y apellido por los que te conocen.",
+    "recalculate": "Cambiar fecha de nacimiento"
   },
 
   "family": {
@@ -63,6 +74,10 @@
   "common": {
     "soon": "Próximamente",
     "close": "Cerrar",
+    "add": "Añadir",
+    "change": "Cambiar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
     "preview_warning": "Prototipo. Es una copia para probar la nueva arquitectura — los datos no se guardan."
   },
 

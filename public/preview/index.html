@@ -547,6 +547,146 @@
       background: var(--border);
       margin: 14px 0 12px;
     }
+    /* === Карточка Дара (после расчёта) === */
+    .dar-card {
+      background: linear-gradient(160deg, rgba(212,175,55,0.08), rgba(212,175,55,0.02));
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 18px;
+      padding: 24px 20px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .dar-image {
+      width: 96px; height: 96px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,175,55,0.35), rgba(212,175,55,0.05));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+    }
+    .dar-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 3px;
+      margin-bottom: 4px;
+    }
+    .dar-code {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .dar-archetype {
+      font-size: 14px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+    .error-msg {
+      color: #ef5350;
+      font-size: 12px;
+      min-height: 14px;
+      text-align: center;
+      margin: 4px 0 8px;
+    }
+
+    /* === Углубление: 3 шага === */
+    .depth-section {
+      margin-top: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .depth-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .depth-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .depth-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-top: 1px solid var(--border);
+    }
+    .depth-step:first-of-type { border-top: none; padding-top: 4px; }
+    .depth-icon { font-size: 20px; flex-shrink: 0; }
+    .depth-step-text { flex: 1; min-width: 0; }
+    .depth-step-title {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .depth-step-value {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .depth-step-btn {
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.3);
+      color: var(--gold);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .depth-step-btn:hover { background: rgba(212,175,55,0.18); }
+    .depth-step.filled .depth-step-btn { opacity: 0.6; }
+    .reset-link {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .reset-link a {
+      color: var(--text-muted);
+      font-size: 12px;
+      text-decoration: underline dotted;
+      cursor: pointer;
+    }
+
+    /* === Модалки углубления === */
+    .depth-modal {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(110%);
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border-top: 1px solid rgba(212,175,55,0.3);
+      border-radius: 18px 18px 0 0;
+      padding: 20px 16px;
+      z-index: 502;
+      transition: transform 0.25s ease-out;
+    }
+    .depth-modal.open { transform: translateX(-50%) translateY(0); }
+    .depth-modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .depth-modal-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
     .lk-readonly-note {
       margin-top: 10px;
       padding: 8px 10px;
@@ -590,23 +730,118 @@
   <main>
     <!-- ============ ВКЛАДКА «Я» ============ -->
     <section class="tab active" id="tab-me">
-      <h2 class="screen-headline" data-i18n="me.headline">Узнай свой Дар</h2>
-      <p class="screen-subhead" data-i18n="me.subhead">Введи дату рождения — получи послание о своей природе, силе и пути</p>
+      <!-- Состояние А: до расчёта -->
+      <div id="me-input-state">
+        <h2 class="screen-headline" data-i18n="me.headline">Узнай свой Дар</h2>
+        <p class="screen-subhead" data-i18n="me.subhead">Введи дату рождения — получи послание о своей природе, силе и пути</p>
 
-      <div class="calc-form">
-        <input class="date-input" type="text" inputmode="numeric" maxlength="10"
-               placeholder="ДД.ММ.ГГГГ" data-i18n="me.date_placeholder" data-i18n-attr="placeholder">
-        <button class="btn-primary" data-i18n="me.calculate_btn">Рассчитать мой Дар</button>
+        <div class="calc-form">
+          <input id="me-date" class="date-input" type="text" inputmode="numeric" maxlength="10"
+                 placeholder="ДД.ММ.ГГГГ" data-i18n="me.date_placeholder" data-i18n-attr="placeholder">
+          <div class="error-msg" id="me-date-error"></div>
+          <button class="btn-primary" onclick="calculateMyDar()" data-i18n="me.calculate_btn">Рассчитать мой Дар</button>
+        </div>
+
+        <div class="value-list">
+          <h3 data-i18n="me.value_title">Что ты получишь</h3>
+          <div class="value-item" data-i18n="me.value_dar">Имя и описание Дара</div>
+          <div class="value-item" data-i18n="me.value_message">Послание про твою природу</div>
+          <div class="value-item" data-i18n="me.value_oracle">Оракул каждый день</div>
+          <div class="value-item" data-i18n="me.value_compat">Совместимость с близкими</div>
+        </div>
       </div>
 
-      <div class="value-list">
-        <h3>Что ты получишь</h3>
-        <div class="value-item" data-i18n="me.value_dar">Имя и описание Дара</div>
-        <div class="value-item" data-i18n="me.value_message">Послание про твою природу</div>
-        <div class="value-item" data-i18n="me.value_oracle">Оракул каждый день</div>
-        <div class="value-item" data-i18n="me.value_compat">Совместимость с близкими</div>
+      <!-- Состояние Б: после расчёта (карточка Дара + углубление) -->
+      <div id="me-result-state" style="display:none">
+        <div class="dar-card">
+          <div class="dar-image">
+            <span id="me-dar-emoji">✨</span>
+          </div>
+          <div class="dar-name" id="me-dar-name">—</div>
+          <div class="dar-code" id="me-dar-code">—</div>
+          <div class="dar-archetype" id="me-dar-archetype"></div>
+        </div>
+
+        <button class="btn-primary" data-i18n="me.full_message">📜 Полное послание</button>
+
+        <!-- Углубление: время → место → имя -->
+        <div class="depth-section">
+          <div class="depth-title" data-i18n="me.depth_title">Сделать профиль глубже</div>
+          <div class="depth-sub" data-i18n="me.depth_sub">Добавь время, место и имя — расчёт точнее, послание глубже.</div>
+
+          <div class="depth-step" id="depth-time">
+            <span class="depth-icon">🕐</span>
+            <div class="depth-step-text">
+              <div class="depth-step-title" data-i18n="me.depth_time_title">Время рождения</div>
+              <div class="depth-step-value" id="depth-time-value">—</div>
+            </div>
+            <button class="depth-step-btn" onclick="openDepthTime()" data-i18n="common.add">Добавить</button>
+          </div>
+
+          <div class="depth-step" id="depth-place">
+            <span class="depth-icon">📍</span>
+            <div class="depth-step-text">
+              <div class="depth-step-title" data-i18n="me.depth_place_title">Место рождения</div>
+              <div class="depth-step-value" id="depth-place-value">—</div>
+            </div>
+            <button class="depth-step-btn" onclick="openDepthPlace()" data-i18n="common.add">Добавить</button>
+          </div>
+
+          <div class="depth-step" id="depth-name">
+            <span class="depth-icon">🪪</span>
+            <div class="depth-step-text">
+              <div class="depth-step-title" data-i18n="me.depth_name_title">Имя и фамилия</div>
+              <div class="depth-step-value" id="depth-name-value">—</div>
+            </div>
+            <button class="depth-step-btn" onclick="openDepthName()" data-i18n="common.add">Добавить</button>
+          </div>
+        </div>
+
+        <div class="reset-link">
+          <a href="#" onclick="resetMyDar();return false;" data-i18n="me.recalculate">Изменить дату рождения</a>
+        </div>
       </div>
     </section>
+
+    <!-- Модалка ввода времени -->
+    <div class="lk-backdrop" id="depth-time-backdrop" onclick="closeDepthModals()"></div>
+    <div class="depth-modal" id="depth-time-modal">
+      <div class="depth-modal-title" data-i18n="me.depth_time_title">Время рождения</div>
+      <div class="depth-modal-hint" data-i18n="me.depth_time_hint">Если не знаешь точное — укажи 12:00</div>
+      <input class="lk-input" id="depth-time-input" type="text" inputmode="numeric" maxlength="5" placeholder="ЧЧ:ММ">
+      <div class="error-msg" id="depth-time-error"></div>
+      <div class="lk-btn-row">
+        <button class="lk-btn" onclick="closeDepthModals()" data-i18n="common.cancel">Отмена</button>
+        <button class="lk-btn" onclick="saveDepthTime()" data-i18n="common.save">Сохранить</button>
+      </div>
+    </div>
+
+    <!-- Модалка ввода места -->
+    <div class="lk-backdrop" id="depth-place-backdrop" onclick="closeDepthModals()"></div>
+    <div class="depth-modal" id="depth-place-modal">
+      <div class="depth-modal-title" data-i18n="me.depth_place_title">Место рождения</div>
+      <div class="depth-modal-hint" data-i18n="me.depth_place_hint">Город рождения. Координаты подставим автоматически (заглушка).</div>
+      <input class="lk-input" id="depth-place-input" type="text" placeholder="Город">
+      <div class="error-msg" id="depth-place-error"></div>
+      <div class="lk-btn-row">
+        <button class="lk-btn" onclick="closeDepthModals()" data-i18n="common.cancel">Отмена</button>
+        <button class="lk-btn" onclick="saveDepthPlace()" data-i18n="common.save">Сохранить</button>
+      </div>
+    </div>
+
+    <!-- Модалка ввода имени -->
+    <div class="lk-backdrop" id="depth-name-backdrop" onclick="closeDepthModals()"></div>
+    <div class="depth-modal" id="depth-name-modal">
+      <div class="depth-modal-title" data-i18n="me.depth_name_title">Имя и фамилия</div>
+      <div class="depth-modal-hint" data-i18n="me.depth_name_hint">Имя и фамилия, под которыми тебя знают чаще всего.</div>
+      <input class="lk-input" id="depth-firstname-input" type="text" placeholder="Имя" style="margin-bottom:8px">
+      <input class="lk-input" id="depth-lastname-input" type="text" placeholder="Фамилия">
+      <div class="error-msg" id="depth-name-error"></div>
+      <div class="lk-btn-row">
+        <button class="lk-btn" onclick="closeDepthModals()" data-i18n="common.cancel">Отмена</button>
+        <button class="lk-btn" onclick="saveDepthName()" data-i18n="common.save">Сохранить</button>
+      </div>
+    </div>
 
     <!-- ============ ВКЛАДКА «СЕМЬЯ» ============ -->
     <section class="tab" id="tab-family">
@@ -766,7 +1001,8 @@
     </button>
   </nav>
 
-  <script src="/preview/js/i18n.js?v=2"></script>
-  <script src="/preview/js/app.js?v=2"></script>
+  <script src="/preview/js/i18n.js?v=3"></script>
+  <script src="/preview/js/dars.js?v=1"></script>
+  <script src="/preview/js/app.js?v=3"></script>
 </body>
 </html>

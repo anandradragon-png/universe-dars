@@ -174,6 +174,15 @@
     return ''; // На EN/ES архетип скроется (см. CSS dar-archetype:empty)
   }
 
+  // Путь к SVG-иконке Дара (как в основном приложении).
+  // /images/dars/{ru-имя-в-нижнем-без-дефисов}.svg
+  function getDarSvgPath(code) {
+    const ruName = DARS[code] || INTEGRATORS[code];
+    if (!ruName) return '';
+    const filename = ruName.toLowerCase().replace(/-/g, '');
+    return '/images/dars/' + filename + '.svg';
+  }
+
   // Поле Дара (по 3-й цифре кода = KUN)
   function getField(code) {
     const kun = parseInt(String(code).split('-')[2], 10);
@@ -264,7 +273,7 @@
 
   global.DarsLib = {
     DARS, DARS_EN, DARS_ES, INTEGRATORS, ARCHETYPES, FIELDS, LETTER_VALUES,
-    reduce, sumDigits, getDarName, getDarArchetype, getField, getFieldId,
+    reduce, sumDigits, getDarName, getDarArchetype, getField, getFieldId, getDarSvgPath,
     calcOda, calcTuna, calcTria, calcChia, calcProfile
   };
 })(window);

@@ -88,8 +88,9 @@
         const isUnlocked = unlocked.has(code);
         if (isUnlocked) unlockedCount++;
         const cls = isMine ? 'mine' : (isUnlocked ? 'unlocked' : 'locked');
+        const svgPath = DarsLib.getDarSvgPath(code);
         html.push(`<div class="collection-cell ${cls}" data-code="${code}" onclick="openDarDetail('${code}')">
-          <div class="collection-cell-img" style="background-image:url('/cards/${code}.jpg')"></div>
+          <div class="collection-cell-img"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
           <div class="collection-cell-name">${escapeHtml(name)}</div>
           <div class="collection-cell-code">${code}</div>
           ${!isUnlocked ? '<div class="collection-cell-overlay">🔒</div>' : ''}
@@ -255,7 +256,8 @@
     document.getElementById('me-dar-code').textContent = syn.code;
     document.getElementById('me-dar-archetype').textContent = syn.archetype || '';
 
-    // Картинка Дара: /cards/{code}.jpg, при ошибке — fallback на ✨
+    // Картинка Дара: золотая SVG из основного приложения
+    // /images/dars/{имя-в-нижнем-без-дефиса}.svg, при ошибке — ✨
     const img = document.getElementById('me-dar-image');
     const emoji = document.getElementById('me-dar-emoji');
     if (img && emoji) {
@@ -267,7 +269,7 @@
         img.style.display = '';
         emoji.style.display = 'none';
       };
-      img.src = '/cards/' + syn.code + '.jpg';
+      img.src = DarsLib.getDarSvgPath(syn.code);
     }
 
     // Подсветка пройденных шагов с расчётом каждого уровня
@@ -311,8 +313,9 @@
     ];
     wrap.innerHTML = levels.map(lvl => {
       if (!lvl.data) return '';
+      const svgPath = DarsLib.getDarSvgPath(lvl.data.code);
       return `<div class="synthesis-level">
-        <div class="synthesis-level-icon" style="background-image:url('/cards/${lvl.data.code}.jpg')"></div>
+        <div class="synthesis-level-icon"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
         <div class="synthesis-level-text">
           <div class="synthesis-level-name">${lvl.data.name} <span style="color:var(--text-muted);font-weight:400">· ${lvl.data.code}</span></div>
           <div class="synthesis-level-meta">${lvl.label} — ${lvl.sub}${lvl.data.archetype ? ' · ' + lvl.data.archetype : ''}</div>
@@ -386,8 +389,9 @@
         </div>`);
       codes.forEach(code => {
         const name = DarsLib.getDarName(code, lang);
+        const svgPath = DarsLib.getDarSvgPath(code);
         html.push(`<div class="encyc-dar-row" onclick="openDarDetail('${code}')">
-          <div class="encyc-dar-img" style="background-image:url('/cards/${code}.jpg')"></div>
+          <div class="encyc-dar-img"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
           <div class="encyc-dar-name">${escapeHtml(name)}</div>
           <div class="encyc-dar-code">${code}</div>
         </div>`);
@@ -428,7 +432,7 @@
       results.innerHTML = '<div class="placeholder">Ничего не найдено</div>';
     } else {
       results.innerHTML = matches.map(m => `<div class="encyc-dar-row" onclick="openDarDetail('${m.code}')">
-        <div class="encyc-dar-img" style="background-image:url('/cards/${m.code}.jpg')"></div>
+        <div class="encyc-dar-img"><img src="${DarsLib.getDarSvgPath(m.code)}" alt="" onerror="this.style.display='none'"></div>
         <div class="encyc-dar-name">${escapeHtml(m.name)}</div>
         <div class="encyc-dar-code">${m.code}</div>
       </div>`).join('');

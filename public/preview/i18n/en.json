@@ -36,8 +36,7 @@
     "depth_place_title": "Place of birth",
     "depth_place_hint": "City of birth. Coordinates will be filled automatically.",
     "depth_name_title": "First and last name",
-    "depth_name_hint": "The name people know you by.",
-    "recalculate": "Change birth date"
+    "depth_name_hint": "The name people know you by."
   },
 
   "family": {

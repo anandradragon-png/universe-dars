@@ -36,8 +36,7 @@
     "depth_place_title": "Lugar de nacimiento",
     "depth_place_hint": "Ciudad de nacimiento. Las coordenadas se rellenarán automáticamente.",
     "depth_name_title": "Nombre y apellido",
-    "depth_name_hint": "Nombre y apellido por los que te conocen.",
-    "recalculate": "Cambiar fecha de nacimiento"
+    "depth_name_hint": "Nombre y apellido por los que te conocen."
   },
 
   "family": {

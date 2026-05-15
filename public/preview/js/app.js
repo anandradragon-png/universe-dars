@@ -143,12 +143,9 @@
   }
   window.calculateMyDar = calculateMyDar;
 
-  function resetMyDar() {
-    if (!confirm('Сбросить расчёт и ввести новую дату?')) return;
-    try { localStorage.removeItem(PROFILE_KEY); } catch (e) {}
-    renderMeState();
-  }
-  window.resetMyDar = resetMyDar;
+  // ЗАКОН: личные данные изменить нельзя (law_personal_data_immutable.md).
+  // Функция resetMyDar намеренно удалена. Сброс — только через
+  // «Полный сброс» в ЛК (тест) или через поддержку (админка).
 
   function renderMeState() {
     const p = loadProfile();

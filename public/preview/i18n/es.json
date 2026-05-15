@@ -88,12 +88,12 @@
   },
 
   "science": {
-    "title": "Investigación científica",
-    "description": "Ayuda a los investigadores a verificar el sistema DAR.",
+    "title": "Investigación",
+    "description": "Ayuda a la ciencia de los DARs.",
     "open_survey": "Hacer la encuesta",
-    "header_tooltip": "Investigación científica sobre los DARs",
-    "banner_title": "Conviértete en coautor de la investigación",
-    "banner_sub": "Ayuda a la ciencia: responde a 28 afirmaciones (≈ 7 min) y forma parte del primer trabajo científico sobre los DARs en Dubái"
+    "header_tooltip": "Investigación sobre los DARs",
+    "banner_title": "Contribuye a la ciencia de los DARs",
+    "banner_sub": "Haz la encuesta y forma parte de la primera investigación sobre los DARs"
   },
 
   "common": {

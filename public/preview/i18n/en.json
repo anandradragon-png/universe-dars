@@ -88,12 +88,12 @@
   },
 
   "science": {
-    "title": "Scientific research",
-    "description": "Help researchers verify the DAR system.",
+    "title": "Research",
+    "description": "Help the science of DARs.",
     "open_survey": "Take the survey",
-    "header_tooltip": "Scientific research on DARs",
-    "banner_title": "Become a co-author of the research",
-    "banner_sub": "Help science: take a 28-statement survey (≈ 7 min) and be part of the first scientific paper on DARs in Dubai"
+    "header_tooltip": "Research on DARs",
+    "banner_title": "Contribute to the science of DARs",
+    "banner_sub": "Take the survey and become part of the first research on DARs"
   },
 
   "common": {

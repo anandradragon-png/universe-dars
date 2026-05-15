@@ -57,9 +57,10 @@
     "tab_collection": "My collection",
     "tab_books": "Books",
     "tab_search": "Encyclopedia",
-    "tab_hero": "Hero's journey",
+    "tab_games": "Games",
     "collection_title": "My collection",
-    "collection_sub": "Grid of 64 DARs with highlighted unlocked ones will appear here. Coming next.",
+    "collection_sub": "Grid of 64 DARs with highlighted unlocked ones.",
+    "collection_unlocked_label": "Unlocked",
     "book_dars_title": "Book of DARs",
     "book_dars_sub": "Complete guide to 64 DARs — in your language (RU / EN / ES).",
     "book_parents_title": "Book for Parents",
@@ -67,8 +68,16 @@
     "book_parents_price": "from $1.99",
     "search_title": "Encyclopedia of DARs",
     "search_sub": "Find any DAR by code (1-6-7), name (Z-MAN) or field. Search — coming next.",
-    "hero_title": "Hero's journey",
-    "hero_sub": "Unlock loved ones' DARs via referrals or crystals — go through their story and complete the collection. Coming next."
+    "game_hero_title": "Hero's journey",
+    "game_hero_sub": "Unlock loved ones' DARs via referrals or crystals — go through their story.",
+    "game_intuition_title": "Guess the DAR",
+    "game_intuition_sub": "Intuition trainer with player leaderboard.",
+    "game_atlantis_title": "Legends of Atlantis",
+    "game_atlantis_sub": "Card battle based on the powers of your DAR.",
+    "game_pvp_title": "Friend battles",
+    "game_pvp_sub": "PvP battles on DARs. Coming soon.",
+    "hof_title": "Hall of Fame",
+    "hof_sub": "Top players and winners of the leaderboards."
   },
 
   "arka": {
@@ -85,6 +94,12 @@
     "path_title": "Your personal AI mentor",
     "path_sub": "Mentor's brief, week analysis, income flows and growth plan. Available in the Master plan.",
     "unlock_master": "Open Master"
+  },
+
+  "book": {
+    "loading": "Loading the book…",
+    "contents": "Contents",
+    "unavailable": "The book is not yet available in this language."
   },
 
   "science": {

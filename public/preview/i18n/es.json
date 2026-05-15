@@ -57,9 +57,10 @@
     "tab_collection": "Mi colección",
     "tab_books": "Libros",
     "tab_search": "Enciclopedia",
-    "tab_hero": "Viaje del héroe",
+    "tab_games": "Juegos",
     "collection_title": "Mi colección",
-    "collection_sub": "Aquí aparecerá la cuadrícula de 64 DARs con los desbloqueados resaltados. Próxima etapa.",
+    "collection_sub": "Cuadrícula de 64 DARs con los desbloqueados resaltados.",
+    "collection_unlocked_label": "Desbloqueados",
     "book_dars_title": "Libro de los DARs",
     "book_dars_sub": "Guía completa de los 64 DARs — en tu idioma (RU / EN / ES).",
     "book_parents_title": "Libro para Padres",
@@ -67,8 +68,16 @@
     "book_parents_price": "desde 1,99 $",
     "search_title": "Enciclopedia de los DARs",
     "search_sub": "Encuentra cualquier DAR por código (1-6-7), nombre (Z-MAN) o campo. Búsqueda — próxima etapa.",
-    "hero_title": "Viaje del héroe",
-    "hero_sub": "Desbloquea los DARs de tus seres queridos mediante referidos o cristales — vive su historia y completa la colección. Próxima etapa."
+    "game_hero_title": "Viaje del héroe",
+    "game_hero_sub": "Desbloquea los DARs de tus seres queridos mediante referidos o cristales — vive su historia.",
+    "game_intuition_title": "Adivina el DAR",
+    "game_intuition_sub": "Entrenador de intuición con tabla de clasificación.",
+    "game_atlantis_title": "Leyendas de la Atlántida",
+    "game_atlantis_sub": "Batalla de cartas según los poderes de tu DAR.",
+    "game_pvp_title": "Batallas con amigos",
+    "game_pvp_sub": "Batallas PvP de DARs. Próximamente.",
+    "hof_title": "Salón de la Fama",
+    "hof_sub": "Mejores jugadores y ganadores de las clasificaciones."
   },
 
   "arka": {
@@ -85,6 +94,12 @@
     "path_title": "Tu mentor personal IA",
     "path_sub": "Resumen del mentor, análisis de la semana, flujos de ingresos y plan de crecimiento. Disponible en el plan Maestro.",
     "unlock_master": "Abrir Maestro"
+  },
+
+  "book": {
+    "loading": "Cargando el libro…",
+    "contents": "Índice",
+    "unavailable": "El libro aún no está disponible en este idioma."
   },
 
   "science": {

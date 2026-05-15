@@ -18,6 +18,10 @@
     if (tab) tab.classList.add('active');
     if (nav) nav.classList.add('active');
     window.scrollTo(0, 0);
+    // При входе в Сокровищницу рендерим сетку 64 даров (если она активна)
+    if (name === 'treasury') {
+      try { renderCollection(); } catch (e) {}
+    }
   }
   window.switchTab = switchTab;
 
@@ -32,10 +36,46 @@
           const target = btn.getAttribute('data-subtab');
           buttons.forEach(b => b.classList.toggle('active', b === btn));
           contents.forEach(c => c.classList.toggle('active', c.getAttribute('data-subtab-content') === target));
+          // При открытии «Моя коллекция» — отрендерить сетку
+          if (target === 'collection') renderCollection();
         });
       });
     });
   }
+
+  // Рендер сетки 64 даров (Сокровищница → Моя коллекция)
+  function renderCollection() {
+    const grid = document.getElementById('collection-grid');
+    if (!grid || !window.DarsLib) return;
+    const profile = loadProfile();
+    const myCode = profile && profile.date
+      ? DarsLib.calcOda(profile.date).code
+      : null;
+    // Открытые дары: пока только свой (в проде есть unlock через рефералов/кристаллы).
+    const unlocked = new Set();
+    if (myCode) unlocked.add(myCode);
+
+    const allCodes = Object.keys(DarsLib.DARS);
+    let unlockedCount = 0;
+    grid.innerHTML = allCodes.map(code => {
+      const name = DarsLib.DARS[code];
+      const isMine = code === myCode;
+      const isUnlocked = unlocked.has(code);
+      if (isUnlocked) unlockedCount++;
+      const cls = isMine ? 'mine' : (isUnlocked ? 'unlocked' : 'locked');
+      return `<div class="collection-cell ${cls}" data-code="${code}">
+        ${isUnlocked
+          ? `<div class="collection-cell-name">${name}</div>
+             <div class="collection-cell-code">${code}</div>`
+          : `<div class="collection-cell-lock">🔒</div>
+             <div class="collection-cell-code">${code}</div>`
+        }
+      </div>`;
+    }).join('');
+    const cnt = document.getElementById('collection-unlocked-count');
+    if (cnt) cnt.textContent = unlockedCount;
+  }
+  window.renderCollection = renderCollection;
 
   // Переключение языка
   function setLang(lang) {
@@ -216,6 +256,161 @@
       if (btn) btn.textContent = previewI18n?.t('common.add') || 'Добавить';
     }
   }
+
+  // === Читалка Книги Даров ===
+
+  const bookState = {
+    data: null,            // загруженный JSON book-chapters
+    flatChapters: [],      // плоский массив глав для навигации
+    currentIndex: 0,       // индекс текущей главы
+    lang: null
+  };
+
+  async function loadBookForLang(lang) {
+    // Если язык изменился — сбрасываем кэш и грузим заново
+    if (bookState.data && bookState.lang === lang) return bookState.data;
+    bookState.data = null;
+    bookState.flatChapters = [];
+    bookState.lang = null;
+    try {
+      const resp = await fetch(`/preview/book-chapters.${lang}.json?v=1`);
+      if (resp.ok) {
+        bookState.data = await resp.json();
+        bookState.lang = lang;
+      } else if (lang !== 'ru') {
+        // Фоллбэк: если книги на этом языке нет — пробуем RU
+        // (для RU читаем основной файл из прода)
+        return loadBookForLang('ru');
+      } else {
+        // RU читаем из основного файла прода
+        const ru = await fetch('/book-chapters.json?v=1');
+        if (ru.ok) {
+          bookState.data = await ru.json();
+          bookState.lang = 'ru';
+        } else {
+          throw new Error('book file not found');
+        }
+      }
+    } catch (e) {
+      console.warn('[book] load failed', e.message);
+      // Последняя попытка — прод-RU
+      try {
+        const ru = await fetch('/book-chapters.json?v=1');
+        bookState.data = await ru.json();
+        bookState.lang = 'ru';
+      } catch (e2) {
+        bookState.data = null;
+      }
+    }
+    // Сплющим главы в один массив для навигации
+    bookState.flatChapters = [];
+    if (bookState.data?.parts) {
+      bookState.data.parts.forEach(part => {
+        (part.chapters || []).forEach(ch => {
+          bookState.flatChapters.push({ ...ch, partTitle: part.title });
+        });
+      });
+    }
+    return bookState.data;
+  }
+
+  async function openBookOfDars() {
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    document.getElementById('book-backdrop')?.classList.add('open');
+    document.getElementById('book-reader')?.classList.add('open');
+    document.getElementById('book-reader-content').innerHTML =
+      '<div class="placeholder">Загружаю книгу…</div>';
+    await loadBookForLang(lang);
+    if (!bookState.data || !bookState.flatChapters.length) {
+      document.getElementById('book-reader-content').innerHTML =
+        '<div class="placeholder">Книга на этом языке пока недоступна.</div>';
+      return;
+    }
+    bookState.currentIndex = 0;
+    renderBookChapter();
+    renderBookToc();
+    // Метка языка
+    const langLabel = document.getElementById('book-reader-lang');
+    if (langLabel) langLabel.textContent = bookState.lang.toUpperCase();
+  }
+  window.openBookOfDars = openBookOfDars;
+
+  function openBookForParents() {
+    alert('👶 Книга для Родителей — открывается на карточке ребёнка во вкладке «Семья».');
+  }
+  window.openBookForParents = openBookForParents;
+
+  function closeBook() {
+    document.getElementById('book-backdrop')?.classList.remove('open');
+    document.getElementById('book-reader')?.classList.remove('open');
+    document.getElementById('book-toc')?.setAttribute('hidden', '');
+  }
+  window.closeBook = closeBook;
+
+  function renderBookChapter() {
+    if (!bookState.flatChapters.length) return;
+    const ch = bookState.flatChapters[bookState.currentIndex];
+    const total = bookState.flatChapters.length;
+    document.getElementById('book-reader-chapter').textContent = ch.title || '—';
+    document.getElementById('book-nav-info').textContent = (bookState.currentIndex + 1) + ' / ' + total;
+    const content = document.getElementById('book-reader-content');
+    content.innerHTML = `<h2>${ch.title || ''}</h2>` + (ch.html || '<p>—</p>');
+    content.scrollTop = 0;
+    // Скроллим хедер в начало
+    document.getElementById('book-reader').scrollTop = 0;
+  }
+
+  function renderBookToc() {
+    const list = document.getElementById('book-toc-list');
+    if (!list || !bookState.data) return;
+    let html = '';
+    let flatIndex = 0;
+    (bookState.data.parts || []).forEach(part => {
+      html += `<div class="book-toc-part">${part.title}</div>`;
+      (part.chapters || []).forEach(ch => {
+        const idx = flatIndex;
+        html += `<button class="book-toc-item" onclick="goToChapter(${idx})">${ch.title}</button>`;
+        flatIndex++;
+      });
+    });
+    list.innerHTML = html;
+  }
+
+  function nextChapter() {
+    if (bookState.currentIndex < bookState.flatChapters.length - 1) {
+      bookState.currentIndex++;
+      renderBookChapter();
+    }
+  }
+  function prevChapter() {
+    if (bookState.currentIndex > 0) {
+      bookState.currentIndex--;
+      renderBookChapter();
+    }
+  }
+  function goToChapter(idx) {
+    if (idx >= 0 && idx < bookState.flatChapters.length) {
+      bookState.currentIndex = idx;
+      renderBookChapter();
+      document.getElementById('book-toc')?.setAttribute('hidden', '');
+    }
+  }
+  function toggleBookToc() {
+    const toc = document.getElementById('book-toc');
+    if (!toc) return;
+    if (toc.hasAttribute('hidden')) toc.removeAttribute('hidden');
+    else toc.setAttribute('hidden', '');
+  }
+  window.nextChapter = nextChapter;
+  window.prevChapter = prevChapter;
+  window.goToChapter = goToChapter;
+  window.toggleBookToc = toggleBookToc;
+
+  // При смене языка сбрасываем кэш книги, чтобы загрузилась нужная локаль
+  document.addEventListener('i18n:changed', () => {
+    bookState.data = null;
+    bookState.lang = null;
+  });
 
   // === Кнопки-действия на вкладке «Я» ===
 

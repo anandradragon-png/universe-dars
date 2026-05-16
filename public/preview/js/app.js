@@ -77,7 +77,7 @@
       const codes = byField[f];
       if (!codes || !codes.length) continue;
       const fieldData = DarsLib.FIELDS[f];
-      const fieldName = (fieldData && fieldData['name_' + lang]) || fieldData?.name_ru || ('Поле ' + f);
+      const fieldName = (fieldData && fieldData['name_' + lang]) || fieldData?.name_ru || (((window.previewI18n && previewI18n.t('common.field_label')) || 'Поле') + ' ' + f);
       const fieldUnlocked = codes.filter(c => unlocked.has(c)).length;
       html.push(`<div class="collection-field" style="--field-color:${fieldData?.color || '#fff'}">
         <div class="collection-field-header">
@@ -231,7 +231,7 @@
     const errEl = document.getElementById('me-date-error');
     const date = parseDate(input.value);
     if (!date) {
-      errEl.textContent = 'Дата в формате ДД.ММ.ГГГГ';
+      errEl.textContent = ((window.previewI18n && previewI18n.t('errors.date_format')) || 'Дата в формате ДД.ММ.ГГГГ');
       return;
     }
     const profile = { date, time: null, coords: null, person: null };
@@ -451,7 +451,7 @@
     for (let i = 1; i <= 9; i++) {
       const f = ff[i] || {};
       const fdLib = DarsLib.FIELDS[i] || {};
-      const name = f.name || fdLib['name_' + lang] || fdLib.name_ru || ('Поле ' + i);
+      const name = f.name || fdLib['name_' + lang] || fdLib.name_ru || (((window.previewI18n && previewI18n.t('common.field_label')) || 'Поле') + ' ' + i);
       const element = f.element || fdLib['element_' + lang] || fdLib.element_ru || '';
       const count = (byField[i] || []).length;
       html += `<div class="encyc-field-prod-row" style="--field-color:${fdLib.color || '#fff'}" onclick="openFieldFolder(${i})">
@@ -476,7 +476,7 @@
     const ff = await loadFieldsFull();
     const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
     const f = ff[kunId] || DarsLib.FIELDS[kunId] || {};
-    const fieldName = f.name || f['name_' + lang] || f.name_ru || ('Поле ' + kunId);
+    const fieldName = f.name || f['name_' + lang] || f.name_ru || (((window.previewI18n && previewI18n.t('common.field_label')) || 'Поле') + ' ' + kunId);
     const element = f.element || f['element_' + lang] || f.element_ru || '';
     const codes = Object.keys(DarsLib.DARS).filter(c => DarsLib.getFieldId(c) === kunId);
 
@@ -522,7 +522,7 @@
     let html = '<div class="field-grid">';
     for (let i = 1; i <= 9; i++) {
       const f = ff[i] || DarsLib.FIELDS[i] || {};
-      const name = f.name || f['name_' + lang] || f.name_ru || ('Поле ' + i);
+      const name = f.name || f['name_' + lang] || f.name_ru || (((window.previewI18n && previewI18n.t('common.field_label')) || 'Поле') + ' ' + i);
       const element = f.element || f['element_' + lang] || f.element_ru || '';
       html += `<div class="field-folder" onclick="openFieldDetail(${i})">
         <div style="margin-bottom:6px">${FIELD_PATTERN_SVG[i] || ''}</div>
@@ -754,7 +754,7 @@
     const content = document.getElementById('dar-detail-content');
     const headerName = document.getElementById('dar-detail-header-name');
     if (!content) return;
-    content.innerHTML = '<div class="placeholder">Загружаю…</div>';
+    content.innerHTML = '<div class="placeholder">' + ((window.previewI18n && previewI18n.t('common.loading')) || 'Загружаю…') + '</div>';
 
     const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
     const name = DarsLib.getDarName(code, lang);
@@ -766,7 +766,7 @@
     let html = `<div class="dar-detail-hero">
       <img src="${svgPath}" alt="" onerror="this.style.display='none'">
       <div class="dar-detail-hero-name">${escapeHtml(name)}</div>
-      <div class="dar-detail-hero-code">Код: ${code}</div>
+      <div class="dar-detail-hero-code">${((window.previewI18n && previewI18n.t('encyc.code_label')) || 'Код')}: ${code}</div>
       ${archetype ? `<div class="dar-detail-hero-archetype">${escapeHtml(archetype)}</div>` : ''}
       <div class="dar-detail-actions">
         <button class="dar-detail-btn dar-detail-btn-book" onclick="openBookOfDars()">
@@ -884,9 +884,9 @@
       }
     });
     if (matches.length === 0) {
-      results.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:13px">Ничего не найдено по запросу «${escapeHtml(q)}»</div>`;
+      results.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:13px">${escapeHtml(((window.previewI18n && previewI18n.t('search.no_results')) || 'Ничего не найдено по запросу'))} «${escapeHtml(q)}»</div>`;
     } else {
-      results.innerHTML = `<div style="padding:6px 0 4px;color:var(--text-dim);font-size:11px">Найдено: ${matches.length}</div>` +
+      results.innerHTML = `<div style="padding:6px 0 4px;color:var(--text-dim);font-size:11px">${escapeHtml(((window.previewI18n && previewI18n.t('search.found_count')) || 'Найдено'))}: ${matches.length}</div>` +
         matches.slice(0, 30).map(m =>
           `<div onclick="encycSearchClear();switchBaseSubTab('dars');openDarDetail('${m.code}')" style="padding:12px 14px;margin:6px 0;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer">
             <div style="font-size:16px;color:#D4AF37;letter-spacing:2px">${escapeHtml(m.name)}</div>
@@ -906,8 +906,21 @@
     data: null,            // загруженный JSON book-chapters
     flatChapters: [],      // плоский массив глав для навигации
     currentIndex: 0,       // индекс текущей главы
-    lang: null
+    lang: null,
+    darPngMap: null        // карта { '2-8-1': 'лада.png', ... } из /dar-png-map.json
   };
+
+  async function loadDarPngMap() {
+    if (bookState.darPngMap) return bookState.darPngMap;
+    try {
+      const r = await fetch('/dar-png-map.json');
+      if (r.ok) bookState.darPngMap = await r.json();
+      else bookState.darPngMap = {};
+    } catch (e) {
+      bookState.darPngMap = {};
+    }
+    return bookState.darPngMap;
+  }
 
   async function loadBookForLang(lang) {
     // Если язык изменился — сбрасываем кэш и грузим заново
@@ -916,16 +929,16 @@
     bookState.flatChapters = [];
     bookState.lang = null;
     try {
-      const resp = await fetch(`/preview/book-chapters.${lang}.json?v=1`);
+      // Пробуем сначала превью-файл для языка
+      const resp = await fetch(`/preview/book-chapters.${lang}.json?v=2`);
       if (resp.ok) {
         bookState.data = await resp.json();
         bookState.lang = lang;
       } else if (lang !== 'ru') {
-        // Фоллбэк: если книги на этом языке нет — пробуем RU
-        // (для RU читаем основной файл из прода)
+        // Если нет превью-перевода — RU превью
         return loadBookForLang('ru');
       } else {
-        // RU читаем из основного файла прода
+        // Превью-RU нет — фоллбэк на прод
         const ru = await fetch('/book-chapters.json?v=1');
         if (ru.ok) {
           bookState.data = await ru.json();
@@ -936,7 +949,6 @@
       }
     } catch (e) {
       console.warn('[book] load failed', e.message);
-      // Последняя попытка — прод-RU
       try {
         const ru = await fetch('/book-chapters.json?v=1');
         bookState.data = await ru.json();
@@ -961,25 +973,311 @@
     const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
     document.getElementById('book-backdrop')?.classList.add('open');
     document.getElementById('book-reader')?.classList.add('open');
-    document.getElementById('book-reader-content').innerHTML =
-      '<div class="placeholder">Загружаю книгу…</div>';
-    await loadBookForLang(lang);
+    const body = document.getElementById('book-chapter-body');
+    if (body) body.innerHTML =
+      '<div class="placeholder">' + ((window.previewI18n && previewI18n.t('book.loading')) || 'Загружаю книгу…') + '</div>';
+    await Promise.all([loadBookForLang(lang), loadDarPngMap()]);
     if (!bookState.data || !bookState.flatChapters.length) {
-      document.getElementById('book-reader-content').innerHTML =
-        '<div class="placeholder">Книга на этом языке пока недоступна.</div>';
+      if (body) body.innerHTML =
+        '<div class="placeholder">' + ((window.previewI18n && previewI18n.t('book.unavailable')) || 'Книга на этом языке пока недоступна.') + '</div>';
       return;
     }
     bookState.currentIndex = 0;
+    renderBookOverview();
     renderBookChapter();
     renderBookToc();
-    // Метка языка
-    const langLabel = document.getElementById('book-reader-lang');
-    if (langLabel) langLabel.textContent = bookState.lang.toUpperCase();
+    applyBookPrefs();
+    updateNavLastButton();
   }
   window.openBookOfDars = openBookOfDars;
 
+  // === Книга: обзорный блок (название, прогресс) ===
+  function renderBookOverview() {
+    const data = bookState.data;
+    const total = bookState.flatChapters.length;
+    const t = (k, fb) => ((window.previewI18n && previewI18n.t(k)) || fb);
+    const meta = document.getElementById('book-overview-meta');
+    if (meta) meta.textContent = (data?.version || 'Издание 1') + ' • ' + total + ' ' + t('book.chapters_word', 'глав');
+    const totalEl = document.getElementById('book-progress-total');
+    if (totalEl) totalEl.textContent = total;
+    updateBookProgress();
+  }
+
+  function getBookReadKey() {
+    return 'preview_book_read_' + (bookState.lang || 'ru');
+  }
+  function getBookReadSet() {
+    try { return new Set(JSON.parse(localStorage.getItem(getBookReadKey()) || '[]')); }
+    catch { return new Set(); }
+  }
+  function markBookChapterRead(idx) {
+    const set = getBookReadSet();
+    set.add(idx);
+    localStorage.setItem(getBookReadKey(), JSON.stringify([...set]));
+    updateBookProgress();
+  }
+  function updateBookProgress() {
+    const total = bookState.flatChapters.length || 1;
+    const count = getBookReadSet().size;
+    const pct = Math.round(count / total * 100);
+    const cEl = document.getElementById('book-progress-count');
+    const fEl = document.getElementById('book-progress-fill');
+    if (cEl) cEl.textContent = count;
+    if (fEl) fEl.style.width = pct + '%';
+  }
+
+  function getBookmarksKey() { return 'preview_book_bookmarks_' + (bookState.lang || 'ru'); }
+  function getBookmarks() {
+    try { return JSON.parse(localStorage.getItem(getBookmarksKey()) || '[]'); }
+    catch { return []; }
+  }
+  function bookBookmarkToggle() {
+    const idx = bookState.currentIndex;
+    const list = getBookmarks();
+    const at = list.indexOf(idx);
+    if (at >= 0) list.splice(at, 1);
+    else list.push(idx);
+    localStorage.setItem(getBookmarksKey(), JSON.stringify(list));
+    updateBookmarkBtn();
+    if (!document.getElementById('book-panel-bookmarks').hidden) renderBookmarksList();
+  }
+  window.bookBookmarkToggle = bookBookmarkToggle;
+  function updateBookmarkBtn() {
+    const btn = document.getElementById('book-bookmark-btn');
+    if (!btn) return;
+    const isOn = getBookmarks().includes(bookState.currentIndex);
+    btn.textContent = isOn ? '★' : '☆';
+    btn.classList.toggle('active', isOn);
+  }
+  function renderBookmarksList() {
+    const wrap = document.getElementById('book-bookmarks-list');
+    if (!wrap) return;
+    const list = getBookmarks();
+    const t = (k, fb) => ((window.previewI18n && previewI18n.t(k)) || fb);
+    if (!list.length) {
+      wrap.innerHTML = '<div class="book-empty">' + t('book.bookmarks_empty', 'Закладок пока нет. Открой главу и нажми ⭐, чтобы сохранить.') + '</div>';
+      return;
+    }
+    wrap.innerHTML = list.sort((a, b) => a - b).map(i => {
+      const ch = bookState.flatChapters[i];
+      if (!ch) return '';
+      return '<div class="book-toc-item" onclick="bookGoTo(' + i + ')">' + escapeHtml(ch.title || '') + '</div>';
+    }).join('');
+  }
+
+  // === Книга: переключение панелей ===
+  function bookPanelToggle(panel) {
+    const panels = ['toc', 'search', 'bookmarks', 'settings'];
+    const willOpen = document.getElementById('book-panel-' + panel)?.hidden;
+    panels.forEach(p => {
+      const el = document.getElementById('book-panel-' + p);
+      if (el) el.hidden = true;
+    });
+    // переключаем active-кнопки
+    document.querySelectorAll('.book-action-btn').forEach((b, i) => b.classList.toggle('active', willOpen && panels[i] === panel));
+    if (willOpen) {
+      const el = document.getElementById('book-panel-' + panel);
+      if (el) el.hidden = false;
+      if (panel === 'bookmarks') renderBookmarksList();
+    }
+  }
+  window.bookPanelToggle = bookPanelToggle;
+
+  function bookGoTo(idx) {
+    if (idx < 0 || idx >= bookState.flatChapters.length) return;
+    // 1) Сначала закрываем все панели (TOC/Search/Bookmarks/Settings) —
+    //    чтобы DOM не сдвигался после прокрутки наверх.
+    ['toc','search','bookmarks','settings'].forEach(p => {
+      const el = document.getElementById('book-panel-' + p);
+      if (el) el.hidden = true;
+    });
+    document.querySelectorAll('.book-action-btn').forEach(b => b.classList.remove('active'));
+    // 2) Меняем главу и рендерим
+    bookState.currentIndex = idx;
+    renderBookChapter();
+    updateNavLastButton();
+    renderBookToc();
+    // 3) Прокрутка к карточке главы в следующем тике (после reflow)
+    requestAnimationFrame(() => {
+      const card = document.getElementById('book-chapter-card');
+      const scroll = document.getElementById('book-reader-content');
+      if (card && scroll) {
+        // Прокручиваем scroll-контейнер так, чтобы карточка оказалась наверху
+        const top = card.offsetTop - 8;
+        scroll.scrollTo({ top, behavior: 'auto' });
+      } else if (scroll) {
+        scroll.scrollTop = 0;
+      }
+    });
+  }
+  window.bookGoTo = bookGoTo;
+
+  // === Книга: поиск ===
+  // Нормализация для поиска: ё→е, убираем дефисы/пробелы/пунктуацию.
+  // Так "Ма-на", "МА-НА", "мана" и "мана!" считаются одним запросом.
+  function normalizeForSearch(s) {
+    return String(s || '').toLowerCase()
+      .replace(/ё/g, 'е')
+      .replace(/[\s\-_.,!?:;'"\u2013\u2014()]+/g, '');
+  }
+  function highlightMatch(text, q) {
+    if (!text || !q) return escapeHtml(text || '');
+    const escapedText = escapeHtml(text);
+    const escapedQ = escapeHtml(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return escapedText.replace(new RegExp(escapedQ, 'gi'),
+      '<mark style="background:rgba(212,175,55,0.4);color:#fff;padding:0 2px;border-radius:2px">$&</mark>');
+  }
+
+  let _searchDebounce = null;
+  function bookSearch(query) {
+    clearTimeout(_searchDebounce);
+    _searchDebounce = setTimeout(() => doBookSearch(query), 200);
+  }
+  window.bookSearch = bookSearch;
+
+  function doBookSearch(query) {
+    const wrap = document.getElementById('book-search-results');
+    if (!wrap) return;
+    const t = (k, fb) => ((window.previewI18n && previewI18n.t(k)) || fb);
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const q = (query || '').trim();
+    if (q.length < 2) {
+      wrap.innerHTML = '<div class="book-empty">' + t('book.search_hint', 'Введи хотя бы 2 символа') + '</div>';
+      return;
+    }
+    const qLower = q.toLowerCase();
+    const qNormalized = normalizeForSearch(q);
+
+    // 1) Поиск по полям: если запрос совпадает с именем поля (на текущем языке),
+    //    показываем ВСЕ главы-дары этого поля.
+    const fieldMatches = []; // [{ fieldId, fieldName }]
+    if (window.DarsLib && DarsLib.FIELDS) {
+      for (let fId = 1; fId <= 9; fId++) {
+        const f = DarsLib.FIELDS[fId];
+        if (!f) continue;
+        const names = [f['name_' + lang], f.name_ru, f.name_en, f.name_es].filter(Boolean).map(s => s.toLowerCase());
+        if (names.some(n => n.includes(qLower) || normalizeForSearch(n).includes(qNormalized))) {
+          fieldMatches.push({ fieldId: fId, fieldName: f['name_' + lang] || f.name_ru });
+        }
+      }
+    }
+
+    // 2) Главы — три категории
+    const titleHits = [];   // точное совпадение в title / dar_name / dar_code
+    const fieldHits = [];   // глава-дар принадлежит к найденному полю
+    const textHits = [];    // только в тексте
+
+    const fieldHitIds = new Set(fieldMatches.map(f => f.fieldId));
+
+    bookState.flatChapters.forEach((ch, idx) => {
+      const titleLower = (ch.title || '').toLowerCase();
+      const darName = (ch.dar_name || '').toLowerCase();
+      const darCode = (ch.dar_code || '').toLowerCase();
+      const plain = (ch.html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+      const textLower = plain.toLowerCase();
+
+      const titleIncludes = titleLower.includes(qLower) || darName.includes(qLower) || darCode.includes(qLower);
+      const titleN = normalizeForSearch(titleLower) + '|' + normalizeForSearch(darName) + '|' + normalizeForSearch(darCode);
+      const titleNormHit = titleN.includes(qNormalized);
+
+      // Принадлежит ли глава к найденному полю (по последней цифре кода)
+      let fieldOwn = false;
+      if (ch.dar_code && fieldHitIds.size) {
+        const lastDigit = parseInt(ch.dar_code.split('-').pop(), 10);
+        if (fieldHitIds.has(lastDigit)) fieldOwn = true;
+      }
+
+      if (titleIncludes || titleNormHit) {
+        titleHits.push({ idx, title: ch.title, kind: ch.kind, snippet: null });
+      } else if (fieldOwn) {
+        fieldHits.push({ idx, title: ch.title, kind: ch.kind, snippet: null });
+      } else {
+        const textIdx = textLower.indexOf(qLower);
+        if (textIdx !== -1) {
+          const start = Math.max(0, textIdx - 50);
+          const end = Math.min(plain.length, textIdx + qLower.length + 80);
+          const snippet = (start > 0 ? '…' : '') + plain.slice(start, end) + (end < plain.length ? '…' : '');
+          textHits.push({ idx, title: ch.title, kind: ch.kind, snippet });
+        }
+      }
+    });
+
+    const totalHits = titleHits.length + fieldHits.length + textHits.length;
+    if (!totalHits) {
+      wrap.innerHTML = '<div class="book-empty">' + t('search.no_results', 'Ничего не найдено по запросу') + ' «' + escapeHtml(q) + '»</div>';
+      return;
+    }
+
+    const renderHit = (h, showSnippet) => {
+      const isDar = h.kind === 'dar';
+      const darMark = isDar ? '<span style="color:#D4AF37;margin-right:4px">✦</span>' : '';
+      const titleShort = (h.title || '').length > 75 ? h.title.slice(0, 75) + '…' : h.title;
+      return '<div class="book-search-result" onclick="bookGoTo(' + h.idx + ')">' +
+        '<div class="book-search-result-title">' + darMark + highlightMatch(titleShort, q) + '</div>' +
+        (showSnippet && h.snippet ? '<div class="book-search-result-snippet">' + highlightMatch(h.snippet, q) + '</div>' : '') +
+      '</div>';
+    };
+
+    let html = '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;text-align:center">' +
+      t('search.found_count', 'Найдено') + ': <b style="color:#D4AF37">' + totalHits + '</b></div>';
+
+    if (titleHits.length) {
+      html += '<div class="book-search-group">' + t('book.search_in_titles', 'В названиях') + '</div>';
+      html += titleHits.slice(0, 30).map(h => renderHit(h, false)).join('');
+    }
+    if (fieldHits.length && fieldMatches.length) {
+      const fieldNames = fieldMatches.map(f => escapeHtml(f.fieldName)).join(', ');
+      html += '<div class="book-search-group">' + t('book.search_in_field', 'Поле') + ': ' + fieldNames + '</div>';
+      html += fieldHits.slice(0, 30).map(h => renderHit(h, false)).join('');
+    }
+    if (textHits.length) {
+      html += '<div class="book-search-group">' + t('book.search_in_text', 'В тексте') + ' (' + textHits.length + ')</div>';
+      html += textHits.slice(0, 10).map(h => renderHit(h, true)).join('');
+      if (textHits.length > 10) {
+        html += '<div class="book-empty" style="font-size:11px">' + t('book.search_more_hidden', '…ещё совпадения скрыты, уточни запрос') + '</div>';
+      }
+    }
+    wrap.innerHTML = html;
+  }
+
+  // === Книга: размер шрифта и тема ===
+  function bookSetFontSize(n) {
+    const body = document.getElementById('book-chapter-body');
+    if (!body) return;
+    body.style.fontSize = n + 'px';
+    try { localStorage.setItem('preview_book_font_size', n); } catch {}
+    // подсветка активной кнопки
+    document.querySelectorAll('.book-settings-row-grid .book-settings-btn-pill[data-fs]').forEach(b => {
+      b.classList.toggle('active', String(b.dataset.fs) === String(n));
+    });
+  }
+  window.bookSetFontSize = bookSetFontSize;
+
+  function bookSetTheme(theme) {
+    const card = document.getElementById('book-chapter-card');
+    if (!card) return;
+    card.classList.remove('theme-dark', 'theme-sepia', 'theme-light');
+    card.classList.add('theme-' + theme);
+    try { localStorage.setItem('preview_book_theme', theme); } catch {}
+    // подсветка активной кнопки темы
+    document.querySelectorAll('.book-settings-row-grid .book-settings-btn-pill[data-theme]').forEach(b => {
+      b.classList.toggle('active', b.dataset.theme === theme);
+    });
+  }
+  window.bookSetTheme = bookSetTheme;
+
+  function applyBookPrefs() {
+    let fs = 15, theme = 'dark';
+    try {
+      fs = parseInt(localStorage.getItem('preview_book_font_size') || '15', 10);
+      theme = localStorage.getItem('preview_book_theme') || 'dark';
+    } catch {}
+    bookSetFontSize(fs);
+    bookSetTheme(theme);
+  }
+
   function openBookForParents() {
-    alert('👶 Книга для Родителей — открывается на карточке ребёнка во вкладке «Семья».');
+    alert(((window.previewI18n && previewI18n.t('modal.book_for_parents_info')) || '👶 Книга для Родителей — открывается на карточке ребёнка во вкладке «Семья».'));
   }
   window.openBookForParents = openBookForParents;
 
@@ -994,37 +1292,108 @@
     if (!bookState.flatChapters.length) return;
     const ch = bookState.flatChapters[bookState.currentIndex];
     const total = bookState.flatChapters.length;
-    document.getElementById('book-reader-chapter').textContent = ch.title || '—';
-    document.getElementById('book-nav-info').textContent = (bookState.currentIndex + 1) + ' / ' + total;
-    const content = document.getElementById('book-reader-content');
+    const navInfo = document.getElementById('book-nav-info');
+    if (navInfo) navInfo.textContent = (bookState.currentIndex + 1) + ' / ' + total;
+    const titleEl = document.getElementById('book-chapter-title');
+    if (titleEl) titleEl.textContent = ch.title || '—';
+    const metaEl = document.getElementById('book-chapter-meta');
+    if (metaEl) {
+      const code = ch.dar_code || extractDarCodeFromTitle(ch.title);
+      const t = (k, fb) => ((window.previewI18n && previewI18n.t(k)) || fb);
+      metaEl.textContent = code
+        ? (t('book.dar_label', 'ДАР') + ' • ' + code)
+        : ((ch.kind === 'part' ? t('book.part_label', 'ЧАСТЬ') : t('book.chapter_label', 'ГЛАВА')) + ' • ' + (bookState.currentIndex + 1));
+    }
+    const body = document.getElementById('book-chapter-body');
+    if (!body) return;
     // Подставляем реальные ссылки на картинки книги.
     // Исходный тег: <img src="" data-ref="img-001.jpg" alt="" />
-    // 1) Извлекаем data-ref → подставляем в src
-    // 2) Убираем пустой src=""
     let html = (ch.html || '<p>—</p>')
       .replace(/<img\b([^>]*?)\sdata-ref="([^"]+)"([^>]*?)>/g,
         (m, before, ref, after) => {
-          // Удаляем пустой src="" из before/after
           const cleanBefore = before.replace(/\ssrc="[^"]*"/, '');
           const cleanAfter = after.replace(/\ssrc="[^"]*"/, '');
           return `<img${cleanBefore} src="/book-images/${ref}" loading="lazy"${cleanAfter}>`;
         }
       );
-    content.innerHTML = `<h2>${ch.title || ''}</h2>` + html;
-    content.scrollTop = 0;
-    document.getElementById('book-reader').scrollTop = 0;
+    // Mammoth-конвертация .docx иногда помечает обычные параграфы как <h2>.
+    // Эвристика: если в главе > 3 тегов <h2>, скорее всего это параграфы — конвертируем в <p>.
+    const h2Count = (html.match(/<h2[\s>]/g) || []).length;
+    if (h2Count > 3) {
+      html = html.replace(/<h2(\s[^>]*)?>/g, '<p>').replace(/<\/h2>/g, '</p>');
+    }
+    // Для глав-даров: PNG-глиф из /dar-png/ в начало главы —
+    // ТОЛЬКО ЕСЛИ в html ещё нет встроенной картинки (избегаем задвоения с глифом из .docx).
+    const hasInlineImg = /<img\b/.test(html);
+    const code = ch.dar_code || extractDarCodeFromTitle(ch.title);
+    if (!hasInlineImg && code && bookState.darPngMap && bookState.darPngMap[code]) {
+      const file = bookState.darPngMap[code];
+      const darImg = `<p style="text-align:center;margin:18px 0"><img class="book-dar-glyph" src="/dar-png/${encodeURIComponent(file)}" alt="${ch.title || ''}" loading="lazy"/></p>`;
+      html = darImg + html;
+    }
+    body.innerHTML = html;
+    // Применяем сохранённый размер шрифта и тему
+    applyBookPrefs();
+    // Прокрутка к карточке главы (в следующем тике, после reflow)
+    requestAnimationFrame(() => {
+      const card = document.getElementById('book-chapter-card');
+      if (card) {
+        card.scrollIntoView({ block: 'start', behavior: 'auto' });
+      }
+    });
+    updateBookmarkBtn();
+    // Помечаем главу как прочитанную
+    markBookChapterRead(bookState.currentIndex);
   }
+  function extractDarCodeFromTitle(title) {
+    if (!title) return null;
+    const m = title.match(/\((\d-\d-\d)\)/);
+    return m ? m[1] : null;
+  }
+
+  // Lightbox для картинок книги (клик по img → крупно)
+  function openBookImgLightbox(src) {
+    if (!src) return;
+    const old = document.getElementById('book-img-lightbox');
+    if (old) old.remove();
+    const lb = document.createElement('div');
+    lb.id = 'book-img-lightbox';
+    lb.className = 'book-img-lightbox';
+    lb.innerHTML = '<button class="book-img-lightbox-close" aria-label="Close">✕</button><img src="' + src + '" alt=""/>';
+    lb.onclick = () => lb.remove();
+    // Помещаем внутрь .book-reader, чтобы покрыть и его шапку
+    // (у .book-reader transform → создаёт свой stacking context)
+    const reader = document.getElementById('book-reader');
+    (reader || document.body).appendChild(lb);
+    const escHandler = (e) => { if (e.key === 'Escape') { lb.remove(); document.removeEventListener('keydown', escHandler); } };
+    document.addEventListener('keydown', escHandler);
+  }
+  // Делегирование клика по картинкам внутри book-chapter-body
+  document.addEventListener('click', (e) => {
+    const img = e.target.closest('#book-chapter-body img');
+    if (img && img.src) openBookImgLightbox(img.src);
+  });
 
   function renderBookToc() {
     const list = document.getElementById('book-toc-list');
     if (!list || !bookState.data) return;
+    const readSet = getBookReadSet();
     let html = '';
     let flatIndex = 0;
     (bookState.data.parts || []).forEach(part => {
-      html += `<div class="book-toc-part">${part.title}</div>`;
+      html += `<div class="book-toc-part">${escapeHtml(part.title || '')}</div>`;
       (part.chapters || []).forEach(ch => {
         const idx = flatIndex;
-        html += `<button class="book-toc-item" onclick="goToChapter(${idx})">${ch.title}</button>`;
+        const isDar = ch.kind === 'dar';
+        const isRead = readSet.has(idx);
+        const isActive = idx === bookState.currentIndex;
+        const titleShort = (ch.title || '').length > 70 ? ch.title.slice(0, 70) + '…' : ch.title;
+        const darMark = isDar ? '<span style="color:#D4AF37;font-size:11px;margin-right:6px">✦</span>' : '';
+        const readMark = isRead ? '<span style="color:#2ecc71;font-size:12px;margin-left:4px" title="Прочитано">✓</span>' : '';
+        const opacity = isRead ? 'opacity:0.75;' : '';
+        const activeBg = isActive ? 'background:rgba(212,175,55,0.12);' : '';
+        html += `<div class="book-toc-item" onclick="bookGoTo(${idx})" style="${opacity}${activeBg}display:flex;align-items:center;gap:4px;line-height:1.4">` +
+          `${darMark}<span style="flex:1">${escapeHtml(titleShort || '')}</span>${readMark}</div>`;
         flatIndex++;
       });
     });
@@ -1034,13 +1403,33 @@
   function nextChapter() {
     if (bookState.currentIndex < bookState.flatChapters.length - 1) {
       bookState.currentIndex++;
-      renderBookChapter();
+    } else {
+      bookState.currentIndex = 0; // на последней — назад в начало
     }
+    renderBookChapter();
+    updateNavLastButton();
+    renderBookToc();
   }
   function prevChapter() {
     if (bookState.currentIndex > 0) {
       bookState.currentIndex--;
       renderBookChapter();
+      updateNavLastButton();
+      renderBookToc();
+    }
+  }
+  function updateNavLastButton() {
+    // На последней главе кнопка «Вперёд» → «↑ В начало»
+    const total = bookState.flatChapters.length;
+    const isLast = bookState.currentIndex >= total - 1;
+    const navBtns = document.querySelectorAll('.book-reader-nav-bottom .book-nav-pill');
+    if (navBtns.length < 2) return;
+    const forwardBtn = navBtns[navBtns.length - 1];
+    const t = (k, fb) => ((window.previewI18n && previewI18n.t(k)) || fb);
+    if (isLast) {
+      forwardBtn.innerHTML = '<span>↑</span> <span>' + t('book.back_to_start', 'В начало') + '</span>';
+    } else {
+      forwardBtn.innerHTML = '<span>' + t('common.forward', 'Вперёд') + '</span> <span>→</span>';
     }
   }
   function goToChapter(idx) {
@@ -1135,7 +1524,7 @@
 
       // Краткое послание: первая фраза из 'essence' этого Дара
       const msgEl = document.getElementById('oracle-personal-message');
-      msgEl.innerHTML = '<div class="placeholder">Загружаю послание…</div>';
+      msgEl.innerHTML = '<div class="placeholder">' + ((window.previewI18n && previewI18n.t('common.loading')) || 'Загружаю…') + '</div>';
       try {
         const data = await loadDarContent();
         const ess = data[personal.code]?.essence || data[personal.code]?.energy_pattern || '';
@@ -1144,7 +1533,7 @@
           const short = String(ess).split(/\n\n/).slice(0, 2).join('\n\n');
           msgEl.innerHTML = mdToHtml(short);
         } else {
-          msgEl.innerHTML = '<p style="color:var(--text-muted);font-style:italic">Послание от AI скоро будет доступно — на основе твоего личного Дара дня.</p>';
+          msgEl.innerHTML = '<p style="color:var(--text-muted);font-style:italic">' + ((window.previewI18n && previewI18n.t('oracle.ai_message_soon')) || 'Послание от AI скоро будет доступно — на основе твоего личного Дара дня.') + '</p>';
         }
       } catch (e) {
         msgEl.textContent = '';
@@ -1165,7 +1554,7 @@
 
   function openMyShare() {
     // Поделиться карточкой Дара (share-card + A4 — обе опции в одной модалке).
-    alert('🖼 Поделиться — модалка выбора (карточка для соцсетей / A4 для печати).');
+    alert(((window.previewI18n && previewI18n.t('modal.share_options_info')) || '🖼 Поделиться — модалка выбора (карточка для соцсетей / A4 для печати).'));
   }
   window.openMyShare = openMyShare;
 
@@ -1229,7 +1618,7 @@
     const val = document.getElementById('depth-time-input').value;
     const time = parseTime(val);
     if (!time) {
-      document.getElementById('depth-time-error').textContent = 'Формат ЧЧ:ММ (например 12:20)';
+      document.getElementById('depth-time-error').textContent = ((window.previewI18n && previewI18n.t('errors.time_format')) || 'Формат ЧЧ:ММ (например 12:20)');
       return;
     }
     const p = loadProfile() || {};
@@ -1243,7 +1632,7 @@
   function saveDepthPlace() {
     const label = document.getElementById('depth-place-input').value.trim();
     if (!label) {
-      document.getElementById('depth-place-error').textContent = 'Укажи город';
+      document.getElementById('depth-place-error').textContent = ((window.previewI18n && previewI18n.t('errors.place_required')) || 'Укажи город');
       return;
     }
     // Заглушка координат: пока берём фиктивные (52.5, 27.5) — это Беларусь.
@@ -1260,7 +1649,7 @@
     const firstName = document.getElementById('depth-firstname-input').value.trim();
     const lastName = document.getElementById('depth-lastname-input').value.trim();
     if (!firstName || !lastName) {
-      document.getElementById('depth-name-error').textContent = 'Укажи имя и фамилию';
+      document.getElementById('depth-name-error').textContent = ((window.previewI18n && previewI18n.t('errors.name_required')) || 'Укажи имя и фамилию');
       return;
     }
     const p = loadProfile() || {};

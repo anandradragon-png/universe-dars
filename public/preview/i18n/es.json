@@ -109,6 +109,7 @@
     "search_placeholder": "🔍 Buscar DARs (nombre, código, campo)",
     "open_book": "Libro de los DARs",
     "open_hero": "Viaje del Héroe",
+    "code_label": "Código",
     "section_filling": "Sección en desarrollo",
     "section_essence":         "Esencia del DAR",
     "section_energy_pattern":  "Patrón Energético",
@@ -145,13 +146,40 @@
     "personal_title": "Tu DAR del Día",
     "personal_sub": "La energía del día para ti personalmente",
     "empty": "Para recibir un mensaje personal, calcula tu DAR en la pestaña «Yo».",
-    "hint": "El DAR del Día se actualiza cada mañana."
+    "hint": "El DAR del Día se actualiza cada mañana.",
+    "ai_message_soon": "El mensaje de la IA estará disponible pronto — basado en tu DAR personal del día."
   },
 
   "book": {
     "loading": "Cargando el libro…",
     "contents": "Índice",
-    "unavailable": "El libro aún no está disponible en este idioma."
+    "unavailable": "El libro aún no está disponible en este idioma.",
+    "title_uppercase": "LIBRO DE LOS DARS",
+    "chapters_word": "capítulos",
+    "read_chapters": "📚 Capítulos leídos",
+    "full_access": "✓ Acceso completo",
+    "btn_chapters": "Capítulos",
+    "btn_search": "Buscar",
+    "btn_bookmarks": "Marcadores",
+    "btn_settings": "Ajustes",
+    "search_placeholder": "Buscar en el libro…",
+    "bookmarks_empty": "Aún no hay marcadores. Abre un capítulo y pulsa ⭐ para guardar.",
+    "font_size": "Tamaño de letra",
+    "font_size_label": "TAMAÑO DE LETRA",
+    "theme_label": "TEMA",
+    "theme_dark": "Oscuro",
+    "theme_sepia": "Sepia",
+    "theme_light": "Claro",
+    "search_hint": "Escribe al menos 2 caracteres",
+    "first_50": "(primeros 50 mostrados)",
+    "back_to_start": "Al inicio",
+    "search_in_titles": "En títulos",
+    "search_in_field": "Campo",
+    "search_in_text": "En el texto",
+    "search_more_hidden": "…más resultados ocultos, refina tu consulta",
+    "dar_label": "DAR",
+    "chapter_label": "CAPÍTULO",
+    "part_label": "PARTE"
   },
 
   "science": {
@@ -170,7 +198,29 @@
     "change": "Cambiar",
     "save": "Guardar",
     "cancel": "Cancelar",
+    "loading": "Cargando…",
+    "back": "Atrás",
+    "forward": "Siguiente",
+    "contents": "Índice",
+    "field_label": "Campo",
     "preview_warning": "Prototipo. Es una copia para probar la nueva arquitectura — los datos no se guardan."
+  },
+
+  "search": {
+    "no_results": "Nada encontrado para",
+    "found_count": "Encontrado"
+  },
+
+  "errors": {
+    "date_format": "Fecha en formato DD.MM.AAAA",
+    "time_format": "Formato HH:MM (ej. 12:20)",
+    "place_required": "Indica una ciudad",
+    "name_required": "Indica nombre y apellido"
+  },
+
+  "modal": {
+    "book_for_parents_info": "👶 Libro para Padres — se abre desde la tarjeta del hijo en la pestaña «Familia».",
+    "share_options_info": "🖼 Compartir — modal de selección (tarjeta para redes sociales / A4 para imprimir)."
   },
 
   "account": {

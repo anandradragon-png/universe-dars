@@ -109,6 +109,7 @@
     "search_placeholder": "🔍 Search DARs (name, code, field)",
     "open_book": "Book of DARs",
     "open_hero": "Hero's Journey",
+    "code_label": "Code",
     "section_filling": "Section coming soon",
     "section_essence":         "Essence of the DAR",
     "section_energy_pattern":  "Energy Pattern",
@@ -145,13 +146,40 @@
     "personal_title": "Your DAR of the Day",
     "personal_sub": "Today's energy for you personally",
     "empty": "To get a personal message, calculate your DAR on the «Me» tab.",
-    "hint": "The DAR of the Day refreshes every morning."
+    "hint": "The DAR of the Day refreshes every morning.",
+    "ai_message_soon": "AI message coming soon — based on your personal DAR of the day."
   },
 
   "book": {
     "loading": "Loading the book…",
     "contents": "Contents",
-    "unavailable": "The book is not yet available in this language."
+    "unavailable": "The book is not yet available in this language.",
+    "title_uppercase": "BOOK OF DARS",
+    "chapters_word": "chapters",
+    "read_chapters": "📚 Chapters read",
+    "full_access": "✓ Full access",
+    "btn_chapters": "Chapters",
+    "btn_search": "Search",
+    "btn_bookmarks": "Bookmarks",
+    "btn_settings": "Settings",
+    "search_placeholder": "Search the book…",
+    "bookmarks_empty": "No bookmarks yet. Open a chapter and tap ⭐ to save.",
+    "font_size": "Font size",
+    "font_size_label": "FONT SIZE",
+    "theme_label": "THEME",
+    "theme_dark": "Dark",
+    "theme_sepia": "Sepia",
+    "theme_light": "Light",
+    "search_hint": "Type at least 2 characters",
+    "first_50": "(first 50 shown)",
+    "back_to_start": "To start",
+    "search_in_titles": "In titles",
+    "search_in_field": "Field",
+    "search_in_text": "In text",
+    "search_more_hidden": "…more matches hidden, refine your query",
+    "dar_label": "DAR",
+    "chapter_label": "CHAPTER",
+    "part_label": "PART"
   },
 
   "science": {
@@ -170,7 +198,29 @@
     "change": "Change",
     "save": "Save",
     "cancel": "Cancel",
+    "loading": "Loading…",
+    "back": "Back",
+    "forward": "Next",
+    "contents": "Contents",
+    "field_label": "Field",
     "preview_warning": "Prototype. This is a copy for testing the new architecture — data is not saved."
+  },
+
+  "search": {
+    "no_results": "Nothing found for",
+    "found_count": "Found"
+  },
+
+  "errors": {
+    "date_format": "Date in DD.MM.YYYY format",
+    "time_format": "HH:MM format (e.g. 12:20)",
+    "place_required": "Enter a city",
+    "name_required": "Enter your first and last name"
+  },
+
+  "modal": {
+    "book_for_parents_info": "👶 Book for Parents — opens from the child's card in the «Family» tab.",
+    "share_options_info": "🖼 Share — selection modal (card for social media / A4 for printing)."
   },
 
   "account": {

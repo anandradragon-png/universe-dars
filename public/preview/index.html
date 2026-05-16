@@ -1153,6 +1153,351 @@
       min-width: 60px;
       text-align: center;
     }
+    .book-reader-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .book-overview {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .book-overview-icon { font-size: 32px; margin-bottom: 6px; }
+    .book-overview-title {
+      font-size: 19px;
+      letter-spacing: 2px;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .book-overview-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .book-progress {
+      margin-bottom: 12px;
+    }
+    .book-progress-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+    .book-progress-row b { color: #D4AF37; }
+    .book-progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .book-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg,#D4AF37,#D4AF37);
+      transition: width 0.4s ease;
+      border-radius: 3px;
+    }
+    .book-access-banner {
+      background: rgba(46,204,113,0.08);
+      border: 1px solid rgba(46,204,113,0.25);
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 12px;
+      text-align: center;
+      font-size: 13px;
+      color: #2ecc71;
+    }
+    .book-action-buttons {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .book-action-btn {
+      flex: 1;
+      padding: 10px 4px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .book-action-btn:hover { background: rgba(212,175,55,0.08); border-color: rgba(212,175,55,0.3); }
+    .book-action-btn.active { background: rgba(212,175,55,0.12); border-color: rgba(212,175,55,0.4); color: #D4AF37; }
+    .book-action-btn span:first-child { font-size: 16px; }
+    .book-panel {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .book-panel[hidden] { display: none; }
+    .book-search-input {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .book-search-results { max-height: 380px; overflow-y: auto; }
+    .book-search-group {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #D4AF37;
+      padding: 8px 4px 4px;
+      border-bottom: 1px solid rgba(212,175,55,0.2);
+      margin-bottom: 4px;
+    }
+    .book-search-result {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .book-search-result:hover { background: rgba(212,175,55,0.05); }
+    .book-search-result-title { color: #D4AF37; margin-bottom: 2px; }
+    .book-search-result-snippet { color: var(--text-dim); font-size: 11px; }
+    .book-empty {
+      text-align: center;
+      padding: 16px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-style: italic;
+    }
+    .book-settings-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      margin: 6px 0 8px;
+    }
+    .book-settings-row-grid {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .book-settings-btn-pill {
+      flex: 1;
+      padding: 10px 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .book-settings-btn-pill:hover { background: rgba(212,175,55,0.08); border-color: rgba(212,175,55,0.3); }
+    .book-settings-btn-pill.active { background: rgba(212,175,55,0.18); border-color: #D4AF37; color: #D4AF37; }
+    .book-theme-sepia { background: #f4ecd8; color: #3a2f1a; }
+    .book-theme-sepia:hover { background: #efe5cb; }
+    .book-theme-sepia.active { background: #f4ecd8; color: #3a2f1a; border-color: #8b6b2c; box-shadow: inset 0 0 0 2px #8b6b2c; }
+    .book-theme-light { background: #ffffff; color: #1a1a1a; }
+    .book-theme-light:hover { background: #f5f5f5; }
+    .book-theme-light.active { background: #ffffff; color: #1a1a1a; border-color: #D4AF37; box-shadow: inset 0 0 0 2px #D4AF37; }
+    /* Темы для карточки главы */
+    .book-chapter-card.theme-sepia {
+      background: #f4ecd8;
+      color: #3a2f1a;
+    }
+    .book-chapter-card.theme-sepia .book-chapter-title { color: #8b6b2c; }
+    .book-chapter-card.theme-sepia .book-chapter-body { color: #3a2f1a; }
+    .book-chapter-card.theme-sepia .book-chapter-body h1,
+    .book-chapter-card.theme-sepia .book-chapter-body h2,
+    .book-chapter-card.theme-sepia .book-chapter-body h3 { color: #8b6b2c; }
+    .book-chapter-card.theme-sepia .book-chapter-body strong { color: #8b6b2c; }
+    .book-chapter-card.theme-sepia .book-chapter-meta { color: #6b5b3a; }
+    .book-chapter-card.theme-light {
+      background: #ffffff;
+      color: #1a1a1a;
+    }
+    .book-chapter-card.theme-light .book-chapter-title { color: #D4AF37; }
+    .book-chapter-card.theme-light .book-chapter-body { color: #1a1a1a; }
+    .book-chapter-card.theme-light .book-chapter-body h1,
+    .book-chapter-card.theme-light .book-chapter-body h2,
+    .book-chapter-card.theme-light .book-chapter-body h3 { color: #1a1a1a; }
+    .book-chapter-card.theme-light .book-chapter-body strong { color: #D4AF37; }
+    .book-chapter-card.theme-light .book-chapter-meta { color: #555; }
+    .book-chapter-card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 14px;
+      padding: 18px 16px;
+      margin-bottom: 12px;
+    }
+    .book-chapter-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .book-chapter-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .book-bookmark-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+    .book-bookmark-btn.active { color: #D4AF37; }
+    .book-chapter-title {
+      font-size: 22px;
+      color: #D4AF37;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+    .book-chapter-body {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      overflow-wrap: break-word;
+    }
+    .book-chapter-body p {
+      margin: 0 0 14px;
+      text-align: justify;
+      hyphens: auto;
+    }
+    .book-chapter-body h1,
+    .book-chapter-body h2,
+    .book-chapter-body h3 {
+      margin: 20px 0 10px;
+      line-height: 1.3;
+      text-align: center;
+      color: #D4AF37;
+      font-weight: 600;
+    }
+    .book-chapter-body h1 { font-size: 1.3em; }
+    .book-chapter-body h2 { font-size: 1.2em; }
+    .book-chapter-body h3 { font-size: 1.1em; }
+    .book-chapter-body ul,
+    .book-chapter-body ol { padding-left: 20px; margin: 0 0 14px; }
+    .book-chapter-body li { margin-bottom: 6px; }
+    .book-chapter-body strong { font-weight: 700; }
+    .book-chapter-body img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 16px auto;
+      border-radius: 8px;
+      cursor: zoom-in;
+      image-rendering: -webkit-optimize-contrast;
+    }
+    /* Lightbox для крупного просмотра картинок книги */
+    .book-img-lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      cursor: zoom-out;
+      padding: 16px;
+    }
+    .book-img-lightbox img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 0;
+      filter: none !important;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+      cursor: zoom-out;
+    }
+    .book-img-lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* В тёмной теме чёрные глифы инвертируются в золотые, чтобы быть видимыми */
+    .book-chapter-card.theme-dark .book-chapter-body img,
+    .book-chapter-card:not(.theme-sepia):not(.theme-light) .book-chapter-body img {
+      filter: invert(78%) sepia(53%) saturate(478%) hue-rotate(2deg) brightness(94%) contrast(90%);
+      border-radius: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+    /* PNG-глиф дара (когда не задвоен) */
+    .book-chapter-body .book-dar-glyph {
+      max-width: 240px;
+      width: 60%;
+      height: auto;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .book-chapter-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .book-chapter-body th,
+    .book-chapter-body td {
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px;
+      text-align: left;
+    }
+    .book-chapter-body th {
+      background: rgba(212,175,55,0.08);
+      color: var(--gold);
+    }
+    .book-reader-nav-bottom {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0 16px;
+    }
+    .book-nav-pill {
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .book-nav-pill:hover { background: rgba(212,175,55,0.08); }
+    .book-nav-pos { font-size: 12px; color: var(--text-muted); }
+
     .book-reader-content {
       padding: 20px 16px 60px;
       max-width: 720px;
@@ -2602,22 +2947,91 @@
     <div class="book-reader-header">
       <button class="book-reader-back" onclick="closeBook()" aria-label="Назад">←</button>
       <div class="book-reader-title" id="book-reader-title" data-i18n="treasury.book_dars_title">Книга Даров</div>
-      <button class="book-reader-toc" onclick="toggleBookToc()" aria-label="Оглавление">☰</button>
+      <span style="width:36px"></span>
     </div>
-    <div class="book-reader-meta">
-      <span id="book-reader-lang">RU</span> · <span id="book-reader-chapter">—</span>
-    </div>
-    <nav class="book-reader-nav">
-      <button class="book-nav-btn" onclick="prevChapter()" aria-label="Назад">←</button>
-      <span class="book-nav-info" id="book-nav-info">1 / 94</span>
-      <button class="book-nav-btn" onclick="nextChapter()" aria-label="Дальше">→</button>
-    </nav>
-    <div class="book-reader-content" id="book-reader-content">
-      <div class="placeholder" data-i18n="book.loading">Загружаю книгу…</div>
-    </div>
-    <div class="book-toc" id="book-toc" hidden>
-      <div class="book-toc-title" data-i18n="book.contents">Оглавление</div>
-      <div class="book-toc-list" id="book-toc-list"></div>
+
+    <div class="book-reader-scroll" id="book-reader-content">
+      <!-- Обзор книги: иконка, название, прогресс, доступ, 4 кнопки -->
+      <div class="book-overview" id="book-overview">
+        <div class="book-overview-icon">📖</div>
+        <div class="book-overview-title" data-i18n="book.title_uppercase">КНИГА ДАРОВ</div>
+        <div class="book-overview-meta" id="book-overview-meta">— • —</div>
+      </div>
+
+      <div class="book-progress">
+        <div class="book-progress-row">
+          <span data-i18n="book.read_chapters">📚 Прочитано глав</span>
+          <span><b id="book-progress-count">0</b> / <span id="book-progress-total">0</span></span>
+        </div>
+        <div class="book-progress-bar">
+          <div class="book-progress-fill" id="book-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="book-access-banner" id="book-access-banner">
+        <span data-i18n="book.full_access">✓ Полный доступ</span>
+      </div>
+
+      <div class="book-action-buttons">
+        <button class="book-action-btn" onclick="bookPanelToggle('toc')">
+          <span>📕</span><span data-i18n="book.btn_chapters">Главы</span>
+        </button>
+        <button class="book-action-btn" onclick="bookPanelToggle('search')">
+          <span>🔍</span><span data-i18n="book.btn_search">Поиск</span>
+        </button>
+        <button class="book-action-btn" onclick="bookPanelToggle('bookmarks')">
+          <span>⭐</span><span data-i18n="book.btn_bookmarks">Закладки</span>
+        </button>
+        <button class="book-action-btn" onclick="bookPanelToggle('settings')">
+          <span>⚙</span><span data-i18n="book.btn_settings">Настройки</span>
+        </button>
+      </div>
+
+      <div id="book-panel-toc" class="book-panel" hidden>
+        <div class="book-toc-title" data-i18n="book.contents">Оглавление</div>
+        <div id="book-toc-list" class="book-toc-list"></div>
+      </div>
+      <div id="book-panel-search" class="book-panel" hidden>
+        <input id="book-search-input" type="search" placeholder="Поиск по книге…" data-i18n-placeholder="book.search_placeholder" oninput="bookSearch(this.value)" class="book-search-input"/>
+        <div id="book-search-results" class="book-search-results"></div>
+      </div>
+      <div id="book-panel-bookmarks" class="book-panel" hidden>
+        <div id="book-bookmarks-list" class="book-toc-list">
+          <div class="book-empty" data-i18n="book.bookmarks_empty">Закладок пока нет. Открой главу и нажми ⭐, чтобы сохранить.</div>
+        </div>
+      </div>
+      <div id="book-panel-settings" class="book-panel" hidden>
+        <div class="book-settings-label" data-i18n="book.font_size_label">РАЗМЕР ШРИФТА</div>
+        <div class="book-settings-row-grid">
+          <button class="book-settings-btn-pill" data-fs="14" onclick="bookSetFontSize(14)" style="font-size:12px">A−</button>
+          <button class="book-settings-btn-pill" data-fs="16" onclick="bookSetFontSize(16)" style="font-size:14px">A</button>
+          <button class="book-settings-btn-pill" data-fs="18" onclick="bookSetFontSize(18)" style="font-size:16px">A+</button>
+          <button class="book-settings-btn-pill" data-fs="20" onclick="bookSetFontSize(20)" style="font-size:18px">A++</button>
+        </div>
+        <div class="book-settings-label" data-i18n="book.theme_label">ТЕМА</div>
+        <div class="book-settings-row-grid book-settings-themes">
+          <button class="book-settings-btn-pill book-theme-dark" data-theme="dark" onclick="bookSetTheme('dark')">🌙 <span data-i18n="book.theme_dark">Тёмная</span></button>
+          <button class="book-settings-btn-pill book-theme-sepia" data-theme="sepia" onclick="bookSetTheme('sepia')">📕 <span data-i18n="book.theme_sepia">Сепия</span></button>
+          <button class="book-settings-btn-pill book-theme-light" data-theme="light" onclick="bookSetTheme('light')">☀ <span data-i18n="book.theme_light">Светлая</span></button>
+        </div>
+      </div>
+
+      <div class="book-chapter-card" id="book-chapter-card">
+        <div class="book-chapter-meta-row">
+          <span class="book-chapter-meta" id="book-chapter-meta">— • —</span>
+          <button class="book-bookmark-btn" id="book-bookmark-btn" onclick="bookBookmarkToggle()" aria-label="Закладка">☆</button>
+        </div>
+        <h2 class="book-chapter-title" id="book-chapter-title">—</h2>
+        <div class="book-chapter-body" id="book-chapter-body">
+          <div class="placeholder" data-i18n="book.loading">Загружаю книгу…</div>
+        </div>
+      </div>
+
+      <nav class="book-reader-nav-bottom">
+        <button class="book-nav-pill" onclick="prevChapter()"><span>←</span> <span data-i18n="common.back">Назад</span></button>
+        <span class="book-nav-pos" id="book-nav-info">1 / 1</span>
+        <button class="book-nav-pill" onclick="nextChapter()"><span data-i18n="common.forward">Вперёд</span> <span>→</span></button>
+      </nav>
     </div>
   </aside>
 

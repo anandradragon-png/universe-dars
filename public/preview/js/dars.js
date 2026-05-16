@@ -98,6 +98,28 @@
     "9-7-7":"Голос Космического Разума","9-8-8":"Создатель Живых Границ",
     "9-9-9":"Живое Зеркало Вселенной"
   };
+  const INTEGRATORS_EN = {
+    "1-9-1":"Architect of Reality","2-9-2":"Guardian of Infinite Space",
+    "3-9-3":"Heart of the Universe","4-9-4":"Phoenix of Eternal Renewal",
+    "5-9-5":"Emperor of Light","6-9-6":"Lord of Time",
+    "7-9-7":"Conductor of the World Mind","8-9-8":"Creator of Perfect Form",
+    "9-1-1":"Architect of Eternal Order","9-2-2":"Creator of the Space of Possibilities",
+    "9-3-3":"Heart of World Unity","9-4-4":"Phoenix of Global Evolution",
+    "9-5-5":"Emperor of the Inner Sun","9-6-6":"Lord of the Fateful Flow",
+    "9-7-7":"Voice of the Cosmic Mind","9-8-8":"Creator of Living Boundaries",
+    "9-9-9":"Living Mirror of the Universe"
+  };
+  const INTEGRATORS_ES = {
+    "1-9-1":"Arquitecto de la Realidad","2-9-2":"Guardián del Espacio Infinito",
+    "3-9-3":"Corazón del Universo","4-9-4":"Fénix de la Renovación Eterna",
+    "5-9-5":"Emperador de la Luz","6-9-6":"Señor del Tiempo",
+    "7-9-7":"Conductor de la Mente del Mundo","8-9-8":"Creador de la Forma Perfecta",
+    "9-1-1":"Arquitecto del Orden Eterno","9-2-2":"Creador del Espacio de Posibilidades",
+    "9-3-3":"Corazón de la Unidad Mundial","9-4-4":"Fénix de la Evolución Global",
+    "9-5-5":"Emperador del Sol Interior","9-6-6":"Señor del Flujo del Destino",
+    "9-7-7":"Voz de la Mente Cósmica","9-8-8":"Creador de Fronteras Vivas",
+    "9-9-9":"Espejo Vivo del Universo"
+  };
 
   // Архетипы (короткое имя из 2 слов под кодом Дара)
   const ARCHETYPES = {
@@ -161,8 +183,14 @@
 
   function getDarName(code, lang) {
     lang = lang || 'ru';
-    if (lang === 'en' && DARS_EN[code]) return DARS_EN[code];
-    if (lang === 'es' && DARS_ES[code]) return DARS_ES[code];
+    if (lang === 'en') {
+      if (DARS_EN[code]) return DARS_EN[code];
+      if (INTEGRATORS_EN[code]) return INTEGRATORS_EN[code];
+    }
+    if (lang === 'es') {
+      if (DARS_ES[code]) return DARS_ES[code];
+      if (INTEGRATORS_ES[code]) return INTEGRATORS_ES[code];
+    }
     return DARS[code] || INTEGRATORS[code] || code;
   }
 

@@ -1024,8 +1024,50 @@
       margin: 0;
     }
     /* Убираем боковые отступы у вкладки Арка, чтобы iframe занимал всю ширину */
-    #tab-arka {
-      padding: 0;
+    #tab-arka { padding: 0; }
+
+    /* Premium-блоки АРКА с замочками (в вкладке «Я») */
+    .arka-premium-block {
+      position: relative;
+      background: linear-gradient(135deg, rgba(125, 211, 252, 0.06), rgba(212, 175, 55, 0.04));
+      border: 1px solid rgba(125, 211, 252, 0.25);
+      border-radius: 14px;
+      padding: 16px;
+      margin: 12px 0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .arka-premium-block:hover {
+      border-color: var(--gold, #D4AF37);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(212, 175, 55, 0.15);
+    }
+    .arka-premium-lock {
+      position: absolute;
+      top: 12px; right: 12px;
+      font-size: 16px;
+      color: #D4AF37;
+    }
+    .arka-premium-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text, #f1f5f9);
+      margin-bottom: 6px;
+      padding-right: 30px;
+    }
+    .arka-premium-sub {
+      font-size: 12px;
+      color: var(--text-dim, #94a3b8);
+      line-height: 1.5;
+    }
+    .arka-premium-cta {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #D4AF37;
+      font-weight: 600;
     }
 
     /* === Семья: реф-карточка === */
@@ -2605,6 +2647,23 @@
             <div class="synthesis-sub" data-i18n="me.synthesis_sub">Объединение Даров с учётом веса каждого уровня.</div>
             <div class="synthesis-levels" id="synthesis-levels"></div>
             <button class="synthesis-edit" onclick="editDepthAgain()" data-i18n="me.synthesis_edit">Изменить данные</button>
+          </div>
+
+          <!-- ═══ Premium-блоки АРКА с замочками ═══
+               Доступно только при активном тарифе с АРКА.
+               Сейчас — все видят замочки. При клике — CTA «Открой АРКА». -->
+          <div class="arka-premium-block" onclick="openArkaPaywall('resonance')">
+            <div class="arka-premium-lock">🔒</div>
+            <div class="arka-premium-title">🧬 <span data-i18n="me.resonance_title">Резонанс с фазой жизни</span></div>
+            <div class="arka-premium-sub" data-i18n="me.resonance_sub">Твой Дар × возраст × текущий жизненный этап. Что раскрывается сейчас, к чему готовиться.</div>
+            <div class="arka-premium-cta" data-i18n="me.arka_unlock">Открыть АРКА →</div>
+          </div>
+
+          <div class="arka-premium-block" onclick="openArkaPaywall('connections')">
+            <div class="arka-premium-lock">🔒</div>
+            <div class="arka-premium-title">🌌 <span data-i18n="me.connections_title">Карта связей</span></div>
+            <div class="arka-premium-sub" data-i18n="me.connections_sub">Какие Дары тебя усиливают, с какими резонанс или напряжение, для кого ты проводник.</div>
+            <div class="arka-premium-cta" data-i18n="me.arka_unlock">Открыть АРКА →</div>
           </div>
         </div>
 

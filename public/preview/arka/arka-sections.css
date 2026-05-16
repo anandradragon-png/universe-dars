@@ -1,0 +1,409 @@
+/* ═══════════════════════════════════════════════════════════
+   ЭКСКЛЮЗИВНЫЕ РАЗДЕЛЫ АРКА (таб «Дар»)
+   Тема З-МАН: глубокие сумерки + серебристый + золото
+   ═══════════════════════════════════════════════════════════ */
+
+.arka-section {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.arka-section .card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+.arka-section .card-hint {
+  font-size: 12px; color: var(--ink-soft);
+  margin: 4px 0 14px;
+}
+
+/* 1. Окна силы */
+.power-windows-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+@media (min-width: 480px) {
+  .power-windows-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.pw-block {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: rgba(15, 30, 50, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+.pw-block-peak {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(125, 211, 252, 0.12));
+  border-color: rgba(212, 175, 55, 0.4);
+}
+.pw-block-flow {
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.18), rgba(167, 139, 250, 0.12));
+  border-color: rgba(125, 211, 252, 0.4);
+}
+.pw-block-rest {
+  background: rgba(15, 30, 50, 0.6);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+.pw-block-icon { font-size: 24px; color: var(--gold); margin-bottom: 6px; }
+.pw-block-flow .pw-block-icon { color: var(--accent); }
+.pw-block-rest .pw-block-icon { color: var(--ink-soft); }
+.pw-block-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 4px;
+}
+.pw-block-time {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.pw-block-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+.pw-rhythm {
+  margin-top: 14px;
+  padding: 12px;
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: var(--radius-sm);
+}
+.pw-rhythm-title {
+  font-size: 13px;
+  color: var(--shadow-deep);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.pw-rhythm-text {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+/* 2. Карта роста */
+.growth-stages {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.growth-stage {
+  flex: 1;
+  min-width: 70px;
+  padding: 12px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(15, 30, 50, 0.4);
+  text-align: center;
+  position: relative;
+}
+.growth-stage-done {
+  background: rgba(110, 231, 183, 0.12);
+  border-color: rgba(110, 231, 183, 0.4);
+}
+.growth-stage-active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(125, 211, 252, 0.15));
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+}
+.gs-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.growth-stage-done .gs-num { color: var(--green); }
+.growth-stage-active .gs-num { color: var(--gold); }
+.gs-name {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+.growth-stage-active .gs-name { color: var(--ink); font-weight: 600; }
+.gs-mark {
+  position: absolute;
+  top: 4px; right: 4px;
+  font-size: 11px;
+  color: var(--green);
+}
+.growth-stage-active .gs-mark { color: var(--gold); }
+.growth-progress { margin-bottom: 14px; }
+.gp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.gp-row b { color: var(--gold); }
+.gp-bar {
+  height: 6px;
+  background: rgba(125, 211, 252, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.gp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--gold));
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+.growth-shadows {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.gs-block-title {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--ink-mute);
+  margin-bottom: 6px;
+  margin-top: 8px;
+}
+.gs-block-active { color: var(--shadow-deep); }
+.gs-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.gs-tag {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(110, 231, 183, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(110, 231, 183, 0.3);
+}
+.gs-tag-active {
+  background: rgba(167, 139, 250, 0.12);
+  color: var(--shadow-deep);
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+/* 3. Дневник эволюции */
+.evo-journal-input {
+  background: rgba(15, 30, 50, 0.5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.evo-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.evo-tab {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.evo-tab-active {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.evo-textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  padding: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  min-height: 60px;
+  resize: vertical;
+  outline: none;
+}
+.evo-textarea:focus { border-color: var(--accent); }
+.evo-save-btn {
+  margin-top: 8px;
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  color: #0a1929;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+.evo-recent-title {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  margin: 12px 0 8px;
+}
+.evo-entry {
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(15, 30, 50, 0.4);
+  margin-bottom: 6px;
+  border-left: 2px solid var(--ink-mute);
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.evo-entry-light { border-left-color: var(--gold); }
+.evo-entry-shadow { border-left-color: var(--shadow-deep); }
+.evo-entry-insight { border-left-color: var(--accent); }
+.evo-date {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--ink-mute);
+  margin-right: 8px;
+  text-transform: uppercase;
+}
+.evo-ai-card {
+  margin-top: 14px;
+  padding: 14px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(125, 211, 252, 0.08));
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: var(--radius-sm);
+}
+.evo-ai-title {
+  font-size: 13px;
+  color: var(--shadow-deep);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.evo-ai-text {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+/* 4. Тренажёр Дара */
+.trainer-streak {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, var(--gold-soft), transparent);
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--ink);
+}
+.ts-icon { font-size: 18px; }
+.trainer-streak b { color: var(--gold); font-size: 18px; }
+.trainer-practices { margin-bottom: 14px; }
+.trainer-practice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(15, 30, 50, 0.5);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.trainer-practice:hover {
+  border-color: var(--accent);
+  background: rgba(125, 211, 252, 0.05);
+}
+.trainer-practice-done { opacity: 0.55; }
+.trainer-practice-done .tp-mark { color: var(--green); }
+.trainer-practice-current {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.08);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
+}
+.trainer-practice-current .tp-mark { color: var(--gold); }
+.tp-mark { font-size: 16px; color: var(--ink-mute); flex-shrink: 0; }
+.tp-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.tp-time {
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.trainer-start-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--gold), #b8951f);
+  color: #0a1929;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+}
+
+/* ── Premium-замочки в "Я" главного приложения ────────────── */
+.arka-premium-block {
+  position: relative;
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.08), rgba(212, 175, 55, 0.05));
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 12px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.arka-premium-block:hover {
+  border-color: var(--gold, #D4AF37);
+  transform: translateY(-1px);
+}
+.arka-premium-lock {
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 16px;
+  color: #D4AF37;
+}
+.arka-premium-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text, #f1f5f9);
+  margin-bottom: 4px;
+  padding-right: 30px;
+}
+.arka-premium-sub {
+  font-size: 12px;
+  color: var(--text-dim, #94a3b8);
+  line-height: 1.5;
+}
+.arka-premium-cta {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #D4AF37;
+}

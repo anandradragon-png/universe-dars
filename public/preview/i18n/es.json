@@ -42,7 +42,13 @@
     "more_about_me": "Saber más sobre ti",
     "synthesis_title": "Tu arquetipo — síntesis de 4 niveles",
     "synthesis_sub": "Combinación de DARs según el peso. Cuanto mayor el porcentaje, mayor la influencia.",
-    "synthesis_edit": "Editar datos"
+    "synthesis_edit": "Editar datos",
+    "resonance_title": "Resonancia con fase de vida",
+    "resonance_sub": "Tu DAR × edad × etapa actual. Lo que se despliega ahora, para qué prepararte.",
+    "connections_title": "Mapa de conexiones",
+    "connections_sub": "Qué DARs te fortalecen, con cuáles hay resonancia o tensión, para quién eres guía.",
+    "arka_unlock": "Abrir ARKA →",
+    "arka_paywall_msg": "Esta sección está disponible con el plan ARKA. ¿Abrir precios?"
   },
 
   "family": {

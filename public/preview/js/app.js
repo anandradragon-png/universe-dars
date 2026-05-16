@@ -155,6 +155,21 @@
   }
   window.openScienceSurvey = openScienceSurvey;
 
+  // Premium-блоки АРКА в вкладке «Я» — клик по замочку открывает CTA
+  function openArkaPaywall(featureKey) {
+    const t = (k, fb) => ((window.previewI18n && previewI18n.t(k)) || fb);
+    const titles = {
+      resonance: t('me.resonance_title', 'Резонанс с фазой жизни'),
+      connections: t('me.connections_title', 'Карта связей')
+    };
+    const title = titles[featureKey] || 'АРКА';
+    const msg = t('me.arka_paywall_msg', 'Этот раздел доступен в тарифе с подключённой АРКОЙ. Открыть тарифы?');
+    if (confirm(title + '\n\n' + msg)) {
+      window.switchTab && window.switchTab('arka');
+    }
+  }
+  window.openArkaPaywall = openArkaPaywall;
+
   // ЛК (личный кабинет)
   function openProfile() {
     document.getElementById('lk-backdrop')?.classList.add('open');

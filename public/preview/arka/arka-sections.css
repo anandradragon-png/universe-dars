@@ -1,4 +1,276 @@
 /* ═══════════════════════════════════════════════════════════
+   ОБЩИЕ ОВЕРРАЙДЫ КОНТРАСТА (для всех табов АРКА)
+   Многие старые элементы (стрик, бриф наставника, утренний свет)
+   имели светлые градиенты + тёмный текст из старой светлой темы.
+   Делаем их читаемыми на тёмной теме З-МАН.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Бриф наставника / разбор недели / еженедельный текст — было светлое */
+.mentor-brief,
+.weekly-text,
+.mentor-call-card {
+  background: rgba(8, 20, 36, 0.85) !important;
+  border: 1px solid rgba(212, 175, 55, 0.35) !important;
+  color: #ffffff !important;
+}
+.mentor-brief *,
+.weekly-text *,
+.mentor-call-card * {
+  color: #e2e8f0 !important;
+}
+.mentor-badge {
+  background: rgba(212, 175, 55, 0.18) !important;
+  color: #D4AF37 !important;
+  border: 1px solid rgba(212, 175, 55, 0.5) !important;
+}
+.mentor-title,
+.weekly-text b,
+.mentor-call-card .card-title {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 18px !important;
+  letter-spacing: 0.3px !important;
+}
+
+/* Все заголовки в АРКА — Manrope, читаемые */
+.card-title,
+.dar-hero-name,
+.ritual-title,
+.streak-text,
+.dar-hero-code,
+.pw-title,
+.pw-time {
+  font-family: 'Manrope', sans-serif !important;
+}
+.card-title {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3px !important;
+}
+.dar-hero-name {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  letter-spacing: 2px !important;
+}
+.pw-title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px !important;
+}
+.pw-time {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+.mentor-text,
+.weekly-text {
+  color: #e2e8f0 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+.weekly-text em {
+  color: #D4AF37 !important;
+  font-style: normal !important;
+  font-weight: 600 !important;
+}
+
+/* Стрик «ты скользишь по змею» */
+.streak {
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05)) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(212, 175, 55, 0.4) !important;
+}
+.streak b {
+  color: #D4AF37 !important;
+  font-weight: 700 !important;
+}
+.streak-text {
+  color: #e2e8f0 !important;
+}
+
+/* Утренние ритуалы (рассветный/дневной/закатный) */
+.ritual,
+.tasks-card,
+.goal-card,
+.journal,
+.ai-card,
+.suggestions-block,
+.content-card,
+.income-card,
+.dar-block,
+.dar-hero {
+  background: rgba(15, 30, 50, 0.85) !important;
+  border: 1px solid rgba(125, 211, 252, 0.25) !important;
+  color: #ffffff !important;
+}
+.ritual-title,
+.card-title,
+.dar-hero-name {
+  color: #ffffff !important;
+}
+.card-hint,
+.task-text,
+.ritual p,
+.dar-hero-sub,
+.legend-row {
+  color: #e2e8f0 !important;
+}
+.ritual-time,
+.dar-hero-code {
+  color: #D4AF37 !important;
+  font-weight: 600 !important;
+}
+
+/* Чек-боксы и текст в чек-листах */
+.check-text {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+.check-item.done .check-text {
+  color: #94a3b8 !important;
+  text-decoration: line-through;
+}
+.oil-hint {
+  background: rgba(212, 175, 55, 0.1) !important;
+  color: #D4AF37 !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+}
+.practice-details {
+  background: rgba(8, 20, 36, 0.9) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(125, 211, 252, 0.2) !important;
+}
+.practice-details b {
+  color: #ffffff !important;
+}
+
+/* Задачи (типы нагрузки) */
+.task-type[data-type=resource] {
+  background: rgba(110, 231, 183, 0.15) !important;
+  color: #6EE7B7 !important;
+  border-color: rgba(110, 231, 183, 0.4) !important;
+}
+.task-type[data-type=neutral] {
+  background: rgba(125, 211, 252, 0.15) !important;
+  color: #7DD3FC !important;
+  border-color: rgba(125, 211, 252, 0.4) !important;
+}
+.task-type[data-type=shadow] {
+  background: rgba(167, 139, 250, 0.15) !important;
+  color: #A78BFA !important;
+  border-color: rgba(167, 139, 250, 0.4) !important;
+}
+.legend-tag[data-type=resource] {
+  background: rgba(110, 231, 183, 0.15) !important;
+  color: #6EE7B7 !important;
+}
+.legend-tag[data-type=neutral] {
+  background: rgba(125, 211, 252, 0.15) !important;
+  color: #7DD3FC !important;
+}
+.legend-tag[data-type=shadow] {
+  background: rgba(167, 139, 250, 0.15) !important;
+  color: #A78BFA !important;
+}
+
+/* Текстовые инпуты, textarea */
+.goal-input, .task-input, .journal textarea, .ai-input {
+  background: rgba(8, 20, 36, 0.9) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(125, 211, 252, 0.3) !important;
+}
+.goal-input::placeholder, .task-input::placeholder, .journal textarea::placeholder, .ai-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Кнопки добавления */
+.task-add-btn, .goal-add-step-btn {
+  background: rgba(15, 30, 50, 0.6) !important;
+  color: #7DD3FC !important;
+  border: 1px dashed rgba(125, 211, 252, 0.4) !important;
+}
+.task-add-btn:hover, .goal-add-step-btn:hover {
+  background: rgba(125, 211, 252, 0.1) !important;
+}
+
+/* Окно силы (в табе Сегодня) */
+.power-window {
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.18), rgba(8, 20, 36, 0.85)) !important;
+  border: 1px solid rgba(125, 211, 252, 0.4) !important;
+  color: #ffffff !important;
+}
+.pw-title,
+.pw-time {
+  color: #ffffff !important;
+}
+.pw-hint {
+  color: #e2e8f0 !important;
+}
+
+/* AI-помощник и предложения */
+.suggestion-item, .ai-response {
+  background: rgba(8, 20, 36, 0.9) !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(125, 211, 252, 0.25) !important;
+}
+.ai-empty {
+  color: #94a3b8 !important;
+}
+.ai-btn {
+  background: rgba(15, 30, 50, 0.8) !important;
+  color: #7DD3FC !important;
+  border: 1px solid rgba(125, 211, 252, 0.4) !important;
+}
+.ai-btn:hover {
+  background: rgba(125, 211, 252, 0.15) !important;
+}
+
+/* Info-баннер */
+.info-banner {
+  background: rgba(125, 211, 252, 0.08) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(125, 211, 252, 0.25) !important;
+}
+.info-banner b {
+  color: #ffffff !important;
+}
+
+/* Демо-баннер сверху АРКА */
+#arkaDraftBanner {
+  background: rgba(212, 175, 55, 0.12) !important;
+  border-color: rgba(212, 175, 55, 0.45) !important;
+  color: #ffffff !important;
+}
+#arkaDraftBanner b {
+  color: #D4AF37 !important;
+}
+
+/* Табы (Сегодня/Дар/Стратегия/Путь) */
+.tabs {
+  background: rgba(8, 20, 36, 0.9) !important;
+  border: 1px solid rgba(125, 211, 252, 0.2) !important;
+}
+.tab {
+  color: #cbd5e1 !important;
+}
+.tab.active {
+  background: rgba(212, 175, 55, 0.18) !important;
+  color: #D4AF37 !important;
+  border: 1px solid rgba(212, 175, 55, 0.4) !important;
+}
+.tab-label {
+  color: inherit !important;
+}
+
+/* Подсказки во вкладке Путь */
+.dar-attrs-label {
+  color: #94a3b8 !important;
+}
+.dar-attrs-value {
+  color: #ffffff !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
    ЭКСКЛЮЗИВНЫЕ РАЗДЕЛЫ АРКА (таб «Дар»)
    Тема З-МАН: глубокие сумерки + серебристый + золото
    ═══════════════════════════════════════════════════════════ */
@@ -13,14 +285,17 @@
   box-shadow: var(--shadow);
 }
 .arka-section .card-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px; font-weight: 600;
-  color: var(--accent);
-  letter-spacing: 0.5px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.3px;
 }
 .arka-section .card-hint {
-  font-size: 12px; color: var(--ink-soft);
+  font-size: 13px;
+  color: #cbd5e1;
   margin: 4px 0 14px;
+  line-height: 1.5;
 }
 
 /* 1. Окна силы */
@@ -37,43 +312,48 @@
   padding: 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
-  background: rgba(15, 30, 50, 0.5);
+  background: rgba(8, 20, 36, 0.85);
   position: relative;
   overflow: hidden;
 }
 .pw-block-peak {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(125, 211, 252, 0.12));
-  border-color: rgba(212, 175, 55, 0.4);
+  background: linear-gradient(135deg, rgba(8, 20, 36, 0.9), rgba(15, 30, 50, 0.9));
+  border-color: rgba(212, 175, 55, 0.5);
+  border-left: 3px solid #D4AF37;
 }
 .pw-block-flow {
-  background: linear-gradient(135deg, rgba(125, 211, 252, 0.18), rgba(167, 139, 250, 0.12));
-  border-color: rgba(125, 211, 252, 0.4);
+  background: linear-gradient(135deg, rgba(8, 20, 36, 0.9), rgba(15, 30, 50, 0.9));
+  border-color: rgba(125, 211, 252, 0.5);
+  border-left: 3px solid #7DD3FC;
 }
 .pw-block-rest {
-  background: rgba(15, 30, 50, 0.6);
-  border-color: rgba(148, 163, 184, 0.25);
+  background: rgba(8, 20, 36, 0.9);
+  border-color: rgba(148, 163, 184, 0.35);
+  border-left: 3px solid #94a3b8;
 }
 .pw-block-icon { font-size: 24px; color: var(--gold); margin-bottom: 6px; }
 .pw-block-flow .pw-block-icon { color: var(--accent); }
 .pw-block-rest .pw-block-icon { color: var(--ink-soft); }
 .pw-block-label {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--ink-mute);
-  margin-bottom: 4px;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+  font-weight: 600;
 }
 .pw-block-time {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--ink);
-  margin-bottom: 6px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
 }
 .pw-block-desc {
-  font-size: 12px;
-  color: var(--ink-soft);
-  line-height: 1.45;
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.5;
 }
 .pw-rhythm {
   margin-top: 14px;

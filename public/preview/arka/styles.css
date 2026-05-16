@@ -5,11 +5,11 @@
 :root {
   /* Тёмная палитра «Сумерки времени» для Дара З-МАН (1-6-7) */
   --bg: #0a1929;
-  --bg-card: rgba(20, 45, 70, 0.55);
-  --bg-warm: rgba(30, 55, 80, 0.5);
-  --ink: #E0F2FE;
-  --ink-soft: #94A3B8;
-  --ink-mute: #64748B;
+  --bg-card: rgba(15, 30, 50, 0.85);
+  --bg-warm: rgba(20, 40, 60, 0.85);
+  --ink: #ffffff;
+  --ink-soft: #e2e8f0;
+  --ink-mute: #cbd5e1;
   --accent: #7DD3FC;
   --accent-deep: #38BDF8;
   --accent-soft: rgba(125, 211, 252, 0.25);

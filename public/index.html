@@ -177,6 +177,12 @@
     .accordion-title{flex:1;font-size:14px;letter-spacing:1px;color:var(--text)}
     .accordion-arrow{font-size:12px;color:var(--text-dim);transition:transform .3s;flex-shrink:0}
     .accordion-header.open .accordion-arrow{transform:rotate(180deg)}
+    /* Premium-секции АРКА с замочками */
+    .accordion-lock{font-size:14px;color:#D4AF37;flex-shrink:0;opacity:0.85}
+    .accordion-item-locked .accordion-header{position:relative}
+    .accordion-item-locked .accordion-header:hover{background:rgba(212,175,55,0.10)}
+    .accordion-item-locked .accordion-header:hover .accordion-lock{opacity:1;transform:scale(1.1);transition:transform 0.2s}
+    .accordion-item-locked .accordion-title{color:var(--text-dim)}
     .accordion-body{display:none;padding:16px;background:rgba(0,0,0,0.2);border-top:1px solid var(--border);text-align:left}
     .accordion-body.open{display:block;animation:fadeUp .3s ease}
     @keyframes fadeUp{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
@@ -2433,7 +2439,56 @@
           <div class="accordion-body${isFirst?' open':''}">${formatText(text)}</div>`;
         container.appendChild(item);
       });
+
+      // ═══ ARKA Premium-разделы (с замочками) ═══
+      // Добавляются после стандартных секций. Доступны при подключённой АРКЕ.
+      // При клике на закрытый — открывается paywall, не сам контент.
+      const ARKA_PREMIUM_SECTIONS = [
+        {
+          key: 'arka_resonance',
+          icon: '🧬',
+          title: 'Резонанс с фазой жизни',
+          subtitle: 'Твой Дар × возраст × текущий жизненный этап. Что раскрывается сейчас, к чему готовиться.'
+        },
+        {
+          key: 'arka_connections',
+          icon: '🌌',
+          title: 'Карта связей',
+          subtitle: 'Какие Дары тебя усиливают, с какими резонанс или напряжение, для кого ты проводник.'
+        }
+      ];
+      ARKA_PREMIUM_SECTIONS.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'accordion-item accordion-item-locked';
+        item.innerHTML = `
+          <button class="accordion-header" onclick="openArkaPaywall('${s.key}')">
+            <span class="accordion-icon">${s.icon}</span>
+            <span class="accordion-title">${s.title}</span>
+            <span class="accordion-lock" title="Доступно в АРКЕ">🔒</span>
+          </button>
+          <div class="accordion-body" style="display:none">
+            <p style="font-size:13px;color:var(--text-dim);line-height:1.55;margin:0 0 10px">${s.subtitle}</p>
+            <button onclick="openArkaPaywall('${s.key}')" style="margin-top:6px;padding:10px 16px;background:linear-gradient(135deg,#D4AF37,#b8860b);color:#080808;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:0.3px">
+              Открыть АРКА →
+            </button>
+          </div>`;
+        container.appendChild(item);
+      });
     }
+
+    // Paywall для premium-разделов АРКА
+    function openArkaPaywall(featureKey) {
+      const titles = {
+        arka_resonance: 'Резонанс с фазой жизни',
+        arka_connections: 'Карта связей'
+      };
+      const title = titles[featureKey] || 'АРКА';
+      const msg = title + '\n\nЭтот раздел доступен в тарифе с подключённой АРКОЙ.\n\nОткрыть тарифы?';
+      if (confirm(msg)) {
+        if (typeof openTariffsPage === 'function') openTariffsPage();
+      }
+    }
+    window.openArkaPaywall = openArkaPaywall;
 
     // Секции аккордеона (fallback для текстового формата)
     const SECTIONS = [

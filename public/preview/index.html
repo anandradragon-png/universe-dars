@@ -2644,22 +2644,9 @@
             <button class="synthesis-edit" onclick="editDepthAgain()" data-i18n="me.synthesis_edit">Изменить данные</button>
           </div>
 
-          <!-- ═══ Premium-блоки АРКА с замочками ═══
-               Доступно только при активном тарифе с АРКА.
-               Сейчас — все видят замочки. При клике — CTA «Открой АРКА». -->
-          <div class="arka-premium-block" onclick="openArkaPaywall('resonance')">
-            <div class="arka-premium-lock">🔒</div>
-            <div class="arka-premium-title">🧬 <span data-i18n="me.resonance_title">Резонанс с фазой жизни</span></div>
-            <div class="arka-premium-sub" data-i18n="me.resonance_sub">Твой Дар × возраст × текущий жизненный этап. Что раскрывается сейчас, к чему готовиться.</div>
-            <div class="arka-premium-cta" data-i18n="me.arka_unlock">Открыть АРКА →</div>
-          </div>
-
-          <div class="arka-premium-block" onclick="openArkaPaywall('connections')">
-            <div class="arka-premium-lock">🔒</div>
-            <div class="arka-premium-title">🌌 <span data-i18n="me.connections_title">Карта связей</span></div>
-            <div class="arka-premium-sub" data-i18n="me.connections_sub">Какие Дары тебя усиливают, с какими резонанс или напряжение, для кого ты проводник.</div>
-            <div class="arka-premium-cta" data-i18n="me.arka_unlock">Открыть АРКА →</div>
-          </div>
+          <!-- Premium-секции АРКА перенесены в главное приложение (public/index.html)
+               в аккордеон даров (Твои Суперсилы / Твой Поток Изобилия / ...).
+               Сюда они не относятся. -->
         </div>
 
         <!-- Закон: личные данные неизменяемы (law_personal_data_immutable.md).

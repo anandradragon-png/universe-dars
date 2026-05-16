@@ -49,74 +49,74 @@
     <section class="power-window">
       <div class="pw-icon">✦</div>
       <div class="pw-text">
-        <div class="pw-title">Окна силы сегодня</div>
-        <div class="pw-time">Сумерки · 5:30–7:30 и 17:30–19:30</div>
-        <div class="pw-hint">Время между временами — твоя стихия</div>
+        <div class="pw-title" data-i18n="today.pw_title">Окна силы сегодня</div>
+        <div class="pw-time" data-i18n="today.pw_time">Сумерки · 5:30–7:30 и 17:30–19:30</div>
+        <div class="pw-hint" data-i18n="today.pw_hint">Время между временами — твоя стихия</div>
       </div>
     </section>
 
     <!-- Стрик -->
     <section class="streak">
       <span class="streak-icon">🐉</span>
-      <span class="streak-text">Ты скользишь по змею уже <b id="streakDays">1</b> <span id="streakWord">день</span></span>
+      <span class="streak-text"><span data-i18n="today.streak_pre">Ты скользишь по змею уже</span> <b id="streakDays">1</b> <span id="streakWord" data-i18n="today.streak_day">день</span></span>
     </section>
 
     <!-- Важные дела дня -->
     <section class="tasks-card">
       <div class="card-header">
         <span class="card-icon">🎯</span>
-        <h2 class="card-title">Важные дела сегодня</h2>
+        <h2 class="card-title" data-i18n="today.tasks_title">Важные дела сегодня</h2>
       </div>
-      <p class="card-hint">Максимум 3, чтобы не утянуло в суетное время. Нажми на плашку справа — переключай тип задачи.</p>
+      <p class="card-hint" data-i18n="today.tasks_hint">Максимум 3, чтобы не утянуло в суетное время. Нажми на плашку справа — переключай тип задачи.</p>
 
       <details class="task-legend">
-        <summary>Зачем типы нагрузки?</summary>
+        <summary data-i18n="today.legend_summary">Зачем типы нагрузки?</summary>
         <div class="legend-body">
-          <div class="legend-row"><span class="legend-tag" data-type="resource">🌟 ресурсная</span> питает твой Дар, делается легко. <b>Ставь в окно силы</b> (5:30–7:30 / 17:30–19:30) — там она идёт мощнее всего.</div>
-          <div class="legend-row"><span class="legend-tag" data-type="neutral">⚖️ обычная</span> рутина, не требует особого ресурса. <b>В дневной якорь</b> (12:00–16:00) или в любое нейтральное время.</div>
-          <div class="legend-row"><span class="legend-tag" data-type="shadow">🌑 теневая</span> требует усилия, активирует тень. <b>Только после ритуала-опоры</b> (Balance, заземление). Если 3 такие подряд — выгорание.</div>
-          <div class="legend-row" style="margin-top:8px; color:var(--accent-deep);"><b>З-МАН:</b> поток ТУМА идёт лучше, когда задачи распределены по типу — не сваливай теневое в утро.</div>
+          <div class="legend-row" data-i18n="today.legend_resource"><span class="legend-tag" data-type="resource">🌟 ресурсная</span> питает твой Дар, делается легко. <b>Ставь в окно силы</b> (5:30–7:30 / 17:30–19:30) — там она идёт мощнее всего.</div>
+          <div class="legend-row" data-i18n="today.legend_neutral"><span class="legend-tag" data-type="neutral">⚖️ обычная</span> рутина, не требует особого ресурса. <b>В дневной якорь</b> (12:00–16:00) или в любое нейтральное время.</div>
+          <div class="legend-row" data-i18n="today.legend_shadow"><span class="legend-tag" data-type="shadow">🌑 теневая</span> требует усилия, активирует тень. <b>Только после ритуала-опоры</b> (Balance, заземление). Если 3 такие подряд — выгорание.</div>
+          <div class="legend-row" style="margin-top:8px; color:var(--accent-deep);" data-i18n="today.legend_zman"><b>З-МАН:</b> поток ТУМА идёт лучше, когда задачи распределены по типу — не сваливай теневое в утро.</div>
         </div>
       </details>
 
       <ul class="tasks-list" id="tasksList"></ul>
-      <button class="task-add-btn" id="taskAddBtn">＋ Добавить задачу</button>
+      <button class="task-add-btn" id="taskAddBtn" data-i18n="today.task_add">＋ Добавить задачу</button>
     </section>
 
     <!-- Рассветный ритуал -->
     <section class="ritual" data-ritual="dawn">
       <div class="ritual-header">
         <span class="ritual-icon">🌅</span>
-        <h2 class="ritual-title">Рассветный ритуал</h2>
+        <h2 class="ritual-title" data-i18n="today.ritual_dawn">Рассветный ритуал</h2>
         <span class="ritual-time">5:30 — 7:30</span>
       </div>
       <ul class="checklist">
         <li class="check-item" data-id="r1">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Босиком на пол — заземление ЛОГОС</span><button class="info-btn" data-info="r1">?</button></label>
-          <div class="practice-details" id="info-r1">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.r1_text">Босиком на пол — заземление ЛОГОС</span><button class="info-btn" data-info="r1">?</button></label>
+          <div class="practice-details" id="info-r1" data-i18n="today.r1_details">
             <b>Как делать:</b> встань босиком на землю — это даёт самое глубокое заземление. Если нет возможности (зима, квартира) — на холодный пол (плитка, паркет). Стопы плотно прижаты. Закрой глаза. Представь, что от стоп вниз растут серебристо-золотые корни. <b>2–3 минуты.</b><br>
             <b>Аффирмация:</b> «Я в точке, где все времена сходятся».
           </div>
         </li>
         <li class="check-item with-oil" data-id="r2">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Frankincense на ладони → вдох</span><button class="info-btn" data-info="r2">?</button></label>
-          <div class="oil-hint"><span>💧</span><span>doTERRA Frankincense — присутствие в моменте, замедление времени</span></div>
-          <div class="practice-details" id="info-r2">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.r2_text">Frankincense на ладони → вдох</span><button class="info-btn" data-info="r2">?</button></label>
+          <div class="oil-hint" data-oil="frankincense"><span>💧</span><span data-i18n="today.r2_oil">doTERRA Frankincense — присутствие в моменте, замедление времени</span></div>
+          <div class="practice-details" id="info-r2" data-i18n="today.r2_details">
             <b>Применение:</b> 1 капля на ладони, потереть, поднести к лицу. <b>3 медленных вдоха.</b><br>
             <b>⚠ Важно:</b> на кожу — только разведённое с базовым маслом (1:1). Внутрь — только пищевую серию (Beadlets).
           </div>
         </li>
         <li class="check-item" data-id="r3">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Стакан воды — поток ТУМА</span><button class="info-btn" data-info="r3">?</button></label>
-          <div class="practice-details" id="info-r3">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.r3_text">Стакан воды — поток ТУМА</span><button class="info-btn" data-info="r3">?</button></label>
+          <div class="practice-details" id="info-r3" data-i18n="today.r3_details">
             <b>Сколько:</b> 1 стакан 200–300 мл, тёплая или комнатной. Можно с долькой лимона.<br>
             <b>Когда:</b> сразу после пробуждения, до кофе. Через 15–20 минут — завтрак.<br>
             <b>Почему:</b> ночью обезвоживание, поток ТУМА застаивается. Утренняя вода = первый поток дня.
           </div>
         </li>
         <li class="check-item" data-id="r4">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">7 медленных вдохов АСТРА</span><button class="info-btn" data-info="r4">?</button></label>
-          <div class="practice-details" id="info-r4">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.r4_text">7 медленных вдохов АСТРА</span><button class="info-btn" data-info="r4">?</button></label>
+          <div class="practice-details" id="info-r4" data-i18n="today.r4_details">
             <b>Техника АСТРА:</b> вдох носом на 4 счёта → пауза 2 счёта → выдох ртом на 6 счётов. <b>7 циклов.</b><br>
             <b>Эффект для З-МАН:</b> синхронизирует ритм с твоим Даром времени, замедляет внутренний поток.
           </div>
@@ -128,13 +128,13 @@
     <section class="ritual" data-ritual="day">
       <div class="ritual-header">
         <span class="ritual-icon">🌞</span>
-        <h2 class="ritual-title">Дневной якорь</h2>
+        <h2 class="ritual-title" data-i18n="today.ritual_day">Дневной якорь</h2>
         <span class="ritual-time">13:00</span>
       </div>
       <ul class="checklist">
         <li class="check-item" data-id="d1">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">3 минуты «я в точке сейчас»</span><button class="info-btn" data-info="d1">?</button></label>
-          <div class="practice-details" id="info-d1">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.d1_text">3 минуты «я в точке сейчас»</span><button class="info-btn" data-info="d1">?</button></label>
+          <div class="practice-details" id="info-d1" data-i18n="today.d1_details">
             <b>Практика:</b> остановись там, где находишься. Закрой глаза. Положи руку на грудь. Назови вслух или про себя 3 вещи:<br>
             • что я <em>сейчас</em> вижу (когда открою глаза)<br>
             • что я <em>сейчас</em> чувствую телом (тепло/холод/мягкость)<br>
@@ -143,17 +143,17 @@
           </div>
         </li>
         <li class="check-item with-oil" data-id="d2">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Balance на запястья</span><button class="info-btn" data-info="d2">?</button></label>
-          <div class="oil-hint"><span>💧</span><span>doTERRA Balance — заземление, опора ЛОГОС-треугольника</span></div>
-          <div class="practice-details" id="info-d2">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.d2_text">Balance на запястья</span><button class="info-btn" data-info="d2">?</button></label>
+          <div class="oil-hint" data-oil="balance"><span>💧</span><span data-i18n="today.d2_oil">doTERRA Balance — заземление, опора ЛОГОС-треугольника</span></div>
+          <div class="practice-details" id="info-d2" data-i18n="today.d2_details">
             <b>Применение:</b> 1 капля на внутреннюю сторону каждого запястья. Растереть друг о друга. Поднести к носу.<br>
             <b>Состав Balance:</b> Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile — заземляющая смесь.<br>
             <b>⚠ Важно:</b> чувствительная кожа — развести с базовым маслом 1:1.
           </div>
         </li>
         <li class="check-item" data-id="d3">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">2 стакана воды в течение дня</span><button class="info-btn" data-info="d3">?</button></label>
-          <div class="practice-details" id="info-d3">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.d3_text">2 стакана воды в течение дня</span><button class="info-btn" data-info="d3">?</button></label>
+          <div class="practice-details" id="info-d3" data-i18n="today.d3_details">
             <b>Не за раз!</b> 1 стакан после 12:00, второй — между 14:00 и 16:00.<br>
             <b>Включить напоминание:</b> <button class="water-btn" id="waterRemindBtn">⏰ Напомнить мне</button><br>
             <b>Почему:</b> днём забывается, к вечеру обезвоживание = усталость и спутанность.
@@ -166,22 +166,22 @@
     <section class="ritual" data-ritual="dusk" style="border: 1px solid var(--accent-soft);">
       <div class="ritual-header">
         <span class="ritual-icon">🌆</span>
-        <h2 class="ritual-title">Закатный ритуал</h2>
-        <span class="ritual-time" style="background: var(--gold-soft); color: #8a6a35;">✦ окно силы</span>
+        <h2 class="ritual-title" data-i18n="today.ritual_dusk">Закатный ритуал</h2>
+        <span class="ritual-time" style="background: var(--gold-soft); color: #8a6a35;" data-i18n="today.dusk_badge">✦ окно силы</span>
       </div>
       <ul class="checklist">
         <li class="check-item with-oil" data-id="s1">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Cypress + Vetiver на стопы</span><button class="info-btn" data-info="s1">?</button></label>
-          <div class="oil-hint"><span>💧</span><span>doTERRA Cypress (поток времени) + Vetiver (глубина) — главное масло З-МАН</span></div>
-          <div class="practice-details" id="info-s1">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.s1_text">Cypress + Vetiver на стопы</span><button class="info-btn" data-info="s1">?</button></label>
+          <div class="oil-hint" data-oil="cypress"><span>💧</span><span data-i18n="today.s1_oil">doTERRA Cypress (поток времени) + Vetiver (глубина) — главное масло З-МАН</span></div>
+          <div class="practice-details" id="info-s1" data-i18n="today.s1_details">
             <b>Смесь:</b> 1 капля Cypress + 1 капля Vetiver + 1 чайная ложка базы (фракционированный кокос).<br>
             <b>Нанесение:</b> массажными движениями на стопы (особенно подушечки), вдоль позвоночника снизу вверх.<br>
             <b>⚠ Vetiver очень глубокий</b> — только вечером, не перед делами. Vetiver может усыплять.
           </div>
         </li>
         <li class="check-item" data-id="s2">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">15 минут у воды (ручей/душ/чашка)</span><button class="info-btn" data-info="s2">?</button></label>
-          <div class="practice-details" id="info-s2">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.s2_text">15 минут у воды (ручей/душ/чашка)</span><button class="info-btn" data-info="s2">?</button></label>
+          <div class="practice-details" id="info-s2" data-i18n="today.s2_details">
             <b>Что делать у воды:</b><br>
             • Сядь у источника воды — ручей, ванна, наполненная чашка, кран<br>
             • Просто наблюдай поток — не торопи мысли<br>
@@ -191,8 +191,8 @@
           </div>
         </li>
         <li class="check-item" data-id="s3">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Лабрадорит или лунный камень в руке</span><button class="info-btn" data-info="s3">?</button></label>
-          <div class="practice-details" id="info-s3">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.s3_text">Лабрадорит или лунный камень в руке</span><button class="info-btn" data-info="s3">?</button></label>
+          <div class="practice-details" id="info-s3" data-i18n="today.s3_details">
             <b>Как держать:</b> камень в ладони левой руки (приёмная сторона). Сожми мягко, чувствуй температуру.<br>
             <b>Лабрадорит:</b> защита, глубина, видение скрытого.<br>
             <b>Лунный камень:</b> интуиция, женская мудрость, циклы.<br>
@@ -207,38 +207,38 @@
     <section class="ritual" data-ritual="night">
       <div class="ritual-header">
         <span class="ritual-icon">🌙</span>
-        <h2 class="ritual-title">Ночное скольжение</h2>
+        <h2 class="ritual-title" data-i18n="today.ritual_night">Ночное скольжение</h2>
         <span class="ritual-time">22:00</span>
       </div>
       <ul class="checklist">
         <li class="check-item with-oil" data-id="n1">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Lavender на подушку</span><button class="info-btn" data-info="n1">?</button></label>
-          <div class="oil-hint"><span>💧</span><span>doTERRA Lavender — мягкий переход в восстановление</span></div>
-          <div class="practice-details warn" id="info-n1">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.n1_text">Lavender на подушку</span><button class="info-btn" data-info="n1">?</button></label>
+          <div class="oil-hint" data-oil="lavender"><span>💧</span><span data-i18n="today.n1_oil">doTERRA Lavender — мягкий переход в восстановление</span></div>
+          <div class="practice-details warn" id="info-n1" data-i18n="today.n1_details">
             <b>⚠ Дозировка КРИТИЧНА:</b> только <b>1–2 капли</b> на подушку или диффузор.<br>
             Больше 2 капель = <b>обратный эффект</b>: возбуждение, бессонница, головная боль. Чем меньше — тем глубже эффект.<br>
             <b>Альтернатива:</b> 1 капля на запястье, или 2 капли в диффузор на 30 минут до сна.
           </div>
         </li>
         <li class="check-item" data-id="n2">
-          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Записать благодарность дня</span><button class="info-btn" data-info="n2">?</button></label>
-          <div class="practice-details" id="info-n2">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.n2_text">Записать благодарность дня</span><button class="info-btn" data-info="n2">?</button></label>
+          <div class="practice-details" id="info-n2" data-i18n="today.n2_details">
             Одна-две строки в поле ниже. Не «должна» — а <b>заметить</b>. Может быть что угодно: чашка чая, момент тишины, чей-то взгляд, твой собственный жест к себе.
           </div>
         </li>
       </ul>
 
       <div class="journal">
-        <label for="gratitude" class="journal-label">Сегодня я благодарна за…</label>
-        <textarea id="gratitude" placeholder="Одна строка — этого достаточно" rows="2"></textarea>
+        <label for="gratitude" class="journal-label" data-i18n="today.journal_label">Сегодня я благодарна за…</label>
+        <textarea id="gratitude" placeholder="Одна строка — этого достаточно" data-i18n-placeholder="today.journal_placeholder" rows="2"></textarea>
       </div>
     </section>
 
     <!-- Прогресс -->
     <section class="progress-card">
-      <div class="progress-label">Сегодня выполнено</div>
+      <div class="progress-label" data-i18n="today.progress_label">Сегодня выполнено</div>
       <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-      <div class="progress-value"><span id="doneCount">0</span> из <span id="totalCount">12</span></div>
+      <div class="progress-value"><span id="doneCount">0</span> <span data-i18n="today.progress_of">из</span> <span id="totalCount">12</span></div>
     </section>
 
     <!-- doTERRA-блок удалён 16.05.2026. Информация о маслах теперь — всплывающая подсказка
@@ -253,8 +253,8 @@
     <h3 class="oil-popup-name" id="oilPopupName">—</h3>
     <p class="oil-popup-desc" id="oilPopupDesc">—</p>
     <div class="oil-popup-meta" id="oilPopupMeta"></div>
-    <a id="oilPopupLink" href="#" target="_blank" rel="noopener" class="oil-popup-btn">Открыть в каталоге doTERRA →</a>
-    <p class="oil-popup-small">Покупка по реферальной ссылке (РФ)</p>
+    <a id="oilPopupLink" href="#" target="_blank" rel="noopener" class="oil-popup-btn" data-i18n="oil.btn_catalog">Открыть в каталоге doTERRA →</a>
+    <p class="oil-popup-small" data-i18n="oil.ref_note">Покупка по реферальной ссылке (РФ)</p>
   </div>
 
   <!-- ═════════════════════ ТАБ: ДАР ════════════════════ -->
@@ -435,18 +435,18 @@
     <section class="goal-card">
       <div class="card-header">
         <span class="card-icon">🎯</span>
-        <h2 class="card-title">Моя цель</h2>
+        <h2 class="card-title" data-i18n="strategy.goal_title">Моя цель</h2>
       </div>
-      <p class="card-hint">Большая цель, к которой строится стратегия в ритме твоего Дара.</p>
-      <input type="text" class="goal-input" id="goalTitle" placeholder="Например: запустить АРКУ как тариф YupDar">
+      <p class="card-hint" data-i18n="strategy.goal_hint">Большая цель, к которой строится стратегия в ритме твоего Дара.</p>
+      <input type="text" class="goal-input" id="goalTitle" placeholder="Например: запустить АРКУ как тариф YupDar" data-i18n-placeholder="strategy.goal_placeholder">
       <div class="goal-row">
         <div class="goal-field">
-          <label>Дедлайн</label>
+          <label data-i18n="strategy.goal_deadline">Дедлайн</label>
           <input type="date" class="goal-input small" id="goalDeadline">
         </div>
         <div class="goal-field">
-          <label>Зачем мне это</label>
-          <input type="text" class="goal-input small" id="goalWhy" placeholder="мотивация в одной строке">
+          <label data-i18n="strategy.goal_why">Зачем мне это</label>
+          <input type="text" class="goal-input small" id="goalWhy" placeholder="мотивация в одной строке" data-i18n-placeholder="strategy.goal_why_placeholder">
         </div>
       </div>
     </section>
@@ -454,13 +454,13 @@
     <section class="steps-card">
       <div class="card-header">
         <span class="card-icon">📋</span>
-        <h2 class="card-title">Шаги стратегии</h2>
+        <h2 class="card-title" data-i18n="strategy.steps_title">Шаги стратегии</h2>
       </div>
-      <p class="card-hint">3–7 шагов. Отмечай готовые. Нажми на текст, чтобы редактировать.</p>
+      <p class="card-hint" data-i18n="strategy.steps_hint">3–7 шагов. Отмечай готовые. Нажми на текст, чтобы редактировать.</p>
       <ul class="steps-list" id="stepsList"></ul>
       <div class="steps-actions">
-        <button class="task-add-btn" id="stepAddBtn">＋ Добавить шаг</button>
-        <button class="suggest-btn" id="stepSuggestBtn">🐉 Предложить шаги</button>
+        <button class="task-add-btn" id="stepAddBtn" data-i18n="strategy.step_add">＋ Добавить шаг</button>
+        <button class="suggest-btn" id="stepSuggestBtn" data-i18n="strategy.step_suggest">🐉 Предложить шаги</button>
       </div>
       <div class="suggestions-panel" id="suggestionsPanel"></div>
     </section>
@@ -468,26 +468,26 @@
     <section class="ai-card">
       <div class="card-header">
         <span class="card-icon">🐉</span>
-        <h2 class="card-title">Помощник в архетипе З-МАН</h2>
+        <h2 class="card-title" data-i18n="strategy.ai_title">Помощник в архетипе З-МАН</h2>
       </div>
-      <p class="card-hint">Опиши ситуацию — получи разбор, прогноз или корректировку <em>языком твоего Дара времени</em>.</p>
+      <p class="card-hint" data-i18n="strategy.ai_hint">Опиши ситуацию — получи разбор, прогноз или корректировку <em>языком твоего Дара времени</em>.</p>
 
-      <textarea id="aiInput" class="ai-input" rows="3" placeholder="Например: застряла на шаге 2, не понимаю как двигаться дальше"></textarea>
+      <textarea id="aiInput" class="ai-input" rows="3" placeholder="Например: застряла на шаге 2, не понимаю как двигаться дальше" data-i18n-placeholder="strategy.ai_placeholder"></textarea>
 
       <div class="ai-actions">
-        <button class="ai-btn" data-action="advice">💫 Совет</button>
-        <button class="ai-btn" data-action="forecast">🔮 Прогноз</button>
-        <button class="ai-btn" data-action="correct">⚖️ Корректировка</button>
+        <button class="ai-btn" data-action="advice" data-i18n="strategy.ai_advice">💫 Совет</button>
+        <button class="ai-btn" data-action="forecast" data-i18n="strategy.ai_forecast">🔮 Прогноз</button>
+        <button class="ai-btn" data-action="correct" data-i18n="strategy.ai_correct">⚖️ Корректировка</button>
       </div>
 
       <div class="ai-response" id="aiResponse">
-        <div class="ai-empty">Опиши ситуацию и нажми кнопку — помощник ответит в архетипе З-МАН</div>
+        <div class="ai-empty" data-i18n="strategy.ai_empty">Опиши ситуацию и нажми кнопку — помощник ответит в архетипе З-МАН</div>
       </div>
     </section>
 
     <div class="info-banner">
       <span>ℹ️</span>
-      <div><b>Прототип:</b> сейчас помощник работает на правилах архетипа. При интеграции с YupDar подключится DeepSeek + Groq fallback, и анализ будет глубже — на основе полного профиля Дара и истории твоих шагов.</div>
+      <div data-i18n="strategy.info_banner"><b>Прототип:</b> сейчас помощник работает на правилах архетипа. При интеграции с YupDar подключится DeepSeek + Groq fallback, и анализ будет глубже — на основе полного профиля Дара и истории твоих шагов.</div>
     </div>
   </div>
 
@@ -496,26 +496,26 @@
 
     <!-- Утренний бриф наставника -->
     <section class="mentor-brief">
-      <div class="mentor-badge">🐉 Голос З-МАН</div>
-      <h2 class="mentor-title" id="mentorGreeting">Бриф наставника</h2>
-      <div class="mentor-text" id="mentorText">Бриф появится здесь — он зависит от твоего прогресса.</div>
-      <button class="mentor-btn" id="mentorRefresh">Обновить бриф</button>
+      <div class="mentor-badge" data-i18n="path.mentor_badge">🐉 Голос З-МАН</div>
+      <h2 class="mentor-title" id="mentorGreeting" data-i18n="path.mentor_title">Бриф наставника</h2>
+      <div class="mentor-text" id="mentorText" data-i18n="path.mentor_placeholder">Бриф появится здесь — он зависит от твоего прогресса.</div>
+      <button class="mentor-btn" id="mentorRefresh" data-i18n="path.mentor_refresh">Обновить бриф</button>
     </section>
 
     <!-- Финансы -->
     <section class="finance-card">
       <div class="card-header">
         <span class="card-icon">💧</span>
-        <h2 class="card-title">Потоки дохода</h2>
+        <h2 class="card-title" data-i18n="path.finance_title">Потоки дохода</h2>
       </div>
-      <p class="card-hint">ТУМА течёт через разные каналы. Видишь поток — направляешь его.</p>
+      <p class="card-hint" data-i18n="path.finance_hint">ТУМА течёт через разные каналы. Видишь поток — направляешь его.</p>
 
       <ul class="finance-list" id="financeList"></ul>
-      <button class="task-add-btn" id="financeAddBtn">＋ Добавить канал</button>
+      <button class="task-add-btn" id="financeAddBtn" data-i18n="path.finance_add">＋ Добавить канал</button>
 
       <div class="finance-total">
-        <span class="finance-total-label">Итого месяц</span>
-        <span class="finance-total-value"><span id="financeTotal">0</span> ₽ <span class="finance-total-mute">из <span id="financeTotalTarget">0</span></span></span>
+        <span class="finance-total-label" data-i18n="path.finance_total">Итого месяц</span>
+        <span class="finance-total-value"><span id="financeTotal">0</span> <span data-i18n="path.finance_currency">₽</span> <span class="finance-total-mute"><span data-i18n="path.finance_of">из</span> <span id="financeTotalTarget">0</span></span></span>
       </div>
     </section>
 
@@ -523,38 +523,38 @@
     <section class="content-card">
       <div class="card-header">
         <span class="card-icon">📢</span>
-        <h2 class="card-title">Голос — план продвижения</h2>
+        <h2 class="card-title" data-i18n="path.content_title">Голос — план продвижения</h2>
       </div>
-      <p class="card-hint">Публикации, запуски, голос Дара в мир. Помечай готовые.</p>
+      <p class="card-hint" data-i18n="path.content_hint">Публикации, запуски, голос Дара в мир. Помечай готовые.</p>
 
       <ul class="content-list" id="contentList"></ul>
-      <button class="task-add-btn" id="contentAddBtn">＋ Добавить публикацию</button>
+      <button class="task-add-btn" id="contentAddBtn" data-i18n="path.content_add">＋ Добавить публикацию</button>
     </section>
 
     <!-- Кнопка "Нужен наставник" -->
     <section class="mentor-call-card">
       <div class="card-header">
         <span class="card-icon">🕯</span>
-        <h2 class="card-title">Нужен наставник</h2>
+        <h2 class="card-title" data-i18n="path.mcall_title">Нужен наставник</h2>
       </div>
-      <p class="card-hint">Сложный момент? Сомнение? Открой разговор с проводником в архетипе З-МАН.</p>
-      <button class="mentor-btn primary" id="mentorCallBtn">🐉 Открыть разговор</button>
+      <p class="card-hint" data-i18n="path.mcall_hint">Сложный момент? Сомнение? Открой разговор с проводником в архетипе З-МАН.</p>
+      <button class="mentor-btn primary" id="mentorCallBtn" data-i18n="path.mcall_open">🐉 Открыть разговор</button>
     </section>
 
     <!-- Еженедельный разбор -->
     <section class="weekly-card">
       <div class="card-header">
         <span class="card-icon">📜</span>
-        <h2 class="card-title">Разбор недели</h2>
+        <h2 class="card-title" data-i18n="path.weekly_title">Разбор недели</h2>
       </div>
-      <p class="card-hint">Обычно появляется в воскресенье вечером. Можешь запустить вручную.</p>
-      <button class="mentor-btn" id="weeklyBtn">Получить разбор недели</button>
+      <p class="card-hint" data-i18n="path.weekly_hint">Обычно появляется в воскресенье вечером. Можешь запустить вручную.</p>
+      <button class="mentor-btn" id="weeklyBtn" data-i18n="path.weekly_btn">Получить разбор недели</button>
       <div class="weekly-text" id="weeklyText"></div>
     </section>
 
     <div class="info-banner">
       <span>ℹ️</span>
-      <div><b>Прототип:</b> бриф и разборы строятся на правилах. При интеграции с YupDar включится полный AI-наставник с памятью контекста, недельной историей и автоматическими утренними сообщениями в Telegram.</div>
+      <div data-i18n="path.info_banner"><b>Прототип:</b> бриф и разборы строятся на правилах. При интеграции с YupDar включится полный AI-наставник с памятью контекста, недельной историей и автоматическими утренними сообщениями в Telegram.</div>
     </div>
   </div>
 
@@ -613,7 +613,101 @@ const ARKA_I18N = {
     'arka.trainer_p3': 'Скольжение в прошлый момент силы',
     'arka.trainer_p4': 'Якорь ЛОГОСа — вернуть себя в сейчас',
     'arka.trainer_start': '▶ Начать текущую практику',
-    'arka.dar_tab_info': '<b>Это эксклюзивный контент АРКА.</b> Полное описание Дара (суть, светлые стороны, тени, масла, атрибуты) — в Энциклопедии Сокровищницы YupDar.'
+    'arka.dar_tab_info': '<b>Это эксклюзивный контент АРКА.</b> Полное описание Дара (суть, светлые стороны, тени, масла, атрибуты) — в Энциклопедии Сокровищницы YupDar.',
+    // === ТАБ «СЕГОДНЯ» ===
+    'today.pw_title': 'Окна силы сегодня',
+    'today.pw_time': 'Сумерки · 5:30–7:30 и 17:30–19:30',
+    'today.pw_hint': 'Время между временами — твоя стихия',
+    'today.streak_pre': 'Ты скользишь по змею уже',
+    'today.streak_day': 'день',
+    'today.tasks_title': 'Важные дела сегодня',
+    'today.tasks_hint': 'Максимум 3, чтобы не утянуло в суетное время. Нажми на плашку справа — переключай тип задачи.',
+    'today.legend_summary': 'Зачем типы нагрузки?',
+    'today.legend_resource': '<span class="legend-tag" data-type="resource">🌟 ресурсная</span> питает твой Дар, делается легко. <b>Ставь в окно силы</b> (5:30–7:30 / 17:30–19:30) — там она идёт мощнее всего.',
+    'today.legend_neutral': '<span class="legend-tag" data-type="neutral">⚖️ обычная</span> рутина, не требует особого ресурса. <b>В дневной якорь</b> (12:00–16:00) или в любое нейтральное время.',
+    'today.legend_shadow': '<span class="legend-tag" data-type="shadow">🌑 теневая</span> требует усилия, активирует тень. <b>Только после ритуала-опоры</b> (Balance, заземление). Если 3 такие подряд — выгорание.',
+    'today.legend_zman': '<b>З-МАН:</b> поток ТУМА идёт лучше, когда задачи распределены по типу — не сваливай теневое в утро.',
+    'today.task_add': '＋ Добавить задачу',
+    'today.ritual_dawn': 'Рассветный ритуал',
+    'today.r1_text': 'Босиком на пол — заземление ЛОГОС',
+    'today.r1_details': '<b>Как делать:</b> встань босиком на землю — это даёт самое глубокое заземление. Если нет возможности (зима, квартира) — на холодный пол (плитка, паркет). Стопы плотно прижаты. Закрой глаза. Представь, что от стоп вниз растут серебристо-золотые корни. <b>2–3 минуты.</b><br><b>Аффирмация:</b> «Я в точке, где все времена сходятся».',
+    'today.r2_text': 'Frankincense на ладони → вдох',
+    'today.r2_oil': 'doTERRA Frankincense — присутствие в моменте, замедление времени',
+    'today.r2_details': '<b>Применение:</b> 1 капля на ладони, потереть, поднести к лицу. <b>3 медленных вдоха.</b><br><b>⚠ Важно:</b> на кожу — только разведённое с базовым маслом (1:1). Внутрь — только пищевую серию (Beadlets).',
+    'today.r3_text': 'Стакан воды — поток ТУМА',
+    'today.r3_details': '<b>Сколько:</b> 1 стакан 200–300 мл, тёплая или комнатной. Можно с долькой лимона.<br><b>Когда:</b> сразу после пробуждения, до кофе. Через 15–20 минут — завтрак.<br><b>Почему:</b> ночью обезвоживание, поток ТУМА застаивается. Утренняя вода = первый поток дня.',
+    'today.r4_text': '7 медленных вдохов АСТРА',
+    'today.r4_details': '<b>Техника АСТРА:</b> вдох носом на 4 счёта → пауза 2 счёта → выдох ртом на 6 счётов. <b>7 циклов.</b><br><b>Эффект для З-МАН:</b> синхронизирует ритм с твоим Даром времени, замедляет внутренний поток.',
+    'today.ritual_day': 'Дневной якорь',
+    'today.d1_text': '3 минуты «я в точке сейчас»',
+    'today.d1_details': '<b>Практика:</b> остановись там, где находишься. Закрой глаза. Положи руку на грудь. Назови вслух или про себя 3 вещи:<br>• что я <em>сейчас</em> вижу (когда открою глаза)<br>• что я <em>сейчас</em> чувствую телом (тепло/холод/мягкость)<br>• что я <em>сейчас</em> слышу<br><b>3 минуты.</b> Это якорь ЛОГОС, возвращающий из суетного времени.',
+    'today.d2_text': 'Balance на запястья',
+    'today.d2_oil': 'doTERRA Balance — заземление, опора ЛОГОС-треугольника',
+    'today.d2_details': '<b>Применение:</b> 1 капля на внутреннюю сторону каждого запястья. Растереть друг о друга. Поднести к носу.<br><b>Состав Balance:</b> Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile — заземляющая смесь.<br><b>⚠ Важно:</b> чувствительная кожа — развести с базовым маслом 1:1.',
+    'today.d3_text': '2 стакана воды в течение дня',
+    'today.d3_details': '<b>Не за раз!</b> 1 стакан после 12:00, второй — между 14:00 и 16:00.<br><b>Почему:</b> днём забывается, к вечеру обезвоживание = усталость и спутанность.',
+    'today.ritual_dusk': 'Закатный ритуал',
+    'today.dusk_badge': '✦ окно силы',
+    'today.s1_text': 'Cypress + Vetiver на стопы',
+    'today.s1_oil': 'doTERRA Cypress (поток времени) + Vetiver (глубина) — главное масло З-МАН',
+    'today.s1_details': '<b>Смесь:</b> 1 капля Cypress + 1 капля Vetiver + 1 чайная ложка базы (фракционированный кокос).<br><b>Нанесение:</b> массажными движениями на стопы (особенно подушечки), вдоль позвоночника снизу вверх.<br><b>⚠ Vetiver очень глубокий</b> — только вечером, не перед делами. Vetiver может усыплять.',
+    'today.s2_text': '15 минут у воды (ручей/душ/чашка)',
+    'today.s2_details': '<b>Что делать у воды:</b><br>• Сядь у источника воды — ручей, ванна, наполненная чашка, кран<br>• Просто наблюдай поток — не торопи мысли<br>• На вдохе представляй, как вода входит в тебя · на выдохе — уносит лишнее<br>• Можно тихо проговорить, что хочешь отпустить, и спустить в воду<br><b>В архетипе З-МАН:</b> вода = ТУМА = время. Контакт с водой = настройка ритма.',
+    'today.s3_text': 'Лабрадорит или лунный камень в руке',
+    'today.s3_details': '<b>Как держать:</b> камень в ладони левой руки (приёмная сторона). Сожми мягко, чувствуй температуру.<br><b>Лабрадорит:</b> защита, глубина, видение скрытого.<br><b>Лунный камень:</b> интуиция, женская мудрость, циклы.<br><b>Обсидиан (чёрный):</b> заземление, защита от чужого ритма.<br><b>Уход:</b> промывать под проточной водой раз в неделю, заряжать на лунном свете.',
+    'today.ritual_night': 'Ночное скольжение',
+    'today.n1_text': 'Lavender на подушку',
+    'today.n1_oil': 'doTERRA Lavender — мягкий переход в восстановление',
+    'today.n1_details': '<b>⚠ Дозировка КРИТИЧНА:</b> только <b>1–2 капли</b> на подушку или диффузор.<br>Больше 2 капель = <b>обратный эффект</b>: возбуждение, бессонница, головная боль. Чем меньше — тем глубже эффект.<br><b>Альтернатива:</b> 1 капля на запястье, или 2 капли в диффузор на 30 минут до сна.',
+    'today.n2_text': 'Записать благодарность дня',
+    'today.n2_details': 'Одна-две строки в поле ниже. Не «должна» — а <b>заметить</b>. Может быть что угодно: чашка чая, момент тишины, чей-то взгляд, твой собственный жест к себе.',
+    'today.journal_label': 'Сегодня я благодарна за…',
+    'today.journal_placeholder': 'Одна строка — этого достаточно',
+    'today.progress_label': 'Сегодня выполнено',
+    'today.progress_of': 'из',
+    // === ПОПАП МАСЛА ===
+    'oil.btn_catalog': 'Открыть в каталоге doTERRA →',
+    'oil.ref_note': 'Покупка по реферальной ссылке (РФ)',
+    // === ТАБ «СТРАТЕГИЯ» ===
+    'strategy.goal_title': 'Моя цель',
+    'strategy.goal_hint': 'Большая цель, к которой строится стратегия в ритме твоего Дара.',
+    'strategy.goal_placeholder': 'Например: запустить АРКУ как тариф YupDar',
+    'strategy.goal_deadline': 'Дедлайн',
+    'strategy.goal_why': 'Зачем мне это',
+    'strategy.goal_why_placeholder': 'мотивация в одной строке',
+    'strategy.steps_title': 'Шаги стратегии',
+    'strategy.steps_hint': '3–7 шагов. Отмечай готовые. Нажми на текст, чтобы редактировать.',
+    'strategy.step_add': '＋ Добавить шаг',
+    'strategy.step_suggest': '🐉 Предложить шаги',
+    'strategy.ai_title': 'Помощник в архетипе твоего Дара',
+    'strategy.ai_hint': 'Опиши ситуацию — получи разбор, прогноз или корректировку <em>языком твоего Дара</em>.',
+    'strategy.ai_placeholder': 'Например: застряла на шаге 2, не понимаю как двигаться дальше',
+    'strategy.ai_advice': '💫 Совет',
+    'strategy.ai_forecast': '🔮 Прогноз',
+    'strategy.ai_correct': '⚖️ Корректировка',
+    'strategy.ai_empty': 'Опиши ситуацию и нажми кнопку — помощник ответит в архетипе твоего Дара',
+    'strategy.info_banner': '<b>Прототип:</b> сейчас помощник работает на правилах архетипа. При интеграции с YupDar подключится DeepSeek + Groq fallback, и анализ будет глубже — на основе полного профиля Дара и истории твоих шагов.',
+    // === ТАБ «ПУТЬ» ===
+    'path.mentor_badge': '🐉 Голос Дара',
+    'path.mentor_title': 'Бриф наставника',
+    'path.mentor_placeholder': 'Бриф появится здесь — он зависит от твоего прогресса.',
+    'path.mentor_refresh': 'Обновить бриф',
+    'path.finance_title': 'Потоки дохода',
+    'path.finance_hint': 'ТУМА течёт через разные каналы. Видишь поток — направляешь его.',
+    'path.finance_add': '＋ Добавить канал',
+    'path.finance_total': 'Итого месяц',
+    'path.finance_currency': '₽',
+    'path.finance_of': 'из',
+    'path.content_title': 'Голос — план продвижения',
+    'path.content_hint': 'Публикации, запуски, голос Дара в мир. Помечай готовые.',
+    'path.content_add': '＋ Добавить публикацию',
+    'path.mcall_title': 'Нужен наставник',
+    'path.mcall_hint': 'Сложный момент? Сомнение? Открой разговор с проводником в архетипе твоего Дара.',
+    'path.mcall_open': '🐉 Открыть разговор',
+    'path.weekly_title': 'Разбор недели',
+    'path.weekly_hint': 'Обычно появляется в воскресенье вечером. Можешь запустить вручную.',
+    'path.weekly_btn': 'Получить разбор недели',
+    'path.info_banner': '<b>Прототип:</b> бриф и разборы строятся на правилах. При интеграции с YupDar включится полный AI-наставник с памятью контекста, недельной историей и автоматическими утренними сообщениями в Telegram.'
   },
   en: {
     'arka.windows_title': 'Power Windows',
@@ -658,7 +752,101 @@ const ARKA_I18N = {
     'arka.trainer_p3': 'Sliding into a past power moment',
     'arka.trainer_p4': 'LOGOS anchor — return yourself to now',
     'arka.trainer_start': '▶ Start Current Practice',
-    'arka.dar_tab_info': '<b>This is exclusive ARKA content.</b> Full DAR description (essence, light sides, shadows, oils, attributes) — in the YupDar Treasury Encyclopedia.'
+    'arka.dar_tab_info': '<b>This is exclusive ARKA content.</b> Full DAR description (essence, light sides, shadows, oils, attributes) — in the YupDar Treasury Encyclopedia.',
+    // === TAB «TODAY» ===
+    'today.pw_title': "Today's Power Windows",
+    'today.pw_time': 'Twilight · 5:30–7:30 and 17:30–19:30',
+    'today.pw_hint': 'Time between times — your element',
+    'today.streak_pre': "You've been gliding the serpent for",
+    'today.streak_day': 'day',
+    'today.tasks_title': "Today's Key Tasks",
+    'today.tasks_hint': 'Maximum 3 — to avoid being pulled into fussy time. Tap the badge on the right to switch task type.',
+    'today.legend_summary': 'Why task types?',
+    'today.legend_resource': '<span class="legend-tag" data-type="resource">🌟 resource</span> feeds your DAR, comes easy. <b>Place in the power window</b> (5:30–7:30 / 17:30–19:30) — that\'s where it flows strongest.',
+    'today.legend_neutral': '<span class="legend-tag" data-type="neutral">⚖️ ordinary</span> routine, no special resource needed. <b>For the midday anchor</b> (12:00–16:00) or any neutral time.',
+    'today.legend_shadow': '<span class="legend-tag" data-type="shadow">🌑 shadow</span> requires effort, activates the shadow. <b>Only after a support ritual</b> (Balance, grounding). Three in a row = burnout.',
+    'today.legend_zman': '<b>Z-MAN:</b> the TUMA flow runs better when tasks are distributed by type — don\'t dump shadow work in the morning.',
+    'today.task_add': '＋ Add task',
+    'today.ritual_dawn': 'Dawn Ritual',
+    'today.r1_text': 'Barefoot on the floor — LOGOS grounding',
+    'today.r1_details': '<b>How to do it:</b> stand barefoot on the earth — it gives the deepest grounding. If not possible (winter, apartment) — onto a cold floor (tile, parquet). Feet pressed firmly. Close your eyes. Imagine silver-gold roots growing down from your soles. <b>2–3 minutes.</b><br><b>Affirmation:</b> "I am at the point where all times converge."',
+    'today.r2_text': 'Frankincense on the palm → inhale',
+    'today.r2_oil': 'doTERRA Frankincense — presence in the moment, slowing of time',
+    'today.r2_details': '<b>Application:</b> 1 drop on the palm, rub, bring to face. <b>3 slow inhales.</b><br><b>⚠ Note:</b> on skin — only diluted with carrier oil (1:1). Internal use — only the food-grade series (Beadlets).',
+    'today.r3_text': 'Glass of water — TUMA flow',
+    'today.r3_details': '<b>How much:</b> 1 glass 200–300 ml, warm or room temperature. Can add a slice of lemon.<br><b>When:</b> right after waking, before coffee. Breakfast 15–20 min later.<br><b>Why:</b> overnight dehydration, the TUMA flow stagnates. Morning water = the first flow of the day.',
+    'today.r4_text': '7 slow ASTRA breaths',
+    'today.r4_details': '<b>ASTRA technique:</b> inhale through the nose for 4 counts → pause 2 counts → exhale through the mouth for 6 counts. <b>7 cycles.</b><br><b>Effect for Z-MAN:</b> synchronizes the rhythm with your DAR of time, slows the inner flow.',
+    'today.ritual_day': 'Midday Anchor',
+    'today.d1_text': '3 minutes "I am at the point now"',
+    'today.d1_details': '<b>Practice:</b> stop where you are. Close your eyes. Place a hand on your chest. Name aloud or silently 3 things:<br>• what I <em>now</em> see (when I open my eyes)<br>• what I <em>now</em> feel in the body (warmth/cold/softness)<br>• what I <em>now</em> hear<br><b>3 minutes.</b> This is the LOGOS anchor, returning you from fussy time.',
+    'today.d2_text': 'Balance on the wrists',
+    'today.d2_oil': 'doTERRA Balance — grounding, support of the LOGOS triangle',
+    'today.d2_details': '<b>Application:</b> 1 drop on the inside of each wrist. Rub together. Bring to nose.<br><b>Balance composition:</b> Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile — a grounding blend.<br><b>⚠ Note:</b> sensitive skin — dilute with carrier oil 1:1.',
+    'today.d3_text': '2 glasses of water through the day',
+    'today.d3_details': '<b>Not all at once!</b> 1 glass after 12:00, the second — between 14:00 and 16:00.<br><b>Why:</b> easily forgotten during the day, by evening dehydration = tiredness and confusion.',
+    'today.ritual_dusk': 'Sunset Ritual',
+    'today.dusk_badge': '✦ power window',
+    'today.s1_text': 'Cypress + Vetiver on the feet',
+    'today.s1_oil': 'doTERRA Cypress (flow of time) + Vetiver (depth) — main oil for Z-MAN',
+    'today.s1_details': '<b>Blend:</b> 1 drop Cypress + 1 drop Vetiver + 1 teaspoon carrier (fractionated coconut).<br><b>Application:</b> massage motions onto the feet (especially the pads), along the spine from bottom to top.<br><b>⚠ Vetiver is very deep</b> — only in the evening, not before tasks. Vetiver can be sleep-inducing.',
+    'today.s2_text': '15 minutes by water (stream/shower/cup)',
+    'today.s2_details': '<b>What to do by water:</b><br>• Sit by a water source — a stream, bath, filled cup, faucet<br>• Just observe the flow — don\'t rush your thoughts<br>• On the inhale imagine water entering you · on the exhale — carrying away the surplus<br>• You can quietly speak what you want to release, and let it flow into the water<br><b>In the Z-MAN archetype:</b> water = TUMA = time. Contact with water = tuning the rhythm.',
+    'today.s3_text': 'Labradorite or moonstone in hand',
+    'today.s3_details': '<b>How to hold:</b> the stone in the palm of the left hand (receiving side). Squeeze softly, feel the temperature.<br><b>Labradorite:</b> protection, depth, seeing the hidden.<br><b>Moonstone:</b> intuition, feminine wisdom, cycles.<br><b>Obsidian (black):</b> grounding, protection from foreign rhythm.<br><b>Care:</b> rinse under running water once a week, charge in moonlight.',
+    'today.ritual_night': 'Night Glide',
+    'today.n1_text': 'Lavender on the pillow',
+    'today.n1_oil': 'doTERRA Lavender — soft transition into restoration',
+    'today.n1_details': '<b>⚠ Dosage is CRITICAL:</b> only <b>1–2 drops</b> on the pillow or diffuser.<br>More than 2 drops = <b>opposite effect</b>: agitation, insomnia, headache. Less = deeper effect.<br><b>Alternative:</b> 1 drop on the wrist, or 2 drops in the diffuser for 30 min before sleep.',
+    'today.n2_text': 'Write gratitude of the day',
+    'today.n2_details': 'One or two lines in the field below. Not "must" — but <b>notice</b>. Anything can count: a cup of tea, a moment of silence, someone\'s glance, your own gesture toward yourself.',
+    'today.journal_label': 'Today I am grateful for…',
+    'today.journal_placeholder': 'One line — that\'s enough',
+    'today.progress_label': 'Done today',
+    'today.progress_of': 'of',
+    // === OIL POPUP ===
+    'oil.btn_catalog': 'Open in doTERRA catalog →',
+    'oil.ref_note': 'Purchase via referral link (RU)',
+    // === TAB «STRATEGY» ===
+    'strategy.goal_title': 'My Goal',
+    'strategy.goal_hint': 'The big goal around which the strategy is built in the rhythm of your DAR.',
+    'strategy.goal_placeholder': 'For example: launch ARKA as a YupDar plan',
+    'strategy.goal_deadline': 'Deadline',
+    'strategy.goal_why': 'Why I need this',
+    'strategy.goal_why_placeholder': 'motivation in one line',
+    'strategy.steps_title': 'Strategy Steps',
+    'strategy.steps_hint': '3–7 steps. Mark ready ones. Tap text to edit.',
+    'strategy.step_add': '＋ Add step',
+    'strategy.step_suggest': '🐉 Suggest steps',
+    'strategy.ai_title': "Helper in Your DAR's Archetype",
+    'strategy.ai_hint': 'Describe the situation — get analysis, forecast or correction <em>in the language of your DAR</em>.',
+    'strategy.ai_placeholder': 'For example: stuck on step 2, don\'t know how to move forward',
+    'strategy.ai_advice': '💫 Advice',
+    'strategy.ai_forecast': '🔮 Forecast',
+    'strategy.ai_correct': '⚖️ Correction',
+    'strategy.ai_empty': "Describe the situation and tap a button — the helper will respond in your DAR's archetype",
+    'strategy.info_banner': '<b>Prototype:</b> for now the helper works on archetype rules. After YupDar integration, DeepSeek + Groq fallback connects, and analysis goes deeper — based on the full DAR profile and your step history.',
+    // === TAB «PATH» ===
+    'path.mentor_badge': "🐉 Voice of the DAR",
+    'path.mentor_title': "Mentor's Brief",
+    'path.mentor_placeholder': 'The brief will appear here — it depends on your progress.',
+    'path.mentor_refresh': 'Refresh brief',
+    'path.finance_title': 'Income Flows',
+    'path.finance_hint': 'TUMA flows through different channels. See the flow — direct it.',
+    'path.finance_add': '＋ Add channel',
+    'path.finance_total': 'Month total',
+    'path.finance_currency': '$',
+    'path.finance_of': 'of',
+    'path.content_title': 'Voice — Promotion Plan',
+    'path.content_hint': 'Publications, launches, the voice of the DAR into the world. Mark ready ones.',
+    'path.content_add': '＋ Add publication',
+    'path.mcall_title': 'Need a Mentor',
+    'path.mcall_hint': "Difficult moment? Doubt? Open a conversation with a guide in your DAR's archetype.",
+    'path.mcall_open': '🐉 Open conversation',
+    'path.weekly_title': 'Week Review',
+    'path.weekly_hint': 'Usually appears Sunday evening. You can run it manually.',
+    'path.weekly_btn': 'Get week review',
+    'path.info_banner': '<b>Prototype:</b> brief and reviews are built on rules. After YupDar integration, the full AI-mentor connects with context memory, weekly history and automatic morning messages in Telegram.'
   },
   es: {
     'arka.windows_title': 'Ventanas de Poder',
@@ -703,7 +891,101 @@ const ARKA_I18N = {
     'arka.trainer_p3': 'Deslizamiento a un momento de poder pasado',
     'arka.trainer_p4': 'Ancla de LOGOS — regrésate al ahora',
     'arka.trainer_start': '▶ Iniciar Práctica Actual',
-    'arka.dar_tab_info': '<b>Este es contenido exclusivo de ARKA.</b> La descripción completa del DAR (esencia, lados luminosos, sombras, aceites, atributos) — en la Enciclopedia del Tesoro de YupDar.'
+    'arka.dar_tab_info': '<b>Este es contenido exclusivo de ARKA.</b> La descripción completa del DAR (esencia, lados luminosos, sombras, aceites, atributos) — en la Enciclopedia del Tesoro de YupDar.',
+    // === PESTAÑA «HOY» ===
+    'today.pw_title': 'Ventanas de poder de hoy',
+    'today.pw_time': 'Crepúsculo · 5:30–7:30 y 17:30–19:30',
+    'today.pw_hint': 'El tiempo entre tiempos — tu elemento',
+    'today.streak_pre': 'Llevas deslizándote por la serpiente',
+    'today.streak_day': 'día',
+    'today.tasks_title': 'Asuntos clave de hoy',
+    'today.tasks_hint': 'Máximo 3 — para no quedar atrapado en el tiempo ajetreado. Pulsa la etiqueta a la derecha para cambiar el tipo de tarea.',
+    'today.legend_summary': '¿Para qué los tipos de carga?',
+    'today.legend_resource': '<span class="legend-tag" data-type="resource">🌟 de recurso</span> nutre tu DAR, se hace fácil. <b>Colócala en la ventana de poder</b> (5:30–7:30 / 17:30–19:30) — allí fluye con más fuerza.',
+    'today.legend_neutral': '<span class="legend-tag" data-type="neutral">⚖️ ordinaria</span> rutina, no requiere recurso especial. <b>Para el ancla del día</b> (12:00–16:00) o cualquier momento neutro.',
+    'today.legend_shadow': '<span class="legend-tag" data-type="shadow">🌑 de sombra</span> requiere esfuerzo, activa la sombra. <b>Solo después de un ritual de apoyo</b> (Balance, enraizamiento). Tres seguidas = agotamiento.',
+    'today.legend_zman': '<b>Z-MAN:</b> el flujo TUMA va mejor cuando las tareas se distribuyen por tipo — no acumules las de sombra por la mañana.',
+    'today.task_add': '＋ Añadir tarea',
+    'today.ritual_dawn': 'Ritual del Amanecer',
+    'today.r1_text': 'Descalzo en el suelo — enraizamiento LOGOS',
+    'today.r1_details': '<b>Cómo hacerlo:</b> párate descalzo en la tierra — esto da el enraizamiento más profundo. Si no es posible (invierno, apartamento) — sobre un suelo frío (baldosa, parquet). Pies bien apoyados. Cierra los ojos. Imagina raíces de plata y oro creciendo hacia abajo desde tus pies. <b>2–3 minutos.</b><br><b>Afirmación:</b> «Estoy en el punto donde convergen todos los tiempos».',
+    'today.r2_text': 'Frankincense en la palma → inhalar',
+    'today.r2_oil': 'doTERRA Frankincense — presencia en el momento, desaceleración del tiempo',
+    'today.r2_details': '<b>Aplicación:</b> 1 gota en la palma, frotar, acercar al rostro. <b>3 inhalaciones lentas.</b><br><b>⚠ Importante:</b> sobre la piel — solo diluido con aceite portador (1:1). Uso interno — solo serie alimentaria (Beadlets).',
+    'today.r3_text': 'Vaso de agua — flujo TUMA',
+    'today.r3_details': '<b>Cuánto:</b> 1 vaso 200–300 ml, tibia o a temperatura ambiente. Puede llevar una rodaja de limón.<br><b>Cuándo:</b> justo al despertar, antes del café. Desayuno 15–20 min después.<br><b>Por qué:</b> deshidratación nocturna, el flujo TUMA se estanca. El agua matinal = el primer flujo del día.',
+    'today.r4_text': '7 respiraciones lentas ASTRA',
+    'today.r4_details': '<b>Técnica ASTRA:</b> inhalar por la nariz en 4 tiempos → pausa 2 tiempos → exhalar por la boca en 6 tiempos. <b>7 ciclos.</b><br><b>Efecto para Z-MAN:</b> sincroniza el ritmo con tu DAR del tiempo, ralentiza el flujo interior.',
+    'today.ritual_day': 'Ancla del Día',
+    'today.d1_text': '3 minutos «estoy en el punto ahora»',
+    'today.d1_details': '<b>Práctica:</b> detente donde estás. Cierra los ojos. Coloca la mano en el pecho. Nombra en voz alta o mentalmente 3 cosas:<br>• qué <em>ahora</em> veo (al abrir los ojos)<br>• qué <em>ahora</em> siento en el cuerpo (calor/frío/suavidad)<br>• qué <em>ahora</em> oigo<br><b>3 minutos.</b> Es el ancla LOGOS, que te devuelve del tiempo ajetreado.',
+    'today.d2_text': 'Balance en las muñecas',
+    'today.d2_oil': 'doTERRA Balance — enraizamiento, apoyo del triángulo LOGOS',
+    'today.d2_details': '<b>Aplicación:</b> 1 gota en la parte interna de cada muñeca. Frotar una contra la otra. Acercar a la nariz.<br><b>Composición Balance:</b> Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile — mezcla enraizadora.<br><b>⚠ Importante:</b> piel sensible — diluir con aceite portador 1:1.',
+    'today.d3_text': '2 vasos de agua durante el día',
+    'today.d3_details': '<b>¡No de una vez!</b> 1 vaso después de las 12:00, el segundo — entre 14:00 y 16:00.<br><b>Por qué:</b> durante el día se olvida, al atardecer la deshidratación = cansancio y confusión.',
+    'today.ritual_dusk': 'Ritual del Atardecer',
+    'today.dusk_badge': '✦ ventana de poder',
+    'today.s1_text': 'Cypress + Vetiver en los pies',
+    'today.s1_oil': 'doTERRA Cypress (flujo del tiempo) + Vetiver (profundidad) — aceite principal para Z-MAN',
+    'today.s1_details': '<b>Mezcla:</b> 1 gota Cypress + 1 gota Vetiver + 1 cucharadita de portador (coco fraccionado).<br><b>Aplicación:</b> movimientos de masaje en los pies (especialmente las almohadillas), a lo largo de la columna de abajo hacia arriba.<br><b>⚠ Vetiver es muy profundo</b> — solo de noche, no antes de tareas. Vetiver puede inducir sueño.',
+    'today.s2_text': '15 minutos junto al agua (arroyo/ducha/taza)',
+    'today.s2_details': '<b>Qué hacer junto al agua:</b><br>• Siéntate junto a una fuente de agua — arroyo, bañera, taza llena, grifo<br>• Solo observa el flujo — no apresures los pensamientos<br>• Al inhalar imagina cómo el agua entra en ti · al exhalar — se lleva lo excesivo<br>• Puedes hablar en voz baja lo que quieres soltar, y dejarlo ir al agua<br><b>En el arquetipo Z-MAN:</b> agua = TUMA = tiempo. Contacto con el agua = sintonización del ritmo.',
+    'today.s3_text': 'Labradorita o piedra de luna en la mano',
+    'today.s3_details': '<b>Cómo sostener:</b> la piedra en la palma de la mano izquierda (lado receptor). Aprieta suavemente, siente la temperatura.<br><b>Labradorita:</b> protección, profundidad, visión de lo oculto.<br><b>Piedra de luna:</b> intuición, sabiduría femenina, ciclos.<br><b>Obsidiana (negra):</b> enraizamiento, protección del ritmo ajeno.<br><b>Cuidado:</b> enjuagar bajo agua corriente una vez por semana, cargar bajo la luz de la luna.',
+    'today.ritual_night': 'Deslizamiento Nocturno',
+    'today.n1_text': 'Lavender en la almohada',
+    'today.n1_oil': 'doTERRA Lavender — transición suave hacia la restauración',
+    'today.n1_details': '<b>⚠ La dosis es CRÍTICA:</b> solo <b>1–2 gotas</b> en la almohada o difusor.<br>Más de 2 gotas = <b>efecto contrario</b>: agitación, insomnio, dolor de cabeza. Cuanto menos — más profundo el efecto.<br><b>Alternativa:</b> 1 gota en la muñeca, o 2 gotas en el difusor 30 min antes de dormir.',
+    'today.n2_text': 'Escribir gratitud del día',
+    'today.n2_details': 'Una o dos líneas en el campo de abajo. No «debes» — sino <b>notar</b>. Puede ser cualquier cosa: una taza de té, un momento de silencio, la mirada de alguien, tu propio gesto hacia ti.',
+    'today.journal_label': 'Hoy estoy agradecida por…',
+    'today.journal_placeholder': 'Una línea — es suficiente',
+    'today.progress_label': 'Realizado hoy',
+    'today.progress_of': 'de',
+    // === POPUP DE ACEITE ===
+    'oil.btn_catalog': 'Abrir en el catálogo de doTERRA →',
+    'oil.ref_note': 'Compra por enlace de referido (RU)',
+    // === PESTAÑA «ESTRATEGIA» ===
+    'strategy.goal_title': 'Mi Meta',
+    'strategy.goal_hint': 'La gran meta alrededor de la cual se construye la estrategia en el ritmo de tu DAR.',
+    'strategy.goal_placeholder': 'Por ejemplo: lanzar ARKA como plan de YupDar',
+    'strategy.goal_deadline': 'Plazo',
+    'strategy.goal_why': 'Por qué lo necesito',
+    'strategy.goal_why_placeholder': 'motivación en una línea',
+    'strategy.steps_title': 'Pasos de la Estrategia',
+    'strategy.steps_hint': '3–7 pasos. Marca los listos. Pulsa el texto para editar.',
+    'strategy.step_add': '＋ Añadir paso',
+    'strategy.step_suggest': '🐉 Sugerir pasos',
+    'strategy.ai_title': 'Asistente en el Arquetipo de tu DAR',
+    'strategy.ai_hint': 'Describe la situación — recibe análisis, pronóstico o corrección <em>en el lenguaje de tu DAR</em>.',
+    'strategy.ai_placeholder': 'Por ejemplo: atascada en el paso 2, no sé cómo avanzar',
+    'strategy.ai_advice': '💫 Consejo',
+    'strategy.ai_forecast': '🔮 Pronóstico',
+    'strategy.ai_correct': '⚖️ Corrección',
+    'strategy.ai_empty': 'Describe la situación y pulsa un botón — el asistente responderá en el arquetipo de tu DAR',
+    'strategy.info_banner': '<b>Prototipo:</b> por ahora el asistente trabaja con reglas del arquetipo. Al integrarse con YupDar se conectará DeepSeek + Groq fallback, y el análisis será más profundo — basado en el perfil completo del DAR y tu historial de pasos.',
+    // === PESTAÑA «CAMINO» ===
+    'path.mentor_badge': '🐉 Voz del DAR',
+    'path.mentor_title': 'Informe del Mentor',
+    'path.mentor_placeholder': 'El informe aparecerá aquí — depende de tu progreso.',
+    'path.mentor_refresh': 'Actualizar informe',
+    'path.finance_title': 'Flujos de Ingresos',
+    'path.finance_hint': 'TUMA fluye por distintos canales. Ves el flujo — lo diriges.',
+    'path.finance_add': '＋ Añadir canal',
+    'path.finance_total': 'Total del mes',
+    'path.finance_currency': '$',
+    'path.finance_of': 'de',
+    'path.content_title': 'Voz — Plan de Promoción',
+    'path.content_hint': 'Publicaciones, lanzamientos, la voz del DAR al mundo. Marca los listos.',
+    'path.content_add': '＋ Añadir publicación',
+    'path.mcall_title': 'Necesito un Mentor',
+    'path.mcall_hint': '¿Momento difícil? ¿Duda? Abre una conversación con un guía en el arquetipo de tu DAR.',
+    'path.mcall_open': '🐉 Abrir conversación',
+    'path.weekly_title': 'Revisión Semanal',
+    'path.weekly_hint': 'Suele aparecer el domingo por la noche. Puedes lanzarla manualmente.',
+    'path.weekly_btn': 'Obtener revisión semanal',
+    'path.info_banner': '<b>Prototipo:</b> el informe y las revisiones se construyen con reglas. Al integrarse con YupDar se conectará el AI-mentor completo con memoria de contexto, historia semanal y mensajes matutinos automáticos en Telegram.'
   }
 };
 

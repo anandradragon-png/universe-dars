@@ -1026,6 +1026,71 @@
     /* Убираем боковые отступы у вкладки Арка, чтобы iframe занимал всю ширину */
     #tab-arka { padding: 0; }
 
+    /* Аккордеон Дара в вкладке «Я» (7 базовых секций + 2 premium АРКА) */
+    .me-accordion {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .me-acc-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border, rgba(255,255,255,0.08));
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .me-acc-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text, #f1f5f9);
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .me-acc-header:hover { background: rgba(212,175,55,0.08); }
+    .me-acc-header.open { background: rgba(212,175,55,0.12); }
+    .me-acc-icon { font-size: 18px; flex-shrink: 0; }
+    .me-acc-title { flex: 1; font-weight: 600; }
+    .me-acc-arrow {
+      font-size: 11px;
+      color: var(--text-dim, #94a3b8);
+      transition: transform 0.25s;
+      flex-shrink: 0;
+    }
+    .me-acc-header.open .me-acc-arrow { transform: rotate(180deg); }
+    .me-acc-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 16px;
+      color: var(--text-dim, #94a3b8);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .me-acc-body.open {
+      max-height: 600px;
+      padding: 4px 16px 14px;
+    }
+    .me-acc-locked .me-acc-title { color: var(--text-dim, #94a3b8); }
+    .me-acc-lock {
+      font-size: 14px;
+      color: #D4AF37;
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+    .me-acc-locked .me-acc-header:hover .me-acc-lock {
+      opacity: 1;
+      transform: scale(1.1);
+      transition: transform 0.2s;
+    }
+
     /* Premium-строки АРКА в аккордеоне «Узнать о себе больше».
        Они являются частью аккордеона, поэтому без своего бордера/фона,
        только разделитель сверху и замочек справа. */
@@ -2595,6 +2660,89 @@
             <span class="me-action-icon">🖼</span>
             <span class="me-action-label" data-i18n="me.action_share">Поделиться</span>
           </button>
+        </div>
+
+        <!-- Аккордеон полного описания Дара. 7 базовых секций + 2 premium АРКА. -->
+        <div class="me-accordion" id="me-accordion">
+          <div class="me-acc-item">
+            <button class="me-acc-header open" onclick="toggleMeAcc(this)">
+              <span class="me-acc-icon">✨</span>
+              <span class="me-acc-title" data-i18n="me.acc_essence">Твоя Суть</span>
+              <span class="me-acc-arrow">▼</span>
+            </button>
+            <div class="me-acc-body open" data-i18n="me.acc_essence_text">Носитель своего Дара. Описание заполняется автоматически по твоему коду из энциклопедии.</div>
+          </div>
+
+          <div class="me-acc-item">
+            <button class="me-acc-header" onclick="toggleMeAcc(this)">
+              <span class="me-acc-icon">💎</span>
+              <span class="me-acc-title" data-i18n="me.acc_superpowers">Твои Суперсилы</span>
+              <span class="me-acc-arrow">▼</span>
+            </button>
+            <div class="me-acc-body" data-i18n="me.acc_superpowers_text">Уникальные способности твоего архетипа. То, что даётся легче всего и питает.</div>
+          </div>
+
+          <div class="me-acc-item">
+            <button class="me-acc-header" onclick="toggleMeAcc(this)">
+              <span class="me-acc-icon">💰</span>
+              <span class="me-acc-title" data-i18n="me.acc_wealth">Твой Поток Изобилия</span>
+              <span class="me-acc-arrow">▼</span>
+            </button>
+            <div class="me-acc-body" data-i18n="me.acc_wealth_text">Через что приходят ресурсы. Что включает и что блокирует поток в твоём Даре.</div>
+          </div>
+
+          <div class="me-acc-item">
+            <button class="me-acc-header" onclick="toggleMeAcc(this)">
+              <span class="me-acc-icon">❤️</span>
+              <span class="me-acc-title" data-i18n="me.acc_relationships">Ты в Отношениях</span>
+              <span class="me-acc-arrow">▼</span>
+            </button>
+            <div class="me-acc-body" data-i18n="me.acc_relationships_text">Как ты любишь, что тебе нужно от близости, твои триггеры.</div>
+          </div>
+
+          <div class="me-acc-item">
+            <button class="me-acc-header" onclick="toggleMeAcc(this)">
+              <span class="me-acc-icon">⚠️</span>
+              <span class="me-acc-title" data-i18n="me.acc_traps">Твои Ловушки</span>
+              <span class="me-acc-arrow">▼</span>
+            </button>
+            <div class="me-acc-body" data-i18n="me.acc_traps_text">Типичные тени твоего архетипа. Где можно «упасть» и как себе помочь.</div>
+          </div>
+
+          <div class="me-acc-item">
+            <button class="me-acc-header" onclick="toggleMeAcc(this)">
+              <span class="me-acc-icon">🗝</span>
+              <span class="me-acc-title" data-i18n="me.acc_key">Ключ к Себе</span>
+              <span class="me-acc-arrow">▼</span>
+            </button>
+            <div class="me-acc-body" data-i18n="me.acc_key_text">Главный ресурс твоего Дара. То, что разворачивает тебя в полную силу.</div>
+          </div>
+
+          <div class="me-acc-item">
+            <button class="me-acc-header" onclick="toggleMeAcc(this)">
+              <span class="me-acc-icon">🌍</span>
+              <span class="me-acc-title" data-i18n="me.acc_mission">Твоё Предназначение</span>
+              <span class="me-acc-arrow">▼</span>
+            </button>
+            <div class="me-acc-body" data-i18n="me.acc_mission_text">Что ты несёшь миру через свой Дар. Как твоя жизнь становится посланием.</div>
+          </div>
+
+          <!-- ═══ Premium-секции АРКА (с замочками) ═══
+               Доступны при подключённой АРКЕ. Клик → CTA на тарифы. -->
+          <div class="me-acc-item me-acc-locked">
+            <button class="me-acc-header" onclick="openArkaPaywall('resonance')">
+              <span class="me-acc-icon">🧬</span>
+              <span class="me-acc-title" data-i18n="me.acc_resonance">Резонанс с фазой жизни</span>
+              <span class="me-acc-lock" title="АРКА">🔒</span>
+            </button>
+          </div>
+          <div class="me-acc-item me-acc-locked">
+            <button class="me-acc-header" onclick="openArkaPaywall('connections')">
+              <span class="me-acc-icon">🌌</span>
+              <span class="me-acc-title" data-i18n="me.acc_connections">Карта связей</span>
+              <span class="me-acc-lock" title="АРКА">🔒</span>
+            </button>
+          </div>
         </div>
 
         <!-- Свёрнутый по умолчанию блок «Узнать о себе больше». Раскрывается по клику. -->

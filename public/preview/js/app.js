@@ -1574,17 +1574,18 @@
   window.openMyShare = openMyShare;
 
   // Сворачивающийся блок «Узнать о себе больше»
-  function toggleMeMore() {
+  function toggleMeMore(forceOpen) {
     const toggle = document.getElementById('me-more-toggle');
     const content = document.getElementById('me-more-content');
     if (!toggle || !content) return;
     const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-    if (isOpen) {
-      toggle.setAttribute('aria-expanded', 'false');
-      content.hidden = true;
-    } else {
+    const shouldOpen = (forceOpen === true) ? true : (forceOpen === false ? false : !isOpen);
+    if (shouldOpen) {
       toggle.setAttribute('aria-expanded', 'true');
       content.hidden = false;
+    } else {
+      toggle.setAttribute('aria-expanded', 'false');
+      content.hidden = true;
     }
   }
   window.toggleMeMore = toggleMeMore;

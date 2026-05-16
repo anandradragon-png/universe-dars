@@ -155,6 +155,21 @@
   }
   window.openScienceSurvey = openScienceSurvey;
 
+  // Аккордеон Дара в вкладке «Я» — переключение секций
+  function toggleMeAcc(headerBtn) {
+    if (!headerBtn) return;
+    const body = headerBtn.nextElementSibling;
+    const isOpen = headerBtn.classList.contains('open');
+    if (isOpen) {
+      headerBtn.classList.remove('open');
+      if (body) body.classList.remove('open');
+    } else {
+      headerBtn.classList.add('open');
+      if (body) body.classList.add('open');
+    }
+  }
+  window.toggleMeAcc = toggleMeAcc;
+
   // Premium-блоки АРКА в вкладке «Я» — клик по замочку открывает CTA
   function openArkaPaywall(featureKey) {
     const t = (k, fb) => ((window.previewI18n && previewI18n.t(k)) || fb);

@@ -49,13 +49,17 @@ let state = loadState();
 if (!state.days[TODAY]) state.days[TODAY] = {};
 
 // ── Приветствие ──────────────────────────────────────
+// Шапка с приветствием убрана как дубль главного приложения (16.05.2026).
+// Функция оставлена для совместимости, но безопасно проверяет наличие элемента.
 function setGreeting() {
+  const el = document.getElementById('timeOfDay');
+  if (!el) return;
   const h = new Date().getHours();
   let txt = 'Доброе утро';
   if (h >= 12 && h < 17) txt = 'Добрый день';
   else if (h >= 17 && h < 22) txt = 'Тёплый закат';
   else if (h >= 22 || h < 5) txt = 'Тихой ночи';
-  document.getElementById('timeOfDay').textContent = txt;
+  el.textContent = txt;
 }
 
 // ── Табы ─────────────────────────────────────────────

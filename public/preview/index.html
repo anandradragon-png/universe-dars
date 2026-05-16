@@ -36,7 +36,7 @@
       overflow-x: hidden;
     }
     body {
-      padding-bottom: 72px; /* место для нижней навигации */
+      padding-bottom: 90px; /* место для нижней навигации (как в проде) */
     }
 
     /* === Preview-баннер (виден всегда, напоминает что это прототип) === */
@@ -50,60 +50,119 @@
       letter-spacing: 0.5px;
     }
 
-    /* === Шапка === */
+    /* === Шапка — 1:1 из прода (index.html:103-105, 472) === */
     header.app-header {
+      position: relative;
+      z-index: 1;
+      min-height: 52px;
+      padding: 8px 0;
+      flex-shrink: 0;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
-      background: linear-gradient(135deg, #1a1a25, #0f0f14);
+      justify-content: center;
       border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: rgba(8,8,8,0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
     header .logo {
-      width: 28px; height: 28px;
-      border-radius: 8px;
-      background: var(--accent);
-      flex-shrink: 0;
+      display: none; /* прод не показывает квадратный лого */
     }
-    header .title-block { flex: 1; min-width: 0; }
+    header .title-block {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     header h1 {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 1px;
+      background: linear-gradient(135deg, #E8C84A, #D4AF37, #9A7B1A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: 4px;
+      margin: 0;
     }
     header .tagline {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 1px;
-      letter-spacing: 1px;
+      font-size: 8px;
+      letter-spacing: 3px;
+      color: #D4AF37;
+      font-weight: 600;
+      margin-top: 3px;
+      opacity: 0.75;
     }
+    /* Кнопки шапки — абсолютное позиционирование как в проде (index.html: #btn-profile) */
     .header-action {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 12px;
+      position: fixed;
+      top: 14px;
+      z-index: 9999;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(212,175,55,0.4);
+      color: var(--accent-1);
+      font-size: 14px;
       cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-    .header-action:hover {
-      background: rgba(212,175,55,0.08);
-      border-color: rgba(212,175,55,0.3);
-      color: var(--gold);
-    }
-    .crystal-counter {
       display: flex;
       align-items: center;
+      justify-content: center;
+      font-family: 'Manrope', sans-serif;
+      transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(212,175,55,0.2);
+    }
+    .header-action:hover {
+      transform: scale(1.1);
+      box-shadow: 0 2px 15px rgba(212,175,55,0.4);
+    }
+    /* Аватар (#btn-profile из прода) — золотой круг справа */
+    .header-action[onclick*="openProfile"] {
+      right: 14px;
+      background: linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);
+      border: 2px solid rgba(212,175,55,0.5);
+      color: #080808;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    /* Язык — рядом с аватаром */
+    #btn-lang.header-action {
+      right: 62px;
+      width: auto;
+      padding: 0 10px;
+      border-radius: 20px;
+      font-size: 12px;
       gap: 4px;
-      font-size: 13px;
-      color: var(--gold);
-      font-weight: 600;
+    }
+    /* Иконка Науки — слева от языка */
+    .header-action-science.header-action {
+      right: 116px;
+      background: rgba(135,206,235,0.08);
+      border-color: rgba(135,206,235,0.3);
+      color: #87ceeb;
+    }
+    .header-action-science.header-action:hover {
+      background: rgba(135,206,235,0.18);
+      border-color: rgba(135,206,235,0.6);
+    }
+    /* Кристаллы (1:1 из прода #crystal-counter, index.html:273) */
+    .crystal-counter {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(212,175,55,0.4);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 14px;
+      color: var(--accent-1);
+      letter-spacing: 1px;
+      cursor: pointer;
     }
 
     /* === Выпадашка языка === */
@@ -141,6 +200,7 @@
       padding: 16px;
       max-width: 700px;
       margin: 0 auto;
+      padding-top: 24px;
     }
     .tab { display: none; }
     .tab.active { display: block; }
@@ -383,42 +443,65 @@
     }
     .btn-secondary:hover { background: var(--gold-soft); }
 
-    /* === Нижняя навигация === */
+    /* === Нижняя навигация — 1:1 из прода (index.html:265-270) === */
     .nav-bar {
       position: fixed;
       bottom: 0;
-      left: 0;
-      right: 0;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      background: linear-gradient(180deg, rgba(15,15,20,0.95), rgba(15,15,20,1));
+      bottom: env(safe-area-inset-bottom, 0);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      padding: 8px 16px 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      background: rgba(8,8,8,0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid var(--border);
-      backdrop-filter: blur(10px);
-      z-index: 50;
-      padding-bottom: env(safe-area-inset-bottom, 0);
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      width: 100%;
+      max-width: 700px;
+      will-change: transform;
     }
     .nav-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 10px 4px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      padding: 10px 6px 12px;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 11px;
-      transition: color 0.2s;
+      gap: 3px;
+      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      font-family: 'Manrope', sans-serif;
     }
+    .nav-btn.active {
+      background: rgba(212,175,55,0.15);
+      border-color: rgba(212,175,55,0.4);
+      box-shadow: 0 0 12px rgba(212,175,55,0.2) inset;
+    }
+    .nav-btn:active { transform: scale(0.92); }
     .nav-btn .nav-icon {
       font-size: 20px;
       line-height: 1;
     }
-    .nav-btn.active {
-      color: var(--gold);
+    .nav-btn.active .nav-icon {
+      filter: drop-shadow(0 0 6px rgba(212,175,55,0.6));
     }
-    .nav-btn:hover { color: var(--gold); }
+    .nav-btn span:last-child {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
 
     /* === Личный Кабинет (оверлей) === */
     .lk-backdrop {

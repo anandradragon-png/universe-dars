@@ -723,10 +723,20 @@
     return darsExtendedCache;
   }
 
-  // Получить контент секции (приоритет: dar-content.json → dars_extended)
-  function getDarSectionContent(sectionKey, code, content, extended) {
-    const c = content && content[code];
-    if (c && c[sectionKey]) return c[sectionKey];
+  // Получить контент секции с приоритетом по языку:
+  // 1) перевод для текущего языка (если есть и не пустой)
+  // 2) фоллбэк на русский (всегда полный)
+  // 3) dars_extended (краткий) как последний fallback
+  // contentByLang — { ru: {...}, en: {...}, es: {...} }
+  function getDarSectionContent(sectionKey, code, contentByLang, extended) {
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const langPack = contentByLang && contentByLang[lang];
+    const ruPack = contentByLang && contentByLang.ru;
+    const cLang = langPack && langPack[code];
+    if (cLang && cLang[sectionKey] && cLang[sectionKey] !== '') return cLang[sectionKey];
+    // Фоллбэк на русский для непереведённых даров
+    const cRu = ruPack && ruPack[code];
+    if (cRu && cRu[sectionKey]) return cRu[sectionKey];
     const ext = extended && extended[code];
     if (ext) {
       if (sectionKey === 'essence') return ext.essence_short || ext.metaphor || null;
@@ -768,12 +778,15 @@
     </div>`;
 
     // 9 секций — аккордеон. Первая с контентом раскрыта.
-    const data = await loadDarContent();
+    // Грузим в текущем языке + русский (как fallback для непереведённых даров)
+    const dataCurrent = await loadDarContent();
+    const dataRu = await loadDarContent.callRu();
+    const contentByLang = { [lang]: dataCurrent, ru: dataRu };
     const extended = await loadDarsExtended();
     let firstOpened = false;
     let sectionsHtml = '<div class="dar-accordion">';
     for (const sec of DAR_SECTIONS) {
-      const raw = getDarSectionContent(sec.key, code, data, extended);
+      const raw = getDarSectionContent(sec.key, code, contentByLang, extended);
       const hasContent = !!raw;
       const isOpen = hasContent && !firstOpened;
       if (isOpen) firstOpened = true;

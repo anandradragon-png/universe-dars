@@ -1,0 +1,3065 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>YupDar — прототип архитектуры</title>
+  <!-- 100% копия шрифта из прода (index.html:7) -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* 100% копия CSS-переменных из прода (index.html:77) */
+    :root {
+      --bg: #080808;
+      --text: #f1f5f9;
+      --text-dim: #a09080;
+      --text-muted: #7a6f63;
+      --border: rgba(212,175,55,0.15);
+      --border-bright: rgba(212,175,55,0.3);
+      --card: rgba(255,255,255,0.04);
+      --accent-1: #D4AF37;
+      --accent-2: #C5A028;
+      --accent-3: #9A7B1A;
+      --glow: rgba(212,175,55,0.2);
+      --surface-glass: rgba(10,10,10,0.7);
+      /* Алиасы для совместимости с уже существующим кодом прототипа */
+      --gold: #D4AF37;
+      --gold-soft: rgba(212,175,55,0.12);
+      --accent: linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);
+    }
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body {
+      padding-bottom: 90px; /* место для нижней навигации (как в проде) */
+    }
+
+    /* === Preview-баннер (виден всегда, напоминает что это прототип) === */
+    .preview-banner {
+      background: linear-gradient(90deg, rgba(212,175,55,0.18), rgba(212,175,55,0.06));
+      border-bottom: 1px solid rgba(212,175,55,0.3);
+      padding: 6px 14px;
+      font-size: 11px;
+      color: var(--gold);
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    /* === Шапка — 1:1 из прода (index.html:103-105, 472) === */
+    header.app-header {
+      position: relative;
+      z-index: 1;
+      min-height: 52px;
+      padding: 8px 0;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,8,8,0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    header .logo {
+      display: none; /* прод не показывает квадратный лого */
+    }
+    header .title-block {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header h1 {
+      background: linear-gradient(135deg, #E8C84A, #D4AF37, #9A7B1A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: 4px;
+      margin: 0;
+    }
+    header .tagline {
+      font-size: 8px;
+      letter-spacing: 3px;
+      color: #D4AF37;
+      font-weight: 600;
+      margin-top: 3px;
+      opacity: 0.75;
+    }
+    /* Кнопки шапки — абсолютное позиционирование как в проде (index.html: #btn-profile) */
+    .header-action {
+      position: fixed;
+      top: 14px;
+      z-index: 9999;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(212,175,55,0.4);
+      color: var(--accent-1);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Manrope', sans-serif;
+      transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(212,175,55,0.2);
+    }
+    .header-action:hover {
+      transform: scale(1.1);
+      box-shadow: 0 2px 15px rgba(212,175,55,0.4);
+    }
+    /* Аватар (#btn-profile из прода) — золотой круг справа */
+    .header-action[onclick*="openProfile"] {
+      right: 14px;
+      background: linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);
+      border: 2px solid rgba(212,175,55,0.5);
+      color: #080808;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    /* Язык — рядом с аватаром */
+    #btn-lang.header-action {
+      right: 62px;
+      width: auto;
+      padding: 0 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      gap: 4px;
+    }
+    /* Иконка Науки — слева, рядом с кристаллами (чтобы не перекрывала заголовок) */
+    .header-action-science.header-action {
+      left: 76px;
+      right: auto;
+      background: rgba(135,206,235,0.08);
+      border-color: rgba(135,206,235,0.3);
+      color: #87ceeb;
+    }
+    .header-action-science.header-action:hover {
+      background: rgba(135,206,235,0.18);
+      border-color: rgba(135,206,235,0.6);
+    }
+    /* Кристаллы (1:1 из прода #crystal-counter, index.html:273) */
+    .crystal-counter {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(212,175,55,0.4);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 14px;
+      color: var(--accent-1);
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    /* === Выпадашка языка === */
+    #lang-picker {
+      position: fixed;
+      top: 64px;
+      right: 14px;
+      background: var(--card);
+      border: 1px solid var(--border-bright);
+      border-radius: 10px;
+      padding: 6px;
+      z-index: 9998;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      display: none;
+      min-width: 140px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    #lang-picker.open { display: block; }
+    .lang-option {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 6px;
+      text-align: left;
+      font-family: inherit;
+    }
+    .lang-option:hover { background: rgba(212,175,55,0.1); color: var(--gold); }
+
+    /* === Контент вкладок === */
+    main {
+      padding: 16px;
+      max-width: 700px;
+      margin: 0 auto;
+      padding-top: 24px;
+    }
+    .tab { display: none; }
+    .tab.active { display: block; }
+
+    .screen-headline {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .screen-subhead {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    /* === Вкладка «Я» — форма === */
+    .calc-form {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .date-input {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-align: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: inherit;
+      margin-bottom: 14px;
+    }
+    .date-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      background: rgba(212,175,55,0.04);
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      background: var(--accent);
+      color: #080808;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 0 15px rgba(212,175,55,0.25);
+    }
+
+    /* === «Что ты получишь» (маркетинг) === */
+    .value-list {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .value-list h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .value-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .value-item::before {
+      content: "✦";
+      color: var(--gold);
+      font-size: 14px;
+    }
+
+    /* === Empty state === */
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.8; }
+    .empty-text {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    /* === Подвкладки внутри Сокровищницы === */
+    .subtabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: 2px 16px 6px;
+      margin-left: -16px;
+      margin-right: -16px;
+      scrollbar-width: none;
+    }
+    .subtabs::-webkit-scrollbar { display: none; }
+    .subtab {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .subtab.active {
+      background: var(--gold-soft);
+      border-color: rgba(212,175,55,0.5);
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* === Заглушки контента === */
+    .placeholder {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 30px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .placeholder strong {
+      color: var(--text-dim);
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    /* === Arka layers === */
+    .arka-layer {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .arka-layer.unlocked { border-color: rgba(212,175,55,0.3); }
+    .arka-layer.locked { opacity: 0.65; }
+    .arka-layer:hover { transform: translateY(-1px); }
+    .arka-layer-title {
+      font-size: 16px;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .arka-layer-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .arka-lock-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      font-size: 10px;
+      color: var(--gold);
+      background: var(--gold-soft);
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .btn-unlock {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--accent);
+      color: #080808;
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* === Science block === */
+    .science-block {
+      background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(212,175,55,0.02));
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+    }
+    .science-block h3 {
+      font-size: 16px;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .science-block p {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .btn-secondary {
+      display: inline-block;
+      padding: 10px 20px;
+      border: 1px solid var(--gold);
+      background: transparent;
+      color: var(--gold);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: inherit;
+    }
+    .btn-secondary:hover { background: var(--gold-soft); }
+
+    /* === Нижняя навигация — 1:1 из прода (index.html:265-270) === */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      bottom: env(safe-area-inset-bottom, 0);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      padding: 8px 16px 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      background: rgba(8,8,8,0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      width: 100%;
+      max-width: 700px;
+      will-change: transform;
+    }
+    .nav-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 10px 4px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      font-family: 'Manrope', sans-serif;
+    }
+    .nav-btn.active {
+      background: rgba(212,175,55,0.15);
+      border-color: rgba(212,175,55,0.4);
+      box-shadow: 0 0 12px rgba(212,175,55,0.2) inset;
+    }
+    .nav-btn:active { transform: scale(0.92); }
+    .nav-btn .nav-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .nav-btn.active .nav-icon {
+      filter: drop-shadow(0 0 6px rgba(212,175,55,0.6));
+    }
+    .nav-btn span:last-child {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    /* === Личный Кабинет (оверлей) === */
+    .lk-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      display: none;
+    }
+    .lk-backdrop.open { display: block; }
+    .lk-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg);
+      border-left: 1px solid var(--border);
+      z-index: 501;
+      overflow-y: auto;
+      padding: 16px;
+      transform: translateX(100%);
+      transition: transform 0.25s ease-out;
+    }
+    .lk-panel.open { transform: translateX(0); }
+    .lk-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .lk-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .lk-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .lk-dar-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .lk-close {
+      margin-left: auto;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: inherit;
+    }
+    .lk-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .lk-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .lk-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      font-size: 13px;
+    }
+    .lk-row-label { color: var(--text-dim); }
+    .lk-row-value { color: var(--text); text-align: right; }
+    .lk-btn {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(212,175,55,0.08);
+      border: 1px solid rgba(212,175,55,0.3);
+      color: var(--gold);
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+    .lk-btn:hover { background: rgba(212,175,55,0.15); }
+    .lk-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .lk-btn-row .lk-btn { margin-top: 0; }
+    .lk-input {
+      width: 100%;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .lk-tier-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--accent);
+      color: #080808;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .lk-link {
+      display: block;
+      padding: 10px 0;
+      font-size: 13px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .lk-link:first-child { border-top: none; }
+    .lk-link:hover { color: var(--gold); }
+    .lk-link.danger { color: #b95252; }
+    .lk-link.admin { color: var(--gold); font-weight: 600; }
+    .lk-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0 12px;
+    }
+    /* === Карточка Дара (после расчёта) === */
+    .dar-card {
+      background: linear-gradient(160deg, rgba(212,175,55,0.08), rgba(212,175,55,0.02));
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 18px;
+      padding: 24px 20px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    /* Картинка Дара — золотая SVG как в основном приложении */
+    .dar-image {
+      width: 130px; height: 130px;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+    }
+    .dar-image img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 10px #D4AF37);
+    }
+    .dar-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 3px;
+      margin-bottom: 4px;
+    }
+    .dar-code {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .dar-archetype {
+      font-size: 14px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+    .error-msg {
+      color: #ef5350;
+      font-size: 12px;
+      min-height: 14px;
+      text-align: center;
+      margin: 4px 0 8px;
+    }
+
+    /* === Углубление: 3 шага === */
+    .depth-section {
+      margin-top: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .depth-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .depth-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .depth-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-top: 1px solid var(--border);
+    }
+    .depth-step:first-of-type { border-top: none; padding-top: 4px; }
+    .depth-icon { font-size: 20px; flex-shrink: 0; }
+    .depth-step-text { flex: 1; min-width: 0; }
+    .depth-step-title {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .depth-step-value {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .depth-level-result {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 5px;
+      color: var(--gold);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .depth-step-btn {
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.3);
+      color: var(--gold);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .depth-step-btn:hover { background: rgba(212,175,55,0.18); }
+    .depth-step.filled .depth-step-btn { opacity: 0.6; }
+    .reset-link {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .reset-link a {
+      color: var(--text-muted);
+      font-size: 12px;
+      text-decoration: underline dotted;
+      cursor: pointer;
+    }
+
+    /* === Синтез архетипа (после ввода всех 3 параметров) === */
+    .synthesis-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .synthesis-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+    .synthesis-levels {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .synthesis-level {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .synthesis-level-icon {
+      width: 40px; height: 40px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .synthesis-level-icon img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 5px #D4AF37);
+    }
+    .synthesis-level-text { flex: 1; min-width: 0; }
+    .synthesis-level-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+    .synthesis-level-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .synthesis-level-influence {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+      padding: 4px 10px;
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .synthesis-edit {
+      width: 100%;
+      margin-top: 14px;
+      padding: 10px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+    }
+    .synthesis-edit:hover { color: var(--gold); border-color: rgba(212,175,55,0.3); }
+
+    /* === Модалки углубления === */
+    .depth-modal {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(110%);
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border-top: 1px solid rgba(212,175,55,0.3);
+      border-radius: 18px 18px 0 0;
+      padding: 20px 16px;
+      z-index: 502;
+      transition: transform 0.25s ease-out;
+    }
+    .depth-modal.open { transform: translateX(-50%) translateY(0); }
+    .depth-modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .depth-modal-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .lk-readonly-note {
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      font-style: italic;
+    }
+
+    /* === Кнопки-действия на вкладке «Я» (Оракул / Поделиться) === */
+    .me-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .me-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 8px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .me-action-btn:hover {
+      border-color: rgba(212,175,55,0.4);
+      background: rgba(212,175,55,0.04);
+    }
+    .me-action-icon { font-size: 22px; line-height: 1; }
+    .me-action-label { font-size: 12px; color: var(--text-dim); }
+
+    /* === Сворачивающийся блок «Узнать о себе больше» === */
+    .me-more-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .me-more-toggle:hover { background: rgba(212,175,55,0.05); }
+    .me-more-toggle[aria-expanded="true"] { color: var(--gold); border-color: rgba(212,175,55,0.3); }
+    .me-more-icon { font-size: 16px; }
+    .me-more-label { flex: 1; text-align: left; }
+    .me-more-chevron {
+      font-size: 14px;
+      transition: transform 0.2s;
+    }
+    .me-more-toggle[aria-expanded="true"] .me-more-chevron {
+      transform: rotate(180deg);
+    }
+    .me-more-content {
+      margin-top: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .me-more-content[hidden] { display: none; }
+
+    /* === Баннер «Наука» на вкладке «Я» === */
+    .science-banner {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: linear-gradient(135deg, rgba(135,206,235,0.06), rgba(212,175,55,0.04));
+      border: 1px solid rgba(135,206,235,0.25);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .science-banner:hover {
+      border-color: rgba(135,206,235,0.5);
+      background: linear-gradient(135deg, rgba(135,206,235,0.1), rgba(212,175,55,0.07));
+    }
+    .science-banner-emoji { font-size: 28px; flex-shrink: 0; }
+    .science-banner-text { flex: 1; min-width: 0; }
+    .science-banner-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+    }
+    .science-banner-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+    .science-banner-arrow {
+      color: var(--gold);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* === Иконка «Наука» в шапке (специально для учёных) === */
+    .header-action-science {
+      background: rgba(135,206,235,0.08);
+      border-color: rgba(135,206,235,0.3);
+    }
+    .header-action-science:hover {
+      background: rgba(135,206,235,0.18);
+      border-color: rgba(135,206,235,0.6);
+    }
+
+    /* === Подвкладки контента (Сокровищница / Арка) === */
+    .subtab-content { display: none; }
+    .subtab-content.active { display: block; }
+
+    /* === Семья: реф-карточка === */
+    .family-invite-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-top: 16px;
+    }
+    .family-invite-emoji { font-size: 28px; flex-shrink: 0; }
+    .family-invite-text { flex: 1; min-width: 0; }
+    .family-invite-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .family-invite-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .family-invite-btn {
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.3);
+      color: var(--gold);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* === Сокровищница: карточки книг === */
+    .treasury-book-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .treasury-book-card:hover {
+      border-color: rgba(212,175,55,0.4);
+      background: rgba(212,175,55,0.03);
+    }
+    .treasury-book-icon { font-size: 32px; flex-shrink: 0; }
+    .treasury-book-text { flex: 1; min-width: 0; }
+    .treasury-book-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .treasury-book-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .treasury-book-price {
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* === Читалка Книги === */
+    .book-reader {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      z-index: 600;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.25s ease-out;
+      padding: 0;
+    }
+    .book-reader.open { transform: translateY(0); }
+    .book-reader-header {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+    .book-reader-back, .book-reader-toc {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: inherit;
+      flex-shrink: 0;
+    }
+    .book-reader-title {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      text-align: center;
+    }
+    .book-reader-meta {
+      padding: 6px 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .book-reader-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .book-nav-btn {
+      background: rgba(212,175,55,0.08);
+      border: 1px solid rgba(212,175,55,0.3);
+      color: var(--gold);
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: inherit;
+    }
+    .book-nav-info {
+      font-size: 12px;
+      color: var(--text-dim);
+      min-width: 60px;
+      text-align: center;
+    }
+    .book-reader-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .book-overview {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .book-overview-icon { font-size: 32px; margin-bottom: 6px; }
+    .book-overview-title {
+      font-size: 19px;
+      letter-spacing: 2px;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .book-overview-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .book-progress {
+      margin-bottom: 12px;
+    }
+    .book-progress-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+    .book-progress-row b { color: #D4AF37; }
+    .book-progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .book-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg,#D4AF37,#D4AF37);
+      transition: width 0.4s ease;
+      border-radius: 3px;
+    }
+    .book-access-banner {
+      background: rgba(46,204,113,0.08);
+      border: 1px solid rgba(46,204,113,0.25);
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 12px;
+      text-align: center;
+      font-size: 13px;
+      color: #2ecc71;
+    }
+    .book-action-buttons {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .book-action-btn {
+      flex: 1;
+      padding: 10px 4px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .book-action-btn:hover { background: rgba(212,175,55,0.08); border-color: rgba(212,175,55,0.3); }
+    .book-action-btn.active { background: rgba(212,175,55,0.12); border-color: rgba(212,175,55,0.4); color: #D4AF37; }
+    .book-action-btn span:first-child { font-size: 16px; }
+    .book-panel {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .book-panel[hidden] { display: none; }
+    .book-search-input {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .book-search-results { max-height: 380px; overflow-y: auto; }
+    .book-search-group {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #D4AF37;
+      padding: 8px 4px 4px;
+      border-bottom: 1px solid rgba(212,175,55,0.2);
+      margin-bottom: 4px;
+    }
+    .book-search-result {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .book-search-result:hover { background: rgba(212,175,55,0.05); }
+    .book-search-result-title { color: #D4AF37; margin-bottom: 2px; }
+    .book-search-result-snippet { color: var(--text-dim); font-size: 11px; }
+    .book-empty {
+      text-align: center;
+      padding: 16px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-style: italic;
+    }
+    .book-settings-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      margin: 6px 0 8px;
+    }
+    .book-settings-row-grid {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .book-settings-btn-pill {
+      flex: 1;
+      padding: 10px 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .book-settings-btn-pill:hover { background: rgba(212,175,55,0.08); border-color: rgba(212,175,55,0.3); }
+    .book-settings-btn-pill.active { background: rgba(212,175,55,0.18); border-color: #D4AF37; color: #D4AF37; }
+    .book-theme-sepia { background: #f4ecd8; color: #3a2f1a; }
+    .book-theme-sepia:hover { background: #efe5cb; }
+    .book-theme-sepia.active { background: #f4ecd8; color: #3a2f1a; border-color: #8b6b2c; box-shadow: inset 0 0 0 2px #8b6b2c; }
+    .book-theme-light { background: #ffffff; color: #1a1a1a; }
+    .book-theme-light:hover { background: #f5f5f5; }
+    .book-theme-light.active { background: #ffffff; color: #1a1a1a; border-color: #D4AF37; box-shadow: inset 0 0 0 2px #D4AF37; }
+    /* Темы для карточки главы */
+    .book-chapter-card.theme-sepia {
+      background: #f4ecd8;
+      color: #3a2f1a;
+    }
+    .book-chapter-card.theme-sepia .book-chapter-title { color: #8b6b2c; }
+    .book-chapter-card.theme-sepia .book-chapter-body { color: #3a2f1a; }
+    .book-chapter-card.theme-sepia .book-chapter-body h1,
+    .book-chapter-card.theme-sepia .book-chapter-body h2,
+    .book-chapter-card.theme-sepia .book-chapter-body h3 { color: #8b6b2c; }
+    .book-chapter-card.theme-sepia .book-chapter-body strong { color: #8b6b2c; }
+    .book-chapter-card.theme-sepia .book-chapter-meta { color: #6b5b3a; }
+    .book-chapter-card.theme-light {
+      background: #ffffff;
+      color: #1a1a1a;
+    }
+    .book-chapter-card.theme-light .book-chapter-title { color: #D4AF37; }
+    .book-chapter-card.theme-light .book-chapter-body { color: #1a1a1a; }
+    .book-chapter-card.theme-light .book-chapter-body h1,
+    .book-chapter-card.theme-light .book-chapter-body h2,
+    .book-chapter-card.theme-light .book-chapter-body h3 { color: #1a1a1a; }
+    .book-chapter-card.theme-light .book-chapter-body strong { color: #D4AF37; }
+    .book-chapter-card.theme-light .book-chapter-meta { color: #555; }
+    .book-chapter-card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 14px;
+      padding: 18px 16px;
+      margin-bottom: 12px;
+    }
+    .book-chapter-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .book-chapter-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .book-bookmark-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+    .book-bookmark-btn.active { color: #D4AF37; }
+    .book-chapter-title {
+      font-size: 22px;
+      color: #D4AF37;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+    .book-chapter-body {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      overflow-wrap: break-word;
+    }
+    .book-chapter-body p {
+      margin: 0 0 14px;
+      text-align: justify;
+      hyphens: auto;
+    }
+    .book-chapter-body h1,
+    .book-chapter-body h2,
+    .book-chapter-body h3 {
+      margin: 20px 0 10px;
+      line-height: 1.3;
+      text-align: center;
+      color: #D4AF37;
+      font-weight: 600;
+    }
+    .book-chapter-body h1 { font-size: 1.3em; }
+    .book-chapter-body h2 { font-size: 1.2em; }
+    .book-chapter-body h3 { font-size: 1.1em; }
+    .book-chapter-body ul,
+    .book-chapter-body ol { padding-left: 20px; margin: 0 0 14px; }
+    .book-chapter-body li { margin-bottom: 6px; }
+    .book-chapter-body strong { font-weight: 700; }
+    .book-chapter-body img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 16px auto;
+      border-radius: 8px;
+      cursor: zoom-in;
+      image-rendering: -webkit-optimize-contrast;
+    }
+    /* Lightbox для крупного просмотра картинок книги */
+    .book-img-lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      cursor: zoom-out;
+      padding: 16px;
+    }
+    .book-img-lightbox img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 0;
+      filter: none !important;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+      cursor: zoom-out;
+    }
+    .book-img-lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* В тёмной теме чёрные глифы инвертируются в золотые, чтобы быть видимыми */
+    .book-chapter-card.theme-dark .book-chapter-body img,
+    .book-chapter-card:not(.theme-sepia):not(.theme-light) .book-chapter-body img {
+      filter: invert(78%) sepia(53%) saturate(478%) hue-rotate(2deg) brightness(94%) contrast(90%);
+      border-radius: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+    /* PNG-глиф дара (когда не задвоен) */
+    .book-chapter-body .book-dar-glyph {
+      max-width: 240px;
+      width: 60%;
+      height: auto;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .book-chapter-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .book-chapter-body th,
+    .book-chapter-body td {
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px;
+      text-align: left;
+    }
+    .book-chapter-body th {
+      background: rgba(212,175,55,0.08);
+      color: var(--gold);
+    }
+    .book-reader-nav-bottom {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0 16px;
+    }
+    .book-nav-pill {
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .book-nav-pill:hover { background: rgba(212,175,55,0.08); }
+    .book-nav-pos { font-size: 12px; color: var(--text-muted); }
+
+    .book-reader-content {
+      padding: 20px 16px 60px;
+      max-width: 720px;
+      margin: 0 auto;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .book-reader-content h1, .book-reader-content h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-top: 18px;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+    .book-reader-content h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+    .book-reader-content p {
+      margin-bottom: 12px;
+    }
+    .book-reader-content ul, .book-reader-content ol {
+      margin: 8px 0 12px 20px;
+    }
+    .book-reader-content li { margin-bottom: 4px; }
+    .book-reader-content strong { color: var(--gold); }
+    .book-reader-content img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 14px auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    }
+    .book-reader-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+    .book-reader-content th, .book-reader-content td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      text-align: left;
+    }
+    .book-reader-content th {
+      background: rgba(212,175,55,0.06);
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .book-toc {
+      position: absolute;
+      top: 60px;
+      right: 16px;
+      max-width: 320px;
+      max-height: 70vh;
+      overflow-y: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      z-index: 11;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .book-toc[hidden] { display: none; }
+    .book-toc-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .book-toc-item {
+      display: block;
+      width: 100%;
+      padding: 7px 8px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 6px;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+    .book-toc-item:hover { background: rgba(212,175,55,0.08); color: var(--gold); }
+    .book-toc-part {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--gold);
+      letter-spacing: 1px;
+      padding: 10px 8px 4px;
+      font-weight: 600;
+    }
+    .book-toc-part:first-child { padding-top: 0; }
+
+    /* === Сокровищница: сетка 64 даров === */
+    .collection-stats {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .collection-stats strong { color: var(--gold); }
+    /* Прогрессбар коллекции */
+    .collection-progress { margin-bottom: 20px; }
+    .collection-progress-text {
+      font-size: 13px;
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .collection-progress-text strong {
+      color: var(--gold);
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .collection-progress-track {
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .collection-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.4s ease-out;
+    }
+    .collection-grid { display: block; }
+    .collection-field {
+      margin-bottom: 22px;
+    }
+    .collection-field-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding: 4px 2px;
+    }
+    .collection-field-glyph {
+      font-size: 24px;
+      color: var(--field-color, var(--gold));
+      filter: drop-shadow(0 0 6px var(--field-color));
+      flex-shrink: 0;
+      font-family: Georgia, serif;
+    }
+    .collection-field-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: 2px;
+      flex: 1;
+    }
+    .collection-field-counter {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .collection-grid-inner {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .collection-cell {
+      aspect-ratio: 1;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+      padding: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .collection-cell.unlocked {
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04));
+      border-color: rgba(212,175,55,0.4);
+    }
+    .collection-cell.unlocked:hover { transform: scale(1.04); }
+    .collection-cell.mine {
+      background: linear-gradient(135deg, rgba(212,175,55,0.25), rgba(212,175,55,0.08));
+      border-color: var(--gold);
+      box-shadow: 0 0 14px rgba(212,175,55,0.3);
+    }
+    .collection-cell-img {
+      width: 38px; height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .collection-cell-img img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 5px #D4AF37);
+    }
+    .collection-cell-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1px;
+      text-align: center;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .collection-cell.locked .collection-cell-name {
+      color: var(--text-muted);
+    }
+    .collection-cell-lock-icon {
+      font-size: 22px;
+      color: var(--gold);
+      opacity: 0.5;
+    }
+
+    /* === Оракул Дня === */
+    .oracle-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      z-index: 600;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.25s ease-out;
+    }
+    .oracle-screen.open { transform: translateY(0); }
+    .oracle-content {
+      padding: 16px 16px 60px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .oracle-date {
+      text-align: center;
+      font-size: 12px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 8px 0 18px;
+      font-weight: 600;
+    }
+    .oracle-card {
+      background: linear-gradient(160deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02));
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 16px;
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .oracle-card-personal {
+      background: linear-gradient(160deg, rgba(212,175,55,0.14), rgba(212,175,55,0.04));
+      border-color: rgba(212,175,55,0.5);
+      box-shadow: 0 0 20px rgba(212,175,55,0.12);
+    }
+    .oracle-card-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .oracle-card-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .oracle-card-image {
+      width: 100px; height: 100px;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .oracle-card-image img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 10px #D4AF37);
+    }
+    .oracle-card-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 3px;
+    }
+    .oracle-card-code {
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+    .oracle-card-archetype {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-top: 6px;
+    }
+    .oracle-card-message {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed rgba(212,175,55,0.2);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+      text-align: left;
+    }
+    .oracle-empty {
+      text-align: center;
+      padding: 30px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .oracle-empty-text {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .oracle-hint {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 16px;
+      font-style: italic;
+    }
+
+    /* === Энциклопедия — мини-табы Дары/Поля === */
+    .encyc-mini-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      background: rgba(255,255,255,0.03);
+      padding: 4px;
+      border-radius: 12px;
+    }
+    .encyc-mini-tab {
+      flex: 1;
+      padding: 9px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      border-radius: 8px;
+      transition: all 0.15s;
+    }
+    .encyc-mini-tab.active {
+      background: var(--accent);
+      color: #080808;
+      font-weight: 700;
+    }
+    .encyc-tab-content { display: none; }
+    .encyc-tab-content.active { display: block; }
+
+    /* Поля */
+    .encyc-field-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .encyc-field-card:hover {
+      border-color: rgba(212,175,55,0.4);
+    }
+    .encyc-field-card-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--field-color);
+      box-shadow: 0 0 10px var(--field-color);
+      flex-shrink: 0;
+    }
+    .encyc-field-card-text { flex: 1; min-width: 0; }
+    .encyc-field-card-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .encyc-field-card-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .encyc-field-card-count {
+      font-size: 11px;
+      color: var(--gold);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* === Детали Дара (fullscreen overlay) === */
+    .dar-detail-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      z-index: 600;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.25s ease-out;
+      padding: 0;
+    }
+    .dar-detail-screen.open { transform: translateY(0); }
+    .dar-detail-header {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+    .dar-detail-header-name {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    .dar-detail-content {
+      padding: 16px;
+      max-width: 720px;
+      margin: 0 auto 60px;
+    }
+    .dar-detail-hero {
+      text-align: center;
+      padding: 20px 0 8px;
+    }
+    .dar-detail-hero img {
+      width: 120px; height: 120px;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 12px #D4AF37);
+      margin: 0 auto;
+      display: block;
+    }
+    .dar-detail-hero-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 3px;
+      margin-top: 12px;
+    }
+    .dar-detail-hero-code {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-top: 2px;
+    }
+    .dar-detail-hero-archetype {
+      font-size: 14px;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-top: 6px;
+    }
+    /* Кнопки на hero (Книга / Путешествие Героя) */
+    .dar-detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .dar-detail-btn {
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: 1px solid;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dar-detail-btn-book {
+      border-color: rgba(212,175,55,0.4);
+      background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05));
+      color: var(--gold);
+    }
+    .dar-detail-btn-hero {
+      border-color: rgba(255,140,0,0.5);
+      background: linear-gradient(135deg, rgba(255,100,0,0.2), rgba(255,200,0,0.08));
+      color: #FFA500;
+    }
+
+    /* Аккордеон 9 секций — 1:1 из прода (index.html:172-192) */
+    .dar-accordion {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+    .accordion-item {
+      margin-bottom: 8px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border-bright);
+    }
+    .accordion-header {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      transition: background 0.2s;
+      font-family: 'Manrope', sans-serif;
+    }
+    .accordion-header:hover { background: rgba(212,175,55,0.08); }
+    .accordion-header.open { background: rgba(212,175,55,0.12); }
+    .accordion-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .accordion-title {
+      flex: 1;
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: var(--text);
+    }
+    .accordion-arrow {
+      font-size: 12px;
+      color: var(--text-dim);
+      transition: transform 0.3s;
+      flex-shrink: 0;
+    }
+    .accordion-header.open .accordion-arrow {
+      transform: rotate(180deg);
+    }
+    .accordion-body {
+      display: none;
+      padding: 16px;
+      background: rgba(0,0,0,0.2);
+      border-top: 1px solid var(--border);
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .accordion-body.open {
+      display: block;
+      animation: fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .accordion-body p { margin-bottom: 10px; }
+    .accordion-body strong { color: var(--accent-1); }
+    .accordion-body em { color: var(--text-dim); }
+    .accordion-body ul, .accordion-body ol {
+      margin: 8px 0 10px 18px;
+    }
+    .accordion-body li { margin-bottom: 6px; }
+
+    /* === Энциклопедия === */
+    .encyc-search-box { margin-bottom: 12px; }
+    .encyc-search-box input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #111;
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+    .encyc-search-box input:focus { border-color: var(--gold); }
+    #encyc-results { margin-bottom: 12px; max-height: 60vh; overflow-y: auto; }
+    /* === Энциклопедия — мини-табы Дары/Поля (1:1 из прода index.html:224-226) === */
+    .base-sub-nav {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0 14px;
+      justify-content: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .base-sub-btn {
+      flex: 1;
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      font-family: 'Manrope', sans-serif;
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .base-sub-btn.active {
+      background: rgba(212,175,55,0.2);
+      border-color: rgba(212,175,55,0.5);
+      color: var(--text);
+    }
+
+    /* === Кнопка «Назад» — 1:1 из прода (index.html:162-163) === */
+    .btn-back {
+      display: inline-block;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0 0 12px;
+      font-family: 'Manrope', sans-serif;
+      text-align: left;
+    }
+    .btn-back:hover { color: var(--text); }
+
+    /* === Сетка карточек Даров поля (Уровень 2) — 1:1 из прода === */
+    .dar-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .dar-card {
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dar-card:hover {
+      border-color: rgba(212,175,55,0.4);
+      background: rgba(212,175,55,0.1);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(212,175,55,0.15);
+    }
+    .dar-card-img {
+      width: 60px; height: 60px;
+      margin: 0 auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dar-card-img img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 6px #D4AF37);
+    }
+    .dar-card-name {
+      font-size: 15px;
+      color: var(--text);
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .dar-card-code {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      margin-bottom: 2px;
+    }
+    .dar-card-arch {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    /* === Сетка карточек Полей (Уровень 1 Полей) — 1:1 из прода === */
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .field-folder {
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .field-folder:hover {
+      border-color: rgba(212,175,55,0.4);
+      background: rgba(212,175,55,0.1);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(212,175,55,0.15);
+    }
+    .field-folder-name {
+      font-size: 14px;
+      color: var(--text);
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .field-folder-arch {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-bottom: 6px;
+    }
+
+    /* === Внутренние табы детальной страницы поля — 1:1 из прода === */
+    .dar-inner-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      flex-wrap: wrap;
+    }
+    .dar-inner-tab {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'Manrope', sans-serif;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+    .dar-inner-tab.active {
+      background: rgba(212,175,55,0.2);
+      border-color: rgba(212,175,55,0.5);
+      color: var(--text);
+    }
+    .dar-inner-content {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    /* dar-meta-row 1:1 из прода (без border, чистый отступ) */
+    .dar-meta-row {
+      margin-bottom: 12px;
+    }
+    .dar-meta-row:last-child { margin-bottom: 0; }
+    .dar-meta-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: none;
+      margin-bottom: 4px;
+    }
+    .dar-meta-value {
+      font-size: 14px;
+      color: #e0e0e0;
+      line-height: 1.7;
+    }
+
+    /* Энциклопедия — полоски полей на Ур.1 Даров (1:1 из прода index.html:2801) */
+    .encyc-field-prod-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .encyc-field-prod-row:hover {
+      border-color: rgba(212,175,55,0.5);
+      background: rgba(212,175,55,0.08);
+    }
+    .encyc-field-prod-glyph {
+      flex-shrink: 0;
+      width: 40px;
+      display: flex;
+      justify-content: center;
+    }
+    .encyc-field-prod-glyph svg { width: 36px; height: 36px; }
+    .encyc-field-prod-text { flex: 1; min-width: 0; }
+    .encyc-field-prod-name {
+      font-size: 15px;
+      color: var(--text);
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    .encyc-field-prod-element {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .encyc-field-prod-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .encyc-field-block { margin-bottom: 16px; }
+    .encyc-field-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 2px;
+      margin-bottom: 6px;
+    }
+    .encyc-field-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--field-color, var(--gold));
+      box-shadow: 0 0 6px var(--field-color);
+    }
+    .encyc-field-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+      flex: 1;
+    }
+    .encyc-field-id {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+    .encyc-dar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .encyc-dar-img {
+      width: 44px; height: 44px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .encyc-dar-img img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 5px #D4AF37);
+    }
+    .encyc-dar-row:hover {
+      background: rgba(212,175,55,0.05);
+      border-color: rgba(212,175,55,0.3);
+    }
+    .encyc-dar-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+      flex: 1;
+    }
+    .encyc-dar-code {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    /* === Сокровищница: карточки игр === */
+    .game-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .game-card:hover:not(.disabled) {
+      border-color: rgba(212,175,55,0.4);
+      background: rgba(212,175,55,0.03);
+    }
+    .game-card.disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .game-card.hof {
+      background: linear-gradient(135deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02));
+      border-color: rgba(212,175,55,0.25);
+    }
+    .game-card-icon { font-size: 28px; flex-shrink: 0; }
+    .game-card-text { flex: 1; min-width: 0; }
+    .game-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .game-card-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .game-card-badge {
+      font-size: 10px;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    /* === Арка: paywall для премиум-уровней === */
+    .arka-paywall {
+      text-align: center;
+      padding: 30px 20px;
+      background: linear-gradient(160deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02));
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 16px;
+    }
+    .arka-paywall-icon { font-size: 48px; margin-bottom: 12px; }
+    .arka-paywall-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .arka-paywall-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="preview-banner" data-i18n="common.preview_warning">
+    Прототип. Это копия для проверки новой архитектуры — данные не сохраняются.
+  </div>
+
+  <header class="app-header">
+    <div class="logo"></div>
+    <div class="title-block">
+      <h1 data-i18n="app.title">YupDar</h1>
+      <div class="tagline" data-i18n="app.tagline">ВСЕЛЕННАЯ ДАРОВ</div>
+    </div>
+    <div class="crystal-counter" onclick="openProfile()" style="cursor:pointer" title="Кристаллы">💎 <span id="crystal-amount">0</span></div>
+    <button class="header-action" id="btn-lang" onclick="toggleLangPicker(event)" title="Язык">
+      🌐 <span id="lang-btn-label">RU</span>
+    </button>
+    <button class="header-action header-action-science" onclick="openScienceSurvey()" title="Научное исследование о Дарах" data-i18n="science.header_tooltip" data-i18n-attr="title">
+      🔬
+    </button>
+    <button class="header-action" onclick="openProfile()" title="Личный кабинет">
+      👤
+    </button>
+  </header>
+
+  <div id="lang-picker">
+    <button class="lang-option" onclick="setLang('ru')">🇷🇺 Русский</button>
+    <button class="lang-option" onclick="setLang('en')">🇬🇧 English</button>
+    <button class="lang-option" onclick="setLang('es')">🇪🇸 Español</button>
+  </div>
+
+  <main>
+    <!-- ============ ВКЛАДКА «Я» ============ -->
+    <section class="tab active" id="tab-me">
+      <!-- Состояние А: до расчёта -->
+      <div id="me-input-state">
+        <h2 class="screen-headline" data-i18n="me.headline">Узнай свой Дар</h2>
+        <p class="screen-subhead" data-i18n="me.subhead">Введи дату рождения — получи послание о своей природе, силе и пути</p>
+
+        <div class="calc-form">
+          <input id="me-date" class="date-input" type="text" inputmode="numeric" maxlength="10"
+                 placeholder="ДД.ММ.ГГГГ" data-i18n="me.date_placeholder" data-i18n-attr="placeholder">
+          <div class="error-msg" id="me-date-error"></div>
+          <button class="btn-primary" onclick="calculateMyDar()" data-i18n="me.calculate_btn">Рассчитать мой Дар</button>
+        </div>
+
+        <div class="value-list">
+          <h3 data-i18n="me.value_title">Что ты получишь</h3>
+          <div class="value-item" data-i18n="me.value_dar">Имя и описание Дара</div>
+          <div class="value-item" data-i18n="me.value_message">Послание про твою природу</div>
+          <div class="value-item" data-i18n="me.value_oracle">Оракул каждый день</div>
+          <div class="value-item" data-i18n="me.value_compat">Совместимость с близкими</div>
+        </div>
+      </div>
+
+      <!-- Состояние Б: после расчёта (карточка Дара + действия) -->
+      <div id="me-result-state" style="display:none">
+        <div class="dar-card">
+          <div class="dar-image" id="me-dar-image-wrap">
+            <span id="me-dar-emoji" style="display:none">✨</span>
+            <img id="me-dar-image" alt="" style="display:none">
+          </div>
+          <div class="dar-name" id="me-dar-name">—</div>
+          <div class="dar-code" id="me-dar-code">—</div>
+          <div class="dar-archetype" id="me-dar-archetype"></div>
+        </div>
+
+        <!-- Главная конверсия -->
+        <button class="btn-primary" data-i18n="me.full_message">📜 Полное послание</button>
+
+        <!-- Действия по своему Дару (не дублируют другие вкладки):
+             Оракул дня — здесь, потому что это персональное послание про МЕНЯ.
+             Поделиться — здесь, потому что карточка моего Дара. -->
+        <div class="me-actions">
+          <button class="me-action-btn" onclick="openMyOracle()">
+            <span class="me-action-icon">🔮</span>
+            <span class="me-action-label" data-i18n="me.action_oracle">Оракул дня</span>
+          </button>
+          <button class="me-action-btn" onclick="openMyShare()">
+            <span class="me-action-icon">🖼</span>
+            <span class="me-action-label" data-i18n="me.action_share">Поделиться</span>
+          </button>
+        </div>
+
+        <!-- Свёрнутый по умолчанию блок «Узнать о себе больше». Раскрывается по клику. -->
+        <button class="me-more-toggle" id="me-more-toggle" onclick="toggleMeMore()" aria-expanded="false">
+          <span class="me-more-icon" id="me-more-icon">🔍</span>
+          <span class="me-more-label" data-i18n="me.more_about_me">Узнать о себе больше</span>
+          <span class="me-more-chevron" id="me-more-chevron">▾</span>
+        </button>
+        <div class="me-more-content" id="me-more-content" hidden>
+          <!-- Шаги ввода — скрываются после ввода всех 3 -->
+          <div id="depth-steps-block">
+            <div class="depth-sub" data-i18n="me.depth_sub">Добавь время, место и имя — расчёт точнее, послание глубже.</div>
+
+            <div class="depth-step" id="depth-time">
+              <span class="depth-icon">🕐</span>
+              <div class="depth-step-text">
+                <div class="depth-step-title" data-i18n="me.depth_time_title">Время рождения</div>
+                <div class="depth-step-value" id="depth-time-value">—</div>
+              </div>
+              <button class="depth-step-btn" onclick="openDepthTime()" data-i18n="common.add">Добавить</button>
+            </div>
+
+            <div class="depth-step" id="depth-place">
+              <span class="depth-icon">📍</span>
+              <div class="depth-step-text">
+                <div class="depth-step-title" data-i18n="me.depth_place_title">Место рождения</div>
+                <div class="depth-step-value" id="depth-place-value">—</div>
+              </div>
+              <button class="depth-step-btn" onclick="openDepthPlace()" data-i18n="common.add">Добавить</button>
+            </div>
+
+            <div class="depth-step" id="depth-name">
+              <span class="depth-icon">🪪</span>
+              <div class="depth-step-text">
+                <div class="depth-step-title" data-i18n="me.depth_name_title">Имя и фамилия</div>
+                <div class="depth-step-value" id="depth-name-value">—</div>
+              </div>
+              <button class="depth-step-btn" onclick="openDepthName()" data-i18n="common.add">Добавить</button>
+            </div>
+          </div>
+
+          <!-- Синтез архетипа — после ввода всех 3 параметров -->
+          <div id="synthesis-block" hidden>
+            <div class="synthesis-title" data-i18n="me.synthesis_title">Твой архетип — синтез 4 уровней</div>
+            <div class="synthesis-sub" data-i18n="me.synthesis_sub">Объединение Даров с учётом веса каждого уровня.</div>
+            <div class="synthesis-levels" id="synthesis-levels"></div>
+            <button class="synthesis-edit" onclick="editDepthAgain()" data-i18n="me.synthesis_edit">Изменить данные</button>
+          </div>
+        </div>
+
+        <!-- Закон: личные данные неизменяемы (law_personal_data_immutable.md).
+             Кнопки «Изменить дату» нет. При ошибке — через поддержку. -->
+
+        <!-- Наука: вариант A (баннер на главной после расчёта Дара) + вариант B (иконка в шапке). -->
+        <div class="science-banner" onclick="openScienceSurvey()" role="button" tabindex="0">
+          <div class="science-banner-emoji">🌍</div>
+          <div class="science-banner-text">
+            <div class="science-banner-title" data-i18n="science.banner_title">Стать соавтором исследования</div>
+            <div class="science-banner-sub" data-i18n="science.banner_sub">Помоги науке: пройди опросник из 28 утверждений (≈ 7 мин) и стань частью первой научной работы о Дарах в Дубае</div>
+          </div>
+          <div class="science-banner-arrow">→</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Модалка ввода времени -->
+    <div class="lk-backdrop" id="depth-time-backdrop" onclick="closeDepthModals()"></div>
+    <div class="depth-modal" id="depth-time-modal">
+      <div class="depth-modal-title" data-i18n="me.depth_time_title">Время рождения</div>
+      <div class="depth-modal-hint" data-i18n="me.depth_time_hint">Если не знаешь точное — укажи 12:00</div>
+      <input class="lk-input" id="depth-time-input" type="text" inputmode="numeric" maxlength="5" placeholder="ЧЧ:ММ">
+      <div class="error-msg" id="depth-time-error"></div>
+      <div class="lk-btn-row">
+        <button class="lk-btn" onclick="closeDepthModals()" data-i18n="common.cancel">Отмена</button>
+        <button class="lk-btn" onclick="saveDepthTime()" data-i18n="common.save">Сохранить</button>
+      </div>
+    </div>
+
+    <!-- Модалка ввода места -->
+    <div class="lk-backdrop" id="depth-place-backdrop" onclick="closeDepthModals()"></div>
+    <div class="depth-modal" id="depth-place-modal">
+      <div class="depth-modal-title" data-i18n="me.depth_place_title">Место рождения</div>
+      <div class="depth-modal-hint" data-i18n="me.depth_place_hint">Город рождения. Координаты подставим автоматически (заглушка).</div>
+      <input class="lk-input" id="depth-place-input" type="text" placeholder="Город">
+      <div class="error-msg" id="depth-place-error"></div>
+      <div class="lk-btn-row">
+        <button class="lk-btn" onclick="closeDepthModals()" data-i18n="common.cancel">Отмена</button>
+        <button class="lk-btn" onclick="saveDepthPlace()" data-i18n="common.save">Сохранить</button>
+      </div>
+    </div>
+
+    <!-- Модалка ввода имени -->
+    <div class="lk-backdrop" id="depth-name-backdrop" onclick="closeDepthModals()"></div>
+    <div class="depth-modal" id="depth-name-modal">
+      <div class="depth-modal-title" data-i18n="me.depth_name_title">Имя и фамилия</div>
+      <div class="depth-modal-hint" data-i18n="me.depth_name_hint">Имя и фамилия, под которыми тебя знают чаще всего.</div>
+      <input class="lk-input" id="depth-firstname-input" type="text" placeholder="Имя" style="margin-bottom:8px">
+      <input class="lk-input" id="depth-lastname-input" type="text" placeholder="Фамилия">
+      <div class="error-msg" id="depth-name-error"></div>
+      <div class="lk-btn-row">
+        <button class="lk-btn" onclick="closeDepthModals()" data-i18n="common.cancel">Отмена</button>
+        <button class="lk-btn" onclick="saveDepthName()" data-i18n="common.save">Сохранить</button>
+      </div>
+    </div>
+
+    <!-- ============ ВКЛАДКА «СЕМЬЯ» ============ -->
+    <!-- Тут: близкие + приглашённые друзья. Не дублируем рефералку в ЛК. -->
+    <section class="tab" id="tab-family">
+      <h2 class="screen-headline" data-i18n="family.headline">Семья</h2>
+      <p class="screen-subhead" data-i18n="family.subhead">Близкие и приглашённые друзья — в одном месте.</p>
+
+      <!-- Empty state, пока никого нет -->
+      <div class="empty" id="family-empty">
+        <div class="empty-icon">👨‍👩‍👧</div>
+        <div class="empty-text" data-i18n="family.empty_text">
+          Пойми ребёнка, почему конфликтуете с мамой, что объединяет с любимым.
+        </div>
+        <button class="btn-primary" data-i18n="family.add_btn">+ Добавить близкого</button>
+      </div>
+
+      <!-- Заглушка реф-блока, отображается под списком близких (потом) -->
+      <div class="family-invite-card">
+        <div class="family-invite-emoji">🤝</div>
+        <div class="family-invite-text">
+          <div class="family-invite-title" data-i18n="family.invite_title">Пригласи друга</div>
+          <div class="family-invite-sub" data-i18n="family.invite_sub">Друг рассчитает свой Дар — он появится у тебя в Семье, ты получишь кристаллы.</div>
+        </div>
+        <button class="family-invite-btn" data-i18n="family.invite_btn">Поделиться</button>
+      </div>
+    </section>
+
+    <!-- ============ ВКЛАДКА «СОКРОВИЩНИЦА» ============ -->
+    <!-- Состав: Моя коллекция / Книги (Даров + для Родителей) / Энциклопедия / Путешествие героя.
+         Наука НЕ здесь — она вынесена отдельно (шапка + баннер на «Я»). -->
+    <section class="tab" id="tab-treasury">
+      <h2 class="screen-headline" data-i18n="treasury.headline">Сокровищница Даров</h2>
+
+      <div class="subtabs">
+        <button class="subtab active" data-subtab="collection" data-i18n="treasury.tab_collection">Моя коллекция</button>
+        <button class="subtab" data-subtab="books" data-i18n="treasury.tab_books">Книги</button>
+        <button class="subtab" data-subtab="search" data-i18n="treasury.tab_search">Энциклопедия</button>
+        <button class="subtab" data-subtab="games" data-i18n="treasury.tab_games">Игры</button>
+      </div>
+
+      <!-- Коллекция: сетка 64 даров с подсветкой открытых (как в проде) -->
+      <div class="subtab-content active" data-subtab-content="collection">
+        <div class="collection-progress">
+          <div class="collection-progress-text">
+            <strong id="collection-unlocked-count">0</strong> / 64 <span data-i18n="treasury.collection_progress_label">даров открыто</span>
+          </div>
+          <div class="collection-progress-track">
+            <div class="collection-progress-fill" id="collection-progress-bar"></div>
+          </div>
+        </div>
+        <div class="collection-grid" id="collection-grid">
+          <!-- Заполняется из app.js renderCollection() -->
+        </div>
+      </div>
+
+      <!-- Книги -->
+      <div class="subtab-content" data-subtab-content="books">
+        <div class="treasury-book-card" onclick="openBookOfDars()">
+          <div class="treasury-book-icon">📖</div>
+          <div class="treasury-book-text">
+            <div class="treasury-book-title" data-i18n="treasury.book_dars_title">Книга Даров</div>
+            <div class="treasury-book-sub" data-i18n="treasury.book_dars_sub">Полное руководство по 64 Дарам — на твоём языке (RU / EN / ES).</div>
+          </div>
+          <div class="treasury-book-price">990 ₽</div>
+        </div>
+        <div class="treasury-book-card" onclick="openBookForParents()">
+          <div class="treasury-book-icon">👶</div>
+          <div class="treasury-book-text">
+            <div class="treasury-book-title" data-i18n="treasury.book_parents_title">Книга для Родителей</div>
+            <div class="treasury-book-sub" data-i18n="treasury.book_parents_sub">Персональный разбор по Дару твоего ребёнка. Открывается на карточке ребёнка в Семье.</div>
+          </div>
+          <div class="treasury-book-price" data-i18n="treasury.book_parents_price">от 199 ₽</div>
+        </div>
+      </div>
+
+      <!-- Энциклопедия — 1:1 как в проде: 2 мини-таба Дары/Поля + поиск -->
+      <div class="subtab-content" data-subtab-content="search">
+        <!-- Мини-табы Дары / Поля -->
+        <div class="base-sub-nav">
+          <button class="base-sub-btn active" id="base-btn-dars" onclick="switchBaseSubTab('dars')" data-i18n="encyc.tab_dars">Дары</button>
+          <button class="base-sub-btn" id="base-btn-fields" onclick="switchBaseSubTab('fields')" data-i18n="encyc.tab_fields">Поля</button>
+        </div>
+
+        <!-- Поиск (работает для обеих вкладок) -->
+        <div class="encyc-search-box">
+          <input id="encyc-search-input" type="text"
+            placeholder="🔍 Поиск по дарам (название, код, поле)"
+            data-i18n="treasury.search_placeholder" data-i18n-attr="placeholder"
+            oninput="encycSearch(this.value)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
+        </div>
+        <div id="encyc-results" hidden></div>
+
+        <!-- Вкладка Дары: 3 уровня -->
+        <div id="base-subtab-dars">
+          <div id="dars-list-view"></div>           <!-- Ур. 1: список 9 полей -->
+          <div id="dars-field-view" hidden></div>   <!-- Ур. 2: сетка даров поля -->
+          <div id="dars-detail-view" hidden></div>  <!-- Ур. 3: детальная карточка Дара -->
+        </div>
+
+        <!-- Вкладка Поля: 2 уровня -->
+        <div id="base-subtab-fields" hidden>
+          <div id="fields-list-view"></div>         <!-- Сетка/детали полей -->
+        </div>
+      </div>
+
+      <!-- Игры (включая Путешествие героя + Зал Славы) -->
+      <div class="subtab-content" data-subtab-content="games">
+        <div class="game-card">
+          <div class="game-card-icon">🌌</div>
+          <div class="game-card-text">
+            <div class="game-card-title" data-i18n="treasury.game_hero_title">Путешествие героя</div>
+            <div class="game-card-sub" data-i18n="treasury.game_hero_sub">Открой Дары близких через рефералы или кристаллы — пройди их историю.</div>
+          </div>
+        </div>
+        <div class="game-card">
+          <div class="game-card-icon">🎯</div>
+          <div class="game-card-text">
+            <div class="game-card-title" data-i18n="treasury.game_intuition_title">Угадай Дар</div>
+            <div class="game-card-sub" data-i18n="treasury.game_intuition_sub">Тренажёр интуиции с рейтингом игроков.</div>
+          </div>
+        </div>
+        <div class="game-card">
+          <div class="game-card-icon">⚔️</div>
+          <div class="game-card-text">
+            <div class="game-card-title" data-i18n="treasury.game_atlantis_title">Легенды Атлантиды</div>
+            <div class="game-card-sub" data-i18n="treasury.game_atlantis_sub">Карточная битва по силам твоего Дара.</div>
+          </div>
+        </div>
+        <div class="game-card disabled">
+          <div class="game-card-icon">🤝</div>
+          <div class="game-card-text">
+            <div class="game-card-title" data-i18n="treasury.game_pvp_title">Батлы с друзьями</div>
+            <div class="game-card-sub" data-i18n="treasury.game_pvp_sub">PvP-сражения на Дарах. Скоро.</div>
+          </div>
+          <div class="game-card-badge" data-i18n="common.soon">Скоро</div>
+        </div>
+        <div class="game-card hof">
+          <div class="game-card-icon">🏆</div>
+          <div class="game-card-text">
+            <div class="game-card-title" data-i18n="treasury.hof_title">Зал Славы</div>
+            <div class="game-card-sub" data-i18n="treasury.hof_sub">Лучшие игроки и победители рейтингов.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ВКЛАДКА «АРКА» ============ -->
+    <!-- 3 подвкладки: Сегодня (бесплатно) / Стратегия (Хранитель) / Путь (Мастер).
+         Оракул живёт в «Я», тут только ритм жизни. -->
+    <section class="tab" id="tab-arka">
+      <h2 class="screen-headline" data-i18n="arka.headline">Арка</h2>
+      <p class="screen-subhead" data-i18n="arka.subhead">Личный путь в ритме твоего Дара</p>
+
+      <div class="subtabs">
+        <button class="subtab active" data-subtab="today" data-i18n="arka.tab_today">Сегодня</button>
+        <button class="subtab" data-subtab="strategy" data-i18n="arka.tab_strategy">Стратегия</button>
+        <button class="subtab" data-subtab="path" data-i18n="arka.tab_path">Путь</button>
+      </div>
+
+      <!-- Сегодня (для всех бесплатно) -->
+      <div class="subtab-content active" data-subtab-content="today">
+        <div class="placeholder">
+          <strong data-i18n="arka.today_title">Ритм твоего дня</strong>
+          <span data-i18n="arka.today_sub">Утренние, дневные и вечерние ритуалы под твой Дар. Дневник благодарности. Масла мягко вплетены в практики. Реализация — следующий этап (по образцу прототипа iram-prototype).</span>
+        </div>
+      </div>
+
+      <!-- Стратегия (Хранитель) -->
+      <div class="subtab-content" data-subtab-content="strategy">
+        <div class="arka-paywall">
+          <div class="arka-paywall-icon">🛡</div>
+          <div class="arka-paywall-title" data-i18n="arka.strategy_title">Стратегия в ритме твоего Дара</div>
+          <div class="arka-paywall-sub" data-i18n="arka.strategy_sub">Цели, шаги и AI-помощник, который думает как твой Дар. Доступно в тарифе Хранитель.</div>
+          <button class="btn-primary" data-i18n="arka.unlock_guardian">Открыть Хранителя</button>
+        </div>
+      </div>
+
+      <!-- Путь (Мастер) -->
+      <div class="subtab-content" data-subtab-content="path">
+        <div class="arka-paywall">
+          <div class="arka-paywall-icon">👑</div>
+          <div class="arka-paywall-title" data-i18n="arka.path_title">Личный AI-наставник</div>
+          <div class="arka-paywall-sub" data-i18n="arka.path_sub">Бриф наставника, разбор недели, потоки дохода и план продвижения. Доступно в тарифе Мастер.</div>
+          <button class="btn-primary" data-i18n="arka.unlock_master">Открыть Мастера</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ ЛИЧНЫЙ КАБИНЕТ ============ -->
+  <div class="lk-backdrop" id="lk-backdrop" onclick="closeLK()"></div>
+  <aside class="lk-panel" id="lk-panel" role="dialog" aria-labelledby="lk-title">
+    <div class="lk-header">
+      <div class="lk-avatar">👤</div>
+      <div>
+        <div class="lk-name">Гость</div>
+        <div class="lk-dar-label" id="lk-title" data-i18n="account.title">Личный кабинет</div>
+      </div>
+      <button class="lk-close" onclick="closeLK()" aria-label="Закрыть">✕</button>
+    </div>
+
+    <!-- Тариф (главная конверсия). Промо-код появляется только при смене тарифа, не здесь. -->
+    <div class="lk-section">
+      <div class="lk-section-title" data-i18n="account.section_tier">Мой тариф</div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.tier_status">Тариф</span>
+        <span class="lk-row-value"><span class="lk-tier-badge">Странник</span></span>
+      </div>
+      <button class="lk-btn" data-i18n="account.tier_change">Сменить тариф</button>
+    </div>
+
+    <!-- Мои данные (read-only — изменения только через админку) -->
+    <div class="lk-section">
+      <div class="lk-section-title" data-i18n="account.section_profile">Мои данные</div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_name">Имя и фамилия</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_birth_date">Дата рождения</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_birth_time">Время рождения</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_birth_place">Место рождения</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <div class="lk-row">
+        <span class="lk-row-label" data-i18n="account.profile_gender">Пол</span>
+        <span class="lk-row-value">—</span>
+      </div>
+      <div class="lk-readonly-note" data-i18n="account.profile_readonly_note">Данные нельзя изменить. Если есть ошибка — напиши в поддержку.</div>
+    </div>
+
+    <!-- Дополнительно -->
+    <div class="lk-section">
+      <div class="lk-link" data-i18n="account.support_project">Поддержать проект</div>
+      <div class="lk-link" data-i18n="account.feedback">Обратная связь</div>
+      <div class="lk-link" data-i18n="account.about">О приложении</div>
+      <div class="lk-link danger" data-i18n="account.reset">Полный сброс</div>
+    </div>
+  </aside>
+
+  <!-- ============ ОРАКУЛ ДНЯ ============ -->
+  <aside class="oracle-screen" id="oracle-screen">
+    <div class="dar-detail-header">
+      <button class="book-reader-back" onclick="closeOracle()" aria-label="Назад">←</button>
+      <div class="dar-detail-header-name" data-i18n="oracle.title">Оракул дня</div>
+    </div>
+
+    <div class="oracle-content">
+      <div class="oracle-date" id="oracle-date">—</div>
+
+      <!-- Общий Дар Дня (для всех) -->
+      <div class="oracle-card oracle-card-general">
+        <div class="oracle-card-title" data-i18n="oracle.general_title">Общий Дар Дня</div>
+        <div class="oracle-card-sub" data-i18n="oracle.general_sub">Энергия дня для всех</div>
+        <div class="oracle-card-image"><img id="oracle-general-img" alt="" onerror="this.style.display='none'"></div>
+        <div class="oracle-card-name" id="oracle-general-name">—</div>
+        <div class="oracle-card-code" id="oracle-general-code">—</div>
+        <div class="oracle-card-archetype" id="oracle-general-archetype"></div>
+      </div>
+
+      <!-- Личный Дар Дня (только если есть свой Дар) -->
+      <div class="oracle-card oracle-card-personal" id="oracle-personal-card">
+        <div class="oracle-card-title" data-i18n="oracle.personal_title">Твой Дар Дня</div>
+        <div class="oracle-card-sub" data-i18n="oracle.personal_sub">Энергия дня для тебя лично</div>
+        <div class="oracle-card-image"><img id="oracle-personal-img" alt="" onerror="this.style.display='none'"></div>
+        <div class="oracle-card-name" id="oracle-personal-name">—</div>
+        <div class="oracle-card-code" id="oracle-personal-code">—</div>
+        <div class="oracle-card-archetype" id="oracle-personal-archetype"></div>
+        <div class="oracle-card-message" id="oracle-personal-message"></div>
+      </div>
+
+      <!-- Если Дар не рассчитан -->
+      <div class="oracle-empty" id="oracle-empty" hidden>
+        <div style="font-size:48px;margin-bottom:12px">🔮</div>
+        <div class="oracle-empty-text" data-i18n="oracle.empty">Чтобы получить личное послание, рассчитай свой Дар на вкладке «Я».</div>
+      </div>
+
+      <div class="oracle-hint" data-i18n="oracle.hint">Дар Дня обновляется каждое утро.</div>
+    </div>
+  </aside>
+
+  <!-- ============ ДЕТАЛИ ДАРА ============ -->
+  <aside class="dar-detail-screen" id="dar-detail-screen">
+    <div class="dar-detail-header">
+      <button class="book-reader-back" onclick="closeDarDetail()" aria-label="Назад">←</button>
+      <div class="dar-detail-header-name" id="dar-detail-header-name">—</div>
+    </div>
+    <div class="dar-detail-content" id="dar-detail-content">
+      <div class="placeholder">Загружаю…</div>
+    </div>
+  </aside>
+
+  <!-- ============ ЧИТАЛКА КНИГИ ============ -->
+  <div class="lk-backdrop" id="book-backdrop" onclick="closeBook()"></div>
+  <aside class="book-reader" id="book-reader">
+    <div class="book-reader-header">
+      <button class="book-reader-back" onclick="closeBook()" aria-label="Назад">←</button>
+      <div class="book-reader-title" id="book-reader-title" data-i18n="treasury.book_dars_title">Книга Даров</div>
+      <span style="width:36px"></span>
+    </div>
+
+    <div class="book-reader-scroll" id="book-reader-content">
+      <!-- Обзор книги: иконка, название, прогресс, доступ, 4 кнопки -->
+      <div class="book-overview" id="book-overview">
+        <div class="book-overview-icon">📖</div>
+        <div class="book-overview-title" data-i18n="book.title_uppercase">КНИГА ДАРОВ</div>
+        <div class="book-overview-meta" id="book-overview-meta">— • —</div>
+      </div>
+
+      <div class="book-progress">
+        <div class="book-progress-row">
+          <span data-i18n="book.read_chapters">📚 Прочитано глав</span>
+          <span><b id="book-progress-count">0</b> / <span id="book-progress-total">0</span></span>
+        </div>
+        <div class="book-progress-bar">
+          <div class="book-progress-fill" id="book-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="book-access-banner" id="book-access-banner">
+        <span data-i18n="book.full_access">✓ Полный доступ</span>
+      </div>
+
+      <div class="book-action-buttons">
+        <button class="book-action-btn" onclick="bookPanelToggle('toc')">
+          <span>📕</span><span data-i18n="book.btn_chapters">Главы</span>
+        </button>
+        <button class="book-action-btn" onclick="bookPanelToggle('search')">
+          <span>🔍</span><span data-i18n="book.btn_search">Поиск</span>
+        </button>
+        <button class="book-action-btn" onclick="bookPanelToggle('bookmarks')">
+          <span>⭐</span><span data-i18n="book.btn_bookmarks">Закладки</span>
+        </button>
+        <button class="book-action-btn" onclick="bookPanelToggle('settings')">
+          <span>⚙</span><span data-i18n="book.btn_settings">Настройки</span>
+        </button>
+      </div>
+
+      <div id="book-panel-toc" class="book-panel" hidden>
+        <div class="book-toc-title" data-i18n="book.contents">Оглавление</div>
+        <div id="book-toc-list" class="book-toc-list"></div>
+      </div>
+      <div id="book-panel-search" class="book-panel" hidden>
+        <input id="book-search-input" type="search" placeholder="Поиск по книге…" data-i18n-placeholder="book.search_placeholder" oninput="bookSearch(this.value)" class="book-search-input"/>
+        <div id="book-search-results" class="book-search-results"></div>
+      </div>
+      <div id="book-panel-bookmarks" class="book-panel" hidden>
+        <div id="book-bookmarks-list" class="book-toc-list">
+          <div class="book-empty" data-i18n="book.bookmarks_empty">Закладок пока нет. Открой главу и нажми ⭐, чтобы сохранить.</div>
+        </div>
+      </div>
+      <div id="book-panel-settings" class="book-panel" hidden>
+        <div class="book-settings-label" data-i18n="book.font_size_label">РАЗМЕР ШРИФТА</div>
+        <div class="book-settings-row-grid">
+          <button class="book-settings-btn-pill" data-fs="14" onclick="bookSetFontSize(14)" style="font-size:12px">A−</button>
+          <button class="book-settings-btn-pill" data-fs="16" onclick="bookSetFontSize(16)" style="font-size:14px">A</button>
+          <button class="book-settings-btn-pill" data-fs="18" onclick="bookSetFontSize(18)" style="font-size:16px">A+</button>
+          <button class="book-settings-btn-pill" data-fs="20" onclick="bookSetFontSize(20)" style="font-size:18px">A++</button>
+        </div>
+        <div class="book-settings-label" data-i18n="book.theme_label">ТЕМА</div>
+        <div class="book-settings-row-grid book-settings-themes">
+          <button class="book-settings-btn-pill book-theme-dark" data-theme="dark" onclick="bookSetTheme('dark')">🌙 <span data-i18n="book.theme_dark">Тёмная</span></button>
+          <button class="book-settings-btn-pill book-theme-sepia" data-theme="sepia" onclick="bookSetTheme('sepia')">📕 <span data-i18n="book.theme_sepia">Сепия</span></button>
+          <button class="book-settings-btn-pill book-theme-light" data-theme="light" onclick="bookSetTheme('light')">☀ <span data-i18n="book.theme_light">Светлая</span></button>
+        </div>
+      </div>
+
+      <div class="book-chapter-card" id="book-chapter-card">
+        <div class="book-chapter-meta-row">
+          <span class="book-chapter-meta" id="book-chapter-meta">— • —</span>
+          <button class="book-bookmark-btn" id="book-bookmark-btn" onclick="bookBookmarkToggle()" aria-label="Закладка">☆</button>
+        </div>
+        <h2 class="book-chapter-title" id="book-chapter-title">—</h2>
+        <div class="book-chapter-body" id="book-chapter-body">
+          <div class="placeholder" data-i18n="book.loading">Загружаю книгу…</div>
+        </div>
+      </div>
+
+      <nav class="book-reader-nav-bottom">
+        <button class="book-nav-pill" onclick="prevChapter()"><span>←</span> <span data-i18n="common.back">Назад</span></button>
+        <span class="book-nav-pos" id="book-nav-info">1 / 1</span>
+        <button class="book-nav-pill" onclick="nextChapter()"><span data-i18n="common.forward">Вперёд</span> <span>→</span></button>
+      </nav>
+    </div>
+  </aside>
+
+  <nav class="nav-bar" id="nav-bar">
+    <button class="nav-btn active" id="nav-me" onclick="switchTab('me')">
+      <span class="nav-icon">🌟</span>
+      <span data-i18n="nav.me">Я</span>
+    </button>
+    <button class="nav-btn" id="nav-family" onclick="switchTab('family')">
+      <span class="nav-icon">👨‍👩‍👧</span>
+      <span data-i18n="nav.family">Семья</span>
+    </button>
+    <button class="nav-btn" id="nav-treasury" onclick="switchTab('treasury')">
+      <span class="nav-icon">🔮</span>
+      <span data-i18n="nav.treasury">Сокровищница</span>
+    </button>
+    <button class="nav-btn" id="nav-arka" onclick="switchTab('arka')">
+      <span class="nav-icon">🏛</span>
+      <span data-i18n="nav.arka">Арка</span>
+    </button>
+  </nav>
+
+  <script src="/preview/js/i18n.js?v=3"></script>
+  <script src="/preview/js/dars.js?v=1"></script>
+  <script src="/preview/js/fields-full.js?v=1"></script>
+  <!-- Переводы полей и контента (генерируются AI-агентом, файлы могут ещё не существовать) -->
+  <script src="/preview/js/fields-full-en.js?v=1" onerror="console.warn('fields-full-en.js not loaded yet')"></script>
+  <script src="/preview/js/fields-full-es.js?v=1" onerror="console.warn('fields-full-es.js not loaded yet')"></script>
+  <script src="/preview/js/app.js?v=5"></script>
+</body>
+</html>

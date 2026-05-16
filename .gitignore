@@ -7,3 +7,6 @@ public/.vercel/
 public/.env.local
 *.zip
 .vercel
+
+# Claude Code internals
+.claude/

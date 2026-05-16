@@ -1,0 +1,257 @@
+{
+  "app": {
+    "title": "YupDar",
+    "tagline": "UNIVERSO DE LOS DARS",
+    "preview_label": "Prototipo de arquitectura"
+  },
+
+  "nav": {
+    "me": "Yo",
+    "family": "Familia",
+    "treasury": "Tesoro",
+    "arka": "Arka"
+  },
+
+  "header": {
+    "crystals": "cristales",
+    "language": "Idioma",
+    "profile": "Cuenta"
+  },
+
+  "me": {
+    "headline": "Descubre tu DAR",
+    "subhead": "Introduce tu fecha de nacimiento — recibe un mensaje sobre tu naturaleza, fuerza y camino",
+    "date_placeholder": "DD.MM.AAAA",
+    "calculate_btn": "Calcular mi DAR",
+    "value_title": "Lo que vas a recibir",
+    "value_dar": "Nombre y descripción de tu DAR",
+    "value_message": "Un mensaje sobre tu naturaleza",
+    "value_oracle": "Oráculo cada día",
+    "value_compat": "Compatibilidad con tus seres queridos",
+    "full_message": "📜 Mensaje completo",
+    "depth_title": "Profundiza tu perfil",
+    "depth_sub": "Añade hora, lugar y nombre — el cálculo será más preciso, el mensaje más profundo.",
+    "depth_time_title": "Hora de nacimiento",
+    "depth_time_hint": "Si no la sabes — pon 12:00",
+    "depth_place_title": "Lugar de nacimiento",
+    "depth_place_hint": "Ciudad de nacimiento. Las coordenadas se rellenarán automáticamente.",
+    "depth_name_title": "Nombre y apellido",
+    "depth_name_hint": "Nombre y apellido por los que te conocen.",
+    "action_oracle": "Oráculo del día",
+    "action_share": "Compartir",
+    "more_about_me": "Saber más sobre ti",
+    "synthesis_title": "Tu arquetipo — síntesis de 4 niveles",
+    "synthesis_sub": "Combinación de DARs según el peso. Cuanto mayor el porcentaje, mayor la influencia.",
+    "synthesis_edit": "Editar datos"
+  },
+
+  "family": {
+    "headline": "Familia",
+    "subhead": "Tus seres queridos y amigos invitados — todo en un solo lugar.",
+    "empty_text": "Comprende a tu hijo, por qué chocas con tu madre, qué te une con tu pareja.",
+    "add_btn": "+ Añadir a un ser querido",
+    "invite_title": "Invita a un amigo",
+    "invite_sub": "Tu amigo calcula su DAR — y se desbloquea en tu Tesoro.",
+    "invite_btn": "Compartir"
+  },
+
+  "treasury": {
+    "headline": "Tesoro de los DARs",
+    "tab_collection": "Colección",
+    "tab_books": "Libros",
+    "tab_search": "Enciclopedia",
+    "tab_games": "Juegos",
+    "collection_title": "Colección",
+    "collection_sub": "Cuadrícula de 64 DARs con los desbloqueados resaltados.",
+    "collection_unlocked_label": "Desbloqueados",
+    "collection_progress_label": "DARs desbloqueados",
+    "book_dars_title": "Libro de los DARs",
+    "book_dars_sub": "Guía completa de los 64 DARs — en tu idioma (RU / EN / ES).",
+    "book_parents_title": "Libro para Padres",
+    "book_parents_sub": "Guía personalizada según el DAR de tu hijo. Se abre desde la tarjeta del hijo en Familia.",
+    "book_parents_price": "desde 1,99 $",
+    "search_title": "Enciclopedia de los DARs",
+    "search_sub": "Encuentra cualquier DAR por código, nombre o campo.",
+    "search_placeholder": "🔍 Buscar por código, nombre o campo",
+    "game_hero_title": "Viaje del héroe",
+    "game_hero_sub": "Desbloquea los DARs de tus seres queridos mediante referidos o cristales — vive su historia.",
+    "game_intuition_title": "Adivina el DAR",
+    "game_intuition_sub": "Entrenador de intuición con tabla de clasificación.",
+    "game_atlantis_title": "Leyendas de la Atlántida",
+    "game_atlantis_sub": "Juego estratégico con los DARs.",
+    "game_pvp_title": "Batallas con amigos",
+    "game_pvp_sub": "Batallas PvP de DARs. Próximamente.",
+    "hof_title": "Salón de la Fama",
+    "hof_sub": "Mejores jugadores y ganadores de las clasificaciones."
+  },
+
+  "arka": {
+    "headline": "Arka",
+    "subhead": "Tu camino personal en el ritmo de tu DAR",
+    "tab_today": "Hoy",
+    "tab_strategy": "Estrategia",
+    "tab_path": "Camino",
+    "today_title": "El ritmo de tu día",
+    "today_sub": "Rituales de mañana, día y noche según tu DAR. Diario de gratitud. Aceites integrados con suavidad en la práctica. Próxima etapa.",
+    "strategy_title": "Estrategia en el ritmo de tu DAR",
+    "strategy_sub": "Objetivos, pasos y un asistente IA que piensa como tu DAR. Disponible en el plan Guardián.",
+    "unlock_guardian": "Abrir Guardián",
+    "path_title": "Tu mentor personal IA",
+    "path_sub": "Resumen del mentor, análisis de la semana, flujos de ingresos y plan de crecimiento. Disponible en el plan Maestro.",
+    "unlock_master": "Abrir Maestro"
+  },
+
+  "encyc": {
+    "tab_dars": "DARs",
+    "tab_fields": "Campos",
+    "dars_count_label": "DARs",
+    "back_to_fields": "← Todos los campos",
+    "search_placeholder": "🔍 Buscar DARs (nombre, código, campo)",
+    "open_book": "Libro de los DARs",
+    "open_hero": "Viaje del Héroe",
+    "code_label": "Código",
+    "section_filling": "Sección en desarrollo",
+    "section_essence":         "Esencia del DAR",
+    "section_energy_pattern":  "Patrón Energético",
+    "section_light_power":     "Fuerza de la Luz",
+    "section_shadow":          "Sombra del DAR",
+    "section_activation":      "Activación del DAR",
+    "section_meditation":      "Meditación",
+    "section_application":     "Ámbito de Aplicación",
+    "section_safety":          "Práctica de Seguridad",
+    "section_attributes":      "Atributos y Anclajes",
+    "field_tab_essence":  "Esencia del campo",
+    "field_tab_energy":   "Flujo de energía",
+    "field_tab_body":     "Ubicación en el cuerpo",
+    "field_tab_shadows":  "Aspectos de sombra",
+    "label_location":         "Ubicación",
+    "label_color":            "Color de la cuerda",
+    "label_layers_ma":        "Atrás (MA)",
+    "label_layers_zhi":       "Adelante (ZHI)",
+    "label_layers_kun":       "Centro (KUN)",
+    "label_pattern":          "Patrón",
+    "label_energy_flow":      "Cómo fluye la energía",
+    "label_essence":          "Esencia",
+    "label_shadow_ma":        "Sombra pasiva (MA)",
+    "label_shadow_ma_image":  "Imagen",
+    "label_shadow_zhi":       "Sombra activa (ZHI)",
+    "label_shadow_zhi_image": "Imagen",
+    "label_shadow_kun":       "Sombra de unión (KUN)"
+  },
+
+  "oracle": {
+    "title": "Oráculo del día",
+    "general_title": "DAR del Día",
+    "general_sub": "La energía del día para todos",
+    "personal_title": "Tu DAR del Día",
+    "personal_sub": "La energía del día para ti personalmente",
+    "empty": "Para recibir un mensaje personal, calcula tu DAR en la pestaña «Yo».",
+    "hint": "El DAR del Día se actualiza cada mañana.",
+    "ai_message_soon": "El mensaje de la IA estará disponible pronto — basado en tu DAR personal del día."
+  },
+
+  "book": {
+    "loading": "Cargando el libro…",
+    "contents": "Índice",
+    "unavailable": "El libro aún no está disponible en este idioma.",
+    "title_uppercase": "LIBRO DE LOS DARS",
+    "chapters_word": "capítulos",
+    "read_chapters": "📚 Capítulos leídos",
+    "full_access": "✓ Acceso completo",
+    "btn_chapters": "Capítulos",
+    "btn_search": "Buscar",
+    "btn_bookmarks": "Marcadores",
+    "btn_settings": "Ajustes",
+    "search_placeholder": "Buscar en el libro…",
+    "bookmarks_empty": "Aún no hay marcadores. Abre un capítulo y pulsa ⭐ para guardar.",
+    "font_size": "Tamaño de letra",
+    "font_size_label": "TAMAÑO DE LETRA",
+    "theme_label": "TEMA",
+    "theme_dark": "Oscuro",
+    "theme_sepia": "Sepia",
+    "theme_light": "Claro",
+    "search_hint": "Escribe al menos 2 caracteres",
+    "first_50": "(primeros 50 mostrados)",
+    "back_to_start": "Al inicio",
+    "search_in_titles": "En títulos",
+    "search_in_field": "Campo",
+    "search_in_text": "En el texto",
+    "search_more_hidden": "…más resultados ocultos, refina tu consulta",
+    "dar_label": "DAR",
+    "chapter_label": "CAPÍTULO",
+    "part_label": "PARTE"
+  },
+
+  "science": {
+    "title": "Investigación",
+    "description": "Ayuda a la ciencia de los DARs.",
+    "open_survey": "Hacer la encuesta",
+    "header_tooltip": "Investigación sobre los DARs",
+    "banner_title": "Contribuye a la ciencia de los DARs",
+    "banner_sub": "Haz la encuesta y forma parte de la primera investigación sobre los DARs"
+  },
+
+  "common": {
+    "soon": "Próximamente",
+    "close": "Cerrar",
+    "add": "Añadir",
+    "change": "Cambiar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "loading": "Cargando…",
+    "back": "Atrás",
+    "forward": "Siguiente",
+    "contents": "Índice",
+    "field_label": "Campo",
+    "preview_warning": "Prototipo. Es una copia para probar la nueva arquitectura — los datos no se guardan."
+  },
+
+  "search": {
+    "no_results": "Nada encontrado para",
+    "found_count": "Encontrado"
+  },
+
+  "errors": {
+    "date_format": "Fecha en formato DD.MM.AAAA",
+    "time_format": "Formato HH:MM (ej. 12:20)",
+    "place_required": "Indica una ciudad",
+    "name_required": "Indica nombre y apellido"
+  },
+
+  "modal": {
+    "book_for_parents_info": "👶 Libro para Padres — se abre desde la tarjeta del hijo en la pestaña «Familia».",
+    "share_options_info": "🖼 Compartir — modal de selección (tarjeta para redes sociales / A4 para imprimir)."
+  },
+
+  "account": {
+    "title": "Cuenta",
+    "tier_status": "Plan",
+    "tier_until": "hasta",
+    "tier_change": "Cambiar plan",
+    "section_profile": "Mis datos",
+    "profile_name": "Nombre y apellido",
+    "profile_birth_date": "Fecha de nacimiento",
+    "profile_birth_time": "Hora de nacimiento",
+    "profile_birth_place": "Lugar de nacimiento",
+    "profile_gender": "Género",
+    "profile_readonly_note": "Los datos no se pueden cambiar. Si hay un error — escribe a soporte.",
+    "section_tier": "Mi plan",
+    "section_promo": "Código promocional",
+    "promo_placeholder": "Introduce el código",
+    "promo_activate": "Activar",
+    "section_referral": "Amigos",
+    "referral_invited": "Amigos invitados",
+    "referral_crystals": "Cristales ganados",
+    "referral_my_link": "Mi enlace",
+    "referral_send": "Enviar a un amigo",
+    "referral_copy": "Copiar",
+    "section_crystals": "Cristales",
+    "crystals_balance": "Saldo",
+    "crystals_history": "Historial",
+    "support_project": "Apoyar el proyecto",
+    "feedback": "Comentarios",
+    "about": "Acerca de",
+    "reset": "Restablecer todo",
+    "admin": "Panel de administración"
+  }
+}

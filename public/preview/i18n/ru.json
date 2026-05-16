@@ -1,0 +1,257 @@
+{
+  "app": {
+    "title": "YupDar",
+    "tagline": "ВСЕЛЕННАЯ ДАРОВ",
+    "preview_label": "Прототип архитектуры"
+  },
+
+  "nav": {
+    "me": "Я",
+    "family": "Семья",
+    "treasury": "Сокровищница",
+    "arka": "Арка"
+  },
+
+  "header": {
+    "crystals": "кристаллов",
+    "language": "Язык",
+    "profile": "Личный кабинет"
+  },
+
+  "me": {
+    "headline": "Узнай свой Дар",
+    "subhead": "Введи дату рождения — получи послание о своей природе, силе и пути",
+    "date_placeholder": "ДД.ММ.ГГГГ",
+    "calculate_btn": "Рассчитать мой Дар",
+    "value_title": "Что ты получишь",
+    "value_dar": "Имя и описание Дара",
+    "value_message": "Послание про твою природу",
+    "value_oracle": "Оракул каждый день",
+    "value_compat": "Совместимость с близкими",
+    "full_message": "📜 Полное послание",
+    "depth_title": "Сделать профиль глубже",
+    "depth_sub": "Добавь время, место и имя — расчёт точнее, послание глубже.",
+    "depth_time_title": "Время рождения",
+    "depth_time_hint": "Если не знаешь точное — укажи 12:00",
+    "depth_place_title": "Место рождения",
+    "depth_place_hint": "Город рождения. Координаты подставим автоматически.",
+    "depth_name_title": "Имя и фамилия",
+    "depth_name_hint": "Имя и фамилия, под которыми тебя знают чаще всего.",
+    "action_oracle": "Оракул дня",
+    "action_share": "Поделиться",
+    "more_about_me": "Узнать о себе больше",
+    "synthesis_title": "Твой архетип — синтез 4 уровней",
+    "synthesis_sub": "Объединение Даров с учётом веса каждого уровня. Чем выше процент — тем сильнее влияет на тебя.",
+    "synthesis_edit": "Изменить данные"
+  },
+
+  "encyc": {
+    "tab_dars": "Дары",
+    "tab_fields": "Поля",
+    "dars_count_label": "даров",
+    "back_to_fields": "← Все поля",
+    "search_placeholder": "🔍 Поиск по дарам (название, код, поле)",
+    "open_book": "Книга Даров",
+    "open_hero": "Путешествие Героя",
+    "code_label": "Код",
+    "section_filling": "Раздел заполняется",
+    "section_essence":         "Суть Дара",
+    "section_energy_pattern":  "Энергетический Рисунок",
+    "section_light_power":     "Световая Сила Дара",
+    "section_shadow":          "Тень Дара",
+    "section_activation":      "Активация Дара",
+    "section_meditation":      "Медитация",
+    "section_application":     "Сфера Применения",
+    "section_safety":          "Техника Безопасности",
+    "section_attributes":      "Атрибуты и Якоря",
+    "field_tab_essence":  "Суть поля",
+    "field_tab_energy":   "Течение энергии",
+    "field_tab_body":     "Расположение в теле",
+    "field_tab_shadows":  "Теневые аспекты",
+    "label_location":         "Расположение",
+    "label_color":            "Цвет струны",
+    "label_layers_ma":        "Сзади (МА)",
+    "label_layers_zhi":       "Спереди (ЖИ)",
+    "label_layers_kun":       "Посередине (КУН)",
+    "label_pattern":          "Рисунок",
+    "label_energy_flow":      "Как течет энергия",
+    "label_essence":          "Суть",
+    "label_shadow_ma":        "Пассивная тень (МА)",
+    "label_shadow_ma_image":  "Образ",
+    "label_shadow_zhi":       "Активная тень (ЖИ)",
+    "label_shadow_zhi_image": "Образ",
+    "label_shadow_kun":       "Тень соединения (КУН)"
+  },
+
+  "oracle": {
+    "title": "Оракул дня",
+    "general_title": "Общий Дар Дня",
+    "general_sub": "Энергия дня для всех",
+    "personal_title": "Твой Дар Дня",
+    "personal_sub": "Энергия дня для тебя лично",
+    "empty": "Чтобы получить личное послание, рассчитай свой Дар на вкладке «Я».",
+    "hint": "Дар Дня обновляется каждое утро.",
+    "ai_message_soon": "Послание от AI скоро будет доступно — на основе твоего личного Дара дня."
+  },
+
+  "book": {
+    "loading": "Загружаю книгу…",
+    "contents": "Оглавление",
+    "unavailable": "Книга на этом языке пока недоступна.",
+    "title_uppercase": "КНИГА ДАРОВ",
+    "chapters_word": "глав",
+    "read_chapters": "📚 Прочитано глав",
+    "full_access": "✓ Полный доступ",
+    "btn_chapters": "Главы",
+    "btn_search": "Поиск",
+    "btn_bookmarks": "Закладки",
+    "btn_settings": "Настройки",
+    "search_placeholder": "Поиск по книге…",
+    "bookmarks_empty": "Закладок пока нет. Открой главу и нажми ⭐, чтобы сохранить.",
+    "font_size": "Размер шрифта",
+    "font_size_label": "РАЗМЕР ШРИФТА",
+    "theme_label": "ТЕМА",
+    "theme_dark": "Тёмная",
+    "theme_sepia": "Сепия",
+    "theme_light": "Светлая",
+    "search_hint": "Введи хотя бы 2 символа",
+    "first_50": "(показаны первые 50)",
+    "back_to_start": "В начало",
+    "search_in_titles": "В названиях",
+    "search_in_field": "Поле",
+    "search_in_text": "В тексте",
+    "search_more_hidden": "…ещё совпадения скрыты, уточни запрос",
+    "dar_label": "ДАР",
+    "chapter_label": "ГЛАВА",
+    "part_label": "ЧАСТЬ"
+  },
+
+  "science": {
+    "title": "Научные исследования",
+    "description": "Помоги науке о Дарах.",
+    "open_survey": "Пройти опросник",
+    "header_tooltip": "Исследование о Дарах",
+    "banner_title": "Внеси вклад в науку о Дарах",
+    "banner_sub": "Пройди опросник и стань частью первого исследования о Дарах"
+  },
+
+  "family": {
+    "headline": "Семья",
+    "subhead": "Близкие и приглашённые друзья — в одном месте.",
+    "empty_text": "Пойми ребёнка, почему конфликтуете с мамой, что объединяет с любимым.",
+    "add_btn": "+ Добавить близкого",
+    "invite_title": "Пригласи друга",
+    "invite_sub": "Друг рассчитает свой Дар — его Дар откроется у тебя в Сокровищнице.",
+    "invite_btn": "Поделиться"
+  },
+
+  "treasury": {
+    "headline": "Сокровищница Даров",
+    "tab_collection": "Коллекция",
+    "tab_books": "Книги",
+    "tab_search": "Энциклопедия",
+    "tab_games": "Игры",
+    "collection_title": "Коллекция",
+    "collection_sub": "Сетка 64 даров с подсветкой открытых.",
+    "collection_unlocked_label": "Открыто",
+    "collection_progress_label": "даров открыто",
+    "book_dars_title": "Книга Даров",
+    "book_dars_sub": "Полное руководство по 64 Дарам — на твоём языке (RU / EN / ES).",
+    "book_parents_title": "Книга для Родителей",
+    "book_parents_sub": "Персональный разбор по Дару твоего ребёнка. Открывается на карточке ребёнка в Семье.",
+    "book_parents_price": "от 199 ₽",
+    "search_title": "Энциклопедия Даров",
+    "search_sub": "Найди любой Дар по коду, имени или полю.",
+    "search_placeholder": "🔍 Поиск по коду, имени или полю",
+    "game_hero_title": "Путешествие героя",
+    "game_hero_sub": "Открой Дары близких через рефералы или кристаллы — пройди их историю.",
+    "game_intuition_title": "Угадай Дар",
+    "game_intuition_sub": "Тренажёр интуиции с рейтингом игроков.",
+    "game_atlantis_title": "Легенды Атлантиды",
+    "game_atlantis_sub": "Стратегическая игра с Дарами.",
+    "game_pvp_title": "Батлы с друзьями",
+    "game_pvp_sub": "PvP-сражения на Дарах. Скоро.",
+    "hof_title": "Зал Славы",
+    "hof_sub": "Лучшие игроки и победители рейтингов."
+  },
+
+  "arka": {
+    "headline": "Арка",
+    "subhead": "Личный путь в ритме твоего Дара",
+    "tab_today": "Сегодня",
+    "tab_strategy": "Стратегия",
+    "tab_path": "Путь",
+    "today_title": "Ритм твоего дня",
+    "today_sub": "Утренние, дневные и вечерние ритуалы под твой Дар. Дневник благодарности. Масла мягко вплетены в практики. Реализация — следующий этап.",
+    "strategy_title": "Стратегия в ритме твоего Дара",
+    "strategy_sub": "Цели, шаги и AI-помощник, который думает как твой Дар. Доступно в тарифе Хранитель.",
+    "unlock_guardian": "Открыть Хранителя",
+    "path_title": "Личный AI-наставник",
+    "path_sub": "Бриф наставника, разбор недели, потоки дохода и план продвижения. Доступно в тарифе Мастер.",
+    "unlock_master": "Открыть Мастера"
+  },
+
+  "common": {
+    "soon": "Скоро",
+    "close": "Закрыть",
+    "add": "Добавить",
+    "change": "Изменить",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "loading": "Загружаю…",
+    "back": "Назад",
+    "forward": "Дальше",
+    "contents": "Оглавление",
+    "field_label": "Поле",
+    "preview_warning": "Прототип. Это копия для проверки новой архитектуры — данные не сохраняются."
+  },
+
+  "search": {
+    "no_results": "Ничего не найдено по запросу",
+    "found_count": "Найдено"
+  },
+
+  "errors": {
+    "date_format": "Дата в формате ДД.ММ.ГГГГ",
+    "time_format": "Формат ЧЧ:ММ (например 12:20)",
+    "place_required": "Укажи город",
+    "name_required": "Укажи имя и фамилию"
+  },
+
+  "modal": {
+    "book_for_parents_info": "👶 Книга для Родителей — открывается на карточке ребёнка во вкладке «Семья».",
+    "share_options_info": "🖼 Поделиться — модалка выбора (карточка для соцсетей / A4 для печати)."
+  },
+
+  "account": {
+    "title": "Личный кабинет",
+    "tier_status": "Тариф",
+    "tier_until": "до",
+    "tier_change": "Сменить тариф",
+    "section_profile": "Мои данные",
+    "profile_name": "Имя и фамилия",
+    "profile_birth_date": "Дата рождения",
+    "profile_birth_time": "Время рождения",
+    "profile_birth_place": "Место рождения",
+    "profile_gender": "Пол",
+    "profile_readonly_note": "Данные нельзя изменить. Если есть ошибка — напиши в поддержку.",
+    "section_tier": "Мой тариф",
+    "section_promo": "Промо-код",
+    "promo_placeholder": "Введи код",
+    "promo_activate": "Активировать",
+    "section_referral": "Друзья",
+    "referral_invited": "Приглашено друзей",
+    "referral_crystals": "Получено кристаллов",
+    "referral_my_link": "Моя ссылка",
+    "referral_send": "Отправить другу",
+    "referral_copy": "Скопировать",
+    "section_crystals": "Кристаллы",
+    "crystals_balance": "Баланс",
+    "crystals_history": "История",
+    "support_project": "Поддержать проект",
+    "feedback": "Обратная связь",
+    "about": "О приложении",
+    "reset": "Полный сброс",
+    "admin": "Админ-панель"
+  }
+}

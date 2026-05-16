@@ -1,4 +1,115 @@
 /* ═══════════════════════════════════════════════════════════
+   ВСПЛЫВАЮЩИЙ ПОПАП С ИНФО О МАСЛЕ doTERRA
+   Клик по .oil-hint → открывается это окно.
+   ═══════════════════════════════════════════════════════════ */
+.oil-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9998;
+  backdrop-filter: blur(4px);
+}
+.oil-popup-backdrop[hidden] { display: none; }
+.oil-popup {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 32px);
+  max-width: 380px;
+  background: rgba(8, 20, 36, 0.97);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 18px;
+  padding: 24px 20px 20px;
+  z-index: 9999;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  font-family: 'Manrope', sans-serif;
+  color: #ffffff;
+}
+.oil-popup[hidden] { display: none; }
+.oil-popup-close {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 32px; height: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+.oil-popup-close:hover { background: rgba(255, 255, 255, 0.15); }
+.oil-popup-emblem {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.oil-popup-name {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #D4AF37;
+  margin: 0 0 12px;
+  letter-spacing: 0.5px;
+}
+.oil-popup-desc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #e2e8f0;
+  margin: 0 0 12px;
+}
+.oil-popup-meta {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #cbd5e1;
+  background: rgba(125, 211, 252, 0.08);
+  border-left: 3px solid #7DD3FC;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+.oil-popup-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 12px;
+  background: linear-gradient(135deg, #D4AF37, #b8951f);
+  color: #0a1929;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
+}
+.oil-popup-btn:hover { transform: translateY(-1px); }
+.oil-popup-small {
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+/* Чтобы .oil-hint выглядел как кликабельная подсказка */
+.oil-hint {
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.oil-hint:hover {
+  background: rgba(212, 175, 55, 0.18) !important;
+  border-color: rgba(212, 175, 55, 0.5) !important;
+}
+.oil-hint::after {
+  content: ' ⓘ';
+  color: #D4AF37;
+  font-size: 11px;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════════════════════════
    ОБЩИЕ ОВЕРРАЙДЫ КОНТРАСТА (для всех табов АРКА)
    Многие старые элементы (стрик, бриф наставника, утренний свет)
    имели светлые градиенты + тёмный текст из старой светлой темы.

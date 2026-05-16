@@ -241,14 +241,20 @@
       <div class="progress-value"><span id="doneCount">0</span> из <span id="totalCount">12</span></div>
     </section>
 
-    <!-- doTERRA -->
-    <section class="doterra-card">
-      <div class="doterra-emblem">🌿</div>
-      <h3 class="doterra-title">Эфирные масла doTERRA</h3>
-      <p class="doterra-text">Я работаю с doTERRA годами — это масла, которые проверены временем и моим опытом. Сертификат CPTG, стабильная формула и эффективность, подтверждённая на большом количестве людей. Они держат глубину практик и поддерживают тело в ритме Дара.</p>
-      <a id="doterraLink" href="#" target="_blank" rel="noopener" class="doterra-btn">Открыть каталог doTERRA</a>
-      <p class="doterra-small">Регистрация и покупка по реферальной ссылке Светланы (РФ)</p>
-    </section>
+    <!-- doTERRA-блок удалён 16.05.2026. Информация о маслах теперь — всплывающая подсказка
+         при клике на упоминание масла в ритуалах. См. .oil-hint и openOilPopup() в app.js. -->
+  </div>
+
+  <!-- Всплывающий попап с информацией о масле и ссылкой на каталог -->
+  <div id="oilPopupBackdrop" class="oil-popup-backdrop" hidden onclick="closeOilPopup()"></div>
+  <div id="oilPopup" class="oil-popup" hidden>
+    <button class="oil-popup-close" onclick="closeOilPopup()" aria-label="Закрыть">✕</button>
+    <div class="oil-popup-emblem">💧</div>
+    <h3 class="oil-popup-name" id="oilPopupName">—</h3>
+    <p class="oil-popup-desc" id="oilPopupDesc">—</p>
+    <div class="oil-popup-meta" id="oilPopupMeta"></div>
+    <a id="oilPopupLink" href="#" target="_blank" rel="noopener" class="oil-popup-btn">Открыть в каталоге doTERRA →</a>
+    <p class="oil-popup-small">Покупка по реферальной ссылке (РФ)</p>
   </div>
 
   <!-- ═════════════════════ ТАБ: ДАР ════════════════════ -->

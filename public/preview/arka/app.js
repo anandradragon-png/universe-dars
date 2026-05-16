@@ -820,6 +820,88 @@ function initDoterra() {
   if (link) link.href = DOTERRA_REF_URL;
 }
 
+// ── База эфирных масел ────────────────────────────────
+// Краткое описание + аспект применения. Полные дозировки/предупреждения остаются
+// в practice-details рядом с конкретным ритуалом (на случай чтения без попапа).
+const OILS_DB = {
+  frankincense: {
+    name: 'Frankincense',
+    desc: 'Присутствие в моменте, замедление времени, активация ЛОГОСа. Главное масло для Дара З-МАН.',
+    meta: '1 капля на ладонь · 3 медленных вдоха · возвращает в «сейчас»'
+  },
+  vetiver: {
+    name: 'Vetiver',
+    desc: 'Глубокое заземление, опора у основания позвоночника. Используется только вечером — может усыплять.',
+    meta: '1–2 капли на стопы · вечером · разводить с базой при чувствительной коже'
+  },
+  cypress: {
+    name: 'Cypress',
+    desc: 'Поток ТУМА, движение времени, текучесть. Снимает застревание в прошлом и страх перемен.',
+    meta: '1 капля на запястья · днём · сочетается с Vetiver'
+  },
+  balance: {
+    name: 'Balance',
+    desc: 'Якорь ЛОГОС-треугольника, возвращение в «сейчас». Состав: Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile.',
+    meta: '1 капля на внутреннюю сторону запястий · растереть · поднести к носу'
+  },
+  lavender: {
+    name: 'Lavender',
+    desc: 'Мягкий переход в восстановление, ночное скольжение. ⚠ Строго 1–2 капли — больше даёт обратный эффект.',
+    meta: '1–2 капли на подушку · перед сном · больше = перевозбуждение'
+  },
+  serenity: {
+    name: 'Serenity',
+    desc: 'Восстановление после плотного дня, мягкая опора в момент перехода в сон.',
+    meta: '1–2 капли в диффузор · вечером · хорошо в паре с Lavender'
+  }
+};
+
+// Открыть всплывающее окно с информацией о масле
+function openOilPopup(oilKey) {
+  const oil = OILS_DB[oilKey];
+  if (!oil) return;
+  const backdrop = document.getElementById('oilPopupBackdrop');
+  const popup = document.getElementById('oilPopup');
+  document.getElementById('oilPopupName').textContent = oil.name;
+  document.getElementById('oilPopupDesc').textContent = oil.desc;
+  document.getElementById('oilPopupMeta').textContent = oil.meta || '';
+  document.getElementById('oilPopupLink').href = DOTERRA_REF_URL;
+  if (backdrop) backdrop.hidden = false;
+  if (popup) popup.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeOilPopup() {
+  document.getElementById('oilPopupBackdrop').hidden = true;
+  document.getElementById('oilPopup').hidden = true;
+  document.body.style.overflow = '';
+}
+window.openOilPopup = openOilPopup;
+window.closeOilPopup = closeOilPopup;
+
+// При загрузке — привязываем клик к каждому .oil-hint.
+// Определяем масло по тексту (data-oil или fallback на содержимое).
+function initOilHints() {
+  document.querySelectorAll('.oil-hint').forEach(el => {
+    // Уже привязан — пропускаем
+    if (el.dataset.oilInit) return;
+    el.dataset.oilInit = '1';
+    el.style.cursor = 'pointer';
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    // Определяем ключ масла
+    let key = el.dataset.oil || '';
+    if (!key) {
+      const txt = (el.textContent || '').toLowerCase();
+      key = Object.keys(OILS_DB).find(k => txt.includes(k)) || '';
+    }
+    if (!key) return;
+    el.addEventListener('click', () => openOilPopup(key));
+    el.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openOilPopup(key); }
+    });
+  });
+}
+
 // ── Утилиты ──────────────────────────────────────────
 function escapeHtml(s) {
   return (s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
@@ -847,3 +929,4 @@ initMentor();
 initPracticeDetails();
 initWaterReminder();
 initDoterra();
+initOilHints();

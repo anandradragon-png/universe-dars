@@ -168,17 +168,19 @@
 
     /* === Выпадашка языка === */
     #lang-picker {
-      position: absolute;
-      top: 56px;
-      right: 60px;
+      position: fixed;
+      top: 64px;
+      right: 14px;
       background: var(--card);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-bright);
       border-radius: 10px;
       padding: 6px;
-      z-index: 200;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 9998;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       display: none;
-      min-width: 100px;
+      min-width: 140px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
     #lang-picker.open { display: block; }
     .lang-option {
@@ -2635,6 +2637,9 @@
   <script src="/preview/js/i18n.js?v=3"></script>
   <script src="/preview/js/dars.js?v=1"></script>
   <script src="/preview/js/fields-full.js?v=1"></script>
-  <script src="/preview/js/app.js?v=4"></script>
+  <!-- Переводы полей и контента (генерируются AI-агентом, файлы могут ещё не существовать) -->
+  <script src="/preview/js/fields-full-en.js?v=1" onerror="console.warn('fields-full-en.js not loaded yet')"></script>
+  <script src="/preview/js/fields-full-es.js?v=1" onerror="console.warn('fields-full-es.js not loaded yet')"></script>
+  <script src="/preview/js/app.js?v=5"></script>
 </body>
 </html>

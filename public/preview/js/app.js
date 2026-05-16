@@ -390,7 +390,11 @@
   // FIELDS_FULL — inline-объект, точная копия из прода (fields-full.js).
   // Содержит ВСЕ поля (color, location, layers_ma/zhi/kun, energy_flow,
   // shadow_ma_image, shadow_zhi_image), которых нет в fields.json.
+  // Если выбран EN/ES — возвращаем переведённую версию (если файл загружен).
   async function loadFieldsFull() {
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    if (lang === 'en' && window.FIELDS_FULL_EN) return window.FIELDS_FULL_EN;
+    if (lang === 'es' && window.FIELDS_FULL_ES) return window.FIELDS_FULL_ES;
     return window.FIELDS_FULL || {};
   }
 
@@ -488,7 +492,8 @@
         ${arch ? `<div class="dar-card-arch">${escapeHtml(arch)}</div>` : ''}
       </div>`;
     });
-    view.innerHTML = `<button class="btn-back" onclick="backToFieldFolders()">← Все поля</button>
+    const backLabel = (window.previewI18n && previewI18n.t('encyc.back_to_fields')) || '← Все поля';
+    view.innerHTML = `<button class="btn-back" onclick="backToFieldFolders()">${escapeHtml(backLabel)}</button>
       <div style="text-align:center;margin-bottom:14px">
         <div style="font-size:16px;color:var(--text);letter-spacing:2px;font-weight:800">${escapeHtml(fieldName)}</div>
         <div style="font-size:12px;color:var(--text-dim);font-style:italic">${escapeHtml(element)}</div>
@@ -530,23 +535,26 @@
   window.renderFieldCards = renderFieldCards;
 
   // === Вкладка «Поля» — Уровень 2: детальная страница поля с 4 табами ===
+  // Заголовки табов берутся из i18n (encyc.field_tab_*).
   const FIELD_INNER_TABS = [
-    { id: 'essence', label: 'Суть поля' },
-    { id: 'energy', label: 'Течение энергии' },
-    { id: 'body', label: 'Расположение в теле' },
-    { id: 'shadows', label: 'Теневые аспекты' }
+    { id: 'essence', i18nKey: 'encyc.field_tab_essence' },
+    { id: 'energy',  i18nKey: 'encyc.field_tab_energy' },
+    { id: 'body',    i18nKey: 'encyc.field_tab_body' },
+    { id: 'shadows', i18nKey: 'encyc.field_tab_shadows' }
   ];
+  function tt(key, fallback) {
+    return (window.previewI18n && previewI18n.t(key)) || fallback || key;
+  }
 
-  // === 100% точная копия openFieldDetail из прода (index.html:3093-3134) ===
   async function openFieldDetail(fieldId) {
     const ff = await loadFieldsFull();
     const f = ff[fieldId] || {};
     const container = document.getElementById('fields-list-view');
     const tabsHtml = FIELD_INNER_TABS.map((t, i) =>
-      `<button class="dar-inner-tab${i === 0 ? ' active' : ''}" onclick="switchFieldInnerTab('${t.id}',this,${fieldId})">${escapeHtml(t.icon || '')} ${escapeHtml(t.label)}</button>`
+      `<button class="dar-inner-tab${i === 0 ? ' active' : ''}" onclick="switchFieldInnerTab('${t.id}',this,${fieldId})">${escapeHtml(tt(t.i18nKey))}</button>`
     ).join('');
-    // Прод-точная разметка (index.html:3098)
-    container.innerHTML = `<button class="btn-back" style="display:block" onclick="backToFieldsList()">← Все поля</button>
+    const backLabel = tt('encyc.back_to_fields', '← Все поля');
+    container.innerHTML = `<button class="btn-back" style="display:block" onclick="backToFieldsList()">${escapeHtml(backLabel)}</button>
       <div style="text-align:center;margin-bottom:14px">
         <div style="font-size:28px;letter-spacing:3px;color:var(--text)">${escapeHtml(f.name || '')}</div>
         <div style="font-size:13px;color:var(--text-dim);margin-top:4px">${escapeHtml(f.element || '')} | ${escapeHtml(f.pattern || '')} | ${escapeHtml(f.color || '')}</div>
@@ -564,31 +572,32 @@
   }
   window.switchFieldInnerTab = switchFieldInnerTab;
 
-  // === 100% точная копия renderFieldInnerTab из прода (index.html:3110-3134) ===
-  // Берёт данные из FIELDS_FULL (inline-объект в fields-full.js).
+  // Лейблы метаданных переводятся через i18n.
   async function renderFieldInnerTab(tabId, fieldId) {
     const ff = await loadFieldsFull();
     const f = ff[fieldId] || {};
     const area = document.getElementById('field-inner-content-area');
     if (!area) return;
+    const row = (labelKey, value) => `<div class="dar-meta-row"><div class="dar-meta-label">${escapeHtml(tt(labelKey))}</div><div class="dar-meta-value">${escapeHtml(value || '')}</div></div>`;
+    const rowImg = (labelKey, value) => `<div class="dar-meta-row"><div class="dar-meta-label">${escapeHtml(tt(labelKey))}</div><div class="dar-meta-value" style="color:#D4AF37;font-style:italic">${escapeHtml(value)}</div></div>`;
     let html = '<div class="dar-inner-content">';
     if (tabId === 'essence') {
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Суть</div><div class="dar-meta-value">${escapeHtml(f.essence || '')}</div></div>`;
+      html += row('encyc.label_essence', f.essence);
     } else if (tabId === 'energy') {
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Рисунок</div><div class="dar-meta-value">${escapeHtml(f.pattern || '')}</div></div>`;
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Как течет энергия</div><div class="dar-meta-value">${escapeHtml(f.energy_flow || '')}</div></div>`;
+      html += row('encyc.label_pattern', f.pattern);
+      html += row('encyc.label_energy_flow', f.energy_flow);
     } else if (tabId === 'body') {
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Расположение</div><div class="dar-meta-value">${escapeHtml(f.location || '')}</div></div>`;
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Цвет струны</div><div class="dar-meta-value">${escapeHtml(f.color || '')}</div></div>`;
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Сзади (МА)</div><div class="dar-meta-value">${escapeHtml(f.layers_ma || '')}</div></div>`;
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Спереди (ЖИ)</div><div class="dar-meta-value">${escapeHtml(f.layers_zhi || '')}</div></div>`;
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Посередине (КУН)</div><div class="dar-meta-value">${escapeHtml(f.layers_kun || '')}</div></div>`;
+      html += row('encyc.label_location', f.location);
+      html += row('encyc.label_color', f.color);
+      html += row('encyc.label_layers_ma', f.layers_ma);
+      html += row('encyc.label_layers_zhi', f.layers_zhi);
+      html += row('encyc.label_layers_kun', f.layers_kun);
     } else if (tabId === 'shadows') {
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Пассивная тень (МА)</div><div class="dar-meta-value">${escapeHtml(f.shadow_ma || '')}</div></div>`;
-      if (f.shadow_ma_image) html += `<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#D4AF37;font-style:italic">${escapeHtml(f.shadow_ma_image)}</div></div>`;
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Активная тень (ЖИ)</div><div class="dar-meta-value">${escapeHtml(f.shadow_zhi || '')}</div></div>`;
-      if (f.shadow_zhi_image) html += `<div class="dar-meta-row"><div class="dar-meta-label">Образ</div><div class="dar-meta-value" style="color:#D4AF37;font-style:italic">${escapeHtml(f.shadow_zhi_image)}</div></div>`;
-      html += `<div class="dar-meta-row"><div class="dar-meta-label">Тень соединения (КУН)</div><div class="dar-meta-value">${escapeHtml(f.shadow_kun || '')}</div></div>`;
+      html += row('encyc.label_shadow_ma', f.shadow_ma);
+      if (f.shadow_ma_image) html += rowImg('encyc.label_shadow_ma_image', f.shadow_ma_image);
+      html += row('encyc.label_shadow_zhi', f.shadow_zhi);
+      if (f.shadow_zhi_image) html += rowImg('encyc.label_shadow_zhi_image', f.shadow_zhi_image);
+      html += row('encyc.label_shadow_kun', f.shadow_kun);
     }
     html += '</div>';
     area.innerHTML = html;
@@ -609,19 +618,44 @@
 
   // === Детальная карточка Дара (по образцу прода: 9 секций из dar-content.json) ===
 
-  let darContentCache = null;
+  // Кэш контента Даров по языку (ru/en/es)
+  const darContentCacheByLang = {};
 
   async function loadDarContent() {
-    if (darContentCache) return darContentCache;
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    if (darContentCacheByLang[lang]) return darContentCacheByLang[lang];
+    // RU = основной файл прода, EN/ES = переводы в /preview/
+    const url = lang === 'ru'
+      ? '/dar-content.json?v=1'
+      : `/preview/dar-content-${lang}.json?v=1`;
+    try {
+      const resp = await fetch(url);
+      if (resp.ok) {
+        darContentCacheByLang[lang] = await resp.json();
+      } else {
+        // Фоллбэк на RU если перевода ещё нет
+        if (lang !== 'ru') {
+          console.warn('[dar-content] ' + lang + ' not available, falling back to RU');
+          return loadDarContent.callRu();
+        }
+        darContentCacheByLang[lang] = {};
+      }
+    } catch (e) {
+      if (lang !== 'ru') return loadDarContent.callRu();
+      darContentCacheByLang[lang] = {};
+    }
+    return darContentCacheByLang[lang];
+  }
+  loadDarContent.callRu = async () => {
+    if (darContentCacheByLang.ru) return darContentCacheByLang.ru;
     try {
       const resp = await fetch('/dar-content.json?v=1');
-      if (resp.ok) darContentCache = await resp.json();
-      else darContentCache = {};
+      darContentCacheByLang.ru = resp.ok ? await resp.json() : {};
     } catch (e) {
-      darContentCache = {};
+      darContentCacheByLang.ru = {};
     }
-    return darContentCache;
-  }
+    return darContentCacheByLang.ru;
+  };
 
   // Простой markdown → HTML для содержимого dar-content
   function mdToHtml(text) {
@@ -652,19 +686,22 @@
     return html;
   }
 
-  // 9 секций Дара (точно как в проде — иконки, названия, порядок).
+  // 9 секций Дара (точно как в проде, заголовки переводятся через i18n).
   // Источник: public/index.html DAR_SECTIONS на строке 2863
   const DAR_SECTIONS = [
-    { key: 'essence',         icon: '🔮',   title: 'Суть Дара' },
-    { key: 'energy_pattern',  icon: '⚙️',   title: 'Энергетический Рисунок' },
-    { key: 'light_power',     icon: '☀️',   title: 'Световая Сила Дара' },
-    { key: 'shadow',          icon: '🌑',   title: 'Тень Дара' },
-    { key: 'activation',      icon: '🛠',   title: 'Активация Дара' },
-    { key: 'meditation',      icon: '🧘',   title: 'Медитация' },
-    { key: 'application',     icon: '💡',   title: 'Сфера Применения' },
-    { key: 'safety',          icon: '⚠️',   title: 'Техника Безопасности' },
-    { key: 'attributes',      icon: '✨',   title: 'Атрибуты и Якоря' }
+    { key: 'essence',         icon: '🔮',   i18nKey: 'encyc.section_essence' },
+    { key: 'energy_pattern',  icon: '⚙️',   i18nKey: 'encyc.section_energy_pattern' },
+    { key: 'light_power',     icon: '☀️',   i18nKey: 'encyc.section_light_power' },
+    { key: 'shadow',          icon: '🌑',   i18nKey: 'encyc.section_shadow' },
+    { key: 'activation',      icon: '🛠',   i18nKey: 'encyc.section_activation' },
+    { key: 'meditation',      icon: '🧘',   i18nKey: 'encyc.section_meditation' },
+    { key: 'application',     icon: '💡',   i18nKey: 'encyc.section_application' },
+    { key: 'safety',          icon: '⚠️',   i18nKey: 'encyc.section_safety' },
+    { key: 'attributes',      icon: '✨',   i18nKey: 'encyc.section_attributes' }
   ];
+  function darSectionTitle(sec) {
+    return (window.previewI18n && previewI18n.t(sec.i18nKey)) || sec.key;
+  }
 
   // Расширенные данные даров (fields.json → dars_extended) — fallback
   // когда в dar-content.json пусто. Содержит essence_short, energy_flow,
@@ -722,10 +759,10 @@
       ${archetype ? `<div class="dar-detail-hero-archetype">${escapeHtml(archetype)}</div>` : ''}
       <div class="dar-detail-actions">
         <button class="dar-detail-btn dar-detail-btn-book" onclick="openBookOfDars()">
-          <span>📖</span> <span>Книга Даров</span>
+          <span>📖</span> <span>${escapeHtml((window.previewI18n && previewI18n.t('encyc.open_book')) || 'Книга Даров')}</span>
         </button>
         <button class="dar-detail-btn dar-detail-btn-hero">
-          <span>🌅</span> <span>Путешествие Героя</span>
+          <span>🌅</span> <span>${escapeHtml((window.previewI18n && previewI18n.t('encyc.open_hero')) || 'Путешествие Героя')}</span>
         </button>
       </div>
     </div>`;
@@ -742,7 +779,7 @@
       if (isOpen) firstOpened = true;
       let bodyHtml;
       if (!hasContent) {
-        bodyHtml = '<p style="color:var(--text-muted);text-align:center;padding:12px;font-style:italic">Раздел заполняется</p>';
+        bodyHtml = '<p style="color:var(--text-muted);text-align:center;padding:12px;font-style:italic">' + escapeHtml((window.previewI18n && previewI18n.t('encyc.section_filling')) || 'Раздел заполняется') + '</p>';
       } else if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) {
         bodyHtml = '<ul>' + Object.entries(raw).map(([k, v]) =>
           `<li><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v))}</li>`
@@ -753,7 +790,7 @@
       sectionsHtml += `<div class="accordion-item">
         <button class="accordion-header${isOpen ? ' open' : ''}" onclick="toggleAccordion(this)">
           <span class="accordion-icon">${sec.icon}</span>
-          <span class="accordion-title">${sec.title}</span>
+          <span class="accordion-title">${escapeHtml(darSectionTitle(sec))}</span>
           <span class="accordion-arrow">▼</span>
         </button>
         <div class="accordion-body${isOpen ? ' open' : ''}">${bodyHtml}</div>

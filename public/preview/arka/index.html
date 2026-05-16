@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="arka-sections.css">
 </head>
 <body>
 
@@ -251,101 +252,174 @@
   </div>
 
   <!-- ═════════════════════ ТАБ: ДАР ════════════════════ -->
+  <!-- Эксклюзивный контент АРКА. Энциклопедия с описанием Дара — в Сокровищнице YupDar. -->
   <div class="tab-content" data-tab-content="dar">
 
-    <section class="dar-hero">
-      <div class="dar-hero-code">1 · 6 · 7</div>
-      <h2 class="dar-hero-name">З-МАН</h2>
-      <p class="dar-hero-sub">Водный дракон времени. Вечная молодость через присутствие.</p>
+    <!-- 1. ОКНА СИЛЫ -->
+    <section class="arka-section" id="arka-power-windows">
+      <div class="card-header">
+        <span class="card-icon">🌅</span>
+        <h2 class="card-title" data-i18n="arka.windows_title">Окна силы</h2>
+      </div>
+      <p class="card-hint" data-i18n="arka.windows_hint">Биоритм твоего Дара — когда энергия на пике, когда на спаде.</p>
+
+      <div class="power-windows-grid">
+        <div class="pw-block pw-block-peak">
+          <div class="pw-block-icon">✦</div>
+          <div class="pw-block-label" data-i18n="arka.windows_peak">Пик энергии</div>
+          <div class="pw-block-time" id="pwPeakTime">5:30–7:30 · 17:30–19:30</div>
+          <div class="pw-block-desc" data-i18n="arka.windows_peak_desc">Сумерки — стихия З-МАН. Тяжёлые задачи, важные решения, ритуалы.</div>
+        </div>
+        <div class="pw-block pw-block-flow">
+          <div class="pw-block-icon">~</div>
+          <div class="pw-block-label" data-i18n="arka.windows_flow">Поток</div>
+          <div class="pw-block-time" id="pwFlowTime">10:00–13:00</div>
+          <div class="pw-block-desc" data-i18n="arka.windows_flow_desc">Творчество, письмо, потоковая работа без давления времени.</div>
+        </div>
+        <div class="pw-block pw-block-rest">
+          <div class="pw-block-icon">◦</div>
+          <div class="pw-block-label" data-i18n="arka.windows_rest">Тишина</div>
+          <div class="pw-block-time" id="pwRestTime">14:00–16:00 · 22:00+</div>
+          <div class="pw-block-desc" data-i18n="arka.windows_rest_desc">Спад — отдых, медитация, наблюдение. Не давить на себя.</div>
+        </div>
+      </div>
+
+      <div class="pw-rhythm">
+        <div class="pw-rhythm-title" data-i18n="arka.windows_moon">🌙 Сейчас лунный ритм</div>
+        <div class="pw-rhythm-text" id="pwMoonText" data-i18n="arka.windows_moon_text">Растущая Луна — благоприятна для запуска нового. Используй пик силы для важных шагов.</div>
+      </div>
     </section>
 
-    <section class="dar-block">
+    <!-- 2. КАРТА РОСТА -->
+    <section class="arka-section" id="arka-growth-map">
       <div class="card-header">
-        <span class="card-icon">🐉</span>
-        <h3 class="card-title">Суть Дара</h3>
+        <span class="card-icon">🗺</span>
+        <h2 class="card-title" data-i18n="arka.growth_title">Карта роста</h2>
       </div>
-      <p style="font-size: 14px; line-height: 1.6; color: var(--ink-soft);">
-        Дар управления течением времени. Древний змей, свернувшийся в кольцо вечности. Способность замедлять или ускорять субъективное восприятие времени, синхронизировать ритм с другим человеком, скользить сознанием в прошлое и будущее.
-      </p>
-      <p style="font-size: 14px; line-height: 1.6; color: var(--ink-soft); margin-top: 8px;">
-        <b>Формула:</b> МА=ЛОГОС (земля-опора) + ЖИ=ТУМА (вода-волна) + КУН=АСТРА (воздух-ритм)
-      </p>
+      <p class="card-hint" data-i18n="arka.growth_hint">Где ты сейчас в раскрытии Дара. 5 этапов пути.</p>
+
+      <div class="growth-stages">
+        <div class="growth-stage growth-stage-done">
+          <div class="gs-num">1</div>
+          <div class="gs-name" data-i18n="arka.growth_st1">Исследователь</div>
+          <div class="gs-mark">✓</div>
+        </div>
+        <div class="growth-stage growth-stage-active">
+          <div class="gs-num">2</div>
+          <div class="gs-name" data-i18n="arka.growth_st2">Носитель</div>
+          <div class="gs-mark">●</div>
+        </div>
+        <div class="growth-stage">
+          <div class="gs-num">3</div>
+          <div class="gs-name" data-i18n="arka.growth_st3">Хранитель</div>
+        </div>
+        <div class="growth-stage">
+          <div class="gs-num">4</div>
+          <div class="gs-name" data-i18n="arka.growth_st4">Мастер</div>
+        </div>
+        <div class="growth-stage">
+          <div class="gs-num">5</div>
+          <div class="gs-name" data-i18n="arka.growth_st5">Архитектор</div>
+        </div>
+      </div>
+
+      <div class="growth-progress">
+        <div class="gp-row">
+          <span data-i18n="arka.growth_progress">Раскрытие Дара</span>
+          <span><b id="growthPct">42</b>%</span>
+        </div>
+        <div class="gp-bar"><div class="gp-fill" style="width:42%"></div></div>
+      </div>
+
+      <div class="growth-shadows">
+        <div class="gs-block-title" data-i18n="arka.growth_shadows_done">✓ Пройденные тени</div>
+        <div class="gs-tags" id="growthShadowsDone">
+          <span class="gs-tag">Спешка</span>
+          <span class="gs-tag">Откладывание</span>
+        </div>
+        <div class="gs-block-title gs-block-active" data-i18n="arka.growth_shadows_active">○ Активные тени</div>
+        <div class="gs-tags" id="growthShadowsActive">
+          <span class="gs-tag gs-tag-active">Выпадение из времени</span>
+          <span class="gs-tag gs-tag-active">Застревание в будущем</span>
+        </div>
+      </div>
     </section>
 
-    <section class="dar-block" data-block="light">
+    <!-- 3. ДНЕВНИК ЭВОЛЮЦИИ -->
+    <section class="arka-section" id="arka-evolution-journal">
       <div class="card-header">
-        <span class="card-icon">🌟</span>
-        <h3 class="card-title">Светлые стороны</h3>
+        <span class="card-icon">📓</span>
+        <h2 class="card-title" data-i18n="arka.journal_title">Дневник эволюции</h2>
       </div>
-      <p class="card-hint">Что развивать и опираться на это сегодня.</p>
-      <ul class="dar-list" data-list="light">
-        <li><b>Замедление времени</b> — входить в состояние, где минуты растягиваются в часы, и найти решение в любой ситуации</li>
-        <li><b>Ускорение процессов</b> — сжимать время для рутины и тяжёлых периодов, проходя их быстро и без потерь</li>
-        <li><b>Аспект вечной молодости</b> — фокусировка на настоящем замедляет процессы старения тела и духа</li>
-        <li><b>Синхронизация с другими</b> — подстроиться к ритму другого и мягко перевести его в иное состояние</li>
-        <li><b>Путешествие во времени сознания</b> — перемещение фокуса в прошлое для исцеления или в будущее для предвидения</li>
-      </ul>
+      <p class="card-hint" data-i18n="arka.journal_hint">Хроника инсайтов, побед, прохождения теней. AI-разбор недели.</p>
+
+      <div class="evo-journal-input">
+        <div class="evo-tabs">
+          <button class="evo-tab evo-tab-active" data-evo="light">🌟 <span data-i18n="arka.journal_light">Свет</span></button>
+          <button class="evo-tab" data-evo="shadow">🌑 <span data-i18n="arka.journal_shadow">Тень</span></button>
+          <button class="evo-tab" data-evo="insight">💫 <span data-i18n="arka.journal_insight">Инсайт</span></button>
+        </div>
+        <textarea class="evo-textarea" placeholder="Что было сегодня?" data-i18n-placeholder="arka.journal_placeholder"></textarea>
+        <button class="evo-save-btn" data-i18n="arka.journal_save">Сохранить запись</button>
+      </div>
+
+      <div class="evo-recent">
+        <div class="evo-recent-title" data-i18n="arka.journal_recent">За последние 7 дней</div>
+        <div class="evo-entry evo-entry-light"><span class="evo-date">Вчера</span> <span data-i18n="arka.journal_demo1">Замедлила утро, успела продумать стратегию книги до завтрака.</span></div>
+        <div class="evo-entry evo-entry-shadow"><span class="evo-date">2 дня</span> <span data-i18n="arka.journal_demo2">Поймала себя на спешке — остановилась, 7 вдохов АСТРА, вернулась в момент.</span></div>
+        <div class="evo-entry evo-entry-insight"><span class="evo-date">5 дней</span> <span data-i18n="arka.journal_demo3">Поняла: молодость не в скорости, а в присутствии. Книга родится в своём темпе.</span></div>
+      </div>
+
+      <div class="evo-ai-card">
+        <div class="evo-ai-title" data-i18n="arka.journal_ai_title">🐉 Разбор недели от твоего Дара</div>
+        <div class="evo-ai-text" data-i18n="arka.journal_ai_text">За неделю 3 раза активировалась тень «выпадение из времени». Опора — ЛОГОС-треугольник утром (заземление + Frankincense + дыхание АСТРА). Если повторится — это сигнал к глубокой паузе на день.</div>
+      </div>
     </section>
 
-    <section class="dar-block" data-block="shadow">
+    <!-- 4. ТРЕНАЖЁР ДАРА -->
+    <section class="arka-section" id="arka-trainer">
       <div class="card-header">
-        <span class="card-icon">🌑</span>
-        <h3 class="card-title">Тени и опоры</h3>
+        <span class="card-icon">🎯</span>
+        <h2 class="card-title" data-i18n="arka.trainer_title">Тренажёр Дара</h2>
       </div>
-      <p class="card-hint">Не враги — ресурс через осознание. Каждая тень имеет конкретную опору.</p>
-      <ul class="dar-list" data-list="shadow">
-        <li>
-          <b>Выпадение из времени</b> — опоздания, невыполнение обязательств.
-          <span class="shadow-support">Опора: всегда иметь якорь в обычном времени — часы, расписание, договорённости</span>
-        </li>
-        <li>
-          <b>Страх старения</b> — невроз времени, зацикленность на молодости.
-          <span class="shadow-support">Опора: молодость З-МАН — не остановка времени, а гармония с ним</span>
-        </li>
-        <li>
-          <b>Манипуляция чужим временем</b> — изменение ритма без согласия.
-          <span class="shadow-support">Опора: синхронизация работает только при добровольном контакте</span>
-        </li>
-        <li>
-          <b>Застревание в прошлом или будущем</b> — змей уносит из «сейчас».
-          <span class="shadow-support">Опора: ЛОГОС-треугольник всегда активен как якорь</span>
-        </li>
-      </ul>
-    </section>
+      <p class="card-hint" data-i18n="arka.trainer_hint">Ежедневные практики под архетип З-МАН. Стрик отдельный — за регулярность тренировок.</p>
 
-    <section class="dar-block" data-block="oil">
-      <div class="card-header">
-        <span class="card-icon">💧</span>
-        <h3 class="card-title">Масла З-МАН</h3>
+      <div class="trainer-streak">
+        <span class="ts-icon">🐉</span>
+        <span class="ts-text" data-i18n="arka.trainer_streak_pre">Тренируешься</span>
+        <b id="trainerStreakDays">12</b>
+        <span data-i18n="arka.trainer_streak_post">дней подряд</span>
       </div>
-      <p class="card-hint">Подобрано по принципу архетипа времени и потока. Каждое масло — опора для конкретного аспекта Дара З-МАН.</p>
-      <ul class="dar-list">
-        <li><b>Frankincense</b> · присутствие в моменте, замедление времени, активация ЛОГОСа</li>
-        <li><b>Vetiver</b> · глубокое заземление, опора у основания позвоночника</li>
-        <li><b>Cypress</b> · поток ТУМА, движение времени, текучесть</li>
-        <li><b>Balance</b> · якорь, ЛОГОС-треугольник, возвращение в «сейчас»</li>
-        <li><b>Lavender</b> · мягкий переход в восстановление, ночное скольжение</li>
-      </ul>
-    </section>
 
-    <section class="dar-block">
-      <div class="card-header">
-        <span class="card-icon">🕯</span>
-        <h3 class="card-title">Атрибуты Дара</h3>
+      <div class="trainer-practices">
+        <div class="trainer-practice trainer-practice-done">
+          <span class="tp-mark">✓</span>
+          <span class="tp-name" data-i18n="arka.trainer_p1">Замедление времени — 5 мин</span>
+          <span class="tp-time">5 мин</span>
+        </div>
+        <div class="trainer-practice trainer-practice-current">
+          <span class="tp-mark">○</span>
+          <span class="tp-name" data-i18n="arka.trainer_p2">Синхронизация дыхания с минутной стрелкой</span>
+          <span class="tp-time">3 мин</span>
+        </div>
+        <div class="trainer-practice">
+          <span class="tp-mark">○</span>
+          <span class="tp-name" data-i18n="arka.trainer_p3">Скольжение в прошлый момент силы</span>
+          <span class="tp-time">7 мин</span>
+        </div>
+        <div class="trainer-practice">
+          <span class="tp-mark">○</span>
+          <span class="tp-name" data-i18n="arka.trainer_p4">Якорь ЛОГОСа — вернуть себя в сейчас</span>
+          <span class="tp-time">2 мин</span>
+        </div>
       </div>
-      <div class="dar-attrs">
-        <div class="dar-attrs-row"><span class="dar-attrs-label">Стихии</span><span class="dar-attrs-value">Земля · Вода · Воздух</span></div>
-        <div class="dar-attrs-row"><span class="dar-attrs-label">Символ</span><span class="dar-attrs-value">Змей в кольце · водный дракон · песочные часы</span></div>
-        <div class="dar-attrs-row"><span class="dar-attrs-label">Цвет</span><span class="dar-attrs-value">Серебристо-голубой с земляным золотом</span></div>
-        <div class="dar-attrs-row"><span class="dar-attrs-label">Тело</span><span class="dar-attrs-value">Позвоночник · основание · горло</span></div>
-        <div class="dar-attrs-row"><span class="dar-attrs-label">Камни</span><span class="dar-attrs-value">Лабрадорит · лунный камень · обсидиан</span></div>
-        <div class="dar-attrs-row"><span class="dar-attrs-label">Образ</span><span class="dar-attrs-value">Водный дракон · вечно юный мудрец</span></div>
-      </div>
+
+      <button class="trainer-start-btn" data-i18n="arka.trainer_start">▶ Начать текущую практику</button>
     </section>
 
     <div class="info-banner">
       <span>ℹ️</span>
-      <div>Данные подтянуты из <code>dar-content.json</code>. При интеграции в YupDar обновятся автоматически.</div>
+      <div data-i18n="arka.dar_tab_info"><b>Это эксклюзивный контент АРКА.</b> Полное описание Дара (суть, светлые стороны, тени, масла, атрибуты) — в Энциклопедии Сокровищницы YupDar.</div>
     </div>
   </div>
 
@@ -487,6 +561,188 @@
 </div>
 
 <script>
+// i18n для прототипа АРКА — словарь переводов (RU/EN/ES)
+// Читает текущий язык из родительского preview (localStorage)
+const ARKA_I18N = {
+  ru: {
+    'arka.windows_title': 'Окна силы',
+    'arka.windows_hint': 'Биоритм твоего Дара — когда энергия на пике, когда на спаде.',
+    'arka.windows_peak': 'Пик энергии',
+    'arka.windows_peak_desc': 'Сумерки — стихия З-МАН. Тяжёлые задачи, важные решения, ритуалы.',
+    'arka.windows_flow': 'Поток',
+    'arka.windows_flow_desc': 'Творчество, письмо, потоковая работа без давления времени.',
+    'arka.windows_rest': 'Тишина',
+    'arka.windows_rest_desc': 'Спад — отдых, медитация, наблюдение. Не давить на себя.',
+    'arka.windows_moon': '🌙 Сейчас лунный ритм',
+    'arka.windows_moon_text': 'Растущая Луна — благоприятна для запуска нового. Используй пик силы для важных шагов.',
+    'arka.growth_title': 'Карта роста',
+    'arka.growth_hint': 'Где ты сейчас в раскрытии Дара. 5 этапов пути.',
+    'arka.growth_st1': 'Исследователь',
+    'arka.growth_st2': 'Носитель',
+    'arka.growth_st3': 'Хранитель',
+    'arka.growth_st4': 'Мастер',
+    'arka.growth_st5': 'Архитектор',
+    'arka.growth_progress': 'Раскрытие Дара',
+    'arka.growth_shadows_done': '✓ Пройденные тени',
+    'arka.growth_shadows_active': '○ Активные тени',
+    'arka.journal_title': 'Дневник эволюции',
+    'arka.journal_hint': 'Хроника инсайтов, побед, прохождения теней. AI-разбор недели.',
+    'arka.journal_light': 'Свет',
+    'arka.journal_shadow': 'Тень',
+    'arka.journal_insight': 'Инсайт',
+    'arka.journal_placeholder': 'Что было сегодня?',
+    'arka.journal_save': 'Сохранить запись',
+    'arka.journal_recent': 'За последние 7 дней',
+    'arka.journal_demo1': 'Замедлила утро, успела продумать стратегию книги до завтрака.',
+    'arka.journal_demo2': 'Поймала себя на спешке — остановилась, 7 вдохов АСТРА, вернулась в момент.',
+    'arka.journal_demo3': 'Поняла: молодость не в скорости, а в присутствии. Книга родится в своём темпе.',
+    'arka.journal_ai_title': '🐉 Разбор недели от твоего Дара',
+    'arka.journal_ai_text': 'За неделю 3 раза активировалась тень «выпадение из времени». Опора — ЛОГОС-треугольник утром (заземление + Frankincense + дыхание АСТРА). Если повторится — это сигнал к глубокой паузе на день.',
+    'arka.trainer_title': 'Тренажёр Дара',
+    'arka.trainer_hint': 'Ежедневные практики под архетип З-МАН. Стрик отдельный — за регулярность тренировок.',
+    'arka.trainer_streak_pre': 'Тренируешься',
+    'arka.trainer_streak_post': 'дней подряд',
+    'arka.trainer_p1': 'Замедление времени — 5 мин',
+    'arka.trainer_p2': 'Синхронизация дыхания с минутной стрелкой',
+    'arka.trainer_p3': 'Скольжение в прошлый момент силы',
+    'arka.trainer_p4': 'Якорь ЛОГОСа — вернуть себя в сейчас',
+    'arka.trainer_start': '▶ Начать текущую практику',
+    'arka.dar_tab_info': '<b>Это эксклюзивный контент АРКА.</b> Полное описание Дара (суть, светлые стороны, тени, масла, атрибуты) — в Энциклопедии Сокровищницы YupDar.'
+  },
+  en: {
+    'arka.windows_title': 'Power Windows',
+    'arka.windows_hint': 'Your DAR\'s biorhythm — when energy peaks and when it dips.',
+    'arka.windows_peak': 'Energy Peak',
+    'arka.windows_peak_desc': 'Twilight is Z-MAN\'s element. Hard tasks, important decisions, rituals.',
+    'arka.windows_flow': 'Flow',
+    'arka.windows_flow_desc': 'Creativity, writing, flow-state work without time pressure.',
+    'arka.windows_rest': 'Stillness',
+    'arka.windows_rest_desc': 'Dip — rest, meditation, observation. Don\'t push yourself.',
+    'arka.windows_moon': '🌙 Current Lunar Rhythm',
+    'arka.windows_moon_text': 'Waxing Moon — favorable for starting new things. Use peak power for important steps.',
+    'arka.growth_title': 'Growth Map',
+    'arka.growth_hint': 'Where you are now in unfolding your DAR. 5 stages of the path.',
+    'arka.growth_st1': 'Explorer',
+    'arka.growth_st2': 'Bearer',
+    'arka.growth_st3': 'Guardian',
+    'arka.growth_st4': 'Master',
+    'arka.growth_st5': 'Architect',
+    'arka.growth_progress': 'DAR Unfolding',
+    'arka.growth_shadows_done': '✓ Shadows Passed',
+    'arka.growth_shadows_active': '○ Active Shadows',
+    'arka.journal_title': 'Evolution Journal',
+    'arka.journal_hint': 'Chronicle of insights, victories, shadow passages. Weekly AI review.',
+    'arka.journal_light': 'Light',
+    'arka.journal_shadow': 'Shadow',
+    'arka.journal_insight': 'Insight',
+    'arka.journal_placeholder': 'What happened today?',
+    'arka.journal_save': 'Save Entry',
+    'arka.journal_recent': 'Last 7 Days',
+    'arka.journal_demo1': 'Slowed down the morning, planned the book strategy before breakfast.',
+    'arka.journal_demo2': 'Caught myself rushing — paused, 7 ASTRA breaths, returned to the moment.',
+    'arka.journal_demo3': 'Realized: youth is not in speed, but in presence. The book will be born in its own rhythm.',
+    'arka.journal_ai_title': '🐉 Weekly Review from Your DAR',
+    'arka.journal_ai_text': 'This week the shadow "falling out of time" activated 3 times. Support — LOGOS triangle in the morning (grounding + Frankincense + ASTRA breathing). If it repeats — it\'s a signal for a deep pause for a day.',
+    'arka.trainer_title': 'DAR Trainer',
+    'arka.trainer_hint': 'Daily practices for the Z-MAN archetype. Streak counts separately — for training regularity.',
+    'arka.trainer_streak_pre': 'Training for',
+    'arka.trainer_streak_post': 'days in a row',
+    'arka.trainer_p1': 'Time slowdown — 5 min',
+    'arka.trainer_p2': 'Breath sync with the minute hand',
+    'arka.trainer_p3': 'Sliding into a past power moment',
+    'arka.trainer_p4': 'LOGOS anchor — return yourself to now',
+    'arka.trainer_start': '▶ Start Current Practice',
+    'arka.dar_tab_info': '<b>This is exclusive ARKA content.</b> Full DAR description (essence, light sides, shadows, oils, attributes) — in the YupDar Treasury Encyclopedia.'
+  },
+  es: {
+    'arka.windows_title': 'Ventanas de Poder',
+    'arka.windows_hint': 'El biorritmo de tu DAR: cuándo la energía alcanza su pico y cuándo decae.',
+    'arka.windows_peak': 'Pico de Energía',
+    'arka.windows_peak_desc': 'El crepúsculo es el elemento de Z-MAN. Tareas difíciles, decisiones importantes, rituales.',
+    'arka.windows_flow': 'Flujo',
+    'arka.windows_flow_desc': 'Creatividad, escritura, trabajo en flujo sin presión del tiempo.',
+    'arka.windows_rest': 'Quietud',
+    'arka.windows_rest_desc': 'Descenso — descanso, meditación, observación. No te presiones.',
+    'arka.windows_moon': '🌙 Ritmo Lunar Actual',
+    'arka.windows_moon_text': 'Luna Creciente — favorable para iniciar nuevas cosas. Usa el pico de poder para pasos importantes.',
+    'arka.growth_title': 'Mapa de Crecimiento',
+    'arka.growth_hint': 'Dónde estás ahora en el despliegue de tu DAR. 5 etapas del camino.',
+    'arka.growth_st1': 'Explorador',
+    'arka.growth_st2': 'Portador',
+    'arka.growth_st3': 'Guardián',
+    'arka.growth_st4': 'Maestro',
+    'arka.growth_st5': 'Arquitecto',
+    'arka.growth_progress': 'Despliegue del DAR',
+    'arka.growth_shadows_done': '✓ Sombras Superadas',
+    'arka.growth_shadows_active': '○ Sombras Activas',
+    'arka.journal_title': 'Diario de Evolución',
+    'arka.journal_hint': 'Crónica de revelaciones, victorias, pasos por las sombras. Revisión semanal con IA.',
+    'arka.journal_light': 'Luz',
+    'arka.journal_shadow': 'Sombra',
+    'arka.journal_insight': 'Revelación',
+    'arka.journal_placeholder': '¿Qué pasó hoy?',
+    'arka.journal_save': 'Guardar Entrada',
+    'arka.journal_recent': 'Últimos 7 días',
+    'arka.journal_demo1': 'Desaceleré la mañana, planeé la estrategia del libro antes del desayuno.',
+    'arka.journal_demo2': 'Me sorprendí apresurándome — pausa, 7 respiraciones ASTRA, regresé al momento.',
+    'arka.journal_demo3': 'Comprendí: la juventud no está en la velocidad, sino en la presencia. El libro nacerá a su propio ritmo.',
+    'arka.journal_ai_title': '🐉 Revisión Semanal de Tu DAR',
+    'arka.journal_ai_text': 'Esta semana la sombra «caer fuera del tiempo» se activó 3 veces. Apoyo — triángulo LOGOS por la mañana (enraizamiento + Frankincense + respiración ASTRA). Si se repite — es una señal para una pausa profunda de un día.',
+    'arka.trainer_title': 'Entrenador del DAR',
+    'arka.trainer_hint': 'Prácticas diarias para el arquetipo Z-MAN. La racha cuenta por separado — por la regularidad del entrenamiento.',
+    'arka.trainer_streak_pre': 'Entrenando',
+    'arka.trainer_streak_post': 'días seguidos',
+    'arka.trainer_p1': 'Desaceleración del tiempo — 5 min',
+    'arka.trainer_p2': 'Sincronización del aliento con el minutero',
+    'arka.trainer_p3': 'Deslizamiento a un momento de poder pasado',
+    'arka.trainer_p4': 'Ancla de LOGOS — regrésate al ahora',
+    'arka.trainer_start': '▶ Iniciar Práctica Actual',
+    'arka.dar_tab_info': '<b>Este es contenido exclusivo de ARKA.</b> La descripción completa del DAR (esencia, lados luminosos, sombras, aceites, atributos) — en la Enciclopedia del Tesoro de YupDar.'
+  }
+};
+
+function getArkaLang() {
+  // Ключ из preview/js/i18n.js
+  const KEY = '_yupdar_preview_lang';
+  try {
+    const fromParent = window.parent.localStorage.getItem(KEY);
+    if (fromParent && ARKA_I18N[fromParent]) return fromParent;
+  } catch (e) {}
+  try {
+    const fromLocal = localStorage.getItem(KEY);
+    if (fromLocal && ARKA_I18N[fromLocal]) return fromLocal;
+  } catch (e) {}
+  // Резерв — браузерный язык
+  const browser = (navigator.language || 'ru').slice(0, 2).toLowerCase();
+  if (ARKA_I18N[browser]) return browser;
+  return 'ru';
+}
+
+function applyArkaI18n() {
+  const lang = getArkaLang();
+  const dict = ARKA_I18N[lang] || ARKA_I18N.ru;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (dict[key] !== undefined) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    if (dict[key] !== undefined) el.placeholder = dict[key];
+  });
+}
+// Слушаем смену языка из родительского окна
+window.addEventListener('storage', (e) => {
+  if (e.key === '_yupdar_preview_lang') applyArkaI18n();
+});
+// Также слушаем кастомное событие, которое отправляет родитель при смене языка
+try {
+  window.parent.document.addEventListener('i18n:changed', () => applyArkaI18n());
+} catch (e) {}
+// Применяем при загрузке
+document.addEventListener('DOMContentLoaded', applyArkaI18n);
+// Сразу пробуем — на случай если DOM уже готов
+setTimeout(applyArkaI18n, 0);
+
 // Подтягиваем профиль пользователя из родительского preview (общая БД localStorage)
 (function pullUserProfile() {
   const PROFILE_KEY = '_yupdar_preview_profile';

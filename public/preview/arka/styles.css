@@ -1,39 +1,88 @@
-/* АРКА — прототип. Палитра под Дар З-МАН: серебристо-голубой + золото у основания. */
+/* АРКА — прототип. ТЕМА З-МАН «Сумерки времени»: бирюзово-синий + серебристо-голубой + золото у основания. */
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 :root {
-  --bg: #eef2f6;
-  --bg-card: #ffffff;
-  --bg-warm: #f4f7fb;
-  --ink: #1f3245;
-  --ink-soft: #5a6b80;
-  --ink-mute: #8e9aab;
-  --accent: #6889a8;
-  --accent-deep: #4a6985;
-  --accent-soft: #b5cadf;
-  --gold: #c9a76b;
-  --gold-soft: #e8d4a8;
-  --green: #6e9484;
-  --green-soft: #cfe0d6;
-  --shadow-deep: #7d4f6a;
-  --line: #d6dfe9;
-  --shadow: 0 4px 18px rgba(50, 70, 95, 0.08);
-  --shadow-soft: 0 2px 8px rgba(50, 70, 95, 0.05);
+  /* Тёмная палитра «Сумерки времени» для Дара З-МАН (1-6-7) */
+  --bg: #0a1929;
+  --bg-card: rgba(20, 45, 70, 0.55);
+  --bg-warm: rgba(30, 55, 80, 0.5);
+  --ink: #E0F2FE;
+  --ink-soft: #94A3B8;
+  --ink-mute: #64748B;
+  --accent: #7DD3FC;
+  --accent-deep: #38BDF8;
+  --accent-soft: rgba(125, 211, 252, 0.25);
+  --gold: #D4AF37;
+  --gold-soft: rgba(212, 175, 55, 0.25);
+  --green: #6EE7B7;
+  --green-soft: rgba(110, 231, 183, 0.15);
+  --shadow-deep: #A78BFA;
+  --line: rgba(125, 211, 252, 0.18);
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
   --radius: 18px;
   --radius-sm: 12px;
 }
 
 body {
   background: var(--bg);
-  background-image: linear-gradient(180deg, #e8edf3 0%, #eef2f6 100%);
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(125, 211, 252, 0.12), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.08), transparent 50%),
+    linear-gradient(180deg, #0a1929 0%, #0F1F33 50%, #0a1929 100%);
   color: var(--ink);
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   min-height: 100vh;
   padding-bottom: 60px;
+  position: relative;
+  overflow-x: hidden;
 }
+
+/* Анимация волн времени — медленный фон для архетипа З-МАН */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 800px 400px at 50% -10%, rgba(125, 211, 252, 0.07), transparent),
+    radial-gradient(ellipse 600px 300px at 50% 110%, rgba(212, 175, 55, 0.05), transparent);
+  animation: zman-tide 14s ease-in-out infinite;
+  z-index: 0;
+}
+
+/* Тонкая «змеиная» полоска у нижнего края — отсылка к стрику «змей вечности» */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(212, 175, 55, 0.35),
+    rgba(125, 211, 252, 0.45),
+    rgba(212, 175, 55, 0.35),
+    transparent);
+  pointer-events: none;
+  z-index: 1;
+  animation: zman-serpent 18s linear infinite;
+  background-size: 200% 100%;
+}
+
+@keyframes zman-tide {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { transform: translateY(-12px) scale(1.02); opacity: 0.85; }
+}
+
+@keyframes zman-serpent {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+.container { position: relative; z-index: 2; }
 
 .container { max-width: 480px; margin: 0 auto; padding: 20px 16px; }
 

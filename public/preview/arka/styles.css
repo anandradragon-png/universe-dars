@@ -1,0 +1,814 @@
+/* АРКА — прототип. Палитра под Дар З-МАН: серебристо-голубой + золото у основания. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #eef2f6;
+  --bg-card: #ffffff;
+  --bg-warm: #f4f7fb;
+  --ink: #1f3245;
+  --ink-soft: #5a6b80;
+  --ink-mute: #8e9aab;
+  --accent: #6889a8;
+  --accent-deep: #4a6985;
+  --accent-soft: #b5cadf;
+  --gold: #c9a76b;
+  --gold-soft: #e8d4a8;
+  --green: #6e9484;
+  --green-soft: #cfe0d6;
+  --shadow-deep: #7d4f6a;
+  --line: #d6dfe9;
+  --shadow: 0 4px 18px rgba(50, 70, 95, 0.08);
+  --shadow-soft: 0 2px 8px rgba(50, 70, 95, 0.05);
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+
+body {
+  background: var(--bg);
+  background-image: linear-gradient(180deg, #e8edf3 0%, #eef2f6 100%);
+  color: var(--ink);
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.container { max-width: 480px; margin: 0 auto; padding: 20px 16px; }
+
+/* ── Заголовок ──────────────────────────────────────── */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18px; padding: 0 4px;
+}
+.greeting .time-of-day {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; color: var(--ink-soft); font-weight: 500;
+}
+.greeting .name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px; font-weight: 600; color: var(--ink); line-height: 1.1;
+}
+.dar-badge {
+  text-align: right; background: var(--bg-card);
+  border-radius: var(--radius-sm); padding: 8px 14px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--accent-soft);
+}
+.dar-label {
+  font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--ink-mute);
+}
+.dar-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--accent-deep); letter-spacing: 1px;
+}
+.dar-code { font-size: 11px; color: var(--gold); letter-spacing: 1px; font-weight: 600; }
+
+/* ── Табы ───────────────────────────────────────────── */
+.tabs {
+  display: flex; gap: 6px;
+  background: var(--bg-card);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-soft);
+}
+.tab {
+  flex: 1; background: transparent; border: none;
+  padding: 10px 6px; cursor: pointer; border-radius: 9px;
+  font-family: inherit; color: var(--ink-soft);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: all 0.2s;
+}
+.tab-emoji { font-size: 18px; }
+.tab-label { font-size: 11px; letter-spacing: 0.5px; font-weight: 500; }
+.tab.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(74, 105, 133, 0.25);
+}
+.tab.active .tab-label { font-weight: 600; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Окно силы ──────────────────────────────────────── */
+.power-window {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #d8e3f0 0%, #b5cadf 100%);
+  border-radius: var(--radius); padding: 16px 18px;
+  margin-bottom: 14px; box-shadow: var(--shadow-soft);
+  position: relative; overflow: hidden;
+}
+.power-window::before {
+  content: '🐉'; position: absolute; right: -8px; bottom: -12px;
+  font-size: 80px; opacity: 0.08;
+}
+.pw-icon { font-size: 28px; color: var(--gold); flex-shrink: 0; }
+.pw-title { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent-deep); font-weight: 600; }
+.pw-time { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+.pw-hint { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+
+/* ── Стрик ──────────────────────────────────────────── */
+.streak {
+  background: linear-gradient(90deg, var(--gold-soft) 0%, #f5e7c8 100%);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+  font-size: 14px; color: #6b5530;
+}
+.streak b { color: #8a6a35; font-weight: 700; }
+
+/* ── Карточки общие ─────────────────────────────────── */
+.tasks-card, .ritual, .progress-card, .doterra-card,
+.dar-block, .goal-card, .steps-card, .ai-card, .dar-hero {
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+}
+
+.card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.card-icon { font-size: 22px; }
+.card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 600; color: var(--ink);
+  flex: 1;
+}
+.card-hint {
+  font-size: 13px; color: var(--ink-soft);
+  margin-bottom: 14px; line-height: 1.45;
+}
+
+/* ── Задачи дня ─────────────────────────────────────── */
+.tasks-list { list-style: none; }
+.task-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 8px; border-radius: 10px;
+  margin-bottom: 4px;
+  transition: background 0.2s;
+}
+.task-item:hover { background: var(--bg-warm); }
+.task-checkbox {
+  width: 22px; height: 22px;
+  border: 2px solid var(--line);
+  border-radius: 7px; flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s; position: relative;
+}
+.task-checkbox.done {
+  background: var(--green); border-color: var(--green);
+}
+.task-checkbox.done::after {
+  content: '✓'; position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  color: white; font-size: 14px; font-weight: bold;
+}
+.task-text {
+  flex: 1; font-size: 14px; color: var(--ink);
+  outline: none; min-width: 0;
+}
+.task-text[contenteditable=true]:empty::before {
+  content: 'Опиши задачу…'; color: var(--ink-mute);
+}
+.task-item.done .task-text {
+  color: var(--ink-mute); text-decoration: line-through;
+}
+.task-type {
+  border: 1px solid var(--line);
+  background: var(--bg-warm);
+  border-radius: 8px; padding: 4px 8px;
+  font-size: 11px; cursor: pointer;
+  color: var(--ink-soft); flex-shrink: 0;
+  user-select: none;
+  transition: all 0.2s;
+}
+.task-type[data-type=resource] { background: var(--green-soft); color: #3f5d4c; border-color: #a3c6b1; }
+.task-type[data-type=neutral] { background: var(--bg-warm); color: var(--ink-soft); }
+.task-type[data-type=shadow] { background: #efe1ea; color: var(--shadow-deep); border-color: #cfa9bf; }
+.task-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-mute); font-size: 16px; padding: 4px;
+  flex-shrink: 0;
+}
+.task-remove:hover { color: var(--shadow-deep); }
+.task-add-btn {
+  width: 100%; background: var(--bg-warm);
+  border: 1px dashed var(--accent-soft); color: var(--accent-deep);
+  padding: 10px; border-radius: 10px;
+  font-family: inherit; font-size: 14px; font-weight: 500;
+  cursor: pointer; margin-top: 8px;
+  transition: all 0.2s;
+}
+.task-add-btn:hover { background: #eaf0f7; border-color: var(--accent); }
+
+/* ── Ритуалы ────────────────────────────────────────── */
+.ritual-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; flex-wrap: wrap;
+}
+.ritual-icon { font-size: 22px; flex-shrink: 0; }
+.ritual-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 600;
+  flex: 1 1 auto; min-width: 0; color: var(--ink);
+}
+.ritual-time {
+  font-size: 11px; color: var(--ink-mute);
+  background: var(--bg-warm); padding: 3px 9px;
+  border-radius: 10px; letter-spacing: 0.5px;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── Чек-лист ───────────────────────────────────────── */
+.checklist { list-style: none; }
+.check-item { margin-bottom: 6px; }
+.check-item label {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 6px; cursor: pointer; border-radius: 10px;
+  transition: background 0.2s;
+}
+.check-item label:hover { background: var(--bg-warm); }
+.check-item input { display: none; }
+.check-mark {
+  width: 22px; height: 22px;
+  border: 2px solid var(--line);
+  border-radius: 7px; flex-shrink: 0;
+  position: relative; transition: all 0.2s;
+}
+.check-item input:checked + .check-mark {
+  background: var(--green); border-color: var(--green);
+}
+.check-item input:checked + .check-mark::after {
+  content: '✓'; position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  color: white; font-size: 14px; font-weight: bold;
+}
+.check-text { font-size: 15px; color: var(--ink); transition: color 0.2s; }
+.check-item input:checked ~ .check-text {
+  color: var(--ink-mute); text-decoration: line-through;
+}
+
+/* ── Легенда типов задач ────────────────────────────── */
+.task-legend {
+  margin-bottom: 12px;
+  background: var(--bg-warm);
+  border-radius: 10px;
+  padding: 4px 0;
+}
+.task-legend summary {
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--accent-deep);
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.task-legend summary::before {
+  content: 'ⓘ'; font-size: 14px;
+}
+.task-legend summary::-webkit-details-marker { display: none; }
+.task-legend[open] summary { border-bottom: 1px dashed var(--line); margin-bottom: 4px; }
+.legend-body {
+  padding: 8px 12px 4px;
+  font-size: 13px; line-height: 1.55; color: var(--ink-soft);
+}
+.legend-row { padding: 5px 0; }
+.legend-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px; font-weight: 600;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.legend-tag[data-type=resource] { background: var(--green-soft); color: #3f5d4c; }
+.legend-tag[data-type=neutral] { background: white; color: var(--ink-soft); border: 1px solid var(--line); }
+.legend-tag[data-type=shadow] { background: #efe1ea; color: var(--shadow-deep); }
+
+/* ── Кнопка "Предложить шаги" и панель ──────────────── */
+.steps-actions { display: flex; gap: 8px; margin-top: 8px; }
+.steps-actions .task-add-btn { flex: 1; margin-top: 0; }
+.suggest-btn {
+  flex: 1; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: white; border: none;
+  padding: 10px; border-radius: 10px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.suggest-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(74,105,133,0.25); }
+
+.suggestions-panel {
+  display: none; margin-top: 12px;
+  background: linear-gradient(135deg, #2a3b50 0%, #4a6985 100%);
+  color: white; border-radius: 12px;
+  padding: 14px;
+}
+.suggestions-panel.visible { display: block; }
+.suggestions-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px; font-weight: 600;
+  margin-bottom: 10px; color: var(--gold-soft);
+}
+.suggestion-item {
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  font-size: 13px; line-height: 1.5;
+  display: flex; gap: 10px;
+  align-items: flex-start;
+}
+.suggestion-text { flex: 1; }
+.suggestion-add {
+  background: white; color: var(--accent-deep);
+  border: none; padding: 4px 10px;
+  border-radius: 14px; cursor: pointer;
+  font-family: inherit; font-size: 11px; font-weight: 600;
+  flex-shrink: 0; white-space: nowrap;
+  transition: all 0.2s;
+}
+.suggestion-add:hover { background: var(--gold-soft); }
+.suggestion-add.added { background: var(--green); color: white; }
+
+/* ── Кнопка "?" и раскрытие деталей ─────────────────── */
+.info-btn {
+  margin-left: auto; flex-shrink: 0;
+  width: 22px; height: 22px;
+  border: 1px solid var(--accent-soft);
+  background: white;
+  color: var(--accent);
+  border-radius: 50%; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  padding: 0; line-height: 1;
+  transition: all 0.2s;
+}
+.info-btn:hover { background: var(--accent); color: white; }
+.info-btn.active { background: var(--accent); color: white; }
+
+.check-item label { gap: 12px; flex-wrap: wrap; }
+.check-item label > .check-text { flex: 1; min-width: 0; }
+
+.practice-details {
+  display: none;
+  margin: 6px 0 10px 40px;
+  padding: 12px 14px;
+  background: #eaf0f7;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  font-size: 13px; line-height: 1.6;
+  color: var(--ink-soft);
+}
+.practice-details.visible { display: block; }
+.practice-details.warn {
+  background: #fdeeea;
+  border-left-color: var(--shadow-deep);
+}
+.practice-details b { color: var(--ink); font-weight: 600; }
+.practice-details em { color: var(--accent-deep); font-style: normal; font-weight: 600; }
+.practice-details.warn b { color: var(--shadow-deep); }
+
+.water-btn {
+  display: inline-block;
+  background: var(--accent); color: white;
+  border: none; padding: 5px 12px;
+  border-radius: 16px;
+  font-family: inherit; font-size: 12px;
+  cursor: pointer; margin-left: 4px;
+  transition: all 0.2s;
+}
+.water-btn:hover { background: var(--accent-deep); }
+.water-btn.active { background: var(--green); }
+
+/* ── Подсказка масла ────────────────────────────────── */
+.oil-hint {
+  margin-left: 40px; margin-top: -4px; margin-bottom: 8px;
+  padding: 8px 12px;
+  background: var(--bg-warm);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px; color: var(--ink-soft);
+  display: flex; align-items: flex-start; gap: 8px;
+  line-height: 1.4;
+}
+
+/* ── Дневник ────────────────────────────────────────── */
+.journal { margin-top: 12px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.journal-label {
+  display: block; font-family: 'Cormorant Garamond', serif;
+  font-size: 16px; font-style: italic;
+  color: var(--ink-soft); margin-bottom: 8px;
+}
+.journal textarea {
+  width: 100%; border: none; background: var(--bg-warm);
+  border-radius: 10px; padding: 10px 12px;
+  font-family: inherit; font-size: 14px; color: var(--ink);
+  resize: none; outline: none;
+}
+.journal textarea:focus { background: #eaf0f7; }
+
+/* ── Прогресс ───────────────────────────────────────── */
+.progress-card { text-align: center; }
+.progress-label {
+  font-size: 12px; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--ink-mute);
+  margin-bottom: 10px;
+}
+.progress-bar {
+  height: 8px; background: var(--line); border-radius: 4px;
+  overflow: hidden; margin-bottom: 10px;
+}
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--gold) 100%);
+  border-radius: 4px; transition: width 0.4s ease;
+}
+.progress-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 600; color: var(--ink);
+}
+
+/* ── doTERRA ────────────────────────────────────────── */
+.doterra-card {
+  background: linear-gradient(135deg, #f4ecda 0%, #ead8b3 100%);
+  text-align: center; box-shadow: var(--shadow-soft);
+}
+.doterra-emblem { font-size: 32px; margin-bottom: 8px; }
+.doterra-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 600;
+  margin-bottom: 8px; color: var(--ink);
+}
+.doterra-text {
+  font-size: 14px; color: var(--ink-soft);
+  margin-bottom: 14px; line-height: 1.5;
+}
+.doterra-btn {
+  display: inline-block; background: var(--gold);
+  color: white; text-decoration: none;
+  padding: 12px 28px; border-radius: 12px;
+  font-weight: 600; font-size: 15px;
+  letter-spacing: 0.3px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.doterra-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(201, 167, 107, 0.4);
+}
+.doterra-btn:active { transform: translateY(0); }
+.doterra-small { font-size: 11px; color: var(--ink-mute); margin-top: 10px; }
+
+/* ── ТАБ ДАР ───────────────────────────────────────── */
+.dar-hero {
+  text-align: center;
+  background: linear-gradient(135deg, var(--accent-deep) 0%, var(--accent) 100%);
+  color: white; padding: 26px 18px 20px;
+  position: relative; overflow: hidden;
+}
+.dar-hero::before {
+  content: '🐉'; position: absolute; right: -10px; top: -10px;
+  font-size: 100px; opacity: 0.1;
+}
+.dar-hero-code {
+  font-size: 12px; letter-spacing: 4px;
+  color: var(--gold-soft); font-weight: 600;
+}
+.dar-hero-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 38px; font-weight: 700;
+  letter-spacing: 4px; margin: 2px 0 6px;
+}
+.dar-hero-sub {
+  font-style: italic;
+  color: #d8e3f0; font-size: 14px;
+}
+
+.dar-block { border-left: 4px solid var(--accent); }
+.dar-block[data-block=light] { border-left-color: var(--gold); }
+.dar-block[data-block=shadow] { border-left-color: var(--shadow-deep); }
+.dar-block[data-block=oil] { border-left-color: var(--green); }
+
+.dar-list { list-style: none; padding: 0; }
+.dar-list li {
+  padding: 10px 0 10px 22px;
+  position: relative;
+  border-bottom: 1px solid var(--bg-warm);
+  font-size: 14px; line-height: 1.5;
+  color: var(--ink);
+}
+.dar-list li:last-child { border-bottom: none; }
+.dar-list li::before {
+  content: '✦'; position: absolute; left: 4px; top: 11px;
+  color: var(--accent); font-size: 12px;
+}
+.dar-list[data-list=light] li::before { content: '🌟'; left: 0; font-size: 12px; }
+.dar-list[data-list=shadow] li::before { content: '🌑'; left: 0; font-size: 12px; }
+
+.dar-list .shadow-support {
+  display: block; margin-top: 4px;
+  padding-left: 12px;
+  font-size: 13px; color: var(--ink-soft); font-style: italic;
+  border-left: 2px solid var(--gold-soft);
+}
+
+.dar-attrs {
+  background: var(--bg-warm); border-radius: 10px;
+  padding: 12px 14px; margin-top: 8px;
+}
+.dar-attrs-row {
+  display: flex; gap: 8px; padding: 4px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 13px;
+}
+.dar-attrs-row:last-child { border-bottom: none; }
+.dar-attrs-label {
+  color: var(--ink-mute); min-width: 100px;
+  font-size: 12px; letter-spacing: 0.5px;
+}
+.dar-attrs-value { color: var(--ink); flex: 1; }
+
+/* ── ТАБ СТРАТЕГИЯ ─────────────────────────────────── */
+.goal-input {
+  width: 100%; background: var(--bg-warm);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 14px; font-family: inherit;
+  font-size: 14px; color: var(--ink); outline: none;
+  margin-bottom: 10px;
+  transition: border 0.2s;
+}
+.goal-input:focus { border-color: var(--accent); background: white; }
+.goal-input.small { font-size: 13px; padding: 10px 12px; margin-bottom: 0; }
+
+.goal-row { display: flex; gap: 10px; margin-top: 4px; }
+.goal-field { flex: 1; }
+.goal-field label {
+  display: block; font-size: 11px; letter-spacing: 0.8px;
+  color: var(--ink-mute); margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.steps-list { list-style: none; padding: 0; margin-bottom: 8px; }
+.step-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 8px; border-radius: 10px;
+  margin-bottom: 4px; background: var(--bg-warm);
+}
+.step-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; flex-shrink: 0;
+}
+.step-item.done .step-num { background: var(--green); }
+.step-text {
+  flex: 1; font-size: 14px; color: var(--ink);
+  outline: none; min-width: 0;
+}
+.step-toggle {
+  width: 22px; height: 22px; border: 2px solid var(--line);
+  border-radius: 7px; cursor: pointer; flex-shrink: 0;
+  position: relative; transition: all 0.2s;
+}
+.step-item.done .step-toggle { background: var(--green); border-color: var(--green); }
+.step-item.done .step-toggle::after {
+  content: '✓'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); color: white;
+  font-size: 14px; font-weight: bold;
+}
+.step-item.done .step-text { color: var(--ink-mute); text-decoration: line-through; }
+
+.ai-card { border: 1px solid var(--accent-soft); }
+.ai-input {
+  width: 100%; background: var(--bg-warm);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 14px; font-family: inherit;
+  font-size: 14px; color: var(--ink);
+  resize: vertical; outline: none;
+  min-height: 70px; transition: border 0.2s;
+}
+.ai-input:focus { border-color: var(--accent); background: white; }
+
+.ai-actions {
+  display: flex; gap: 8px; margin: 10px 0 12px;
+}
+.ai-btn {
+  flex: 1; background: white;
+  border: 1px solid var(--accent);
+  color: var(--accent-deep);
+  padding: 9px 8px; border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+}
+.ai-btn:hover { background: var(--accent); color: white; }
+.ai-btn:active { transform: scale(0.98); }
+
+.ai-response {
+  background: linear-gradient(135deg, #f4ecda 0%, #faf3e0 100%);
+  border-radius: 12px; padding: 16px;
+  font-size: 14px; line-height: 1.6;
+  color: var(--ink);
+  min-height: 60px;
+  border-left: 3px solid var(--gold);
+}
+.ai-empty {
+  color: var(--ink-mute); text-align: center;
+  font-size: 13px;
+}
+.ai-response b { color: var(--accent-deep); }
+.ai-response em { color: var(--gold); font-style: normal; font-weight: 600; }
+
+/* ── ТАБ ПУТЬ ───────────────────────────────────────── */
+.mentor-brief, .finance-card, .content-card, .mentor-call-card, .weekly-card {
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+}
+
+.mentor-brief {
+  background: linear-gradient(135deg, #2a3b50 0%, #4a6985 100%);
+  color: white; position: relative; overflow: hidden;
+}
+.mentor-brief::before {
+  content: '🐉'; position: absolute; right: -10px; top: -15px;
+  font-size: 110px; opacity: 0.1;
+}
+.mentor-badge {
+  display: inline-block; padding: 4px 12px;
+  background: rgba(255,255,255,0.15); border-radius: 20px;
+  font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold-soft); margin-bottom: 10px; font-weight: 600;
+}
+.mentor-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px; font-weight: 600; margin-bottom: 12px;
+}
+.mentor-text {
+  font-size: 15px; line-height: 1.6;
+  color: #e3eaf2; margin-bottom: 14px;
+  white-space: pre-line;
+}
+.mentor-text b { color: var(--gold-soft); }
+.mentor-text em { color: white; font-style: normal; font-weight: 600; }
+
+.mentor-btn {
+  background: white; color: var(--accent-deep);
+  border: none; padding: 10px 20px; border-radius: 10px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.mentor-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(0,0,0,0.15); }
+.mentor-btn.primary {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: white; width: 100%; padding: 14px;
+  font-size: 15px;
+}
+
+/* Финансы */
+.finance-list { list-style: none; padding: 0; margin-bottom: 8px; }
+.finance-item {
+  background: var(--bg-warm); border-radius: 12px;
+  padding: 12px; margin-bottom: 8px;
+}
+.finance-row1 {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+}
+.finance-name {
+  flex: 1; background: white;
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; font-family: inherit; font-size: 14px;
+  color: var(--ink); outline: none;
+  min-width: 0;
+}
+.finance-name:focus { border-color: var(--accent); }
+.finance-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-mute); font-size: 16px; padding: 4px;
+  flex-shrink: 0;
+}
+.finance-row2 {
+  display: flex; gap: 8px; align-items: center;
+}
+.finance-amount {
+  flex: 1; background: white;
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; font-family: inherit; font-size: 13px;
+  color: var(--ink); outline: none;
+  text-align: right; min-width: 0;
+}
+.finance-amount:focus { border-color: var(--accent); }
+.finance-amount-label {
+  font-size: 11px; color: var(--ink-mute);
+  letter-spacing: 0.5px; flex-shrink: 0;
+}
+.finance-progress {
+  height: 4px; background: var(--line);
+  border-radius: 2px; overflow: hidden;
+  margin-top: 8px;
+}
+.finance-progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent) 0%, var(--gold) 100%);
+  transition: width 0.4s ease;
+}
+
+.finance-total {
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.finance-total-label {
+  font-size: 12px; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--ink-mute);
+}
+.finance-total-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 700; color: var(--accent-deep);
+}
+.finance-total-mute { font-size: 14px; color: var(--ink-mute); font-weight: 500; }
+
+/* Контент-план */
+.content-list { list-style: none; padding: 0; margin-bottom: 8px; }
+.content-item {
+  display: flex; gap: 8px; align-items: center;
+  background: var(--bg-warm); border-radius: 10px;
+  padding: 10px; margin-bottom: 6px;
+}
+.content-toggle {
+  width: 22px; height: 22px; border: 2px solid var(--line);
+  border-radius: 7px; cursor: pointer; flex-shrink: 0;
+  position: relative; transition: all 0.2s;
+}
+.content-item.done .content-toggle {
+  background: var(--green); border-color: var(--green);
+}
+.content-item.done .content-toggle::after {
+  content: '✓'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); color: white;
+  font-size: 14px; font-weight: bold;
+}
+.content-date {
+  background: white; border: 1px solid var(--line);
+  border-radius: 6px; padding: 4px 6px;
+  font-family: inherit; font-size: 11px; color: var(--ink-soft);
+  outline: none; flex-shrink: 0; width: 90px;
+}
+.content-text {
+  flex: 1; outline: none; font-size: 13px; color: var(--ink);
+  min-width: 0;
+}
+.content-item.done .content-text { color: var(--ink-mute); text-decoration: line-through; }
+.content-channel {
+  background: var(--accent-soft); color: var(--accent-deep);
+  border-radius: 6px; padding: 3px 7px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+  cursor: pointer; flex-shrink: 0;
+  user-select: none;
+}
+.content-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-mute); font-size: 14px; padding: 2px;
+  flex-shrink: 0;
+}
+
+/* Еженедельный разбор */
+.weekly-text {
+  margin-top: 14px; background: linear-gradient(135deg, #f4ecda 0%, #faf3e0 100%);
+  border-left: 3px solid var(--gold);
+  border-radius: 12px; padding: 16px;
+  font-size: 14px; line-height: 1.6; color: var(--ink);
+  white-space: pre-line;
+  display: none;
+}
+.weekly-text.visible { display: block; }
+.weekly-text b { color: var(--accent-deep); }
+.weekly-text em { color: var(--gold); font-style: normal; font-weight: 600; }
+
+/* ── Информ-баннер ──────────────────────────────────── */
+.info-banner {
+  display: flex; gap: 10px;
+  background: #fef9ea; border-left: 3px solid var(--gold);
+  padding: 12px 14px; border-radius: 10px;
+  font-size: 13px; color: var(--ink-soft);
+  line-height: 1.5; margin-top: 8px;
+}
+.info-banner code {
+  background: white; padding: 1px 6px; border-radius: 4px;
+  font-size: 12px; color: var(--accent-deep);
+}
+
+/* ── Подвал ─────────────────────────────────────────── */
+.footer { text-align: center; margin-top: 30px; padding: 14px 0; }
+.footer-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; font-weight: 600;
+  color: var(--accent-deep); letter-spacing: 4px;
+}
+.footer-meta {
+  font-size: 11px; color: var(--ink-mute);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  margin-top: 2px;
+}

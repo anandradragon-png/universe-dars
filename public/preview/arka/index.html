@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>АРКА — день в Даре З-МАН</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Заголовок -->
+  <header class="header">
+    <div class="greeting">
+      <div class="time-of-day" id="timeOfDay">Доброе утро</div>
+      <div class="name" id="userName">—</div>
+    </div>
+    <div class="dar-badge">
+      <div class="dar-label">Твой Дар</div>
+      <div class="dar-name" id="userDarName">—</div>
+      <div class="dar-code" id="userDarCode">—</div>
+    </div>
+  </header>
+
+  <!-- Баннер: контент пока на примере З-МАН -->
+  <div id="arkaDraftBanner" style="display:none;margin:8px 12px 0;padding:10px 12px;border-radius:10px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);font-size:12px;line-height:1.45;color:#D4AF37">
+    🐉 <b>Это прототип на примере Дара З-МАН.</b> Скоро ритуалы, масла и AI-наставник перестроятся под твой Дар <b><span id="userDarCode2">—</span></b>. Сейчас можно посмотреть, как АРКА выглядит изнутри.
+  </div>
+
+  <!-- Табы -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="today">
+      <span class="tab-emoji">🌿</span>
+      <span class="tab-label">Сегодня</span>
+    </button>
+    <button class="tab" data-tab="dar">
+      <span class="tab-emoji">🐉</span>
+      <span class="tab-label">Дар</span>
+    </button>
+    <button class="tab" data-tab="strategy">
+      <span class="tab-emoji">🎯</span>
+      <span class="tab-label">Стратегия</span>
+    </button>
+    <button class="tab" data-tab="path">
+      <span class="tab-emoji">🧭</span>
+      <span class="tab-label">Путь</span>
+    </button>
+  </nav>
+
+  <!-- ═════════════════════ ТАБ: СЕГОДНЯ ════════════════════ -->
+  <div class="tab-content active" data-tab-content="today">
+
+    <!-- Окно силы -->
+    <section class="power-window">
+      <div class="pw-icon">✦</div>
+      <div class="pw-text">
+        <div class="pw-title">Окна силы сегодня</div>
+        <div class="pw-time">Сумерки · 5:30–7:30 и 17:30–19:30</div>
+        <div class="pw-hint">Время между временами — твоя стихия</div>
+      </div>
+    </section>
+
+    <!-- Стрик -->
+    <section class="streak">
+      <span class="streak-icon">🐉</span>
+      <span class="streak-text">Ты скользишь по змею уже <b id="streakDays">1</b> <span id="streakWord">день</span></span>
+    </section>
+
+    <!-- Важные дела дня -->
+    <section class="tasks-card">
+      <div class="card-header">
+        <span class="card-icon">🎯</span>
+        <h2 class="card-title">Важные дела сегодня</h2>
+      </div>
+      <p class="card-hint">Максимум 3, чтобы не утянуло в суетное время. Нажми на плашку справа — переключай тип задачи.</p>
+
+      <details class="task-legend">
+        <summary>Зачем типы нагрузки?</summary>
+        <div class="legend-body">
+          <div class="legend-row"><span class="legend-tag" data-type="resource">🌟 ресурсная</span> питает твой Дар, делается легко. <b>Ставь в окно силы</b> (5:30–7:30 / 17:30–19:30) — там она идёт мощнее всего.</div>
+          <div class="legend-row"><span class="legend-tag" data-type="neutral">⚖️ обычная</span> рутина, не требует особого ресурса. <b>В дневной якорь</b> (12:00–16:00) или в любое нейтральное время.</div>
+          <div class="legend-row"><span class="legend-tag" data-type="shadow">🌑 теневая</span> требует усилия, активирует тень. <b>Только после ритуала-опоры</b> (Balance, заземление). Если 3 такие подряд — выгорание.</div>
+          <div class="legend-row" style="margin-top:8px; color:var(--accent-deep);"><b>З-МАН:</b> поток ТУМА идёт лучше, когда задачи распределены по типу — не сваливай теневое в утро.</div>
+        </div>
+      </details>
+
+      <ul class="tasks-list" id="tasksList"></ul>
+      <button class="task-add-btn" id="taskAddBtn">＋ Добавить задачу</button>
+    </section>
+
+    <!-- Рассветный ритуал -->
+    <section class="ritual" data-ritual="dawn">
+      <div class="ritual-header">
+        <span class="ritual-icon">🌅</span>
+        <h2 class="ritual-title">Рассветный ритуал</h2>
+        <span class="ritual-time">5:30 — 7:30</span>
+      </div>
+      <ul class="checklist">
+        <li class="check-item" data-id="r1">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Босиком на пол — заземление ЛОГОС</span><button class="info-btn" data-info="r1">?</button></label>
+          <div class="practice-details" id="info-r1">
+            <b>Как делать:</b> встань босиком на землю — это даёт самое глубокое заземление. Если нет возможности (зима, квартира) — на холодный пол (плитка, паркет). Стопы плотно прижаты. Закрой глаза. Представь, что от стоп вниз растут серебристо-золотые корни. <b>2–3 минуты.</b><br>
+            <b>Аффирмация:</b> «Я в точке, где все времена сходятся».
+          </div>
+        </li>
+        <li class="check-item with-oil" data-id="r2">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Frankincense на ладони → вдох</span><button class="info-btn" data-info="r2">?</button></label>
+          <div class="oil-hint"><span>💧</span><span>doTERRA Frankincense — присутствие в моменте, замедление времени</span></div>
+          <div class="practice-details" id="info-r2">
+            <b>Применение:</b> 1 капля на ладони, потереть, поднести к лицу. <b>3 медленных вдоха.</b><br>
+            <b>⚠ Важно:</b> на кожу — только разведённое с базовым маслом (1:1). Внутрь — только пищевую серию (Beadlets).
+          </div>
+        </li>
+        <li class="check-item" data-id="r3">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Стакан воды — поток ТУМА</span><button class="info-btn" data-info="r3">?</button></label>
+          <div class="practice-details" id="info-r3">
+            <b>Сколько:</b> 1 стакан 200–300 мл, тёплая или комнатной. Можно с долькой лимона.<br>
+            <b>Когда:</b> сразу после пробуждения, до кофе. Через 15–20 минут — завтрак.<br>
+            <b>Почему:</b> ночью обезвоживание, поток ТУМА застаивается. Утренняя вода = первый поток дня.
+          </div>
+        </li>
+        <li class="check-item" data-id="r4">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">7 медленных вдохов АСТРА</span><button class="info-btn" data-info="r4">?</button></label>
+          <div class="practice-details" id="info-r4">
+            <b>Техника АСТРА:</b> вдох носом на 4 счёта → пауза 2 счёта → выдох ртом на 6 счётов. <b>7 циклов.</b><br>
+            <b>Эффект для З-МАН:</b> синхронизирует ритм с твоим Даром времени, замедляет внутренний поток.
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Дневной якорь -->
+    <section class="ritual" data-ritual="day">
+      <div class="ritual-header">
+        <span class="ritual-icon">🌞</span>
+        <h2 class="ritual-title">Дневной якорь</h2>
+        <span class="ritual-time">13:00</span>
+      </div>
+      <ul class="checklist">
+        <li class="check-item" data-id="d1">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">3 минуты «я в точке сейчас»</span><button class="info-btn" data-info="d1">?</button></label>
+          <div class="practice-details" id="info-d1">
+            <b>Практика:</b> остановись там, где находишься. Закрой глаза. Положи руку на грудь. Назови вслух или про себя 3 вещи:<br>
+            • что я <em>сейчас</em> вижу (когда открою глаза)<br>
+            • что я <em>сейчас</em> чувствую телом (тепло/холод/мягкость)<br>
+            • что я <em>сейчас</em> слышу<br>
+            <b>3 минуты.</b> Это якорь ЛОГОС, возвращающий из суетного времени.
+          </div>
+        </li>
+        <li class="check-item with-oil" data-id="d2">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Balance на запястья</span><button class="info-btn" data-info="d2">?</button></label>
+          <div class="oil-hint"><span>💧</span><span>doTERRA Balance — заземление, опора ЛОГОС-треугольника</span></div>
+          <div class="practice-details" id="info-d2">
+            <b>Применение:</b> 1 капля на внутреннюю сторону каждого запястья. Растереть друг о друга. Поднести к носу.<br>
+            <b>Состав Balance:</b> Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile — заземляющая смесь.<br>
+            <b>⚠ Важно:</b> чувствительная кожа — развести с базовым маслом 1:1.
+          </div>
+        </li>
+        <li class="check-item" data-id="d3">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">2 стакана воды в течение дня</span><button class="info-btn" data-info="d3">?</button></label>
+          <div class="practice-details" id="info-d3">
+            <b>Не за раз!</b> 1 стакан после 12:00, второй — между 14:00 и 16:00.<br>
+            <b>Включить напоминание:</b> <button class="water-btn" id="waterRemindBtn">⏰ Напомнить мне</button><br>
+            <b>Почему:</b> днём забывается, к вечеру обезвоживание = усталость и спутанность.
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Закатный ритуал — ОСНОВНОЕ ОКНО СИЛЫ -->
+    <section class="ritual" data-ritual="dusk" style="border: 1px solid var(--accent-soft);">
+      <div class="ritual-header">
+        <span class="ritual-icon">🌆</span>
+        <h2 class="ritual-title">Закатный ритуал</h2>
+        <span class="ritual-time" style="background: var(--gold-soft); color: #8a6a35;">✦ окно силы</span>
+      </div>
+      <ul class="checklist">
+        <li class="check-item with-oil" data-id="s1">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Cypress + Vetiver на стопы</span><button class="info-btn" data-info="s1">?</button></label>
+          <div class="oil-hint"><span>💧</span><span>doTERRA Cypress (поток времени) + Vetiver (глубина) — главное масло З-МАН</span></div>
+          <div class="practice-details" id="info-s1">
+            <b>Смесь:</b> 1 капля Cypress + 1 капля Vetiver + 1 чайная ложка базы (фракционированный кокос).<br>
+            <b>Нанесение:</b> массажными движениями на стопы (особенно подушечки), вдоль позвоночника снизу вверх.<br>
+            <b>⚠ Vetiver очень глубокий</b> — только вечером, не перед делами. Vetiver может усыплять.
+          </div>
+        </li>
+        <li class="check-item" data-id="s2">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">15 минут у воды (ручей/душ/чашка)</span><button class="info-btn" data-info="s2">?</button></label>
+          <div class="practice-details" id="info-s2">
+            <b>Что делать у воды:</b><br>
+            • Сядь у источника воды — ручей, ванна, наполненная чашка, кран<br>
+            • Просто наблюдай поток — не торопи мысли<br>
+            • На вдохе представляй, как вода входит в тебя · на выдохе — уносит лишнее<br>
+            • Можно тихо проговорить, что хочешь отпустить, и спустить в воду<br>
+            <b>В архетипе З-МАН:</b> вода = ТУМА = время. Контакт с водой = настройка ритма.
+          </div>
+        </li>
+        <li class="check-item" data-id="s3">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Лабрадорит или лунный камень в руке</span><button class="info-btn" data-info="s3">?</button></label>
+          <div class="practice-details" id="info-s3">
+            <b>Как держать:</b> камень в ладони левой руки (приёмная сторона). Сожми мягко, чувствуй температуру.<br>
+            <b>Лабрадорит:</b> защита, глубина, видение скрытого.<br>
+            <b>Лунный камень:</b> интуиция, женская мудрость, циклы.<br>
+            <b>Обсидиан (чёрный):</b> заземление, защита от чужого ритма.<br>
+            <b>Уход:</b> промывать под проточной водой раз в неделю, заряжать на лунном свете.
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Ночное скольжение -->
+    <section class="ritual" data-ritual="night">
+      <div class="ritual-header">
+        <span class="ritual-icon">🌙</span>
+        <h2 class="ritual-title">Ночное скольжение</h2>
+        <span class="ritual-time">22:00</span>
+      </div>
+      <ul class="checklist">
+        <li class="check-item with-oil" data-id="n1">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Lavender на подушку</span><button class="info-btn" data-info="n1">?</button></label>
+          <div class="oil-hint"><span>💧</span><span>doTERRA Lavender — мягкий переход в восстановление</span></div>
+          <div class="practice-details warn" id="info-n1">
+            <b>⚠ Дозировка КРИТИЧНА:</b> только <b>1–2 капли</b> на подушку или диффузор.<br>
+            Больше 2 капель = <b>обратный эффект</b>: возбуждение, бессонница, головная боль. Чем меньше — тем глубже эффект.<br>
+            <b>Альтернатива:</b> 1 капля на запястье, или 2 капли в диффузор на 30 минут до сна.
+          </div>
+        </li>
+        <li class="check-item" data-id="n2">
+          <label><input type="checkbox"><span class="check-mark"></span><span class="check-text">Записать благодарность дня</span><button class="info-btn" data-info="n2">?</button></label>
+          <div class="practice-details" id="info-n2">
+            Одна-две строки в поле ниже. Не «должна» — а <b>заметить</b>. Может быть что угодно: чашка чая, момент тишины, чей-то взгляд, твой собственный жест к себе.
+          </div>
+        </li>
+      </ul>
+
+      <div class="journal">
+        <label for="gratitude" class="journal-label">Сегодня я благодарна за…</label>
+        <textarea id="gratitude" placeholder="Одна строка — этого достаточно" rows="2"></textarea>
+      </div>
+    </section>
+
+    <!-- Прогресс -->
+    <section class="progress-card">
+      <div class="progress-label">Сегодня выполнено</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-value"><span id="doneCount">0</span> из <span id="totalCount">12</span></div>
+    </section>
+
+    <!-- doTERRA -->
+    <section class="doterra-card">
+      <div class="doterra-emblem">🌿</div>
+      <h3 class="doterra-title">Эфирные масла doTERRA</h3>
+      <p class="doterra-text">Я работаю с doTERRA годами — это масла, которые проверены временем и моим опытом. Сертификат CPTG, стабильная формула и эффективность, подтверждённая на большом количестве людей. Они держат глубину практик и поддерживают тело в ритме Дара.</p>
+      <a id="doterraLink" href="#" target="_blank" rel="noopener" class="doterra-btn">Открыть каталог doTERRA</a>
+      <p class="doterra-small">Регистрация и покупка по реферальной ссылке Светланы (РФ)</p>
+    </section>
+  </div>
+
+  <!-- ═════════════════════ ТАБ: ДАР ════════════════════ -->
+  <div class="tab-content" data-tab-content="dar">
+
+    <section class="dar-hero">
+      <div class="dar-hero-code">1 · 6 · 7</div>
+      <h2 class="dar-hero-name">З-МАН</h2>
+      <p class="dar-hero-sub">Водный дракон времени. Вечная молодость через присутствие.</p>
+    </section>
+
+    <section class="dar-block">
+      <div class="card-header">
+        <span class="card-icon">🐉</span>
+        <h3 class="card-title">Суть Дара</h3>
+      </div>
+      <p style="font-size: 14px; line-height: 1.6; color: var(--ink-soft);">
+        Дар управления течением времени. Древний змей, свернувшийся в кольцо вечности. Способность замедлять или ускорять субъективное восприятие времени, синхронизировать ритм с другим человеком, скользить сознанием в прошлое и будущее.
+      </p>
+      <p style="font-size: 14px; line-height: 1.6; color: var(--ink-soft); margin-top: 8px;">
+        <b>Формула:</b> МА=ЛОГОС (земля-опора) + ЖИ=ТУМА (вода-волна) + КУН=АСТРА (воздух-ритм)
+      </p>
+    </section>
+
+    <section class="dar-block" data-block="light">
+      <div class="card-header">
+        <span class="card-icon">🌟</span>
+        <h3 class="card-title">Светлые стороны</h3>
+      </div>
+      <p class="card-hint">Что развивать и опираться на это сегодня.</p>
+      <ul class="dar-list" data-list="light">
+        <li><b>Замедление времени</b> — входить в состояние, где минуты растягиваются в часы, и найти решение в любой ситуации</li>
+        <li><b>Ускорение процессов</b> — сжимать время для рутины и тяжёлых периодов, проходя их быстро и без потерь</li>
+        <li><b>Аспект вечной молодости</b> — фокусировка на настоящем замедляет процессы старения тела и духа</li>
+        <li><b>Синхронизация с другими</b> — подстроиться к ритму другого и мягко перевести его в иное состояние</li>
+        <li><b>Путешествие во времени сознания</b> — перемещение фокуса в прошлое для исцеления или в будущее для предвидения</li>
+      </ul>
+    </section>
+
+    <section class="dar-block" data-block="shadow">
+      <div class="card-header">
+        <span class="card-icon">🌑</span>
+        <h3 class="card-title">Тени и опоры</h3>
+      </div>
+      <p class="card-hint">Не враги — ресурс через осознание. Каждая тень имеет конкретную опору.</p>
+      <ul class="dar-list" data-list="shadow">
+        <li>
+          <b>Выпадение из времени</b> — опоздания, невыполнение обязательств.
+          <span class="shadow-support">Опора: всегда иметь якорь в обычном времени — часы, расписание, договорённости</span>
+        </li>
+        <li>
+          <b>Страх старения</b> — невроз времени, зацикленность на молодости.
+          <span class="shadow-support">Опора: молодость З-МАН — не остановка времени, а гармония с ним</span>
+        </li>
+        <li>
+          <b>Манипуляция чужим временем</b> — изменение ритма без согласия.
+          <span class="shadow-support">Опора: синхронизация работает только при добровольном контакте</span>
+        </li>
+        <li>
+          <b>Застревание в прошлом или будущем</b> — змей уносит из «сейчас».
+          <span class="shadow-support">Опора: ЛОГОС-треугольник всегда активен как якорь</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="dar-block" data-block="oil">
+      <div class="card-header">
+        <span class="card-icon">💧</span>
+        <h3 class="card-title">Масла З-МАН</h3>
+      </div>
+      <p class="card-hint">Подобрано по принципу архетипа времени и потока. Каждое масло — опора для конкретного аспекта Дара З-МАН.</p>
+      <ul class="dar-list">
+        <li><b>Frankincense</b> · присутствие в моменте, замедление времени, активация ЛОГОСа</li>
+        <li><b>Vetiver</b> · глубокое заземление, опора у основания позвоночника</li>
+        <li><b>Cypress</b> · поток ТУМА, движение времени, текучесть</li>
+        <li><b>Balance</b> · якорь, ЛОГОС-треугольник, возвращение в «сейчас»</li>
+        <li><b>Lavender</b> · мягкий переход в восстановление, ночное скольжение</li>
+      </ul>
+    </section>
+
+    <section class="dar-block">
+      <div class="card-header">
+        <span class="card-icon">🕯</span>
+        <h3 class="card-title">Атрибуты Дара</h3>
+      </div>
+      <div class="dar-attrs">
+        <div class="dar-attrs-row"><span class="dar-attrs-label">Стихии</span><span class="dar-attrs-value">Земля · Вода · Воздух</span></div>
+        <div class="dar-attrs-row"><span class="dar-attrs-label">Символ</span><span class="dar-attrs-value">Змей в кольце · водный дракон · песочные часы</span></div>
+        <div class="dar-attrs-row"><span class="dar-attrs-label">Цвет</span><span class="dar-attrs-value">Серебристо-голубой с земляным золотом</span></div>
+        <div class="dar-attrs-row"><span class="dar-attrs-label">Тело</span><span class="dar-attrs-value">Позвоночник · основание · горло</span></div>
+        <div class="dar-attrs-row"><span class="dar-attrs-label">Камни</span><span class="dar-attrs-value">Лабрадорит · лунный камень · обсидиан</span></div>
+        <div class="dar-attrs-row"><span class="dar-attrs-label">Образ</span><span class="dar-attrs-value">Водный дракон · вечно юный мудрец</span></div>
+      </div>
+    </section>
+
+    <div class="info-banner">
+      <span>ℹ️</span>
+      <div>Данные подтянуты из <code>dar-content.json</code>. При интеграции в YupDar обновятся автоматически.</div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════ ТАБ: СТРАТЕГИЯ ════════════════════ -->
+  <div class="tab-content" data-tab-content="strategy">
+
+    <section class="goal-card">
+      <div class="card-header">
+        <span class="card-icon">🎯</span>
+        <h2 class="card-title">Моя цель</h2>
+      </div>
+      <p class="card-hint">Большая цель, к которой строится стратегия в ритме твоего Дара.</p>
+      <input type="text" class="goal-input" id="goalTitle" placeholder="Например: запустить АРКУ как тариф YupDar">
+      <div class="goal-row">
+        <div class="goal-field">
+          <label>Дедлайн</label>
+          <input type="date" class="goal-input small" id="goalDeadline">
+        </div>
+        <div class="goal-field">
+          <label>Зачем мне это</label>
+          <input type="text" class="goal-input small" id="goalWhy" placeholder="мотивация в одной строке">
+        </div>
+      </div>
+    </section>
+
+    <section class="steps-card">
+      <div class="card-header">
+        <span class="card-icon">📋</span>
+        <h2 class="card-title">Шаги стратегии</h2>
+      </div>
+      <p class="card-hint">3–7 шагов. Отмечай готовые. Нажми на текст, чтобы редактировать.</p>
+      <ul class="steps-list" id="stepsList"></ul>
+      <div class="steps-actions">
+        <button class="task-add-btn" id="stepAddBtn">＋ Добавить шаг</button>
+        <button class="suggest-btn" id="stepSuggestBtn">🐉 Предложить шаги</button>
+      </div>
+      <div class="suggestions-panel" id="suggestionsPanel"></div>
+    </section>
+
+    <section class="ai-card">
+      <div class="card-header">
+        <span class="card-icon">🐉</span>
+        <h2 class="card-title">Помощник в архетипе З-МАН</h2>
+      </div>
+      <p class="card-hint">Опиши ситуацию — получи разбор, прогноз или корректировку <em>языком твоего Дара времени</em>.</p>
+
+      <textarea id="aiInput" class="ai-input" rows="3" placeholder="Например: застряла на шаге 2, не понимаю как двигаться дальше"></textarea>
+
+      <div class="ai-actions">
+        <button class="ai-btn" data-action="advice">💫 Совет</button>
+        <button class="ai-btn" data-action="forecast">🔮 Прогноз</button>
+        <button class="ai-btn" data-action="correct">⚖️ Корректировка</button>
+      </div>
+
+      <div class="ai-response" id="aiResponse">
+        <div class="ai-empty">Опиши ситуацию и нажми кнопку — помощник ответит в архетипе З-МАН</div>
+      </div>
+    </section>
+
+    <div class="info-banner">
+      <span>ℹ️</span>
+      <div><b>Прототип:</b> сейчас помощник работает на правилах архетипа. При интеграции с YupDar подключится DeepSeek + Groq fallback, и анализ будет глубже — на основе полного профиля Дара и истории твоих шагов.</div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════ ТАБ: ПУТЬ ════════════════════ -->
+  <div class="tab-content" data-tab-content="path">
+
+    <!-- Утренний бриф наставника -->
+    <section class="mentor-brief">
+      <div class="mentor-badge">🐉 Голос З-МАН</div>
+      <h2 class="mentor-title" id="mentorGreeting">Бриф наставника</h2>
+      <div class="mentor-text" id="mentorText">Бриф появится здесь — он зависит от твоего прогресса.</div>
+      <button class="mentor-btn" id="mentorRefresh">Обновить бриф</button>
+    </section>
+
+    <!-- Финансы -->
+    <section class="finance-card">
+      <div class="card-header">
+        <span class="card-icon">💧</span>
+        <h2 class="card-title">Потоки дохода</h2>
+      </div>
+      <p class="card-hint">ТУМА течёт через разные каналы. Видишь поток — направляешь его.</p>
+
+      <ul class="finance-list" id="financeList"></ul>
+      <button class="task-add-btn" id="financeAddBtn">＋ Добавить канал</button>
+
+      <div class="finance-total">
+        <span class="finance-total-label">Итого месяц</span>
+        <span class="finance-total-value"><span id="financeTotal">0</span> ₽ <span class="finance-total-mute">из <span id="financeTotalTarget">0</span></span></span>
+      </div>
+    </section>
+
+    <!-- Контент-план -->
+    <section class="content-card">
+      <div class="card-header">
+        <span class="card-icon">📢</span>
+        <h2 class="card-title">Голос — план продвижения</h2>
+      </div>
+      <p class="card-hint">Публикации, запуски, голос Дара в мир. Помечай готовые.</p>
+
+      <ul class="content-list" id="contentList"></ul>
+      <button class="task-add-btn" id="contentAddBtn">＋ Добавить публикацию</button>
+    </section>
+
+    <!-- Кнопка "Нужен наставник" -->
+    <section class="mentor-call-card">
+      <div class="card-header">
+        <span class="card-icon">🕯</span>
+        <h2 class="card-title">Нужен наставник</h2>
+      </div>
+      <p class="card-hint">Сложный момент? Сомнение? Открой разговор с проводником в архетипе З-МАН.</p>
+      <button class="mentor-btn primary" id="mentorCallBtn">🐉 Открыть разговор</button>
+    </section>
+
+    <!-- Еженедельный разбор -->
+    <section class="weekly-card">
+      <div class="card-header">
+        <span class="card-icon">📜</span>
+        <h2 class="card-title">Разбор недели</h2>
+      </div>
+      <p class="card-hint">Обычно появляется в воскресенье вечером. Можешь запустить вручную.</p>
+      <button class="mentor-btn" id="weeklyBtn">Получить разбор недели</button>
+      <div class="weekly-text" id="weeklyText"></div>
+    </section>
+
+    <div class="info-banner">
+      <span>ℹ️</span>
+      <div><b>Прототип:</b> бриф и разборы строятся на правилах. При интеграции с YupDar включится полный AI-наставник с памятью контекста, недельной историей и автоматическими утренними сообщениями в Telegram.</div>
+    </div>
+  </div>
+
+  <!-- Подвал -->
+  <footer class="footer">
+    <div class="footer-name">АРКА</div>
+    <div class="footer-meta">прототип · 2026</div>
+  </footer>
+
+</div>
+
+<script>
+// Подтягиваем профиль пользователя из родительского preview (общая БД localStorage)
+(function pullUserProfile() {
+  const PROFILE_KEY = '_yupdar_preview_profile';
+  function read(storage) {
+    try {
+      const raw = storage.getItem(PROFILE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  let profile = read(localStorage);
+  // Если открыто из родителя (iframe) — читаем оттуда (на случай разных origin внутри одного домена это не понадобится, но добавим try)
+  if (!profile) {
+    try { profile = read(window.parent.localStorage); } catch (e) {}
+  }
+  // Применяем имя и Дар
+  const nameEl = document.getElementById('userName');
+  const darNameEl = document.getElementById('userDarName');
+  const darCodeEl = document.getElementById('userDarCode');
+  const darCodeEl2 = document.getElementById('userDarCode2');
+  const banner = document.getElementById('arkaDraftBanner');
+
+  if (profile && profile.chia && profile.chia.code) {
+    // chia — финальный уровень с полным именем и кодом Дара
+    const fullName = (profile.chia.firstName || '') + ' ' + (profile.chia.lastName || '');
+    if (nameEl) nameEl.textContent = fullName.trim() || 'Друг';
+    if (darNameEl) darNameEl.textContent = profile.chia.name || profile.chia.code;
+    if (darCodeEl) darCodeEl.textContent = profile.chia.code;
+    if (darCodeEl2) darCodeEl2.textContent = profile.chia.code + ' · ' + (profile.chia.name || '');
+    // Показываем баннер только если Дар НЕ З-МАН (1-6-7)
+    if (profile.chia.code !== '1-6-7' && banner) banner.style.display = 'block';
+  } else if (profile && profile.oda && profile.oda.code) {
+    // Минимум: рассчитан Дар по дате (ОДА)
+    if (nameEl) nameEl.textContent = 'Друг';
+    if (darNameEl) darNameEl.textContent = profile.oda.name || profile.oda.code;
+    if (darCodeEl) darCodeEl.textContent = profile.oda.code;
+    if (darCodeEl2) darCodeEl2.textContent = profile.oda.code + ' · ' + (profile.oda.name || '');
+    if (profile.oda.code !== '1-6-7' && banner) banner.style.display = 'block';
+  } else {
+    // Профиля нет — показываем баннер-приглашение рассчитать Дар
+    if (nameEl) nameEl.textContent = 'Гость';
+    if (darNameEl) darNameEl.textContent = 'З-МАН';
+    if (darCodeEl) darCodeEl.textContent = '1-6-7 · демо';
+    if (banner) {
+      banner.innerHTML = '🐉 <b>Ты в демо-режиме на примере Дара З-МАН.</b> Перейди во вкладку «Я», рассчитай свой Дар — и АРКА начнёт показывать твой персональный путь.';
+      banner.style.display = 'block';
+    }
+  }
+})();
+</script>
+<script src="app.js"></script>
+</body>
+</html>

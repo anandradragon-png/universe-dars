@@ -1007,6 +1007,15 @@
     /* === Подвкладки контента (Сокровищница / Арка) === */
     .subtab-content { display: none; }
     .subtab-content.active { display: block; }
+    .arka-iframe {
+      display: block;
+      width: 100%;
+      height: calc(100vh - 220px);
+      min-height: 600px;
+      border: none;
+      border-radius: 12px;
+      background: var(--bg);
+    }
 
     /* === Семья: реф-карточка === */
     .family-invite-card {
@@ -2802,12 +2811,9 @@
         <button class="subtab" data-subtab="path" data-i18n="arka.tab_path">Путь</button>
       </div>
 
-      <!-- Сегодня (для всех бесплатно) -->
+      <!-- Сегодня (для всех бесплатно) — прототип АРКА -->
       <div class="subtab-content active" data-subtab-content="today">
-        <div class="placeholder">
-          <strong data-i18n="arka.today_title">Ритм твоего дня</strong>
-          <span data-i18n="arka.today_sub">Утренние, дневные и вечерние ритуалы под твой Дар. Дневник благодарности. Масла мягко вплетены в практики. Реализация — следующий этап (по образцу прототипа iram-prototype).</span>
-        </div>
+        <iframe src="/preview/arka/" class="arka-iframe" title="АРКА — Ритм твоего дня" loading="lazy"></iframe>
       </div>
 
       <!-- Стратегия (Хранитель) -->

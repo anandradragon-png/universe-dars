@@ -4,16 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>YupDar — прототип архитектуры</title>
+  <!-- 100% копия шрифта из прода (index.html:7) -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* 100% копия CSS-переменных из прода (index.html:77) */
     :root {
-      --bg: #0f0f14;
-      --card: #1a1a25;
-      --text: #eaeaea;
-      --text-dim: #aaa;
-      --text-muted: #777;
-      --border: rgba(255,255,255,0.08);
+      --bg: #080808;
+      --text: #f1f5f9;
+      --text-dim: #a09080;
+      --text-muted: #7a6f63;
+      --border: rgba(212,175,55,0.15);
+      --border-bright: rgba(212,175,55,0.3);
+      --card: rgba(255,255,255,0.04);
+      --accent-1: #D4AF37;
+      --accent-2: #C5A028;
+      --accent-3: #9A7B1A;
+      --glow: rgba(212,175,55,0.2);
+      --surface-glass: rgba(10,10,10,0.7);
+      /* Алиасы для совместимости с уже существующим кодом прототипа */
       --gold: #D4AF37;
       --gold-soft: rgba(212,175,55,0.12);
       --accent: linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);
@@ -21,7 +31,7 @@
     html, body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
     }
@@ -1562,72 +1572,73 @@
       color: #FFA500;
     }
 
-    /* Аккордеон 9 секций (как в проде) */
+    /* Аккордеон 9 секций — 1:1 из прода (index.html:172-192) */
     .dar-accordion {
       margin-top: 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
     }
     .accordion-item {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      margin-bottom: 8px;
+      border-radius: 14px;
       overflow: hidden;
+      border: 1px solid var(--border-bright);
     }
     .accordion-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
       width: 100%;
       padding: 14px 16px;
-      background: transparent;
+      background: rgba(255,255,255,0.05);
       border: none;
-      color: var(--text);
-      text-align: left;
       cursor: pointer;
-      font-family: inherit;
-      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
       transition: background 0.2s;
+      font-family: 'Manrope', sans-serif;
     }
-    .accordion-header:hover { background: rgba(212,175,55,0.04); }
-    .accordion-header.open {
-      background: rgba(212,175,55,0.06);
-      color: var(--gold);
-    }
+    .accordion-header:hover { background: rgba(212,175,55,0.08); }
+    .accordion-header.open { background: rgba(212,175,55,0.12); }
     .accordion-icon {
-      font-size: 18px;
+      font-size: 20px;
       flex-shrink: 0;
     }
     .accordion-title {
       flex: 1;
-      font-weight: 600;
-      letter-spacing: 0.3px;
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: var(--text);
     }
     .accordion-arrow {
-      font-size: 10px;
-      color: var(--text-muted);
-      transition: transform 0.2s;
+      font-size: 12px;
+      color: var(--text-dim);
+      transition: transform 0.3s;
+      flex-shrink: 0;
     }
     .accordion-header.open .accordion-arrow {
       transform: rotate(180deg);
-      color: var(--gold);
     }
     .accordion-body {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease-out, padding 0.2s;
-      padding: 0 16px;
+      display: none;
+      padding: 16px;
+      background: rgba(0,0,0,0.2);
+      border-top: 1px solid var(--border);
+      text-align: left;
       font-size: 14px;
       line-height: 1.7;
       color: var(--text);
     }
     .accordion-body.open {
-      max-height: 5000px;
-      padding: 4px 16px 16px;
+      display: block;
+      animation: fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     .accordion-body p { margin-bottom: 10px; }
-    .accordion-body strong { color: var(--gold); }
+    .accordion-body strong { color: var(--accent-1); }
+    .accordion-body em { color: var(--text-dim); }
     .accordion-body ul, .accordion-body ol {
       margin: 8px 0 10px 18px;
     }
@@ -1648,71 +1659,74 @@
     }
     .encyc-search-box input:focus { border-color: var(--gold); }
     #encyc-results { margin-bottom: 12px; max-height: 60vh; overflow-y: auto; }
-    /* === Энциклопедия — мини-табы Дары / Поля === */
+    /* === Энциклопедия — мини-табы Дары/Поля (1:1 из прода index.html:224-226) === */
     .base-sub-nav {
       display: flex;
-      gap: 6px;
-      background: rgba(255,255,255,0.03);
-      padding: 4px;
-      border-radius: 12px;
-      margin-bottom: 14px;
+      gap: 10px;
+      padding: 10px 0 14px;
+      justify-content: center;
+      max-width: 700px;
+      margin: 0 auto;
     }
     .base-sub-btn {
       flex: 1;
-      padding: 10px 14px;
-      background: transparent;
-      border: none;
-      color: var(--text-dim);
-      font-size: 14px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
       cursor: pointer;
-      font-family: inherit;
-      border-radius: 8px;
-      letter-spacing: 0.3px;
-      transition: all 0.15s;
+      font-family: 'Manrope', sans-serif;
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      text-align: center;
+      transition: all 0.2s;
     }
     .base-sub-btn.active {
-      background: var(--accent);
-      color: #080808;
-      font-weight: 700;
+      background: rgba(212,175,55,0.2);
+      border-color: rgba(212,175,55,0.5);
+      color: var(--text);
     }
 
-    /* === Кнопка «Назад» === */
+    /* === Кнопка «Назад» — 1:1 из прода (index.html:162-163) === */
     .btn-back {
       display: inline-block;
-      padding: 8px 14px;
-      margin-bottom: 14px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--gold);
+      background: none;
+      border: none;
+      color: var(--text-dim);
       font-size: 13px;
       cursor: pointer;
-      font-family: inherit;
+      padding: 0 0 12px;
+      font-family: 'Manrope', sans-serif;
+      text-align: left;
     }
-    .btn-back:hover { background: rgba(212,175,55,0.08); }
+    .btn-back:hover { color: var(--text); }
 
-    /* === Сетка карточек Даров поля (Уровень 2 Даров) === */
+    /* === Сетка карточек Даров поля (Уровень 2) — 1:1 из прода === */
     .dar-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
     .dar-card {
-      background: var(--card);
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 16px 12px;
+      padding: 14px 10px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
     }
     .dar-card:hover {
       border-color: rgba(212,175,55,0.4);
-      background: rgba(212,175,55,0.04);
-      transform: translateY(-2px);
+      background: rgba(212,175,55,0.1);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(212,175,55,0.15);
     }
     .dar-card-img {
-      width: 56px; height: 56px;
+      width: 60px; height: 60px;
       margin: 0 auto 8px;
       display: flex;
       align-items: center;
@@ -1721,55 +1735,57 @@
     .dar-card-img img {
       width: 100%; height: 100%;
       object-fit: contain;
-      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px #D4AF37);
+      filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) contrast(110%) drop-shadow(0 0 6px #D4AF37);
     }
     .dar-card-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 1.5px;
+      font-size: 15px;
+      color: var(--text);
+      letter-spacing: 1px;
       margin-bottom: 2px;
     }
     .dar-card-arch {
-      font-size: 10px;
-      color: var(--text-muted);
+      font-size: 11px;
+      color: var(--text-dim);
       font-style: italic;
     }
 
-    /* === Сетка карточек Полей (Уровень 1 Полей) === */
+    /* === Сетка карточек Полей (Уровень 1 Полей) — 1:1 из прода === */
     .field-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
     .field-folder {
-      background: var(--card);
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 18px 12px;
+      padding: 16px 12px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
     }
     .field-folder:hover {
       border-color: rgba(212,175,55,0.4);
-      transform: translateY(-2px);
+      background: rgba(212,175,55,0.1);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(212,175,55,0.15);
     }
     .field-folder-name {
-      font-size: 15px;
-      font-weight: 800;
+      font-size: 14px;
       color: var(--text);
-      letter-spacing: 2px;
-      margin-top: 6px;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
     }
     .field-folder-arch {
       font-size: 11px;
-      color: var(--text-muted);
+      color: var(--text-dim);
       font-style: italic;
-      margin-top: 2px;
+      margin-bottom: 6px;
     }
 
-    /* === Внутренние табы детальной страницы поля === */
+    /* === Внутренние табы детальной страницы поля — 1:1 из прода === */
     .dar-inner-tabs {
       display: flex;
       gap: 6px;
@@ -1777,105 +1793,93 @@
       overflow-x: auto;
       padding-bottom: 4px;
       -webkit-overflow-scrolling: touch;
+      flex-wrap: wrap;
     }
     .dar-inner-tab {
       background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
       color: var(--text-dim);
-      padding: 8px 12px;
+      padding: 8px 14px;
       border-radius: 10px;
-      font-size: 12px;
+      font-size: 13px;
       cursor: pointer;
-      font-family: inherit;
+      font-family: 'Manrope', sans-serif;
       white-space: nowrap;
       flex-shrink: 0;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
     }
     .dar-inner-tab.active {
-      background: rgba(212,175,55,0.1);
-      border-color: rgba(212,175,55,0.4);
-      color: var(--gold);
-      font-weight: 600;
+      background: rgba(212,175,55,0.2);
+      border-color: rgba(212,175,55,0.5);
+      color: var(--text);
     }
     .dar-inner-content {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px;
     }
+    /* dar-meta-row 1:1 из прода (без border, чистый отступ) */
     .dar-meta-row {
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
     }
-    .dar-meta-row:last-child { border-bottom: none; }
+    .dar-meta-row:last-child { margin-bottom: 0; }
     .dar-meta-label {
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--gold);
-      margin-bottom: 6px;
-      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: none;
+      margin-bottom: 4px;
     }
     .dar-meta-value {
       font-size: 14px;
-      line-height: 1.6;
-      color: var(--text);
+      color: #e0e0e0;
+      line-height: 1.7;
     }
 
-    /* Энциклопедия — строки полей как в проде */
+    /* Энциклопедия — полоски полей на Ур.1 Даров (1:1 из прода index.html:2801) */
     .encyc-field-prod-row {
       display: flex;
       align-items: center;
       gap: 14px;
-      padding: 16px 14px;
+      padding: 14px 16px;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
     .encyc-field-prod-row:hover {
-      border-color: var(--field-color, rgba(212,175,55,0.4));
-      transform: translateY(-1px);
+      border-color: rgba(212,175,55,0.5);
+      background: rgba(212,175,55,0.08);
     }
     .encyc-field-prod-glyph {
-      width: 42px; height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       flex-shrink: 0;
+      width: 40px;
+      display: flex;
+      justify-content: center;
     }
     .encyc-field-prod-glyph svg { width: 36px; height: 36px; }
     .encyc-field-prod-text { flex: 1; min-width: 0; }
     .encyc-field-prod-name {
-      font-size: 16px;
-      font-weight: 800;
+      font-size: 15px;
       color: var(--text);
-      letter-spacing: 2px;
-      margin-bottom: 2px;
+      letter-spacing: 1px;
+      font-weight: 600;
     }
     .encyc-field-prod-element {
-      font-size: 12px;
-      color: var(--text-muted);
+      font-size: 11px;
+      color: var(--text-dim);
       font-style: italic;
+      margin-top: 2px;
     }
     .encyc-field-prod-count {
-      font-size: 12px;
-      color: var(--text-dim);
+      font-size: 11px;
+      color: var(--text-muted);
       flex-shrink: 0;
     }
-    .encyc-back-btn {
-      display: inline-block;
-      padding: 6px 12px;
-      margin-bottom: 12px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--gold);
-      font-size: 12px;
-      cursor: pointer;
-    }
-    .encyc-back-btn:hover { background: rgba(212,175,55,0.08); }
 
     .encyc-field-block { margin-bottom: 16px; }
     .encyc-field-header {

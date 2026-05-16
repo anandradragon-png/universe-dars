@@ -489,6 +489,7 @@
       cards += `<div class="dar-card" onclick="openDarDetail('${code}')">
         <div class="dar-card-img"><img src="${svgPath}" alt="" onerror="this.style.display='none'"></div>
         <div class="dar-card-name">${escapeHtml(name)}</div>
+        <div class="dar-card-code">${code}</div>
         ${arch ? `<div class="dar-card-arch">${escapeHtml(arch)}</div>` : ''}
       </div>`;
     });

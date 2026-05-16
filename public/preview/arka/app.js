@@ -48,6 +48,127 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 let state = loadState();
 if (!state.days[TODAY]) state.days[TODAY] = {};
 
+// ── i18n: словарь динамических строк (тексты, генерируемые в JS) ──────
+// Статичные строки HTML переводятся через ARKA_I18N в index.html.
+// Здесь — только то, что собирается из кода: бриф наставника, советы, и т.п.
+const ARKA_DYN_I18N = {
+  ru: {
+    'greet.dawn': 'Рассвет — окно силы',
+    'greet.morning': 'Утренний бриф',
+    'greet.day': 'Дневной якорь',
+    'greet.sunset': 'Закатное окно силы',
+    'greet.evening': 'Вечернее скольжение',
+    'hint.dawn': 'Ты в открытом окне силы. Самое важное — сейчас.',
+    'hint.morning': 'Закатное окно ещё впереди — оставь силы.',
+    'hint.day': 'Время заземлиться. Balance на запястья.',
+    'hint.sunset': 'Это твоё время. Сделай главное действие сейчас.',
+    'hint.evening': 'Замедли темп. Cypress на стопы. Прислушайся.',
+    'brief.fallback_title': 'Бриф наставника',
+    'good.morning': 'Доброе утро',
+    'good.day': 'Добрый день',
+    'good.sunset': 'Тёплый закат',
+    'good.night': 'Тихой ночи',
+    'word.day': 'день',
+    'word.days_few': 'дня',
+    'word.days_many': 'дней',
+    'btn.delete': 'Удалить',
+    'tasks.no_tasks': '🌑 <b>Задач на день пока нет.</b> Открой таб «Сегодня» и напиши 1-3 главных дела. Без направления змей кружит без смысла.',
+    'tasks.all_done': '🌟 <b>Задачи дня сделаны.</b> Поток ТУМА течёт ровно. Не добавляй больше — поток силы важнее списка побед.',
+    'tasks.partial': '⚖️ Задачи дня: <em>{done} из {total}</em>. Главное — сделать ресурсную 🌟 в окно силы.',
+    'goal.progress': '🎯 Цель «<em>{title}</em>» — готовность <em>{pct}%</em>. ',
+    'goal.slow': 'Темп пока медленный — выбери <b>один шаг</b> на сегодня.',
+    'goal.fast': 'Ты в потоке. Не торопись.',
+    'goal.steady': 'Волна ровная. Один шаг — и ритм удержан.',
+    'goal.none': '🎯 <b>Цели в стратегии нет.</b> Открой «Стратегию» и назови — змей не может скользить без направления.',
+    'fin.progress': '💧 Потоки дохода: <em>{pct}%</em> от месячной цели. ',
+    'fin.low': 'ТУМА течёт слабо — посмотри, какой канал просел, и направь туда внимание сегодня.',
+    'fin.high': 'Поток сильный. Не ускоряй искусственно — удержи ритм.',
+    'fin.mid': 'Поток идёт. Сегодня — главное действие для самого медленного канала.'
+  },
+  en: {
+    'greet.dawn': 'Dawn — Power Window',
+    'greet.morning': 'Morning Brief',
+    'greet.day': 'Midday Anchor',
+    'greet.sunset': 'Sunset Power Window',
+    'greet.evening': 'Evening Glide',
+    'hint.dawn': 'You are in an open power window. What matters most — is now.',
+    'hint.morning': 'Sunset window is still ahead — save your strength.',
+    'hint.day': 'Time to ground. Balance on the wrists.',
+    'hint.sunset': 'This is your time. Take the main action now.',
+    'hint.evening': 'Slow down. Cypress on the feet. Listen.',
+    'brief.fallback_title': "Mentor's Brief",
+    'good.morning': 'Good morning',
+    'good.day': 'Good day',
+    'good.sunset': 'Warm sunset',
+    'good.night': 'Quiet night',
+    'word.day': 'day',
+    'word.days_few': 'days',
+    'word.days_many': 'days',
+    'btn.delete': 'Delete',
+    'tasks.no_tasks': "🌑 <b>No tasks for today.</b> Open the «Today» tab and write 1-3 main things. Without direction, the serpent circles without meaning.",
+    'tasks.all_done': '🌟 <b>Today\'s tasks are done.</b> The TUMA flow runs smoothly. Don\'t add more — the flow of power matters more than the list of victories.',
+    'tasks.partial': "⚖️ Today's tasks: <em>{done} of {total}</em>. The main thing — do the resourceful 🌟 in the power window.",
+    'goal.progress': '🎯 Goal «<em>{title}</em>» — readiness <em>{pct}%</em>. ',
+    'goal.slow': 'The pace is slow — choose <b>one step</b> for today.',
+    'goal.fast': "You're in the flow. Don't rush.",
+    'goal.steady': 'The wave is steady. One step — and the rhythm is held.',
+    'goal.none': '🎯 <b>No goal in the strategy.</b> Open «Strategy» and name it — the serpent cannot glide without direction.',
+    'fin.progress': '💧 Income flows: <em>{pct}%</em> of monthly goal. ',
+    'fin.low': 'TUMA flows weakly — see which channel has dipped, and direct attention there today.',
+    'fin.high': "The flow is strong. Don't accelerate artificially — hold the rhythm.",
+    'fin.mid': 'The flow is moving. Today — the main action for the slowest channel.'
+  },
+  es: {
+    'greet.dawn': 'Amanecer — Ventana de Poder',
+    'greet.morning': 'Informe Matutino',
+    'greet.day': 'Ancla del Día',
+    'greet.sunset': 'Ventana de Poder del Atardecer',
+    'greet.evening': 'Deslizamiento Vespertino',
+    'hint.dawn': 'Estás en una ventana de poder abierta. Lo más importante — es ahora.',
+    'hint.morning': 'La ventana del atardecer aún está por delante — reserva tus fuerzas.',
+    'hint.day': 'Hora de aterrizar. Balance en las muñecas.',
+    'hint.sunset': 'Este es tu tiempo. Realiza la acción principal ahora.',
+    'hint.evening': 'Reduce el ritmo. Cypress en los pies. Escucha.',
+    'brief.fallback_title': 'Informe del Mentor',
+    'good.morning': 'Buenos días',
+    'good.day': 'Buen día',
+    'good.sunset': 'Cálido atardecer',
+    'good.night': 'Tranquila noche',
+    'word.day': 'día',
+    'word.days_few': 'días',
+    'word.days_many': 'días',
+    'btn.delete': 'Eliminar',
+    'tasks.no_tasks': '🌑 <b>No hay tareas para hoy.</b> Abre la pestaña «Hoy» y escribe 1-3 tareas principales. Sin dirección, la serpiente gira sin sentido.',
+    'tasks.all_done': '🌟 <b>Las tareas del día están hechas.</b> El flujo TUMA corre suave. No añadas más — el flujo de poder importa más que la lista de victorias.',
+    'tasks.partial': '⚖️ Tareas del día: <em>{done} de {total}</em>. Lo principal — hacer la tarea de recurso 🌟 en la ventana de poder.',
+    'goal.progress': '🎯 Meta «<em>{title}</em>» — preparación <em>{pct}%</em>. ',
+    'goal.slow': 'El ritmo es lento — elige <b>un paso</b> para hoy.',
+    'goal.fast': 'Estás en el flujo. No te apresures.',
+    'goal.steady': 'La ola es estable. Un paso — y el ritmo se mantiene.',
+    'goal.none': '🎯 <b>No hay meta en la estrategia.</b> Abre «Estrategia» y nómbrala — la serpiente no puede deslizarse sin dirección.',
+    'fin.progress': '💧 Flujos de ingresos: <em>{pct}%</em> de la meta mensual. ',
+    'fin.low': 'TUMA fluye débilmente — mira qué canal se ha hundido y dirige tu atención allí hoy.',
+    'fin.high': 'El flujo es fuerte. No aceleres artificialmente — mantén el ritmo.',
+    'fin.mid': 'El flujo se mueve. Hoy — la acción principal para el canal más lento.'
+  }
+};
+function dynLang() {
+  const KEY = '_yupdar_preview_lang';
+  try { const v = window.parent.localStorage.getItem(KEY); if (v && ARKA_DYN_I18N[v]) return v; } catch (e) {}
+  try { const v = localStorage.getItem(KEY); if (v && ARKA_DYN_I18N[v]) return v; } catch (e) {}
+  return 'ru';
+}
+function dt(key, params) {
+  const lang = dynLang();
+  let str = (ARKA_DYN_I18N[lang] && ARKA_DYN_I18N[lang][key]) || (ARKA_DYN_I18N.ru[key] || key);
+  if (params) {
+    Object.keys(params).forEach(k => {
+      str = str.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]);
+    });
+  }
+  return str;
+}
+
 // ── Приветствие ──────────────────────────────────────
 // Шапка с приветствием убрана как дубль главного приложения (16.05.2026).
 // Функция оставлена для совместимости, но безопасно проверяет наличие элемента.
@@ -55,10 +176,10 @@ function setGreeting() {
   const el = document.getElementById('timeOfDay');
   if (!el) return;
   const h = new Date().getHours();
-  let txt = 'Доброе утро';
-  if (h >= 12 && h < 17) txt = 'Добрый день';
-  else if (h >= 17 && h < 22) txt = 'Тёплый закат';
-  else if (h >= 22 || h < 5) txt = 'Тихой ночи';
+  let txt = dt('good.morning');
+  if (h >= 12 && h < 17) txt = dt('good.day');
+  else if (h >= 17 && h < 22) txt = dt('good.sunset');
+  else if (h >= 22 || h < 5) txt = dt('good.night');
   el.textContent = txt;
 }
 
@@ -646,42 +767,42 @@ function generateMentorBrief() {
   const contentPlanned = state.content.filter(c => !c.done && c.text).length;
   const hasGoal = !!state.goal.title;
 
-  let greeting = 'Бриф наставника';
+  let greeting = dt('brief.fallback_title');
   let timeOfDayHint = '';
-  if (h < 7) { greeting = 'Рассвет — окно силы'; timeOfDayHint = 'Ты в открытом окне силы. Самое важное — сейчас.'; }
-  else if (h < 12) { greeting = 'Утренний бриф'; timeOfDayHint = 'Закатное окно ещё впереди — оставь силы.'; }
-  else if (h < 17) { greeting = 'Дневной якорь'; timeOfDayHint = 'Время заземлиться. Balance на запястья.'; }
-  else if (h < 20) { greeting = 'Закатное окно силы'; timeOfDayHint = 'Это твоё время. Сделай главное действие сейчас.'; }
-  else { greeting = 'Вечернее скольжение'; timeOfDayHint = 'Замедли темп. Cypress на стопы. Прислушайся.'; }
+  if (h < 7) { greeting = dt('greet.dawn'); timeOfDayHint = dt('hint.dawn'); }
+  else if (h < 12) { greeting = dt('greet.morning'); timeOfDayHint = dt('hint.morning'); }
+  else if (h < 17) { greeting = dt('greet.day'); timeOfDayHint = dt('hint.day'); }
+  else if (h < 20) { greeting = dt('greet.sunset'); timeOfDayHint = dt('hint.sunset'); }
+  else { greeting = dt('greet.evening'); timeOfDayHint = dt('hint.evening'); }
 
   let body = `<b>${timeOfDayHint}</b>\n\n`;
 
   // Анализ задач
   if (tasksTotal === 0) {
-    body += `🌑 <b>Задач на день пока нет.</b> Открой таб «Сегодня» и напиши 1-3 главных дела. Без направления змей кружит без смысла.\n\n`;
+    body += dt('tasks.no_tasks') + `\n\n`;
   } else if (tasksDone === tasksTotal) {
-    body += `🌟 <b>Задачи дня сделаны.</b> Поток ТУМА течёт ровно. Не добавляй больше — поток силы важнее списка побед.\n\n`;
+    body += dt('tasks.all_done') + `\n\n`;
   } else {
-    body += `⚖️ Задачи дня: <em>${tasksDone} из ${tasksTotal}</em>. Главное — сделать ресурсную 🌟 в окно силы.\n\n`;
+    body += dt('tasks.partial', { done: tasksDone, total: tasksTotal }) + `\n\n`;
   }
 
   // Анализ стратегии
   if (hasGoal && stepsTotal > 0) {
     const pct = Math.round(stepsDone / stepsTotal * 100);
-    body += `🎯 Цель «<em>${escapeHtml(state.goal.title)}</em>» — готовность <em>${pct}%</em>. `;
-    if (pct < 30) body += `Темп пока медленный — выбери <b>один шаг</b> на сегодня.\n\n`;
-    else if (pct >= 70) body += `Ты в потоке. Не торопись.\n\n`;
-    else body += `Волна ровная. Один шаг — и ритм удержан.\n\n`;
+    body += dt('goal.progress', { title: escapeHtml(state.goal.title), pct });
+    if (pct < 30) body += dt('goal.slow') + `\n\n`;
+    else if (pct >= 70) body += dt('goal.fast') + `\n\n`;
+    else body += dt('goal.steady') + `\n\n`;
   } else if (!hasGoal) {
-    body += `🎯 <b>Цели в стратегии нет.</b> Открой «Стратегию» и назови — змей не может скользить без направления.\n\n`;
+    body += dt('goal.none') + `\n\n`;
   }
 
   // Финансы
   if (financeTarget > 0) {
-    body += `💧 Потоки дохода: <em>${finPct}%</em> от месячной цели. `;
-    if (finPct < 25) body += `ТУМА течёт слабо — посмотри, какой канал просел, и направь туда внимание сегодня.\n\n`;
-    else if (finPct > 80) body += `Поток сильный. Не ускоряй искусственно — удержи ритм.\n\n`;
-    else body += `Поток идёт. Сегодня — главное действие для самого медленного канала.\n\n`;
+    body += dt('fin.progress', { pct: finPct });
+    if (finPct < 25) body += dt('fin.low') + `\n\n`;
+    else if (finPct > 80) body += dt('fin.high') + `\n\n`;
+    else body += dt('fin.mid') + `\n\n`;
   }
 
   // Контент

@@ -611,7 +611,7 @@ const BookReader = (function() {
   }
 
   function showLocked() {
-    alert((window.i18n && i18n.t) ? i18n.t('book.chapter_locked') : 'Эта глава доступна в полной версии. Введи промо-код ниже, чтобы открыть всю книгу.');
+    alert(((window.i18n && i18n.t && i18n.t('book.chapter_locked')) || 'Эта глава доступна в полной версии. Введи промо-код ниже, чтобы открыть всю книгу.'));
   }
 
   // -------- Поиск по книге --------
@@ -837,7 +837,7 @@ const BookReader = (function() {
   }
 
   function clearBookmarks() {
-    if (!confirm((window.i18n && i18n.t) ? i18n.t('book.confirm_clear_bookmarks') : 'Убрать все закладки? Это действие нельзя отменить.')) return;
+    if (!confirm(((window.i18n && i18n.t && i18n.t('book.confirm_clear_bookmarks')) || 'Убрать все закладки? Это действие нельзя отменить.'))) return;
     saveBookmarks([]);
     renderBookmarksPanel();
     renderChapter();
@@ -897,7 +897,7 @@ const BookReader = (function() {
     if (!input) return;
     const code = input.value.trim();
     if (!code) {
-      const m = (window.i18n && i18n.t) ? i18n.t('book.enter_promo') : 'Введи промо-код';
+      const m = ((window.i18n && i18n.t && i18n.t('book.enter_promo')) || 'Введи промо-код');
       if (typeof showToast === 'function') showToast(m, 'error');
       else alert(m);
       return;
@@ -908,17 +908,17 @@ const BookReader = (function() {
         accessLevel = result.access_level || 'full';
         if (window.PROFILE) window.PROFILE.access_level = accessLevel;
         try { localStorage.setItem('_access_level', accessLevel); } catch(e) {}
-        const okMsg = (window.i18n && i18n.t) ? i18n.t('book.full_access_unlocked') : 'Полный доступ к книге открыт!';
+        const okMsg = ((window.i18n && i18n.t && i18n.t('book.full_access_unlocked')) || 'Полный доступ к книге открыт!');
         if (typeof showToast === 'function') showToast('\u2728 ' + okMsg, 'success');
         else alert(okMsg);
         render();
       } else {
-        const errMsg = result.message || ((window.i18n && i18n.t) ? i18n.t('book.invalid_promo') : 'Неверный промо-код');
+        const errMsg = result.message || (((window.i18n && i18n.t && i18n.t('book.invalid_promo')) || 'Неверный промо-код'));
         if (typeof showToast === 'function') showToast(errMsg, 'error');
         else alert(errMsg);
       }
     } catch(e) {
-      const failMsg = e.message || ((window.i18n && i18n.t) ? i18n.t('book.promo_activation_failed') : 'Не удалось активировать промо-код');
+      const failMsg = e.message || (((window.i18n && i18n.t && i18n.t('book.promo_activation_failed')) || 'Не удалось активировать промо-код'));
       if (typeof showToast === 'function') showToast(failMsg, 'error');
       else alert(e.message || 'Не удалось активировать промо-код');
     }
@@ -949,7 +949,7 @@ const BookReader = (function() {
           try { document.execCommand('copy'); onCopied(); } catch (e) {}
         });
       } else if (tg && tg.showAlert) {
-        tg.showAlert(((window.i18n && i18n.t) ? i18n.t('book.copy_card_manually') : 'Скопируй номер карты вручную:') + ' ' + number);
+        tg.showAlert((((window.i18n && i18n.t && i18n.t('book.copy_card_manually')) || 'Скопируй номер карты вручную:')) + ' ' + number);
       }
     } catch (e) {
       try { if (tg?.showAlert) tg.showAlert(number); } catch (e2) {}

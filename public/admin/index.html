@@ -239,6 +239,7 @@
     <button data-tab="users">👥 Пользователи</button>
     <button data-tab="promo">🎟 Промокоды</button>
     <button data-tab="payments">💳 Платежи</button>
+    <button data-tab="stars">💫 Stars</button>
   </nav>
 
   <main>
@@ -381,6 +382,26 @@
 
       <div id="paySummary" style="margin-top:16px"></div>
       <div id="payList" style="margin-top:16px"></div>
+    </section>
+
+    <section id="screen-stars" class="screen">
+      <div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="font-size:13px;color:#888">Реальный баланс ⭐ бота из Telegram и сверка с БД YupDar.</div>
+        <button id="starsRefresh" class="primary" style="padding:8px 14px;font-size:13px;margin-left:auto">↻ Обновить</button>
+      </div>
+
+      <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;font-weight:500">💫 Баланс и сверка</h3>
+      <div class="stat-grid">
+        <div class="stat-tile"><div class="label">Баланс бота сейчас</div><div class="value" id="starsBalance">—</div></div>
+        <div class="stat-tile"><div class="label">Получено всего (Telegram)</div><div class="value" id="starsTgIn">—</div></div>
+        <div class="stat-tile"><div class="label">Учтено в БД</div><div class="value" id="starsDbTotal">—</div></div>
+        <div class="stat-tile"><div class="label">Расхождение БД − TG</div><div class="value" id="starsDiff">—</div></div>
+      </div>
+
+      <div id="starsHint" style="margin-top:12px;font-size:12px;color:#888"></div>
+
+      <h3 style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;font-weight:500">📜 Последние транзакции</h3>
+      <div id="starsList" style="margin-top:8px"></div>
     </section>
   </main>
 
@@ -1265,6 +1286,87 @@
       }
     });
     payObserver.observe(payScreen, { attributes: true, attributeFilter: ['class'] });
+
+    // === STARS BALANCE TAB ===
+    async function loadStarsBalance() {
+      const balEl = document.getElementById('starsBalance');
+      const tgInEl = document.getElementById('starsTgIn');
+      const dbEl = document.getElementById('starsDbTotal');
+      const diffEl = document.getElementById('starsDiff');
+      const hintEl = document.getElementById('starsHint');
+      const listEl = document.getElementById('starsList');
+
+      balEl.textContent = '⏳';
+      tgInEl.textContent = '—';
+      dbEl.textContent = '—';
+      diffEl.textContent = '—';
+      hintEl.textContent = '';
+      listEl.innerHTML = '<div style="padding:12px;color:#888">Загрузка…</div>';
+
+      try {
+        const data = await adminFetch('/api/admin/stars-balance?limit=100&offset=0');
+
+        balEl.textContent = (data.balance !== null && data.balance !== undefined)
+          ? data.balance + ' ⭐'
+          : '?';
+        tgInEl.textContent = (data.summary?.tg_incoming_total || 0) + ' ⭐';
+        dbEl.textContent = (data.summary?.db_stars_total || 0) + ' ⭐';
+
+        const tgIn = data.summary?.tg_incoming_total || 0;
+        const dbSum = data.summary?.db_stars_total || 0;
+        const diff = dbSum - tgIn;
+        diffEl.textContent = (diff === 0 ? '✓ 0' : (diff > 0 ? '+' : '') + diff) + ' ⭐';
+        diffEl.style.color = diff === 0 ? '#7acc7a' : '#e0a040';
+
+        const hints = [];
+        if (data.balance_error) hints.push('⚠ Баланс через getMyStarBalance: ' + data.balance_error + ' (показан расчёт из транзакций)');
+        if (data.transactions_error) hints.push('⚠ Транзакции: ' + data.transactions_error);
+        if (data.summary?.db_error) hints.push('⚠ БД: ' + data.summary.db_error);
+        if (data.transactions?.length >= 100) hints.push('ℹ Показаны последние 100 транзакций. Telegram отдаёт пачками — для полной выгрузки нужна пагинация.');
+        if (diff !== 0) hints.push('ℹ Расхождение БД vs Telegram: разница в '+ Math.abs(diff) +' ⭐. Возможные причины: возвраты, тестовые платежи до запуска вебхука, или платежи с другим reason.');
+        hintEl.innerHTML = hints.join('<br>');
+
+        const txs = data.transactions || [];
+        if (txs.length === 0) {
+          listEl.innerHTML = '<div style="padding:12px;color:#888">Транзакций пока нет.</div>';
+        } else {
+          listEl.innerHTML = txs.map(t => {
+            const dir = t.direction === 'in' ? '↓ приход' : (t.direction === 'out' ? '↑ возврат' : '·');
+            const color = t.direction === 'in' ? '#7acc7a' : (t.direction === 'out' ? '#e07070' : '#888');
+            const date = new Date(t.date_iso).toLocaleString('ru-RU');
+            const who = t.telegram_user_id ? 'tg_id: ' + t.telegram_user_id : '';
+            const payload = t.payload ? `<div style="font-size:11px;color:#666;margin-top:4px">payload: ${t.payload}</div>` : '';
+            return `
+              <div style="background:#1a1a25;border:1px solid #2a2a35;border-radius:8px;padding:12px;margin-bottom:8px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+                  <div>
+                    <strong style="color:${color}">${dir} ${t.amount} ⭐</strong>
+                    <span style="color:#888;font-size:12px;margin-left:8px">${date}</span>
+                  </div>
+                  <div style="font-size:12px;color:#888">${who}</div>
+                </div>
+                ${payload}
+                <div style="font-size:11px;color:#555;margin-top:4px;word-break:break-all">id: ${t.id}</div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (e) {
+        balEl.textContent = '⚠';
+        listEl.innerHTML = `<div style="padding:12px;color:#e07070">Ошибка: ${e.message}</div>`;
+      }
+    }
+
+    document.getElementById('starsRefresh').addEventListener('click', loadStarsBalance);
+
+    const starsScreen = document.getElementById('screen-stars');
+    const starsObserver = new MutationObserver(() => {
+      if (starsScreen.classList.contains('active') && !starsScreen.dataset.loaded) {
+        starsScreen.dataset.loaded = '1';
+        loadStarsBalance();
+      }
+    });
+    starsObserver.observe(starsScreen, { attributes: true, attributeFilter: ['class'] });
 
     // Загрузить дашборд при первом успешном входе
     const _origBoot = (async () => {

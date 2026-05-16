@@ -358,9 +358,17 @@ async function handleOracle(req, res) {
   if (userId && dbUser) {
     const gate = await pricing.canUseOracle(dbUser, req);
     if (!gate.allowed) {
+      // Маппинг технических идентификаторов уровня доступа на пользовательские
+      // имена тарифов. Никогда не показывать 'basic'/'extended'/'premium'.
+      const tierLabels = {
+        basic: 'Странник',
+        extended: 'Хранитель',
+        premium: 'Мастер'
+      };
+      const tierLabel = tierLabels[dbUser.access_level] || 'Странник';
       return res.status(403).json({
         error: 'oracle_limit_reached',
-        message: 'Ты исчерпал дневной лимит Оракула на тарифе «' + (dbUser.access_level || 'Странник') + '». Возвращайся завтра или открой больше через Хранителя.',
+        message: 'Ты исчерпал дневной лимит Оракула на тарифе «' + tierLabel + '». Возвращайся завтра или открой больше через Хранителя.',
         limit: gate.limit,
         used: gate.used
       });

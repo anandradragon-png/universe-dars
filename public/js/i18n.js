@@ -107,8 +107,10 @@
    */
   function t(key, vars) {
     if (!state.loaded) {
-      // Возвращаем ключ — лучше чем undefined
-      return interpolate(key, vars);
+      // Пока словарь не загружен — возвращаем пустую строку (falsy),
+      // чтобы паттерн `i18n.t(key) || 'Fallback'` работал и пользователь
+      // НЕ видел сырые ключи типа 'dar.get_full_message'.
+      return '';
     }
     const value = getNested(state.dict, key);
     if (value === undefined) {
@@ -116,7 +118,9 @@
       if (location.hostname === 'localhost' || location.search.includes('debug')) {
         console.warn('[i18n] missing key:', key, '(lang:', state.lang + ')');
       }
-      return interpolate(key, vars);
+      // Ключ не найден в словаре — возвращаем пустую строку, чтобы
+      // вызывающий код мог применить свой fallback через `|| '...'`.
+      return '';
     }
     return interpolate(value, vars);
   }
@@ -135,6 +139,9 @@
       const attr = el.getAttribute('data-i18n-attr');
       if (!key) return;
       const translation = t(key);
+      // Если перевода нет (словарь не загружен или ключ отсутствует) —
+      // не трогаем DOM, оставляем исходный текст из HTML.
+      if (!translation) return;
       if (attr) {
         el.setAttribute(attr, translation);
       } else {
@@ -145,7 +152,9 @@
     scope.querySelectorAll('[data-i18n-html]').forEach(el => {
       const key = el.getAttribute('data-i18n-html');
       if (!key) return;
-      el.innerHTML = t(key);
+      const translation = t(key);
+      if (!translation) return;
+      el.innerHTML = translation;
     });
     // Установить html lang
     if (state.lang) document.documentElement.setAttribute('lang', state.lang);
@@ -175,6 +184,13 @@
   async function init() {
     const lang = detectLang();
     await loadDict(lang);
+    // Сигнал компонентам, которые могли отрендериться ДО загрузки словаря.
+    // Например Referral.renderShareButton (вызывается из main app сразу
+    // после расчёта дара) подписывается на это событие и перерендерит.
+    try {
+      document.dispatchEvent(new CustomEvent('i18n:ready', { detail: { lang: state.lang } }));
+      document.dispatchEvent(new CustomEvent('i18n:changed', { detail: { lang: state.lang } }));
+    } catch (e) {}
     return state.lang;
   }
 

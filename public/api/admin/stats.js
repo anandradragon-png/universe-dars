@@ -118,24 +118,37 @@ module.exports = async function handler(req, res) {
     } catch (e) { console.warn('[stats] crystal_log failed:', e.message); }
 
     // ====== PAYMENTS ======
-    // Все платежи у нас идут через crystal_log с reason типа 'telegram_stars_*' и 'yookassa_*'.
-    // Считаем количество и суммы.
+    // Все платежи у нас идут через crystal_log. Считаем количество и суммы.
+    // Stars: 'telegram_stars_*', 'telegram_payment_*', 'purchase_book', 'donation'
+    // ЮKassa: 'yookassa_*', 'yoomoney_*'
     let starsTotal = 0, yookassaRub = 0, paymentsCount = 0;
     try {
       let q = db.from('crystal_log').select('reason, amount, metadata');
-      // Платежи помечаются метаданными — берём всё, фильтруем по reason на клиенте
       if (fromIso) q = q.gte('created_at', fromIso);
       const { data } = await q;
       for (const r of (data || [])) {
-        const reason = r.reason || '';
-        if (reason.includes('stars') || reason.includes('telegram_payment')) {
+        const reason = (r.reason || '').toLowerCase();
+        const m = r.metadata || {};
+        const currencyUp = (m.currency || '').toUpperCase();
+        const isStars =
+          reason.includes('stars') ||
+          reason.includes('telegram_payment') ||
+          reason === 'purchase_book' ||
+          reason === 'donation' ||
+          currencyUp === 'XTR';
+        const isYookassa =
+          reason.includes('yookassa') ||
+          reason.includes('yoomoney');
+        if (isStars) {
           paymentsCount++;
-          // Stars-сумма — в metadata.stars или metadata.amount_stars
-          const m = r.metadata || {};
-          starsTotal += parseInt(m.stars || m.amount_stars || 0) || 0;
-        } else if (reason.includes('yookassa') || reason.includes('yoomoney')) {
+          // Stars-сумма: явное поле или metadata.amount при currency='XTR'
+          starsTotal += parseInt(
+            m.stars || m.amount_stars ||
+            (currencyUp === 'XTR' ? m.amount : 0) ||
+            0
+          ) || 0;
+        } else if (isYookassa) {
           paymentsCount++;
-          const m = r.metadata || {};
           yookassaRub += parseFloat(m.amount_rub || m.amount || 0) || 0;
         }
       }

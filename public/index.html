@@ -1203,7 +1203,8 @@
   </style>
 
   <div class="nav-bar">
-    <button class="nav-btn active" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 6h6"/><path d="M7 9l2-6"/><path d="M2 9h20"/></svg></span><span class="nav-label" data-i18n="nav.treasury">Сокровищница</span></button>
+    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span class="nav-label" data-i18n="nav.home">Главная</span></button>
+    <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 6h6"/><path d="M7 9l2-6"/><path d="M2 9h20"/></svg></span><span class="nav-label" data-i18n="nav.treasury">Сокровищница</span></button>
     <button class="nav-btn" id="nav-games" onclick="switchNav('games')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg></span><span class="nav-label" data-i18n="nav.games">Игры</span></button>
     <button class="nav-btn" id="nav-book" onclick="switchNav('book')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span class="nav-label" data-i18n="nav.book">Книга</span></button>
     <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="nav-label" data-i18n="nav.encyclopedia">Энциклопедия</span></button>
@@ -1440,8 +1441,10 @@
         bigAvatar.textContent = (_userName || 'С').charAt(0).toUpperCase();
       }
 
-      // i18n хелпер с fallback на русский — для использования внутри шаблонных строк ниже
-      const _pt = (key, fallback) => (window.i18n && i18n.t) ? i18n.t(key) : fallback;
+      // i18n хелпер с fallback на русский — для использования внутри шаблонных строк ниже.
+      // ЗАКОН: при отсутствии или незагруженности словаря пользователь должен видеть
+      // русский fallback, НЕ сам ключ и НЕ пустую строку.
+      const _pt = (key, fallback) => ((window.i18n && i18n.t && i18n.t(key)) || fallback);
 
       // Дар
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -1642,8 +1645,8 @@
       const file = input.files[0];
       if (!file) return;
       if (file.size > 5000000) {
-        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('avatar.too_large') : 'Фото слишком большое. Максимум 5 МБ.', 'error');
-        else alert((window.i18n && i18n.t) ? i18n.t('avatar.too_large') : 'Фото слишком большое. Максимум 5 МБ.');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('avatar.too_large')) || 'Фото слишком большое. Максимум 5 МБ.'), 'error');
+        else alert(((window.i18n && i18n.t && i18n.t('avatar.too_large')) || 'Фото слишком большое. Максимум 5 МБ.'));
         return;
       }
       const reader = new FileReader();
@@ -1662,12 +1665,12 @@
               if (typeof showToast === 'function') showToast('\u2728 Аватарка сохранена', 'success');
             }).catch(err => {
               console.warn('saveAvatar failed:', err.message);
-              if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('avatar.local_only') : 'Аватарка сохранена локально, но не на сервере. Попробуй позже.', 'error');
+              if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('avatar.local_only')) || 'Аватарка сохранена локально, но не на сервере. Попробуй позже.'), 'error');
             });
           }
         }).catch(err => {
           console.error('Image compression failed:', err);
-          if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('avatar.process_failed') : 'Не удалось обработать изображение', 'error');
+          if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('avatar.process_failed')) || 'Не удалось обработать изображение'), 'error');
         });
       };
       reader.readAsDataURL(file);
@@ -1757,9 +1760,9 @@
         const tgId = tg?.initDataUnsafe?.user?.id || USER_ID;
         const link = `https://t.me/YupDarBot?startapp=ref_${tgId}`;
         if (navigator.clipboard) {
-          navigator.clipboard.writeText(link).then(() => alert((window.i18n && i18n.t) ? i18n.t('share.link_copied') : 'Ссылка скопирована!'));
+          navigator.clipboard.writeText(link).then(() => alert(((window.i18n && i18n.t && i18n.t('share.link_copied')) || 'Ссылка скопирована!')));
         } else {
-          prompt((window.i18n && i18n.t) ? i18n.t('share.copy_link_prompt') : 'Скопируй ссылку:', link);
+          prompt(((window.i18n && i18n.t && i18n.t('share.copy_link_prompt')) || 'Скопируй ссылку:'), link);
         }
       }
     }
@@ -1823,6 +1826,9 @@
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-calc').classList.add('active');
+      // Подсветить кнопку «Главная» в нижней навигации
+      const navCalc = document.getElementById('nav-calc');
+      if (navCalc) navCalc.classList.add('active');
       document.getElementById('app').scrollTop = 0;
     }
     window.goHome = goHome;
@@ -1879,7 +1885,7 @@
         if (newLevel !== prevLevel) {
           if (typeof BookReader !== 'undefined') BookReader.render();
           if (!silent && newLevel !== 'basic') {
-            showToast(((window.i18n && i18n.t) ? i18n.t('access.updated') : 'Доступ обновлён!') + ' ' + (newLevel === 'premium' ? 'Мастер' : 'Хранитель'), 'success');
+            showToast((((window.i18n && i18n.t && i18n.t('access.updated')) || 'Доступ обновлён!')) + ' ' + (newLevel === 'premium' ? 'Мастер' : 'Хранитель'), 'success');
           }
         }
       } catch (e) {
@@ -1976,7 +1982,7 @@
       }
 
       document.getElementById('darName').textContent=darName;
-      const _codePrefix = (window.i18n && window.i18n.t) ? window.i18n.t('dar.code_prefix') : 'Код дара:';
+      const _codePrefix = (window.i18n && window.i18n.t && window.i18n.t('dar.code_prefix')) || 'Код дара:';
       document.getElementById('darCode').textContent=`${_codePrefix} ${gift.code}`;
       document.getElementById('darArchetype').textContent=isInt?intPhrase:darArchetype;
       // Картинка — пробуем NFC и NFD нормализацию
@@ -2008,7 +2014,7 @@
       // Сброс блока описания
       document.getElementById('full-description-block').style.display='none';
       const btn=document.getElementById('btn-get-message');
-      btn.textContent = '📩 ' + ((window.i18n && i18n.t) ? i18n.t('dar.get_full_message') : 'Получить полное послание');
+      btn.textContent = '📩 ' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание'));
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';
@@ -2122,7 +2128,7 @@
       const modal = document.getElementById('integrator-modal');
       if (modal) modal.remove();
       // Показать уведомление
-      alert(((window.i18n && i18n.t) ? i18n.t('dar2.unlocked_in_treasury', { name: darName }) : ('Дар ' + darName + ' открыт в твоей Сокровищнице! +10 кристаллов')));
+      alert(((window.i18n && i18n.t && i18n.t('dar2.unlocked_in_treasury', { name: darName })) || ('Дар ' + darName + ' открыт в твоей Сокровищнице! +10 кристаллов')));
     }
 
     function init(){
@@ -2291,7 +2297,7 @@
 
     async function requestMessage(){
       const saved=localStorage.getItem(STORAGE_KEY);
-      if(!saved){ alert((window.i18n && i18n.t) ? i18n.t('dar2.calc_first') : 'Сначала рассчитайте дар'); return; }
+      if(!saved){ alert(((window.i18n && i18n.t && i18n.t('dar2.calc_first')) || 'Сначала рассчитайте дар')); return; }
       const{gift}=JSON.parse(saved);
       const btn=document.getElementById('btn-get-message');
       // Сразу прячем кнопки и запускаем анимацию загрузки на месте кнопки.
@@ -2353,7 +2359,7 @@
         console.error('requestMessage error:', e.message);
         // При ошибке возвращаем кнопки на место (раньше было disabled=false,
         // но теперь мы скрываем кнопки через display:none при старте).
-        btn.textContent = '📩 ' + ((window.i18n && i18n.t) ? i18n.t('dar.get_full_message') : 'Получить полное послание');
+        btn.textContent = '📩 ' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание'));
         btn.style.display='';
         const btnChange2=document.getElementById('btn-change-date');
         if(btnChange2) btnChange2.style.display='';
@@ -2579,7 +2585,7 @@
     function hideDescription(){
       document.getElementById('full-description-block').style.display='none';
       const btn=document.getElementById('btn-get-message');
-      btn.textContent = '📩 ' + ((window.i18n && i18n.t) ? i18n.t('dar.get_full_message') : 'Получить полное послание');
+      btn.textContent = '📩 ' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание'));
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';
@@ -2630,7 +2636,7 @@
       const input = document.getElementById('promoInput');
       const err = document.getElementById('promoError');
       const code = input.value.trim();
-      if(!code){err.textContent=(window.i18n && i18n.t) ? i18n.t('kb.promo_required') : 'Введите промо-код';return;}
+      if(!code){err.textContent=((window.i18n && i18n.t && i18n.t('kb.promo_required')) || 'Введите промо-код');return;}
       err.textContent='';
       try{
         const resp = await fetch(API_URL+'/api/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
@@ -2642,7 +2648,7 @@
           err.textContent = result.error||'Неверный промо-код';
         }
       }catch(e){
-        err.textContent=(window.i18n && i18n.t) ? i18n.t('kb.check_error') : 'Ошибка проверки. Попробуйте позже.';
+        err.textContent=((window.i18n && i18n.t && i18n.t('kb.check_error')) || 'Ошибка проверки. Попробуйте позже.');
       }
     }
 
@@ -2977,7 +2983,7 @@
     // закрывает ЛК, показывает стартовый экран ввода даты (сохранённый дар при этом
     // не удаляется — просто откроется форма заново).
     function changeBirthDateFromProfile() {
-      if (!confirm((window.i18n && i18n.t) ? i18n.t('dar2.confirm_change_date') : 'Изменить дату рождения?\n\nПри ошибке ввода ты можешь указать правильную дату. Прежние открытые дары и кристаллы сохранятся.')) return;
+      if (!confirm(((window.i18n && i18n.t && i18n.t('dar2.confirm_change_date')) || 'Изменить дату рождения?\n\nПри ошибке ввода ты можешь указать правильную дату. Прежние открытые дары и кристаллы сохранятся.'))) return;
       try { closeProfile(); } catch(e) {}
       setTimeout(() => {
         try {
@@ -3020,10 +3026,10 @@
         // Восстанавливаем keep-ключи
         Object.entries(keep).forEach(([k, v]) => localStorage.setItem(k, v));
 
-        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('reset.success') : 'Локальные данные сброшены. Перезагрузка...', 'success');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('reset.success')) || 'Локальные данные сброшены. Перезагрузка...'), 'success');
         setTimeout(() => location.reload(), 800);
       } catch (e) {
-        alert(((window.i18n && i18n.t) ? i18n.t('reset.error') : 'Ошибка сброса:') + ' ' + e.message);
+        alert((((window.i18n && i18n.t && i18n.t('reset.error')) || 'Ошибка сброса:')) + ' ' + e.message);
       }
     }
     window.confirmFullReset = confirmFullReset;
@@ -3160,8 +3166,9 @@
     // premium (Мастер): оплачена подписка Мастер (включает Книгу)
     // extended (Хранитель): оплачена подписка Хранитель (включает всё)
     function getTariffsData(currentLevel) {
-      // Хелпер: i18n.t() с fallback на русский если i18n ещё не загружен
-      const t = (key, fallback) => (window.i18n && i18n.t) ? i18n.t(key) : fallback;
+      // Хелпер: i18n.t() с fallback на русский если i18n ещё не загружен или ключ потерян.
+      // ЗАКОН: русская версия НЕ должна показывать ключи или пустые тексты.
+      const t = (key, fallback) => ((window.i18n && i18n.t && i18n.t(key)) || fallback);
       return [
         {
           id: 'basic',
@@ -3279,7 +3286,7 @@
       container.innerHTML = tariffs.map(t => {
         let borderStyle;
         let badge = '';
-        const tt = (key, fallback) => (window.i18n && i18n.t) ? i18n.t(key) : fallback;
+        const tt = (key, fallback) => ((window.i18n && i18n.t && i18n.t(key)) || fallback);
         if (t.isCurrent) {
           borderStyle = 'border:2px solid #2ecc71;box-shadow:0 0 18px rgba(46,204,113,0.35)';
           badge = '<div style="display:inline-block;background:#2ecc71;color:#080808;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:0.5px;margin-bottom:8px">\u2713 ' + tt('tariffs_modal.current_badge', 'ТВОЙ ТЕКУЩИЙ ТАРИФ') + '</div>';
@@ -3306,8 +3313,8 @@
 
         const libBlock = (t.id === 'extended') ? `
           <div style="margin-top:14px;padding:12px;background:rgba(212,175,55,0.05);border:1px dashed rgba(212,175,55,0.25);border-radius:10px;opacity:0.7">
-            <div style="font-size:13px;color:#D4AF37;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">\u{1F5DD} ${(window.i18n && i18n.t) ? i18n.t('practices.title') : 'Библиотека Практик'} <span style="font-size:10px;background:rgba(243,156,18,0.18);color:#f39c12;border:1px solid rgba(243,156,18,0.5);padding:2px 8px;border-radius:6px;font-weight:600;letter-spacing:0.3px">${(window.i18n && i18n.t) ? i18n.t('practices.in_development') : 'в разработке'}</span></div>
-            <div style="font-size:12px;color:var(--text-dim);line-height:1.6">${(window.i18n && i18n.t) ? i18n.t('practices.coming_note') : 'Раздел появится в следующих обновлениях. Сейчас тариф «Хранитель» открывает остальные расширенные возможности.'}</div>
+            <div style="font-size:13px;color:#D4AF37;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">\u{1F5DD} ${((window.i18n && i18n.t && i18n.t('practices.title')) || 'Библиотека Практик')} <span style="font-size:10px;background:rgba(243,156,18,0.18);color:#f39c12;border:1px solid rgba(243,156,18,0.5);padding:2px 8px;border-radius:6px;font-weight:600;letter-spacing:0.3px">${((window.i18n && i18n.t && i18n.t('practices.in_development')) || 'в разработке')}</span></div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.6">${((window.i18n && i18n.t && i18n.t('practices.coming_note')) || 'Раздел появится в следующих обновлениях. Сейчас тариф «Хранитель» открывает остальные расширенные возможности.')}</div>
           </div>` : '';
 
         return `
@@ -3350,11 +3357,11 @@
 
     // Заглушки для подписок (реальная интеграция ЮKassa пока в разработке)
     async function buyMasterSubscription() {
-      const msg = (window.i18n && i18n.t) ? i18n.t('tariffs_modal.master_soon') : 'Подписка «Мастер» скоро будет доступна. Следи за обновлениями!';
+      const msg = ((window.i18n && i18n.t && i18n.t('tariffs_modal.master_soon')) || 'Подписка «Мастер» скоро будет доступна. Следи за обновлениями!');
       if (typeof showToast === 'function') showToast(msg, 'info');
     }
     async function buyKeeperSubscription() {
-      const msg = (window.i18n && i18n.t) ? i18n.t('tariffs_modal.guardian_soon') : 'Подписка «Хранитель» скоро будет доступна. Следи за обновлениями!';
+      const msg = ((window.i18n && i18n.t && i18n.t('tariffs_modal.guardian_soon')) || 'Подписка «Хранитель» скоро будет доступна. Следи за обновлениями!');
       if (typeof showToast === 'function') showToast(msg, 'info');
     }
 
@@ -3369,11 +3376,11 @@
     // Покупка полного доступа к Книге (500 ⭐ = ~$10)
     async function buyBookAccess() {
       try {
-        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('ykd.creating_payment') : 'Создаём платёж...', 'info');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('ykd.creating_payment')) || 'Создаём платёж...'), 'info');
         const result = await DarAPI.createBookInvoice();
 
         if (result.already_purchased) {
-          if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('access.already_full') : 'У тебя уже есть полный доступ!', 'success');
+          if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('access.already_full')) || 'У тебя уже есть полный доступ!'), 'success');
           return;
         }
 
@@ -3395,7 +3402,7 @@
             } else if (status === 'cancelled') {
               // Пользователь закрыл — ничего не делаем
             } else if (status === 'failed') {
-              if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('pay.failed_retry') : 'Оплата не прошла. Попробуй ещё раз.', 'error');
+              if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('pay.failed_retry')) || 'Оплата не прошла. Попробуй ещё раз.'), 'error');
             }
           });
         } else {
@@ -3449,11 +3456,11 @@
 
     async function submitDonation(amount) {
       if (!amount || amount < 1) {
-        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('pay.min_one_star') : 'Укажи сумму (минимум 1 звезда)', 'error');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('pay.min_one_star')) || 'Укажи сумму (минимум 1 звезда)'), 'error');
         return;
       }
       try {
-        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('ykd.creating_payment') : 'Создаём платёж...', 'info');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('ykd.creating_payment')) || 'Создаём платёж...'), 'info');
         const result = await DarAPI.createDonation(amount);
 
         if (!result.invoice_url) {
@@ -3469,7 +3476,7 @@
               if (typeof showToast === 'function') showToast('\u2728 Спасибо за поддержку! +' + result.bonus_crystals + ' кристаллов', 'success');
               if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(result.bonus_crystals);
             } else if (status === 'failed') {
-              if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('tariffs.payment_failed') : 'Оплата не прошла', 'error');
+              if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('tariffs.payment_failed')) || 'Оплата не прошла'), 'error');
             }
           });
         } else {
@@ -3578,17 +3585,17 @@
           const errEl = modal.querySelector('#yk-err');
           // Должно быть заполнено хотя бы одно: TG-username или email
           if (!tg && !email) {
-            errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_contact_required') : 'Оставь Telegram-username или email — иначе мы не сможем открыть доступ';
+            errEl.textContent = ((window.i18n && i18n.t && i18n.t('ykd.err_contact_required')) || 'Оставь Telegram-username или email — иначе мы не сможем открыть доступ');
             return;
           }
           // Если email указан — проверим что он корректный
           if (email && !_yookassaIsValidEmail(email)) {
-            errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_email_typo') : 'Похоже, в email опечатка — проверь, пожалуйста';
+            errEl.textContent = ((window.i18n && i18n.t && i18n.t('ykd.err_email_typo')) || 'Похоже, в email опечатка — проверь, пожалуйста');
             return;
           }
           // Если TG-username указан — проверим что он похож на username
           if (tg && !/^[a-zA-Z0-9_]{4,32}$/.test(tg)) {
-            errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_username') : 'Telegram-username из 4–32 латинских букв, цифр или «_». Без пробелов.';
+            errEl.textContent = ((window.i18n && i18n.t && i18n.t('ykd.err_username')) || 'Telegram-username из 4–32 латинских букв, цифр или «_». Без пробелов.');
             return;
           }
           _yookassaSaveContact(email, tg);
@@ -3657,15 +3664,15 @@
         const errEl = modal.querySelector('#ykd-err');
         const custom = parseInt(modal.querySelector('#ykd-custom').value, 10);
         const amount = selectedAmount || custom;
-        if (!amount || amount < 10) { errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_min_amount') : 'Минимальная сумма — 10 ₽'; return; }
-        if (amount > 100000) { errEl.textContent = (window.i18n && i18n.t) ? i18n.t('ykd.err_max_amount') : 'Максимум 100 000 ₽ за раз'; return; }
+        if (!amount || amount < 10) { errEl.textContent = ((window.i18n && i18n.t && i18n.t('ykd.err_min_amount')) || 'Минимальная сумма — 10 ₽'); return; }
+        if (amount > 100000) { errEl.textContent = ((window.i18n && i18n.t && i18n.t('ykd.err_max_amount')) || 'Максимум 100 000 ₽ за раз'); return; }
 
         // Контакты для веб-юзеров (вне Telegram Mini App). В Mini App вернётся {skip:true}.
         const contact = await _yookassaAskContact();
         if (contact && contact.cancelled) return;
 
         errEl.textContent = '';
-        modal.querySelector('#ykd-pay').textContent = (window.i18n && i18n.t) ? i18n.t('ykd.creating_payment') : 'Создаём платёж...';
+        modal.querySelector('#ykd-pay').textContent = ((window.i18n && i18n.t && i18n.t('ykd.creating_payment')) || 'Создаём платёж...');
         modal.querySelector('#ykd-pay').disabled = true;
 
         try {
@@ -3683,12 +3690,12 @@
             window.open(result.invoice_url, '_blank');
           }
           if (typeof showToast === 'function') {
-            showToast(((window.i18n && i18n.t) ? i18n.t('ykd.opened_payment', { amount: amount }) : ('Открыли страницу оплаты на ' + amount + ' ₽. Спасибо! 💜')), 'success');
+            showToast(((window.i18n && i18n.t && i18n.t('ykd.opened_payment', { amount: amount })) || ('Открыли страницу оплаты на ' + amount + ' ₽. Спасибо! 💜')), 'success');
           }
         } catch (e) {
           console.error('[payment] yookassa donation error:', e);
           errEl.textContent = e.message || 'Не удалось создать платёж';
-          modal.querySelector('#ykd-pay').textContent = '💜 ' + ((window.i18n && i18n.t) ? i18n.t('ykd.thank_btn') : 'Поблагодарить');
+          modal.querySelector('#ykd-pay').textContent = '💜 ' + (((window.i18n && i18n.t && i18n.t('ykd.thank_btn')) || 'Поблагодарить'));
           modal.querySelector('#ykd-pay').disabled = false;
         }
       });
@@ -3772,7 +3779,7 @@
         if (contact.cancelled) return;
 
         if (typeof showToast === 'function') {
-          showToast((window.i18n && i18n.t) ? i18n.t('book_pay.creating_990') : 'Создаём платёж 990 ₽...', 'info');
+          showToast(((window.i18n && i18n.t && i18n.t('book_pay.creating_990')) || 'Создаём платёж 990 ₽...'), 'info');
         }
 
         const result = await DarAPI.createYookassaBook({
@@ -3781,7 +3788,7 @@
         });
 
         if (result.already_purchased) {
-          if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('access.already_full') : 'У тебя уже есть полный доступ!', 'success');
+          if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('access.already_full')) || 'У тебя уже есть полный доступ!'), 'success');
           return;
         }
 
@@ -3798,7 +3805,7 @@
         }
 
         if (typeof showToast === 'function') {
-          showToast((window.i18n && i18n.t) ? i18n.t('book_pay.opened_page') : 'Открыли страницу оплаты. После оплаты вернись в приложение.', 'info');
+          showToast(((window.i18n && i18n.t && i18n.t('book_pay.opened_page')) || 'Открыли страницу оплаты. После оплаты вернись в приложение.'), 'info');
         }
       } catch (e) {
         console.error('[payment] buyBookWithCard error:', e);
@@ -3810,11 +3817,11 @@
     // Покупка через DarAI (YupPay / NEAR)
     async function buyWithDarai() {
       try {
-        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('book_pay.creating_darai') : 'Создаём платёж в DarAI...', 'info');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('book_pay.creating_darai')) || 'Создаём платёж в DarAI...'), 'info');
         const result = await DarAPI.createDaraiBookInvoice();
 
         if (result.already_purchased) {
-          if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('access.already_full') : 'У тебя уже есть полный доступ!', 'success');
+          if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('access.already_full')) || 'У тебя уже есть полный доступ!'), 'success');
           return;
         }
 
@@ -3851,7 +3858,7 @@
         if (_diaryTodayMood) {
           // Уже отметила сегодня
           const statusEl = document.getElementById('diary-status');
-          if (statusEl) statusEl.textContent = ((window.i18n && i18n.t) ? i18n.t('diary.today_marked') : 'Сегодня: отмечено') + ' \u2714';
+          if (statusEl) statusEl.textContent = (((window.i18n && i18n.t && i18n.t('diary.today_marked')) || 'Сегодня: отмечено')) + ' \u2714';
           document.querySelectorAll('.diary-mood-btn').forEach(b => {
             if (b.dataset.mood === _diaryTodayMood) b.classList.add('saved');
             else b.style.opacity = '0.4';
@@ -3876,7 +3883,7 @@
           else b.style.opacity = '0.4';
         });
         const statusEl = document.getElementById('diary-status');
-        if (statusEl) statusEl.textContent = ((window.i18n && i18n.t) ? i18n.t('diary.today_marked') : 'Сегодня: отмечено') + ' \u2714';
+        if (statusEl) statusEl.textContent = (((window.i18n && i18n.t && i18n.t('diary.today_marked')) || 'Сегодня: отмечено')) + ' \u2714';
         if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
           CrystalsUI.animateEarn(result.crystals_earned);
         }
@@ -3950,7 +3957,7 @@
         active.style.display = 'block';
         if (typeof IntuitionGame !== 'undefined') IntuitionGame.render();
       } else if (mode === 'pvp') {
-        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('games.battles_soon') : 'Батлы с друзьями появятся скоро! Пока можно сразиться с AI-Юпиком.', 'info');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('games.battles_soon')) || 'Батлы с друзьями появятся скоро! Пока можно сразиться с AI-Юпиком.'), 'info');
       }
     }
 
@@ -4003,9 +4010,9 @@
       _psuIsNewUser = isNew !== false;
       const intro = document.getElementById('profile-setup-intro');
       if (_psuIsNewUser) {
-        intro.innerHTML = (window.i18n && i18n.t) ? i18n.t('psu.intro_new') : 'Чтобы твои предсказания были по-настоящему личными и точными, поделись несколькими деталями о себе. Это займёт минуту.';
+        intro.innerHTML = ((window.i18n && i18n.t && i18n.t('psu.intro_new')) || 'Чтобы твои предсказания были по-настоящему личными и точными, поделись несколькими деталями о себе. Это займёт минуту.');
       } else {
-        intro.innerHTML = (window.i18n && i18n.t) ? i18n.t('psu.intro_returning') : 'Ты давно с нами, спасибо! Чтобы послания Оракула стали по-настоящему твоими - с правильным обращением и глубиной - заполни пожалуйста эти поля. Это важно для точности расшифровок.';
+        intro.innerHTML = ((window.i18n && i18n.t && i18n.t('psu.intro_returning')) || 'Ты давно с нами, спасибо! Чтобы послания Оракула стали по-настоящему твоими - с правильным обращением и глубиной - заполни пожалуйста эти поля. Это важно для точности расшифровок.');
       }
 
       // Предзаполнить если что-то уже есть
@@ -4156,7 +4163,7 @@
       const status = document.getElementById('psu-status');
 
       // Валидация
-      const _t = (k, f) => (window.i18n && i18n.t) ? i18n.t(k) : f;
+      const _t = (k, f) => ((window.i18n && i18n.t && i18n.t(k)) || f);
       if (!firstName) { status.textContent = _t('psu.err_firstname', 'Укажи своё настоящее имя'); return; }
       if (!lastName) { status.textContent = _t('psu.err_lastname', 'Укажи свою настоящую фамилию'); return; }
       if (_psuGender !== 'male' && _psuGender !== 'female') { status.textContent = _t('psu.err_gender', 'Укажи свой пол'); return; }
@@ -4201,35 +4208,47 @@
       let serverErr = '';
       let errKind = '';
       let errStatus = 0;
-      try {
-        if (typeof DarAPI !== 'undefined' && DarAPI.saveProfile) {
-          await DarAPI.saveProfile(profile);
-          serverOk = true;
-        } else {
-          serverOk = true; // Нет DarAPI (dev preview) - считаем успехом
-        }
-      } catch (e) {
-        serverErr = e.message || 'Неизвестная ошибка';
-        errKind = e.kind || '';
-        errStatus = e.status || 0;
-        console.warn('Server profile save failed:', serverErr, 'kind:', errKind, 'status:', errStatus);
-        // Сохраняем детали ошибки для диагностики
+      // Детект: юзер не в Telegram WebApp (зашёл через веб-ссылку портала).
+      // В этом случае initData пустой и сервер вернёт 401 «нужно перезайти».
+      // Не стучимся на сервер вообще — сразу показываем нужное сообщение,
+      // данные уже сохранены в localStorage.
+      const _tgRef = window.Telegram?.WebApp;
+      const _hasInitData = !!(_tgRef && _tgRef.initData);
+      if (!_hasInitData) {
+        serverErr = 'Не в Telegram WebApp';
+        errKind = 'no-telegram';
+        errStatus = 401; // Чтобы попасть в ветку isAuthErr + isWebBrowser ниже
+      } else {
         try {
-          localStorage.setItem('_psu_last_error', JSON.stringify({
-            ts: new Date().toISOString(),
-            msg: serverErr,
-            kind: errKind,
-            status: errStatus
-          }));
-        } catch (lsErr) {}
+          if (typeof DarAPI !== 'undefined' && DarAPI.saveProfile) {
+            await DarAPI.saveProfile(profile);
+            serverOk = true;
+          } else {
+            serverOk = true; // Нет DarAPI (dev preview) - считаем успехом
+          }
+        } catch (e) {
+          serverErr = e.message || 'Неизвестная ошибка';
+          errKind = e.kind || '';
+          errStatus = e.status || 0;
+          console.warn('Server profile save failed:', serverErr, 'kind:', errKind, 'status:', errStatus);
+          // Сохраняем детали ошибки для диагностики
+          try {
+            localStorage.setItem('_psu_last_error', JSON.stringify({
+              ts: new Date().toISOString(),
+              msg: serverErr,
+              kind: errKind,
+              status: errStatus
+            }));
+          } catch (lsErr) {}
+        }
       }
       btn.disabled = false;
-      btn.textContent = (window.i18n && i18n.t) ? i18n.t('psu.save_and_continue') : 'Сохранить и продолжить';
+      btn.textContent = ((window.i18n && i18n.t && i18n.t('psu.save_and_continue')) || 'Сохранить и продолжить');
 
       if (serverOk) {
         // Полный успех - показываем зелёное сообщение, закрываем через секунду
         status.style.color = '#4ade80';
-        status.innerHTML = '&#10003; ' + ((window.i18n && i18n.t) ? i18n.t('psu.data_saved') : 'Данные сохранены');
+        status.innerHTML = '&#10003; ' + (((window.i18n && i18n.t && i18n.t('psu.data_saved')) || 'Данные сохранены'));
         setTimeout(() => {
           status.style.color = '#f87171';
           status.textContent = '';
@@ -4249,12 +4268,21 @@
         const isMigrationErr = serverErr.includes('миграцию') || serverErr.includes('column') || serverErr.includes('birth_lat') || serverErr.includes('birth_lon');
         const isAuthErr = errStatus === 401 || serverErr.includes('перезайти');
         const isNetworkErr = errKind === 'network' || serverErr.includes('связи');
+        // Определяем: юзер вообще не в Telegram WebView? (открыл через веб-ссылку)
+        const tgRef = window.Telegram?.WebApp;
+        const hasInitData = !!(tgRef && tgRef.initData);
+        const isWebBrowser = !hasInitData;
 
         let color, title, hint;
         if (isMigrationErr) {
           color = '#F4511E';
           title = 'База данных не обновлена';
           hint = 'Запусти обновлённую миграцию SQL в Supabase (колонки birth_lat, birth_lon). Данные сохранены в браузере.';
+        } else if (isAuthErr && isWebBrowser) {
+          // Не в Telegram WebApp — это веб-вход из портала. Не пугаем «сессией».
+          color = '#fbbf24';
+          title = 'Открой через Telegram-бота';
+          hint = 'Чтобы сохранить данные на аккаунт, открой YupDar через бот @YupDarBot в Telegram. Сейчас твои данные сохранены только в этом браузере и при следующем заходе могут не загрузиться.';
         } else if (isAuthErr) {
           color = '#F4511E';
           title = 'Сессия Telegram устарела';
@@ -4424,18 +4452,18 @@
 
     async function saveLeaderboardName() {
       const status = document.getElementById('leaderboard-name-status');
-      if (status) { status.style.color = 'var(--text-muted)'; status.textContent = (window.i18n && i18n.t) ? i18n.t('common.saving') : 'Сохраняю...'; }
+      if (status) { status.style.color = 'var(--text-muted)'; status.textContent = ((window.i18n && i18n.t && i18n.t('common.saving')) || 'Сохраняю...'); }
 
       let customName = '';
       if (_leaderboardNameType === 'custom') {
         const input = document.getElementById('leaderboard-custom-input');
         customName = (input?.value || '').trim();
         if (customName.length < 2) {
-          if (status) { status.style.color = '#f87171'; status.textContent = (window.i18n && i18n.t) ? i18n.t('hof.min_chars') : 'Минимум 2 символа'; }
+          if (status) { status.style.color = '#f87171'; status.textContent = ((window.i18n && i18n.t && i18n.t('hof.min_chars')) || 'Минимум 2 символа'); }
           return;
         }
         if (customName.length > 30) {
-          if (status) { status.style.color = '#f87171'; status.textContent = (window.i18n && i18n.t) ? i18n.t('hof.max_chars') : 'Максимум 30 символов'; }
+          if (status) { status.style.color = '#f87171'; status.textContent = ((window.i18n && i18n.t && i18n.t('hof.max_chars')) || 'Максимум 30 символов'); }
           return;
         }
       }
@@ -4443,7 +4471,7 @@
       try {
         await DarAPI.saveLeaderboardName(_leaderboardNameType, customName);
         _leaderboardCustomName = customName;
-        if (status) { status.style.color = '#4ade80'; status.textContent = '\u2713 ' + ((window.i18n && i18n.t) ? i18n.t('common.saved') : 'Сохранено'); }
+        if (status) { status.style.color = '#4ade80'; status.textContent = '\u2713 ' + (((window.i18n && i18n.t && i18n.t('common.saved')) || 'Сохранено')); }
         setTimeout(() => { if (status) status.textContent = ''; }, 2000);
         renderLeaderboardNameBlock();
       } catch (e) {
@@ -4718,7 +4746,7 @@
       const confirmMsg = `Сохранить близкого?\n\nИмя: ${name}\nДата рождения: ${birth_date}\nКем приходится: ${relLabel}\n\n⚠️ После сохранения изменить или удалить эту запись будет НЕЛЬЗЯ. Это защита от подмены.\n\nПроверь данные внимательно.`;
       if (!confirm(confirmMsg)) return;
 
-      if (status) { status.style.color = 'var(--text-dim)'; status.textContent = (window.i18n && i18n.t) ? i18n.t('common.saving') : 'Сохраняем...'; }
+      if (status) { status.style.color = 'var(--text-dim)'; status.textContent = ((window.i18n && i18n.t && i18n.t('common.saving')) || 'Сохраняем...'); }
       btn.disabled = true;
 
       try {
@@ -4773,7 +4801,7 @@
       let relative = relativeJson;
       if (typeof relativeJson === 'string') {
         try { relative = JSON.parse(relativeJson); } catch (e) {
-          showToast((window.i18n && i18n.t) ? i18n.t('rel.open_failed') : 'Не удалось открыть данные близкого', 'error');
+          showToast(((window.i18n && i18n.t && i18n.t('rel.open_failed')) || 'Не удалось открыть данные близкого'), 'error');
           return;
         }
       }
@@ -4913,7 +4941,7 @@
 
       // Мой дар
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) { if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('dar2.calc_first') : 'Сначала рассчитай свой дар', 'error'); return; }
+      if (!saved) { if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('dar2.calc_first')) || 'Сначала рассчитай свой дар'), 'error'); return; }
       const { gift } = JSON.parse(saved);
       const myCode = gift.code;
       const myName = getUserName() || window._userName || 'Ты';
@@ -4927,8 +4955,8 @@
       // Проверка: есть ли у юзера свой дар
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) {
-        if (typeof showToast === 'function') showToast((window.i18n && i18n.t) ? i18n.t('dar2.calc_first') : 'Сначала рассчитай свой дар', 'warning');
-        else alert((window.i18n && i18n.t) ? i18n.t('dar2.calc_first') : 'Сначала рассчитай свой дар');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('dar2.calc_first')) || 'Сначала рассчитай свой дар'), 'warning');
+        else alert(((window.i18n && i18n.t && i18n.t('dar2.calc_first')) || 'Сначала рассчитай свой дар'));
         return;
       }
 
@@ -5027,7 +5055,7 @@
       const dateStr = (dateInput.value || '').trim();
       errEl.textContent = '';
 
-      const _tc = (k, f) => (window.i18n && i18n.t) ? i18n.t(k) : f;
+      const _tc = (k, f) => ((window.i18n && i18n.t && i18n.t(k)) || f);
       if (!name || name.length < 1) { errEl.textContent = _tc('compat.err_name', 'Укажи имя партнёра'); return; }
       if (!/^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) { errEl.textContent = _tc('compat.err_date_format', 'Дата в формате ДД.ММ.ГГГГ'); return; }
       const [d, m, y] = dateStr.split('.').map(Number);
@@ -5559,7 +5587,7 @@
       try {
         const data = await DarAPI.adminGetFeedback();
         _adminFeedbackCache = data.feedback || [];
-        count.textContent = `${(window.i18n && i18n.t) ? i18n.t('admin_fb.total') : 'Всего'}: ${_adminFeedbackCache.length}`;
+        count.textContent = `${((window.i18n && i18n.t && i18n.t('admin_fb.total')) || 'Всего')}: ${_adminFeedbackCache.length}`;
         renderAdminFeedback();
       } catch (e) {
         list.innerHTML = `<div style="color:#f87171;text-align:center;padding:20px">Ошибка: ${escapeAdminHtml(e.message || 'неизвестная')}</div>`;

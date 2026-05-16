@@ -1016,6 +1016,17 @@
       border-radius: 12px;
       background: var(--bg);
     }
+    /* Полноэкранный режим АРКА (без заголовка-баннера и подтабов снаружи) */
+    .arka-iframe-full {
+      height: calc(100vh - 130px);
+      min-height: 700px;
+      border-radius: 0;
+      margin: 0;
+    }
+    /* Убираем боковые отступы у вкладки Арка, чтобы iframe занимал всю ширину */
+    #tab-arka {
+      padding: 0;
+    }
 
     /* === Семья: реф-карточка === */
     .family-invite-card {
@@ -2802,39 +2813,9 @@
     <!-- 3 подвкладки: Сегодня (бесплатно) / Стратегия (Хранитель) / Путь (Мастер).
          Оракул живёт в «Я», тут только ритм жизни. -->
     <section class="tab" id="tab-arka">
-      <h2 class="screen-headline" data-i18n="arka.headline">Арка</h2>
-      <p class="screen-subhead" data-i18n="arka.subhead">Личный путь в ритме твоего Дара</p>
-
-      <div class="subtabs">
-        <button class="subtab active" data-subtab="today" data-i18n="arka.tab_today">Сегодня</button>
-        <button class="subtab" data-subtab="strategy" data-i18n="arka.tab_strategy">Стратегия</button>
-        <button class="subtab" data-subtab="path" data-i18n="arka.tab_path">Путь</button>
-      </div>
-
-      <!-- Сегодня (для всех бесплатно) — прототип АРКА -->
-      <div class="subtab-content active" data-subtab-content="today">
-        <iframe src="/preview/arka/" class="arka-iframe" title="АРКА — Ритм твоего дня" loading="lazy"></iframe>
-      </div>
-
-      <!-- Стратегия (Хранитель) -->
-      <div class="subtab-content" data-subtab-content="strategy">
-        <div class="arka-paywall">
-          <div class="arka-paywall-icon">🛡</div>
-          <div class="arka-paywall-title" data-i18n="arka.strategy_title">Стратегия в ритме твоего Дара</div>
-          <div class="arka-paywall-sub" data-i18n="arka.strategy_sub">Цели, шаги и AI-помощник, который думает как твой Дар. Доступно в тарифе Хранитель.</div>
-          <button class="btn-primary" data-i18n="arka.unlock_guardian">Открыть Хранителя</button>
-        </div>
-      </div>
-
-      <!-- Путь (Мастер) -->
-      <div class="subtab-content" data-subtab-content="path">
-        <div class="arka-paywall">
-          <div class="arka-paywall-icon">👑</div>
-          <div class="arka-paywall-title" data-i18n="arka.path_title">Личный AI-наставник</div>
-          <div class="arka-paywall-sub" data-i18n="arka.path_sub">Бриф наставника, разбор недели, потоки дохода и план продвижения. Доступно в тарифе Мастер.</div>
-          <button class="btn-primary" data-i18n="arka.unlock_master">Открыть Мастера</button>
-        </div>
-      </div>
+      <!-- АРКА: 4 таба (Сегодня/Дар/Стратегия/Путь) и весь контент находятся внутри iframe.
+           Внешние подвкладки убраны, чтобы не дублировать навигацию. -->
+      <iframe src="/preview/arka/" class="arka-iframe arka-iframe-full" title="АРКА — Личный путь в ритме твоего Дара" loading="lazy"></iframe>
     </section>
   </main>
 

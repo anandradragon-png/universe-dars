@@ -13,23 +13,13 @@
 
 <div class="container">
 
-  <!-- Заголовок -->
-  <header class="header">
-    <div class="greeting">
-      <div class="time-of-day" id="timeOfDay">Доброе утро</div>
-      <div class="name" id="userName">—</div>
-    </div>
-    <div class="dar-badge">
-      <div class="dar-label">Твой Дар</div>
-      <div class="dar-name" id="userDarName">—</div>
-      <div class="dar-code" id="userDarCode">—</div>
-    </div>
-  </header>
-
-  <!-- Баннер: контент пока на примере З-МАН -->
-  <div id="arkaDraftBanner" style="display:none;margin:8px 12px 0;padding:10px 12px;border-radius:10px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);font-size:12px;line-height:1.45;color:#D4AF37">
-    🐉 <b>Это прототип на примере Дара З-МАН.</b> Скоро ритуалы, масла и AI-наставник перестроятся под твой Дар <b><span id="userDarCode2">—</span></b>. Сейчас можно посмотреть, как АРКА выглядит изнутри.
-  </div>
+  <!-- Скрытые элементы для подтягивания профиля (используются скриптом ниже).
+       Видимая шапка (имя/время суток/Дар) убрана — она дублирует данные главного приложения. -->
+  <span id="userName" hidden></span>
+  <span id="userDarName" hidden></span>
+  <span id="userDarCode" hidden></span>
+  <span id="userDarCode2" hidden></span>
+  <span id="arkaDraftBanner" hidden></span>
 
   <!-- Табы -->
   <nav class="tabs">

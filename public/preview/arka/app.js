@@ -31,7 +31,20 @@ function defaultState() {
     content: [
       { id: 'c1', date: '', text: '', channel: 'Telegram', done: false },
       { id: 'c2', date: '', text: '', channel: 'Instagram', done: false }
-    ]
+    ],
+    // ── Квест Открытие тени ──
+    // shadows.active — массив теней которые сейчас активны (юзер их замечает)
+    // shadows.passed — массив теней которые юзер прошёл (3+ записи)
+    // shadows.counts — счётчик упоминаний каждой тени { 'fall_out': 2, 'stuck_future': 0 }
+    // shadows.unlocked — id практик которые открылись (связь shadow_id → practice_id)
+    shadows: {
+      active: ['shadow_fall_out', 'shadow_stuck_future'],
+      passed: ['shadow_rush', 'shadow_procrastination'],
+      counts: { shadow_fall_out: 0, shadow_stuck_future: 0 },
+      unlocked: ['practice_slowdown']  // p1 уже открыта по умолчанию (демо)
+    },
+    // Журнал записей дневника (для истории + анализа недели)
+    journal: []
   };
 }
 
@@ -251,7 +264,20 @@ function dynLang() {
 }
 function dt(key, params) {
   const lang = dynLang();
-  let str = (ARKA_DYN_I18N[lang] && ARKA_DYN_I18N[lang][key]) || (ARKA_DYN_I18N.ru[key] || key);
+  // Ищем сначала в ARKA_DYN_I18N (для динамических строк из JS),
+  // затем в ARKA_I18N (для статичных HTML-ключей)
+  let str = (ARKA_DYN_I18N[lang] && ARKA_DYN_I18N[lang][key])
+         || (ARKA_DYN_I18N.ru && ARKA_DYN_I18N.ru[key]);
+  if (str === undefined) {
+    // ARKA_I18N определён в HTML script-блоке — может быть недоступен в момент загрузки app.js
+    try {
+      if (typeof ARKA_I18N !== 'undefined') {
+        str = (ARKA_I18N[lang] && ARKA_I18N[lang][key])
+           || (ARKA_I18N.ru && ARKA_I18N.ru[key]);
+      }
+    } catch (e) {}
+  }
+  if (str === undefined) str = key;
   if (params) {
     Object.keys(params).forEach(k => {
       str = str.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]);
@@ -1215,9 +1241,19 @@ function getMirrorState() {
 // Безопасный dt — возвращает '' если ключа нет или значение пустое (вместо самого ключа)
 function dtOrEmpty(key) {
   const lang = dynLang();
-  const dict = ARKA_DYN_I18N[lang] || ARKA_DYN_I18N.ru;
-  const v = (dict[key] !== undefined) ? dict[key] : (ARKA_DYN_I18N.ru[key] !== undefined ? ARKA_DYN_I18N.ru[key] : null);
-  return v == null ? '' : v;
+  // Сначала ARKA_DYN_I18N
+  let dict = ARKA_DYN_I18N[lang] || ARKA_DYN_I18N.ru;
+  let v = (dict[key] !== undefined) ? dict[key] : (ARKA_DYN_I18N.ru[key] !== undefined ? ARKA_DYN_I18N.ru[key] : undefined);
+  // Потом ARKA_I18N
+  if (v === undefined) {
+    try {
+      if (typeof ARKA_I18N !== 'undefined') {
+        const dict2 = ARKA_I18N[lang] || ARKA_I18N.ru;
+        v = (dict2[key] !== undefined) ? dict2[key] : (ARKA_I18N.ru[key] !== undefined ? ARKA_I18N.ru[key] : undefined);
+      }
+    } catch (e) {}
+  }
+  return (v == null || v === undefined) ? '' : v;
 }
 
 function generateMirror() {
@@ -1478,6 +1514,191 @@ function downloadShareCard() {
 window.downloadShareCard = downloadShareCard;
 
 // Шеринг через Telegram WebApp API (если доступно) или копирование ссылки
+// ═══════════════════════════════════════════════════
+// КВЕСТ: ОТКРЫТИЕ ТЕНИ
+// ═══════════════════════════════════════════════════
+// Логика:
+// 1. В Дневнике эволюции при выборе «Тень» появляется селект «Какая?»
+// 2. При сохранении записи — счётчик этой тени +1
+// 3. Когда счётчик >= 3 → анимация открытия → тень в «Пройденные» + разблокировка практики
+
+// Каталог теней: каждая тень = id → имя + связанная практика которая открывается
+const SHADOWS_CATALOG = {
+  shadow_fall_out:      { i18n: 'arka.shadow_fall_out',       unlocks: 'practice_breath_sync' },
+  shadow_stuck_future:  { i18n: 'arka.shadow_stuck_future',   unlocks: 'practice_slide_past' },
+  shadow_rush:          { i18n: 'arka.shadow_rush',           unlocks: 'practice_logos_anchor' },
+  shadow_procrastination: { i18n: 'arka.shadow_procrastination', unlocks: 'practice_slowdown' }
+};
+
+// Каталог практик: id → ключ имени + время + ключ имени связанной тени
+const PRACTICES_CATALOG = {
+  practice_slowdown:     { i18n: 'arka.trainer_p1', time: '5 мин', requires: null },
+  practice_breath_sync:  { i18n: 'arka.trainer_p2', time: '3 мин', requires: 'shadow_fall_out' },
+  practice_slide_past:   { i18n: 'arka.trainer_p3', time: '7 мин', requires: 'shadow_stuck_future' },
+  practice_logos_anchor: { i18n: 'arka.trainer_p4', time: '2 мин', requires: 'shadow_rush' }
+};
+
+// Рендер Карты роста — пройденные + активные тени из state.shadows
+function renderGrowthMap() {
+  const doneEl = document.getElementById('growthShadowsDone');
+  const activeEl = document.getElementById('growthShadowsActive');
+  if (!doneEl || !activeEl) return;
+  const sh = state.shadows || { passed: [], active: [] };
+
+  doneEl.innerHTML = sh.passed.map(id => {
+    const sh = SHADOWS_CATALOG[id];
+    if (!sh) return '';
+    return '<span class="gs-tag">' + escapeHtml(dt(sh.i18n) || dtOrEmpty(sh.i18n) || id) + '</span>';
+  }).join('');
+
+  activeEl.innerHTML = sh.active.map(id => {
+    const sh = SHADOWS_CATALOG[id];
+    if (!sh) return '';
+    const cnt = (state.shadows.counts && state.shadows.counts[id]) || 0;
+    const progress = cnt > 0 ? ' (' + cnt + '/3)' : '';
+    return '<span class="gs-tag gs-tag-active">' + escapeHtml(dt(sh.i18n) || id) + progress + '</span>';
+  }).join('');
+}
+
+// Рендер списка практик в Тренажёре с учётом блокировок
+function renderTrainerPractices() {
+  // Тренажёр рендерится статично в HTML. Применяем классы lock/unlock по state.shadows.unlocked.
+  document.querySelectorAll('.trainer-practice').forEach((el, idx) => {
+    const practiceIds = ['practice_slowdown', 'practice_breath_sync', 'practice_slide_past', 'practice_logos_anchor'];
+    const pid = practiceIds[idx];
+    if (!pid) return;
+    const isUnlocked = state.shadows.unlocked.indexOf(pid) >= 0;
+    el.classList.toggle('trainer-practice-locked', !isUnlocked);
+    // Заменяем mark на замок если закрыто
+    const mark = el.querySelector('.tp-mark');
+    if (mark && !isUnlocked) mark.textContent = '🔒';
+  });
+}
+
+// Заполнить селект активных теней в Дневнике
+function renderShadowSelect() {
+  const sel = document.getElementById('evoShadowSelect');
+  if (!sel) return;
+  const placeholderText = dtOrEmpty('arka.journal_which_shadow') || 'Какая тень?';
+  let html = '<option value="">' + escapeHtml(placeholderText) + '</option>';
+  state.shadows.active.forEach(id => {
+    const sh = SHADOWS_CATALOG[id];
+    if (!sh) return;
+    html += '<option value="' + id + '">' + escapeHtml(dt(sh.i18n) || id) + '</option>';
+  });
+  sel.innerHTML = html;
+}
+
+// Сохранение записи в Дневник + квест-логика
+function saveJournalEntry() {
+  const textarea = document.getElementById('evoTextarea');
+  const select = document.getElementById('evoShadowSelect');
+  const activeTab = document.querySelector('.evo-tab.evo-tab-active');
+  const evoType = activeTab ? activeTab.dataset.evo : 'light';
+  const text = (textarea && textarea.value || '').trim();
+  if (!text) return;
+
+  // Сохраняем запись
+  if (!Array.isArray(state.journal)) state.journal = [];
+  const entry = { date: TODAY, type: evoType, text, shadowId: null };
+  if (evoType === 'shadow' && select && select.value) {
+    entry.shadowId = select.value;
+  }
+  state.journal.push(entry);
+
+  // Если тип «тень» и выбран shadowId — инкремент счётчика
+  if (entry.shadowId) {
+    if (!state.shadows.counts) state.shadows.counts = {};
+    state.shadows.counts[entry.shadowId] = (state.shadows.counts[entry.shadowId] || 0) + 1;
+    // Проверяем: достигнут порог?
+    if (state.shadows.counts[entry.shadowId] >= 3 && state.shadows.passed.indexOf(entry.shadowId) === -1) {
+      passShadow(entry.shadowId);
+      saveState();
+      return;
+    }
+  }
+
+  saveState();
+  // Очистка
+  if (textarea) textarea.value = '';
+  renderGrowthMap();
+}
+
+// Тень прошла → перевести в пройденные, разблокировать практику, показать анимацию
+function passShadow(shadowId) {
+  const sh = SHADOWS_CATALOG[shadowId];
+  if (!sh) return;
+
+  // Перевод тени
+  state.shadows.active = state.shadows.active.filter(x => x !== shadowId);
+  if (state.shadows.passed.indexOf(shadowId) === -1) state.shadows.passed.push(shadowId);
+
+  // Разблокировка практики
+  let unlockedPracticeId = null;
+  if (sh.unlocks && state.shadows.unlocked.indexOf(sh.unlocks) === -1) {
+    state.shadows.unlocked.push(sh.unlocks);
+    unlockedPracticeId = sh.unlocks;
+  }
+
+  // Показать анимацию
+  showShadowUnlock(shadowId, unlockedPracticeId);
+
+  // Обновить UI
+  renderGrowthMap();
+  renderTrainerPractices();
+
+  // Очистка ввода
+  const textarea = document.getElementById('evoTextarea');
+  if (textarea) textarea.value = '';
+}
+
+// Полноэкранная анимация открытия тени
+function showShadowUnlock(shadowId, practiceId) {
+  const sh = SHADOWS_CATALOG[shadowId];
+  const pr = practiceId ? PRACTICES_CATALOG[practiceId] : null;
+  const overlay = document.getElementById('shadowUnlockOverlay');
+  if (!overlay) return;
+  const shadowName = dt(sh.i18n) || shadowId;
+  const practiceName = pr ? (dt(pr.i18n) || practiceId) : '';
+  document.getElementById('shadowUnlockShadow').textContent = shadowName;
+  const prEl = document.getElementById('shadowUnlockPractice');
+  if (prEl) {
+    if (practiceName) {
+      prEl.innerHTML = '<span class="su-label" data-i18n="arka.unlock_new_practice">Открылась новая практика</span><span class="su-practice-name">' + escapeHtml(practiceName) + '</span>';
+      prEl.hidden = false;
+    } else {
+      prEl.hidden = true;
+    }
+  }
+  applyArkaI18n();
+  overlay.hidden = false;
+}
+function closeShadowUnlock() {
+  const overlay = document.getElementById('shadowUnlockOverlay');
+  if (overlay) overlay.hidden = true;
+}
+window.closeShadowUnlock = closeShadowUnlock;
+
+// Инициализация квеста теней
+function initShadowQuest() {
+  renderGrowthMap();
+  renderTrainerPractices();
+  renderShadowSelect();
+
+  // Переключение вкладок дневника: показываем/скрываем селект тени
+  document.querySelectorAll('.evo-tab[data-evo]').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.evo-tab').forEach(t => t.classList.toggle('evo-tab-active', t === tab));
+      const sel = document.getElementById('evoShadowSelect');
+      if (sel) sel.hidden = tab.dataset.evo !== 'shadow';
+    });
+  });
+
+  // Сохранение записи
+  const btn = document.getElementById('evoSaveBtn');
+  if (btn) btn.addEventListener('click', saveJournalEntry);
+}
+
 function shareViaTelegram() {
   const shareUrl = 'https://public-yup-land1.vercel.app/preview/';
   const shareText = dtOrEmpty('share.tg_message') || 'Мой день в АРКА';
@@ -1520,3 +1741,4 @@ initPracticeDetails();
 initWaterReminder();
 initDoterra();
 initOilHints();
+initShadowQuest();

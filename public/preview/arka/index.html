@@ -22,6 +22,24 @@
   <span id="userDarCode2" hidden></span>
   <span id="arkaDraftBanner" hidden></span>
 
+  <!-- ═════════════════════ ЗЕРКАЛО МОМЕНТА ════════════════════
+       Hero-экран при открытии АРКА. ОДИН блок, ОДНА кнопка.
+       Закон no_overload: больше ничего на этом экране нет.
+       Закрывается по клику «Войти в день» → раскрываются обычные табы. -->
+  <section class="arka-mirror" id="arkaMirror">
+    <div class="mirror-icon">🐉</div>
+    <div class="mirror-message" id="mirrorMessage">
+      <!-- Сюда подставляется живое послание из generateMirror() -->
+    </div>
+    <button class="mirror-enter-btn" id="mirrorEnterBtn" data-i18n="mirror.enter">Войти в день</button>
+  </section>
+
+  <!-- Кнопка возврата к Зеркалу (видна когда юзер «вошёл в день») -->
+  <button class="mirror-return-btn" id="mirrorReturnBtn" hidden onclick="returnToMirror()" data-i18n="mirror.return">← Зеркало</button>
+
+  <!-- Основной интерфейс АРКА (скрыт пока показано Зеркало) -->
+  <div id="arkaMain" hidden>
+
   <!-- Табы -->
   <nav class="tabs">
     <button class="tab active" data-tab="today">
@@ -558,6 +576,8 @@
     </div>
   </div>
 
+  </div><!-- /#arkaMain -->
+
   <!-- Подвал -->
   <footer class="footer">
     <div class="footer-name">АРКА</div>
@@ -595,6 +615,8 @@ const ARKA_I18N = {
     'arka.shadow_procrastination': 'Откладывание',
     'arka.shadow_fall_out': 'Выпадение из времени',
     'arka.shadow_stuck_future': 'Застревание в будущем',
+    'mirror.enter': 'Войди',
+    'mirror.return': '← Зеркало',
     'banner.guest': 'Гость',
     'banner.friend': 'Друг',
     'banner.demo_label': 'демо',
@@ -750,6 +772,8 @@ const ARKA_I18N = {
     'arka.shadow_procrastination': 'Procrastination',
     'arka.shadow_fall_out': 'Falling out of time',
     'arka.shadow_stuck_future': 'Stuck in the future',
+    'mirror.enter': 'Enter',
+    'mirror.return': '← Mirror',
     'banner.guest': 'Guest',
     'banner.friend': 'Friend',
     'banner.demo_label': 'demo',
@@ -905,6 +929,8 @@ const ARKA_I18N = {
     'arka.shadow_procrastination': 'Procrastinación',
     'arka.shadow_fall_out': 'Caer fuera del tiempo',
     'arka.shadow_stuck_future': 'Atascado en el futuro',
+    'mirror.enter': 'Entra',
+    'mirror.return': '← Espejo',
     'banner.guest': 'Invitado',
     'banner.friend': 'Amigo',
     'banner.demo_label': 'demo',

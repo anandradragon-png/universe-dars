@@ -80,6 +80,23 @@ const ARKA_DYN_I18N = {
     'finance.actual': 'Факт ₽',
     'finance.target': 'Цель ₽',
     'finance.name_placeholder': 'Название канала',
+    // === ЗЕРКАЛО МОМЕНТА (Hero AI) ===
+    // Понятный голос: имя — период дня — Дар дня — приглашение
+    'mirror.enter': 'Войди',
+    'mirror.return': '← Зеркало',
+    'mirror.dar_of_day_label': 'Твой Дар сегодня —',
+    // Период дня — короткая понятная фраза
+    'mirror.period_dawn': 'Рассвет. Самое сильное окно дня.',
+    'mirror.period_morning': 'Утро. Время для главного.',
+    'mirror.period_day': 'Полдень. Время для спокойных дел.',
+    'mirror.period_sunset': 'Закатное окно силы.',
+    'mirror.period_evening': 'Вечер. Время замедлиться.',
+    'mirror.period_night': 'Ночь. Время для тишины.',
+    // Тизер — что юзер получит, нажав «Войди»
+    'mirror.teaser_d1': 'Войди — и АРКА начнёт узнавать тебя через ритм твоего Дара.',
+    'mirror.teaser_d2': 'Войди — я уже чувствую, как ты входишь в ритм.',
+    'mirror.teaser_d3': 'Войди — сегодня я покажу тебе первый паттерн, который заметила.',
+    'mirror.teaser_dN': 'Войди — твой день ждёт.',
     'tasks.no_tasks': '🌑 <b>Задач на день пока нет.</b> Открой таб «Сегодня» и напиши 1-3 главных дела. Без направления змей кружит без смысла.',
     'tasks.all_done': '🌟 <b>Задачи дня сделаны.</b> Поток ТУМА течёт ровно. Не добавляй больше — поток силы важнее списка побед.',
     'tasks.partial': '⚖️ Задачи дня: <em>{done} из {total}</em>. Главное — сделать ресурсную 🌟 в окно силы.',
@@ -120,6 +137,20 @@ const ARKA_DYN_I18N = {
     'finance.actual': 'Actual $',
     'finance.target': 'Target $',
     'finance.name_placeholder': 'Channel name',
+    // === MIRROR OF THE MOMENT (Hero AI) ===
+    'mirror.enter': 'Enter',
+    'mirror.return': '← Mirror',
+    'mirror.dar_of_day_label': 'Your DAR today —',
+    'mirror.period_dawn': 'Dawn. The strongest window of the day.',
+    'mirror.period_morning': 'Morning. Time for the main thing.',
+    'mirror.period_day': 'Noon. Time for calm tasks.',
+    'mirror.period_sunset': 'Sunset power window.',
+    'mirror.period_evening': 'Evening. Time to slow down.',
+    'mirror.period_night': 'Night. Time for silence.',
+    'mirror.teaser_d1': 'Enter — and ARKA will start to know you through the rhythm of your DAR.',
+    'mirror.teaser_d2': "Enter — I already feel you entering the rhythm.",
+    'mirror.teaser_d3': "Enter — today I'll show you the first pattern I've noticed.",
+    'mirror.teaser_dN': 'Enter — your day is waiting.',
     'tasks.no_tasks': "🌑 <b>No tasks for today.</b> Open the «Today» tab and write 1-3 main things. Without direction, the serpent circles without meaning.",
     'tasks.all_done': '🌟 <b>Today\'s tasks are done.</b> The TUMA flow runs smoothly. Don\'t add more — the flow of power matters more than the list of victories.',
     'tasks.partial': "⚖️ Today's tasks: <em>{done} of {total}</em>. The main thing — do the resourceful 🌟 in the power window.",
@@ -160,6 +191,20 @@ const ARKA_DYN_I18N = {
     'finance.actual': 'Real $',
     'finance.target': 'Meta $',
     'finance.name_placeholder': 'Nombre del canal',
+    // === ESPEJO DEL MOMENTO (Hero IA) ===
+    'mirror.enter': 'Entra',
+    'mirror.return': '← Espejo',
+    'mirror.dar_of_day_label': 'Tu DAR hoy —',
+    'mirror.period_dawn': 'Amanecer. La ventana más fuerte del día.',
+    'mirror.period_morning': 'Mañana. Hora para lo principal.',
+    'mirror.period_day': 'Mediodía. Hora para tareas tranquilas.',
+    'mirror.period_sunset': 'Ventana de poder del atardecer.',
+    'mirror.period_evening': 'Tarde. Hora de bajar el ritmo.',
+    'mirror.period_night': 'Noche. Hora del silencio.',
+    'mirror.teaser_d1': 'Entra — y ARKA empezará a conocerte a través del ritmo de tu DAR.',
+    'mirror.teaser_d2': 'Entra — ya siento cómo entras en el ritmo.',
+    'mirror.teaser_d3': 'Entra — hoy te mostraré el primer patrón que he notado.',
+    'mirror.teaser_dN': 'Entra — tu día te espera.',
     'tasks.no_tasks': '🌑 <b>No hay tareas para hoy.</b> Abre la pestaña «Hoy» y escribe 1-3 tareas principales. Sin dirección, la serpiente gira sin sentido.',
     'tasks.all_done': '🌟 <b>Las tareas del día están hechas.</b> El flujo TUMA corre suave. No añadas más — el flujo de poder importa más que la lista de victorias.',
     'tasks.partial': '⚖️ Tareas del día: <em>{done} de {total}</em>. Lo principal — hacer la tarea de recurso 🌟 en la ventana de poder.',
@@ -1059,9 +1104,200 @@ function escapeHtml(s) {
 }
 function escapeAttr(s) { return escapeHtml(s); }
 
+// ── Зеркало момента (Hero AI при открытии АРКА) ─────────
+// Закон no_overload: 1 экран, 1 послание, 1 кнопка. Никаких других элементов.
+// Послание собирается из 4 параметров: время суток × Дар × день в АРКА × контекст.
+//
+// Логика показа:
+// - Первое открытие АРКА в этот день → Зеркало (полный экран).
+// - После «Войти в день» → обычные табы + маленькая кнопка возврата вверху.
+// - Через 4+ часов после последнего просмотра → Зеркало снова (по желанию юзера).
+
+// Рассчитать «Дар дня» по той же системе ОДА/ТУНА/ТРИА/ЧИА,
+// но с подстановкой СЕГОДНЯШНЕЙ даты и ТЕКУЩЕГО времени.
+// Это даёт уникальный архетип, ведущий юзера именно сегодня.
+function calcDarOfDay(userProfile) {
+  let DarsLib = null;
+  try { DarsLib = window.parent.DarsLib || null; } catch (e) {}
+  if (!DarsLib || !DarsLib.calcProfile) return null;
+
+  const now = new Date();
+  const input = {
+    date: { day: now.getDate(), month: now.getMonth() + 1, year: now.getFullYear() },
+    time: { hour: now.getHours(), minute: now.getMinutes() }
+  };
+  // Координаты места рождения юзера (стабильный персональный фактор)
+  if (userProfile && userProfile.tria && userProfile.tria.coords) {
+    input.coords = userProfile.tria.coords;
+  } else if (userProfile && userProfile.coords) {
+    input.coords = userProfile.coords;
+  }
+  // Имя и фамилия юзера (стабильный персональный фактор)
+  if (userProfile && userProfile.chia) {
+    input.person = { firstName: userProfile.chia.firstName, lastName: userProfile.chia.lastName };
+  } else if (userProfile && userProfile.person) {
+    input.person = userProfile.person;
+  }
+
+  const profile = DarsLib.calcProfile(input);
+  if (!profile) return null;
+
+  // Дар дня = синтез (пока = ОДА текущего дня)
+  const code = profile.synthesis.code;
+  const name = profile.synthesis.name;
+  const archetype = profile.synthesis.archetype || DarsLib.getDarArchetype(code, 'ru') || '';
+  // SVG-путь для иконки
+  let svgPath = '';
+  try { svgPath = DarsLib.getDarSvgPath(code); } catch (e) {}
+
+  return { code, name, archetype, svgPath };
+}
+
+function getMirrorState() {
+  // Какой период дня сейчас
+  const h = new Date().getHours();
+  let period = 'morning';
+  if (h < 5) period = 'night';
+  else if (h < 9) period = 'dawn';
+  else if (h < 12) period = 'morning';
+  else if (h < 17) period = 'day';
+  else if (h < 20) period = 'sunset';
+  else if (h < 23) period = 'evening';
+  else period = 'night';
+
+  // Какой день в АРКА (по streak)
+  let arkaDay = 1;
+  try {
+    const sStart = state.streakStart || TODAY;
+    const startD = new Date(sStart);
+    const todayD = new Date(TODAY);
+    arkaDay = Math.max(1, Math.round((todayD - startD) / 86400000) + 1);
+  } catch (e) {}
+
+  // Имя юзера и его профиль (для расчёта Дара дня)
+  let userName = '';
+  let userProfile = null;
+  try {
+    userProfile = JSON.parse(window.parent.localStorage.getItem('_yupdar_preview_profile') || 'null');
+    if (userProfile && userProfile.chia && userProfile.chia.firstName) userName = userProfile.chia.firstName;
+  } catch (e) {}
+
+  // Дар дня
+  const darOfDay = calcDarOfDay(userProfile);
+
+  return { period, arkaDay, userName, darOfDay };
+}
+
+// Безопасный dt — возвращает '' если ключа нет или значение пустое (вместо самого ключа)
+function dtOrEmpty(key) {
+  const lang = dynLang();
+  const dict = ARKA_DYN_I18N[lang] || ARKA_DYN_I18N.ru;
+  const v = (dict[key] !== undefined) ? dict[key] : (ARKA_DYN_I18N.ru[key] !== undefined ? ARKA_DYN_I18N.ru[key] : null);
+  return v == null ? '' : v;
+}
+
+function generateMirror() {
+  const { period, arkaDay, userName, darOfDay } = getMirrorState();
+
+  // Понятная фраза о текущем моменте — короткая, конкретная.
+  // Только период дня — без эзотерики, чтобы любой понял.
+  const periodLabel = dtOrEmpty('mirror.period_' + period);
+
+  // Послание Дара дня — короткий вопрос/приглашение в архетипе ЭТОГО Дара
+  let darInvite = '';
+  if (darOfDay && darOfDay.archetype) {
+    darInvite = darOfDay.archetype;  // например: "Гармонизатор границ"
+  }
+
+  // Что юзер увидит/получит, нажав «Войди» — конкретно, по-человечески
+  const teaser = arkaDay === 1 ? dtOrEmpty('mirror.teaser_d1')
+                  : arkaDay === 2 ? dtOrEmpty('mirror.teaser_d2')
+                  : arkaDay === 3 ? dtOrEmpty('mirror.teaser_d3')
+                  : dtOrEmpty('mirror.teaser_dN');
+
+  return {
+    name: userName || dtOrEmpty('banner.friend'),
+    periodLabel,
+    darOfDay,
+    darInvite,
+    teaser
+  };
+}
+
+function renderMirror() {
+  const el = document.getElementById('mirrorMessage');
+  if (!el) return;
+  const m = generateMirror();
+
+  // Иконка Дара дня (SVG из основного приложения) — заменяет общий 🐉
+  const iconEl = document.querySelector('#arkaMirror .mirror-icon');
+  if (iconEl && m.darOfDay && m.darOfDay.svgPath) {
+    // SVG-глиф в золотом цвете (как в YupDar Энциклопедии)
+    iconEl.innerHTML = '<img src="' + m.darOfDay.svgPath + '" alt="" style="width:72px;height:72px;filter:drop-shadow(0 0 18px rgba(212,175,55,0.5))" onerror="this.outerHTML=\'🐉\'">';
+  } else if (iconEl) {
+    iconEl.textContent = '🐉';
+  }
+
+  // Текст послания — простой и понятный
+  let html = '';
+  if (m.name) html += '<span class="mirror-name">' + escapeHtml(m.name) + '</span>';
+  // Период дня (одна короткая фраза)
+  if (m.periodLabel) html += '<span class="mirror-line">' + m.periodLabel + '</span>';
+  // Дар дня — отдельной строкой, выделенный
+  if (m.darOfDay && m.darOfDay.name) {
+    const label = dtOrEmpty('mirror.dar_of_day_label');  // "Дар дня:" / "DAR of the day:" / "DAR del día:"
+    html += '<span class="mirror-line mirror-dar-of-day">' + label + ' <b>' + escapeHtml(m.darOfDay.name) + '</b></span>';
+    if (m.darInvite) {
+      html += '<span class="mirror-line mirror-archetype"><em>' + escapeHtml(m.darInvite) + '</em></span>';
+    }
+  }
+  // Что внутри (тизер)
+  if (m.teaser) html += '<span class="mirror-line mirror-teaser">' + m.teaser + '</span>';
+
+  el.innerHTML = html;
+}
+
+function enterDay() {
+  const mirror = document.getElementById('arkaMirror');
+  const main = document.getElementById('arkaMain');
+  const returnBtn = document.getElementById('mirrorReturnBtn');
+  if (mirror) mirror.hidden = true;
+  if (main) main.hidden = false;
+  if (returnBtn) returnBtn.hidden = false;
+  try { localStorage.setItem('arka_mirror_seen_at', Date.now().toString()); } catch (e) {}
+}
+
+function returnToMirror() {
+  const mirror = document.getElementById('arkaMirror');
+  const main = document.getElementById('arkaMain');
+  const returnBtn = document.getElementById('mirrorReturnBtn');
+  if (mirror) { renderMirror(); mirror.hidden = false; }
+  if (main) main.hidden = true;
+  if (returnBtn) returnBtn.hidden = true;
+}
+window.returnToMirror = returnToMirror;
+
+function initMirror() {
+  renderMirror();
+  const btn = document.getElementById('mirrorEnterBtn');
+  if (btn) btn.addEventListener('click', enterDay);
+
+  // Решаем: показывать ли Зеркало сейчас?
+  // - В первое посещение сегодня: ДА
+  // - Если юзер видел Зеркало < 4 часов назад: НЕТ (сразу основной экран)
+  let seenAt = 0;
+  try { seenAt = parseInt(localStorage.getItem('arka_mirror_seen_at') || '0', 10); } catch (e) {}
+  const fourHours = 4 * 60 * 60 * 1000;
+  if (seenAt && (Date.now() - seenAt) < fourHours) {
+    // Юзер недавно «вошёл в день» — показываем основной экран сразу
+    enterDay();
+  }
+}
+
 // ── Запуск ───────────────────────────────────────────
 setGreeting();
 initTabs();
+initMirror();
 initChecklist();
 updateStreak();
 initJournal();

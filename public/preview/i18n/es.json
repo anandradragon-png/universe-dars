@@ -228,6 +228,15 @@
     "preview_warning": "Prototipo. Es una copia para probar la nueva arquitectura — los datos no se guardan."
   },
 
+  "tester": {
+    "feedback": "Comentarios"
+  },
+
+  "diary_banner": {
+    "title": "📔 Diario del DAR",
+    "sub": "Una línea al día — y ARKA empezará a notar tus patrones. Gratis."
+  },
+
   "search": {
     "no_results": "Nada encontrado para",
     "found_count": "Encontrado"

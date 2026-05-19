@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Дневник Дара — YupDar</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="diary-container" id="diaryContainer">
+
+  <!-- ═════════════ ШАПКА ═════════════ -->
+  <header class="diary-header">
+    <button class="diary-back" onclick="window.location.href='/preview/'" aria-label="Назад">←</button>
+    <div class="diary-title">
+      <span class="diary-icon">📔</span>
+      <span data-i18n="diary.title">Дневник Дара</span>
+    </div>
+    <div class="diary-streak" id="diaryStreak">
+      <span class="ds-num">0</span>
+      <span class="ds-label" data-i18n="diary.days">дней</span>
+    </div>
+  </header>
+
+  <!-- ═════════════ СОСТОЯНИЕ A: НОВЫЙ ДЕНЬ (ВЫБОР НАСТРОЕНИЯ) ═════════════
+       Закон no_overload: 1 экран = 1 вопрос = 8 вариантов ответа = 1 textarea -->
+  <section class="diary-input-state" id="diaryInputState">
+
+    <div class="diary-dar-of-day" id="diaryDarOfDay">
+      <!-- SVG Дара дня + название (заполняется JS) -->
+    </div>
+
+    <div class="diary-question" data-i18n="diary.question">Как ты сейчас?</div>
+
+    <div class="diary-moods" id="diaryMoods">
+      <!-- 8 настроений, рендерятся JS -->
+    </div>
+
+    <textarea
+      id="diaryNote"
+      class="diary-note"
+      data-i18n-placeholder="diary.note_placeholder"
+      placeholder="Можно добавить одну строку — что зацепило..."
+      rows="2"
+    ></textarea>
+
+    <button class="diary-save-btn" id="diarySaveBtn" data-i18n="diary.save" disabled>
+      Записать
+    </button>
+  </section>
+
+  <!-- ═════════════ СОСТОЯНИЕ B: МИНИ-ЗЕРКАЛО (после записи) ═════════════
+       Показывает интерпретацию через свой Дар × Дар Дня × настроение
+       + CTA на АРКА -->
+  <section class="diary-mirror-state" id="diaryMirrorState" hidden>
+
+    <div class="diary-mirror-glyph" id="diaryMirrorGlyph"><!-- SVG --></div>
+
+    <div class="diary-mirror-title" data-i18n="diary.mirror_title">Мини-зеркало</div>
+
+    <div class="diary-mirror-text" id="diaryMirrorText">
+      <!-- 4-6 строк интерпретации -->
+    </div>
+
+    <!-- CTA на АРКА — главный конверсионный элемент -->
+    <a href="/preview/arka/" class="diary-cta">
+      <div class="cta-icon">🌅</div>
+      <div class="cta-text">
+        <div class="cta-title" data-i18n="diary.cta_title">Открой АРКА</div>
+        <div class="cta-sub" data-i18n="diary.cta_sub">Глубокая работа с Даром каждый день</div>
+      </div>
+      <div class="cta-arrow">→</div>
+    </a>
+
+    <button class="diary-secondary-btn" onclick="resetDiary()" data-i18n="diary.tomorrow">
+      Завтра
+    </button>
+  </section>
+
+  <!-- ═════════════ ПОДВАЛ ═════════════ -->
+  <footer class="diary-footer">
+    <span data-i18n="diary.footer">YupDar · бесплатно для всех</span>
+  </footer>
+
+</div>
+
+<!-- Фидбэк-кнопка для тестеров -->
+<button class="tester-feedback-btn" onclick="openTesterFeedback()" aria-label="Фидбэк">
+  💬 <span data-i18n="tester.feedback">Фидбэк</span>
+</button>
+
+<script src="/preview/js/dars.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

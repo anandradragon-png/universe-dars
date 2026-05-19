@@ -446,6 +446,34 @@
     }
     .btn-secondary:hover { background: var(--gold-soft); }
 
+    /* Плавающая кнопка фидбэка для тестеров.
+       Закон no_overload: компактная, не отвлекает, всегда доступна. */
+    .tester-feedback-btn {
+      position: fixed;
+      right: 14px;
+      bottom: 92px;
+      z-index: 1000;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.95), rgba(184, 134, 11, 0.95));
+      color: #0a1929;
+      border: none;
+      border-radius: 28px;
+      padding: 10px 16px 10px 12px;
+      font-family: Manrope, sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .tester-feedback-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(212, 175, 55, 0.55);
+    }
+    .tester-feedback-label { letter-spacing: 0.3px; }
+
     /* === Нижняя навигация — 1:1 из прода (index.html:265-270) === */
     .nav-bar {
       position: fixed;
@@ -975,6 +1003,45 @@
       background: linear-gradient(135deg, rgba(135,206,235,0.1), rgba(212,175,55,0.07));
     }
     .science-banner-emoji { font-size: 28px; flex-shrink: 0; }
+
+    /* Баннер Дневника Дара — freemium-крючок в АРКА */
+    .diary-banner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(125, 211, 252, 0.06));
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 14px;
+      margin-top: 16px;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .diary-banner:hover {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(125, 211, 252, 0.10));
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(212, 175, 55, 0.18);
+    }
+    .diary-banner-icon { font-size: 28px; flex-shrink: 0; }
+    .diary-banner-text { flex: 1; }
+    .diary-banner-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #D4AF37;
+      margin-bottom: 3px;
+    }
+    .diary-banner-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .diary-banner-arrow {
+      font-size: 22px;
+      color: #D4AF37;
+      flex-shrink: 0;
+    }
     .science-banner-text { flex: 1; min-width: 0; }
     .science-banner-title {
       font-size: 13px;
@@ -2800,6 +2867,17 @@
         <!-- Закон: личные данные неизменяемы (law_personal_data_immutable.md).
              Кнопки «Изменить дату» нет. При ошибке — через поддержку. -->
 
+        <!-- Дневник Дара — бесплатный ежедневный крючок, freemium-вход в АРКА.
+             Одна строка в день → мгновенное мини-зеркало через Дар × Дар Дня × настроение. -->
+        <a href="/preview/diary/" class="diary-banner">
+          <div class="diary-banner-icon">📔</div>
+          <div class="diary-banner-text">
+            <div class="diary-banner-title" data-i18n="diary_banner.title">Дневник Дара</div>
+            <div class="diary-banner-sub" data-i18n="diary_banner.sub">Одна строка в день — и АРКА начнёт замечать твои паттерны. Бесплатно.</div>
+          </div>
+          <div class="diary-banner-arrow">→</div>
+        </a>
+
         <!-- Наука: вариант A (баннер на главной после расчёта Дара) + вариант B (иконка в шапке). -->
         <div class="science-banner" onclick="openScienceSurvey()" role="button" tabindex="0">
           <div class="science-banner-emoji">🌍</div>
@@ -3229,6 +3307,12 @@
       <span data-i18n="nav.arka">Арка</span>
     </button>
   </nav>
+
+  <!-- Плавающая кнопка фидбэка для тестеров — открывает чат с автором в Telegram -->
+  <button class="tester-feedback-btn" onclick="openTesterFeedback()" aria-label="Оставить фидбэк">
+    💬
+    <span class="tester-feedback-label" data-i18n="tester.feedback">Фидбэк</span>
+  </button>
 
   <script src="/preview/js/i18n.js?v=3"></script>
   <script src="/preview/js/dars.js?v=1"></script>

@@ -155,6 +155,27 @@
   }
   window.openScienceSurvey = openScienceSurvey;
 
+  // Фидбэк-кнопка для тестеров — открывает чат с автором в Telegram
+  // с готовым шаблоном сообщения.
+  function openTesterFeedback() {
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    let template;
+    if (lang === 'en') {
+      template = "Hi Svetlana! I'm testing ARKA prototype.\n\nWhat I liked:\n\nWhat could be better:\n\nMy DAR:";
+    } else if (lang === 'es') {
+      template = "¡Hola Svetlana! Estoy probando el prototipo de ARKA.\n\nQué me gustó:\n\nQué se podría mejorar:\n\nMi DAR:";
+    } else {
+      template = "Привет, Светлана! Тестирую прототип АРКА.\n\nЧто понравилось:\n\nЧто можно улучшить:\n\nМой Дар:";
+    }
+    const url = 'https://t.me/AnandraDragon?text=' + encodeURIComponent(template);
+    if (tg && tg.openTelegramLink) {
+      tg.openTelegramLink(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+  window.openTesterFeedback = openTesterFeedback;
+
   // Аккордеон Дара в вкладке «Я» — переключение секций
   function toggleMeAcc(headerBtn) {
     if (!headerBtn) return;

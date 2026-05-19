@@ -228,6 +228,15 @@
     "preview_warning": "Prototype. This is a copy for testing the new architecture — data is not saved."
   },
 
+  "tester": {
+    "feedback": "Feedback"
+  },
+
+  "diary_banner": {
+    "title": "📔 Diary of the DAR",
+    "sub": "One line a day — and ARKA will start to notice your patterns. Free."
+  },
+
   "search": {
     "no_results": "Nothing found for",
     "found_count": "Found"

@@ -1679,6 +1679,142 @@ function closeShadowUnlock() {
 }
 window.closeShadowUnlock = closeShadowUnlock;
 
+// ═══════════════════════════════════════════════════
+// ПИСЬМО СЕБЕ НА 30 ДНЕЙ
+// ═══════════════════════════════════════════════════
+// 3 состояния:
+// 1. NOT_YET — день < 3 (карточка скрыта)
+// 2. PROMPT — день >= 3, письмо не запечатано (карточка-приглашение)
+// 3. SEALED — письмо запечатано (карточка с обратным отсчётом)
+// 4. READY — прошло 30 дней или открыта первая тень после запечатывания
+//
+// Состояние в localStorage:
+// - arka_letter_text — текст письма
+// - arka_letter_sealed_at — timestamp запечатывания
+// - arka_letter_opened — true когда уже открыто
+
+const LETTER_DAYS = 30;
+
+function getLetterState() {
+  let text = '';
+  let sealedAt = 0;
+  let opened = false;
+  try {
+    text = localStorage.getItem('arka_letter_text') || '';
+    sealedAt = parseInt(localStorage.getItem('arka_letter_sealed_at') || '0', 10);
+    opened = localStorage.getItem('arka_letter_opened') === '1';
+  } catch (e) {}
+
+  // День в АРКА
+  let arkaDay = 1;
+  try {
+    const sStart = state.streakStart || TODAY;
+    arkaDay = Math.max(1, Math.round((new Date(TODAY) - new Date(sStart)) / 86400000) + 1);
+  } catch (e) {}
+
+  // Дней с запечатывания
+  let daysSealed = 0;
+  if (sealedAt) {
+    daysSealed = Math.floor((Date.now() - sealedAt) / 86400000);
+  }
+  const daysLeft = Math.max(0, LETTER_DAYS - daysSealed);
+
+  let phase = 'NOT_YET';
+  if (arkaDay >= 3 && !sealedAt) phase = 'PROMPT';
+  else if (sealedAt && !opened && daysLeft > 0) phase = 'SEALED';
+  else if (sealedAt && !opened && daysLeft === 0) phase = 'READY';
+  else if (opened) phase = 'OPENED';
+
+  return { text, sealedAt, opened, arkaDay, daysSealed, daysLeft, phase };
+}
+
+function renderLetterCard() {
+  const card = document.getElementById('letterCard');
+  if (!card) return;
+  const st = getLetterState();
+
+  if (st.phase === 'NOT_YET' || st.phase === 'OPENED') {
+    card.hidden = true;
+    return;
+  }
+  card.hidden = false;
+
+  if (st.phase === 'PROMPT') {
+    card.innerHTML =
+      '<div class="lc-seal">📜</div>' +
+      '<div class="lc-title">' + escapeHtml(dt('arka.letter_card_title')) + '</div>' +
+      '<div class="lc-hint">' + escapeHtml(dt('arka.letter_card_hint')) + '</div>' +
+      '<button class="lc-btn" onclick="openLetterInput()">' + escapeHtml(dt('arka.letter_card_btn')) + '</button>';
+  } else if (st.phase === 'SEALED') {
+    card.innerHTML =
+      '<div class="lc-seal">📜</div>' +
+      '<div class="lc-title">' + escapeHtml(dt('arka.letter_sealed_title')) + '</div>' +
+      '<div class="lc-status">' +
+        escapeHtml(dt('arka.letter_sealed_status_pre')) +
+        ' <span class="lc-countdown">' + st.daysLeft + '</span> ' +
+        escapeHtml(dt('arka.letter_sealed_status_post')) +
+      '</div>';
+  } else if (st.phase === 'READY') {
+    card.innerHTML =
+      '<div class="lc-seal">📜</div>' +
+      '<div class="lc-title">' + escapeHtml(dt('arka.letter_ready_title')) + '</div>' +
+      '<div class="lc-hint">' + escapeHtml(dt('arka.letter_ready_hint')) + '</div>' +
+      '<button class="lc-btn" onclick="openLetterReveal()">' + escapeHtml(dt('arka.letter_ready_btn')) + '</button>';
+  }
+}
+
+function openLetterInput() {
+  const overlay = document.getElementById('letterInputOverlay');
+  if (overlay) overlay.hidden = false;
+}
+window.openLetterInput = openLetterInput;
+
+function closeLetterInput() {
+  const overlay = document.getElementById('letterInputOverlay');
+  if (overlay) overlay.hidden = true;
+}
+window.closeLetterInput = closeLetterInput;
+
+function sealLetter() {
+  const ta = document.getElementById('letterTextarea');
+  if (!ta) return;
+  const text = ta.value.trim();
+  if (!text) return;
+  try {
+    localStorage.setItem('arka_letter_text', text);
+    localStorage.setItem('arka_letter_sealed_at', Date.now().toString());
+    localStorage.removeItem('arka_letter_opened');
+  } catch (e) {}
+  closeLetterInput();
+  renderLetterCard();
+}
+
+function openLetterReveal() {
+  const st = getLetterState();
+  if (!st.text) return;
+  document.getElementById('letterOpenText').textContent = st.text;
+  const sealedDate = new Date(st.sealedAt);
+  const dateStr = sealedDate.getDate() + '.' + String(sealedDate.getMonth() + 1).padStart(2, '0') + '.' + sealedDate.getFullYear();
+  document.getElementById('letterOpenDate').textContent = dt('arka.letter_open_from') + ' ' + dateStr;
+  const overlay = document.getElementById('letterOpenOverlay');
+  if (overlay) overlay.hidden = false;
+}
+window.openLetterReveal = openLetterReveal;
+
+function closeLetterOpen() {
+  const overlay = document.getElementById('letterOpenOverlay');
+  if (overlay) overlay.hidden = true;
+  try { localStorage.setItem('arka_letter_opened', '1'); } catch (e) {}
+  renderLetterCard();
+}
+window.closeLetterOpen = closeLetterOpen;
+
+function initLetter() {
+  renderLetterCard();
+  const btn = document.getElementById('letterSealBtn');
+  if (btn) btn.addEventListener('click', sealLetter);
+}
+
 // Инициализация квеста теней
 function initShadowQuest() {
   renderGrowthMap();
@@ -1742,3 +1878,4 @@ initWaterReminder();
 initDoterra();
 initOilHints();
 initShadowQuest();
+initLetter();

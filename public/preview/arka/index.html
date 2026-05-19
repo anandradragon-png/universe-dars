@@ -38,6 +38,27 @@
     </button>
   </section>
 
+  <!-- ═════════════ ВВОД ПИСЬМА НА 30 ДНЕЙ ═════════════
+       Полноэкранный модал. 1 экран = 1 textarea = 1 кнопка. -->
+  <div class="letter-input-overlay" id="letterInputOverlay" hidden>
+    <button class="letter-close" onclick="closeLetterInput()" aria-label="Закрыть">✕</button>
+    <div class="letter-input-icon">📜</div>
+    <div class="letter-input-title" data-i18n="arka.letter_input_title">Письмо себе через 30 дней</div>
+    <div class="letter-input-hint" data-i18n="arka.letter_input_hint">Кем ты хочешь стать? Что хочешь увидеть в себе? Запечатай — открою через 30 дней.</div>
+    <textarea class="letter-textarea" id="letterTextarea" rows="6" data-i18n-placeholder="arka.letter_placeholder" placeholder="Через 30 дней я..."></textarea>
+    <button class="letter-seal-btn" id="letterSealBtn" data-i18n="arka.letter_seal">Запечатать</button>
+  </div>
+
+  <!-- ═════════════ ОТКРЫТИЕ ПИСЬМА ═════════════
+       Через 30 дней или по триггеру — анимация открытия письма. -->
+  <div class="letter-open-overlay" id="letterOpenOverlay" hidden>
+    <div class="lo-seal">📜</div>
+    <div class="lo-label" data-i18n="arka.letter_open_label">Письмо себе из прошлого</div>
+    <div class="lo-date" id="letterOpenDate">—</div>
+    <div class="lo-text" id="letterOpenText">—</div>
+    <button class="lo-close-btn" onclick="closeLetterOpen()" data-i18n="arka.letter_open_close">Принять</button>
+  </div>
+
   <!-- ═════════════ АНИМАЦИЯ ОТКРЫТИЯ ТЕНИ ═════════════
        Полноэкранная анимация когда юзер заметил тень 3 раза.
        Один экран = одно событие = одна кнопка. -->
@@ -426,6 +447,12 @@
         <div class="evo-ai-title" data-i18n="arka.journal_ai_title">🐉 Разбор недели от твоего Дара</div>
         <div class="evo-ai-text" data-i18n="arka.journal_ai_text">За неделю 3 раза активировалась тень «выпадение из времени». Опора — ЛОГОС-треугольник утром (заземление + Frankincense + дыхание АСТРА). Если повторится — это сигнал к глубокой паузе на день.</div>
       </div>
+
+      <!-- Письмо себе на 30 дней — карточка появляется только на 3-й день,
+           управляется через JS (renderLetterCard) -->
+      <div class="letter-card" id="letterCard" hidden>
+        <!-- Содержимое рендерится в JS в зависимости от состояния (предложение / запечатано / готово к открытию) -->
+      </div>
     </section>
 
     <!-- 4. ТРЕНАЖЁР ДАРА -->
@@ -648,6 +675,23 @@ const ARKA_I18N = {
     'arka.unlock_title': 'Ты увидела тень',
     'arka.unlock_new_practice': 'Открылась новая практика',
     'arka.unlock_accept': 'Принять',
+    // === ПИСЬМО НА 30 ДНЕЙ ===
+    'arka.letter_card_title': 'Письмо себе через 30 дней',
+    'arka.letter_card_hint': 'Запечатай — открою в нужный момент. Это твоя точка возврата.',
+    'arka.letter_card_btn': 'Запечатать письмо',
+    'arka.letter_sealed_title': '📜 Письмо запечатано',
+    'arka.letter_sealed_status_pre': 'Откроется через',
+    'arka.letter_sealed_status_post': 'дней',
+    'arka.letter_ready_title': '📜 Письмо готово к открытию',
+    'arka.letter_ready_hint': 'Прошло 30 дней. Готова встретиться с собой из прошлого?',
+    'arka.letter_ready_btn': 'Открыть',
+    'arka.letter_input_title': 'Письмо себе через 30 дней',
+    'arka.letter_input_hint': 'Кем ты хочешь стать? Что хочешь увидеть в себе? Запечатай — открою через 30 дней.',
+    'arka.letter_placeholder': 'Через 30 дней я...',
+    'arka.letter_seal': 'Запечатать',
+    'arka.letter_open_label': 'Письмо себе из прошлого',
+    'arka.letter_open_from': 'Запечатано',
+    'arka.letter_open_close': 'Принять',
     'mirror.enter': 'Войди',
     'mirror.return': '← Зеркало',
     'banner.guest': 'Гость',
@@ -810,6 +854,23 @@ const ARKA_I18N = {
     'arka.unlock_title': 'You saw the shadow',
     'arka.unlock_new_practice': 'A new practice opened',
     'arka.unlock_accept': 'Accept',
+    // === 30-DAY LETTER ===
+    'arka.letter_card_title': 'Letter to yourself in 30 days',
+    'arka.letter_card_hint': 'Seal it — I will open it at the right moment. Your point of return.',
+    'arka.letter_card_btn': 'Seal the letter',
+    'arka.letter_sealed_title': '📜 Letter sealed',
+    'arka.letter_sealed_status_pre': 'Opens in',
+    'arka.letter_sealed_status_post': 'days',
+    'arka.letter_ready_title': '📜 Letter is ready to open',
+    'arka.letter_ready_hint': '30 days have passed. Ready to meet yourself from the past?',
+    'arka.letter_ready_btn': 'Open',
+    'arka.letter_input_title': 'Letter to yourself in 30 days',
+    'arka.letter_input_hint': 'Who do you want to become? What do you want to see in yourself? Seal it — I will open it in 30 days.',
+    'arka.letter_placeholder': 'In 30 days I...',
+    'arka.letter_seal': 'Seal',
+    'arka.letter_open_label': 'Letter to yourself from the past',
+    'arka.letter_open_from': 'Sealed on',
+    'arka.letter_open_close': 'Accept',
     'mirror.enter': 'Enter',
     'mirror.return': '← Mirror',
     'banner.guest': 'Guest',
@@ -972,6 +1033,23 @@ const ARKA_I18N = {
     'arka.unlock_title': 'Has visto la sombra',
     'arka.unlock_new_practice': 'Se abrió una nueva práctica',
     'arka.unlock_accept': 'Aceptar',
+    // === CARTA DE 30 DÍAS ===
+    'arka.letter_card_title': 'Carta a ti misma en 30 días',
+    'arka.letter_card_hint': 'Séllala — la abriré en el momento adecuado. Tu punto de retorno.',
+    'arka.letter_card_btn': 'Sellar la carta',
+    'arka.letter_sealed_title': '📜 Carta sellada',
+    'arka.letter_sealed_status_pre': 'Se abre en',
+    'arka.letter_sealed_status_post': 'días',
+    'arka.letter_ready_title': '📜 La carta está lista para abrir',
+    'arka.letter_ready_hint': 'Han pasado 30 días. ¿Lista para encontrarte contigo misma del pasado?',
+    'arka.letter_ready_btn': 'Abrir',
+    'arka.letter_input_title': 'Carta a ti misma en 30 días',
+    'arka.letter_input_hint': '¿Quién quieres llegar a ser? ¿Qué quieres ver en ti? Séllala — la abriré en 30 días.',
+    'arka.letter_placeholder': 'En 30 días yo...',
+    'arka.letter_seal': 'Sellar',
+    'arka.letter_open_label': 'Carta a ti misma desde el pasado',
+    'arka.letter_open_from': 'Sellada el',
+    'arka.letter_open_close': 'Aceptar',
     'mirror.enter': 'Entra',
     'mirror.return': '← Espejo',
     'banner.guest': 'Invitado',

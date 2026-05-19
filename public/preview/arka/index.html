@@ -26,19 +26,19 @@
   <nav class="tabs">
     <button class="tab active" data-tab="today">
       <span class="tab-emoji">🌿</span>
-      <span class="tab-label">Сегодня</span>
+      <span class="tab-label" data-i18n="tab.today">Сегодня</span>
     </button>
     <button class="tab" data-tab="dar">
       <span class="tab-emoji">🐉</span>
-      <span class="tab-label">Дар</span>
+      <span class="tab-label" data-i18n="tab.dar">Дар</span>
     </button>
     <button class="tab" data-tab="strategy">
       <span class="tab-emoji">🎯</span>
-      <span class="tab-label">Стратегия</span>
+      <span class="tab-label" data-i18n="tab.strategy">Стратегия</span>
     </button>
     <button class="tab" data-tab="path">
       <span class="tab-emoji">🧭</span>
-      <span class="tab-label">Путь</span>
+      <span class="tab-label" data-i18n="tab.path">Путь</span>
     </button>
   </nav>
 
@@ -340,13 +340,13 @@
       <div class="growth-shadows">
         <div class="gs-block-title" data-i18n="arka.growth_shadows_done">✓ Пройденные тени</div>
         <div class="gs-tags" id="growthShadowsDone">
-          <span class="gs-tag">Спешка</span>
-          <span class="gs-tag">Откладывание</span>
+          <span class="gs-tag" data-i18n="arka.shadow_rush">Спешка</span>
+          <span class="gs-tag" data-i18n="arka.shadow_procrastination">Откладывание</span>
         </div>
         <div class="gs-block-title gs-block-active" data-i18n="arka.growth_shadows_active">○ Активные тени</div>
         <div class="gs-tags" id="growthShadowsActive">
-          <span class="gs-tag gs-tag-active">Выпадение из времени</span>
-          <span class="gs-tag gs-tag-active">Застревание в будущем</span>
+          <span class="gs-tag gs-tag-active" data-i18n="arka.shadow_fall_out">Выпадение из времени</span>
+          <span class="gs-tag gs-tag-active" data-i18n="arka.shadow_stuck_future">Застревание в будущем</span>
         </div>
       </div>
     </section>
@@ -371,9 +371,9 @@
 
       <div class="evo-recent">
         <div class="evo-recent-title" data-i18n="arka.journal_recent">За последние 7 дней</div>
-        <div class="evo-entry evo-entry-light"><span class="evo-date">Вчера</span> <span data-i18n="arka.journal_demo1">Замедлила утро, успела продумать стратегию книги до завтрака.</span></div>
-        <div class="evo-entry evo-entry-shadow"><span class="evo-date">2 дня</span> <span data-i18n="arka.journal_demo2">Поймала себя на спешке — остановилась, 7 вдохов АСТРА, вернулась в момент.</span></div>
-        <div class="evo-entry evo-entry-insight"><span class="evo-date">5 дней</span> <span data-i18n="arka.journal_demo3">Поняла: молодость не в скорости, а в присутствии. Книга родится в своём темпе.</span></div>
+        <div class="evo-entry evo-entry-light"><span class="evo-date" data-i18n="arka.journal_date1">Вчера</span> <span data-i18n="arka.journal_demo1">Замедлила утро, успела продумать стратегию книги до завтрака.</span></div>
+        <div class="evo-entry evo-entry-shadow"><span class="evo-date" data-i18n="arka.journal_date2">2 дня</span> <span data-i18n="arka.journal_demo2">Поймала себя на спешке — остановилась, 7 вдохов АСТРА, вернулась в момент.</span></div>
+        <div class="evo-entry evo-entry-insight"><span class="evo-date" data-i18n="arka.journal_date3">5 дней</span> <span data-i18n="arka.journal_demo3">Поняла: молодость не в скорости, а в присутствии. Книга родится в своём темпе.</span></div>
       </div>
 
       <div class="evo-ai-card">
@@ -561,7 +561,7 @@
   <!-- Подвал -->
   <footer class="footer">
     <div class="footer-name">АРКА</div>
-    <div class="footer-meta">прототип · 2026</div>
+    <div class="footer-meta" data-i18n="footer.proto">прототип · 2026</div>
   </footer>
 
 </div>
@@ -591,6 +591,22 @@ const ARKA_I18N = {
     'arka.growth_progress': 'Раскрытие Дара',
     'arka.growth_shadows_done': '✓ Пройденные тени',
     'arka.growth_shadows_active': '○ Активные тени',
+    'arka.shadow_rush': 'Спешка',
+    'arka.shadow_procrastination': 'Откладывание',
+    'arka.shadow_fall_out': 'Выпадение из времени',
+    'arka.shadow_stuck_future': 'Застревание в будущем',
+    'banner.guest': 'Гость',
+    'banner.friend': 'Друг',
+    'banner.demo_label': 'демо',
+    'banner.demo_full': '🐉 <b>Ты в демо-режиме на примере Дара З-МАН.</b> Перейди во вкладку «Я», рассчитай свой Дар — и АРКА начнёт показывать твой персональный путь.',
+    'tab.today': 'Сегодня',
+    'tab.dar': 'Дар',
+    'tab.strategy': 'Стратегия',
+    'tab.path': 'Путь',
+    'arka.journal_date1': 'Вчера',
+    'arka.journal_date2': '2 дня',
+    'arka.journal_date3': '5 дней',
+    'footer.proto': 'прототип · 2026',
     'arka.journal_title': 'Дневник эволюции',
     'arka.journal_hint': 'Хроника инсайтов, побед, прохождения теней. AI-разбор недели.',
     'arka.journal_light': 'Свет',
@@ -730,6 +746,22 @@ const ARKA_I18N = {
     'arka.growth_progress': 'DAR Unfolding',
     'arka.growth_shadows_done': '✓ Shadows Passed',
     'arka.growth_shadows_active': '○ Active Shadows',
+    'arka.shadow_rush': 'Rush',
+    'arka.shadow_procrastination': 'Procrastination',
+    'arka.shadow_fall_out': 'Falling out of time',
+    'arka.shadow_stuck_future': 'Stuck in the future',
+    'banner.guest': 'Guest',
+    'banner.friend': 'Friend',
+    'banner.demo_label': 'demo',
+    'banner.demo_full': '🐉 <b>You are in demo mode based on the Z-MAN DAR.</b> Go to the «Me» tab, calculate your DAR — and ARKA will start showing your personal path.',
+    'tab.today': 'Today',
+    'tab.dar': 'DAR',
+    'tab.strategy': 'Strategy',
+    'tab.path': 'Path',
+    'arka.journal_date1': 'Yesterday',
+    'arka.journal_date2': '2 days',
+    'arka.journal_date3': '5 days',
+    'footer.proto': 'prototype · 2026',
     'arka.journal_title': 'Evolution Journal',
     'arka.journal_hint': 'Chronicle of insights, victories, shadow passages. Weekly AI review.',
     'arka.journal_light': 'Light',
@@ -869,6 +901,22 @@ const ARKA_I18N = {
     'arka.growth_progress': 'Despliegue del DAR',
     'arka.growth_shadows_done': '✓ Sombras Superadas',
     'arka.growth_shadows_active': '○ Sombras Activas',
+    'arka.shadow_rush': 'Prisa',
+    'arka.shadow_procrastination': 'Procrastinación',
+    'arka.shadow_fall_out': 'Caer fuera del tiempo',
+    'arka.shadow_stuck_future': 'Atascado en el futuro',
+    'banner.guest': 'Invitado',
+    'banner.friend': 'Amigo',
+    'banner.demo_label': 'demo',
+    'banner.demo_full': '🐉 <b>Estás en modo demo basado en el DAR Z-MAN.</b> Ve a la pestaña «Yo», calcula tu DAR — y ARKA empezará a mostrar tu camino personal.',
+    'tab.today': 'Hoy',
+    'tab.dar': 'DAR',
+    'tab.strategy': 'Estrategia',
+    'tab.path': 'Camino',
+    'arka.journal_date1': 'Ayer',
+    'arka.journal_date2': '2 días',
+    'arka.journal_date3': '5 días',
+    'footer.proto': 'prototipo · 2026',
     'arka.journal_title': 'Diario de Evolución',
     'arka.journal_hint': 'Crónica de revelaciones, victorias, pasos por las sombras. Revisión semanal con IA.',
     'arka.journal_light': 'Luz',
@@ -1052,10 +1100,21 @@ setTimeout(applyArkaI18n, 0);
   const darCodeEl2 = document.getElementById('userDarCode2');
   const banner = document.getElementById('arkaDraftBanner');
 
+  // Локальный i18n-хелпер для баннера (читает из ARKA_I18N, который определён выше в этом же script-блоке)
+  function bt(key) {
+    const lang = (function() {
+      const KEY = '_yupdar_preview_lang';
+      try { const v = window.parent.localStorage.getItem(KEY); if (v && ARKA_I18N[v]) return v; } catch (e) {}
+      try { const v = localStorage.getItem(KEY); if (v && ARKA_I18N[v]) return v; } catch (e) {}
+      return 'ru';
+    })();
+    return (ARKA_I18N[lang] && ARKA_I18N[lang][key]) || (ARKA_I18N.ru[key] || key);
+  }
+
   if (profile && profile.chia && profile.chia.code) {
     // chia — финальный уровень с полным именем и кодом Дара
     const fullName = (profile.chia.firstName || '') + ' ' + (profile.chia.lastName || '');
-    if (nameEl) nameEl.textContent = fullName.trim() || 'Друг';
+    if (nameEl) nameEl.textContent = fullName.trim() || bt('banner.friend');
     if (darNameEl) darNameEl.textContent = profile.chia.name || profile.chia.code;
     if (darCodeEl) darCodeEl.textContent = profile.chia.code;
     if (darCodeEl2) darCodeEl2.textContent = profile.chia.code + ' · ' + (profile.chia.name || '');
@@ -1063,18 +1122,18 @@ setTimeout(applyArkaI18n, 0);
     if (profile.chia.code !== '1-6-7' && banner) banner.style.display = 'block';
   } else if (profile && profile.oda && profile.oda.code) {
     // Минимум: рассчитан Дар по дате (ОДА)
-    if (nameEl) nameEl.textContent = 'Друг';
+    if (nameEl) nameEl.textContent = bt('banner.friend');
     if (darNameEl) darNameEl.textContent = profile.oda.name || profile.oda.code;
     if (darCodeEl) darCodeEl.textContent = profile.oda.code;
     if (darCodeEl2) darCodeEl2.textContent = profile.oda.code + ' · ' + (profile.oda.name || '');
     if (profile.oda.code !== '1-6-7' && banner) banner.style.display = 'block';
   } else {
     // Профиля нет — показываем баннер-приглашение рассчитать Дар
-    if (nameEl) nameEl.textContent = 'Гость';
+    if (nameEl) nameEl.textContent = bt('banner.guest');
     if (darNameEl) darNameEl.textContent = 'З-МАН';
-    if (darCodeEl) darCodeEl.textContent = '1-6-7 · демо';
+    if (darCodeEl) darCodeEl.textContent = '1-6-7 · ' + bt('banner.demo_label');
     if (banner) {
-      banner.innerHTML = '🐉 <b>Ты в демо-режиме на примере Дара З-МАН.</b> Перейди во вкладку «Я», рассчитай свой Дар — и АРКА начнёт показывать твой персональный путь.';
+      banner.innerHTML = bt('banner.demo_full');
       banner.style.display = 'block';
     }
   }

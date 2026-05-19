@@ -38,6 +38,21 @@
     </button>
   </section>
 
+  <!-- ═════════════ АНИМАЦИЯ ОТКРЫТИЯ ТЕНИ ═════════════
+       Полноэкранная анимация когда юзер заметил тень 3 раза.
+       Один экран = одно событие = одна кнопка. -->
+  <div class="shadow-unlock-overlay" id="shadowUnlockOverlay" hidden>
+    <div class="su-star">✦</div>
+    <div class="su-title" data-i18n="arka.unlock_title">Ты увидела тень</div>
+    <div class="su-shadow-name" id="shadowUnlockShadow">—</div>
+    <div class="su-divider"></div>
+    <div class="su-practice" id="shadowUnlockPractice">
+      <span class="su-label" data-i18n="arka.unlock_new_practice">Открылась новая практика</span>
+      <span class="su-practice-name">—</span>
+    </div>
+    <button class="su-close-btn" onclick="closeShadowUnlock()" data-i18n="arka.unlock_accept">Принять</button>
+  </div>
+
   <!-- ═════════════ ПРЕВЬЮ ШЕРИНГ-КАРТОЧКИ ═════════════
        Открывается по клику кнопки «Поделиться».
        Один экран: карточка + 2 кнопки. -->
@@ -373,15 +388,10 @@
 
       <div class="growth-shadows">
         <div class="gs-block-title" data-i18n="arka.growth_shadows_done">✓ Пройденные тени</div>
-        <div class="gs-tags" id="growthShadowsDone">
-          <span class="gs-tag" data-i18n="arka.shadow_rush">Спешка</span>
-          <span class="gs-tag" data-i18n="arka.shadow_procrastination">Откладывание</span>
-        </div>
+        <div class="gs-tags" id="growthShadowsDone"><!-- рендерится из state.shadows --></div>
         <div class="gs-block-title gs-block-active" data-i18n="arka.growth_shadows_active">○ Активные тени</div>
-        <div class="gs-tags" id="growthShadowsActive">
-          <span class="gs-tag gs-tag-active" data-i18n="arka.shadow_fall_out">Выпадение из времени</span>
-          <span class="gs-tag gs-tag-active" data-i18n="arka.shadow_stuck_future">Застревание в будущем</span>
-        </div>
+        <div class="gs-tags" id="growthShadowsActive"><!-- рендерится из state.shadows --></div>
+        <div class="gs-shadow-hint" data-i18n="arka.shadow_hint">Запиши тень в Дневнике 3 раза — она перейдёт в пройденные, откроется новая практика.</div>
       </div>
     </section>
 
@@ -399,8 +409,10 @@
           <button class="evo-tab" data-evo="shadow">🌑 <span data-i18n="arka.journal_shadow">Тень</span></button>
           <button class="evo-tab" data-evo="insight">💫 <span data-i18n="arka.journal_insight">Инсайт</span></button>
         </div>
-        <textarea class="evo-textarea" placeholder="Что было сегодня?" data-i18n-placeholder="arka.journal_placeholder"></textarea>
-        <button class="evo-save-btn" data-i18n="arka.journal_save">Сохранить запись</button>
+        <!-- Селект активной тени — появляется только когда выбрана вкладка «Тень» -->
+        <select id="evoShadowSelect" class="evo-shadow-select" hidden></select>
+        <textarea class="evo-textarea" id="evoTextarea" placeholder="Что было сегодня?" data-i18n-placeholder="arka.journal_placeholder"></textarea>
+        <button class="evo-save-btn" id="evoSaveBtn" data-i18n="arka.journal_save">Сохранить запись</button>
       </div>
 
       <div class="evo-recent">
@@ -631,6 +643,11 @@ const ARKA_I18N = {
     'arka.shadow_procrastination': 'Откладывание',
     'arka.shadow_fall_out': 'Выпадение из времени',
     'arka.shadow_stuck_future': 'Застревание в будущем',
+    'arka.shadow_hint': 'Запиши тень в Дневнике 3 раза — она перейдёт в пройденные, откроется новая практика.',
+    'arka.journal_which_shadow': 'Какая тень?',
+    'arka.unlock_title': 'Ты увидела тень',
+    'arka.unlock_new_practice': 'Открылась новая практика',
+    'arka.unlock_accept': 'Принять',
     'mirror.enter': 'Войди',
     'mirror.return': '← Зеркало',
     'banner.guest': 'Гость',
@@ -788,6 +805,11 @@ const ARKA_I18N = {
     'arka.shadow_procrastination': 'Procrastination',
     'arka.shadow_fall_out': 'Falling out of time',
     'arka.shadow_stuck_future': 'Stuck in the future',
+    'arka.shadow_hint': 'Record a shadow in the Journal 3 times — it will move to passed and unlock a new practice.',
+    'arka.journal_which_shadow': 'Which shadow?',
+    'arka.unlock_title': 'You saw the shadow',
+    'arka.unlock_new_practice': 'A new practice opened',
+    'arka.unlock_accept': 'Accept',
     'mirror.enter': 'Enter',
     'mirror.return': '← Mirror',
     'banner.guest': 'Guest',
@@ -945,6 +967,11 @@ const ARKA_I18N = {
     'arka.shadow_procrastination': 'Procrastinación',
     'arka.shadow_fall_out': 'Caer fuera del tiempo',
     'arka.shadow_stuck_future': 'Atascado en el futuro',
+    'arka.shadow_hint': 'Anota una sombra 3 veces en el Diario — pasará a superadas y se abrirá una nueva práctica.',
+    'arka.journal_which_shadow': '¿Qué sombra?',
+    'arka.unlock_title': 'Has visto la sombra',
+    'arka.unlock_new_practice': 'Se abrió una nueva práctica',
+    'arka.unlock_accept': 'Aceptar',
     'mirror.enter': 'Entra',
     'mirror.return': '← Espejo',
     'banner.guest': 'Invitado',

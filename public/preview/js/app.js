@@ -18,6 +18,8 @@
     if (tab) tab.classList.add('active');
     if (nav) nav.classList.add('active');
     window.scrollTo(0, 0);
+    // АРКА — фуллскрин: прячем шапку и нижнюю навигацию (АРКА сама их заменяет)
+    document.body.classList.toggle('in-arka', name === 'arka');
     // При входе в Сокровищницу рендерим сетку 64 даров (если она активна)
     if (name === 'treasury') {
       try { renderCollection(); } catch (e) {}

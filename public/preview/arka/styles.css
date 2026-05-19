@@ -123,6 +123,7 @@ body::after {
   padding: 4px;
   border-radius: var(--radius-sm);
   margin-bottom: 18px;
+  margin-left: 50px;  /* место для кнопки ← YupDar */
   box-shadow: var(--shadow-soft);
 }
 .tab {

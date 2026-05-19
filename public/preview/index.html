@@ -1093,6 +1093,14 @@
     /* Убираем боковые отступы у вкладки Арка, чтобы iframe занимал всю ширину */
     #tab-arka { padding: 0; }
 
+    /* Когда юзер внутри АРКА — прячем шапку и нижнюю навигацию YupDar.
+       АРКА сама даёт кнопку «← YupDar» для возврата. Меньше шума на экране. */
+    body.in-arka .app-header { display: none !important; }
+    body.in-arka .nav-bar { display: none !important; }
+    body.in-arka .arka-iframe-full { height: 100vh; min-height: 100vh; }
+    body.in-arka main { padding: 0 !important; margin: 0 !important; }
+    body.in-arka .tester-feedback-btn { display: none !important; }
+
     /* Аккордеон Дара в вкладке «Я» (7 базовых секций + 2 premium АРКА) */
     .me-accordion {
       margin-top: 16px;

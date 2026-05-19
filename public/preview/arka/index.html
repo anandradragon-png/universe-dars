@@ -97,6 +97,8 @@
 
   <!-- Кнопка возврата к Зеркалу (видна когда юзер «вошёл в день») -->
   <button class="mirror-return-btn" id="mirrorReturnBtn" hidden onclick="returnToMirror()" data-i18n="mirror.return">← Зеркало</button>
+  <!-- Кнопка возврата в YupDar (всегда в углу пока ты в АРКА) -->
+  <button class="mirror-back-btn mirror-back-btn-main" id="arkaBackYupDarBtn" onclick="backToYupDar()" data-i18n="mirror.back_yupdar">← YupDar</button>
 
   <!-- Основной интерфейс АРКА (скрыт пока показано Зеркало) -->
   <div id="arkaMain" hidden>
@@ -132,12 +134,6 @@
         <div class="pw-time" data-i18n="today.pw_time">Сумерки · 5:30–7:30 и 17:30–19:30</div>
         <div class="pw-hint" data-i18n="today.pw_hint">Время между временами — твоя стихия</div>
       </div>
-    </section>
-
-    <!-- Стрик -->
-    <section class="streak">
-      <span class="streak-icon">🐉</span>
-      <span class="streak-text"><span data-i18n="today.streak_pre">Ты скользишь по змею уже</span> <b id="streakDays">1</b> <span id="streakWord" data-i18n="today.streak_day">день</span></span>
     </section>
 
     <!-- Важные дела дня -->
@@ -732,6 +728,7 @@ const ARKA_I18N = {
     'arka.dragon_received_accept': 'Принять',
     'mirror.enter': 'Войди',
     'mirror.return': '← Зеркало',
+    'mirror.back_yupdar': '← YupDar',
     'banner.guest': 'Гость',
     'banner.friend': 'Друг',
     'banner.demo_label': 'демо',
@@ -923,6 +920,7 @@ const ARKA_I18N = {
     'arka.dragon_received_accept': 'Accept',
     'mirror.enter': 'Enter',
     'mirror.return': '← Mirror',
+    'mirror.back_yupdar': '← YupDar',
     'banner.guest': 'Guest',
     'banner.friend': 'Friend',
     'banner.demo_label': 'demo',
@@ -1114,6 +1112,7 @@ const ARKA_I18N = {
     'arka.dragon_received_accept': 'Aceptar',
     'mirror.enter': 'Entra',
     'mirror.return': '← Espejo',
+    'mirror.back_yupdar': '← YupDar',
     'banner.guest': 'Invitado',
     'banner.friend': 'Amigo',
     'banner.demo_label': 'demo',

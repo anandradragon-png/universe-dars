@@ -11,7 +11,8 @@ function defaultState() {
     gratitude: {},
     streakStart: TODAY,
     tasks: [
-      { id: 't1', text: 'Главная задача в окне силы', type: 'resource', done: false },
+      // Дефолтное имя первой задачи переведётся в renderTasks через dt('task.default_t1')
+      { id: 't1', text: '', type: 'resource', done: false, _default: 'task.default_t1' },
       { id: 't2', text: '', type: 'neutral', done: false },
       { id: 't3', text: '', type: 'neutral', done: false }
     ],
@@ -72,6 +73,13 @@ const ARKA_DYN_I18N = {
     'word.days_few': 'дня',
     'word.days_many': 'дней',
     'btn.delete': 'Удалить',
+    'task.neutral': '⚖️ обычная',
+    'task.resource': '🌟 ресурсная',
+    'task.shadow': '🌑 теневая',
+    'task.default_t1': 'Главная задача в окне силы',
+    'finance.actual': 'Факт ₽',
+    'finance.target': 'Цель ₽',
+    'finance.name_placeholder': 'Название канала',
     'tasks.no_tasks': '🌑 <b>Задач на день пока нет.</b> Открой таб «Сегодня» и напиши 1-3 главных дела. Без направления змей кружит без смысла.',
     'tasks.all_done': '🌟 <b>Задачи дня сделаны.</b> Поток ТУМА течёт ровно. Не добавляй больше — поток силы важнее списка побед.',
     'tasks.partial': '⚖️ Задачи дня: <em>{done} из {total}</em>. Главное — сделать ресурсную 🌟 в окно силы.',
@@ -105,6 +113,13 @@ const ARKA_DYN_I18N = {
     'word.days_few': 'days',
     'word.days_many': 'days',
     'btn.delete': 'Delete',
+    'task.neutral': '⚖️ ordinary',
+    'task.resource': '🌟 resource',
+    'task.shadow': '🌑 shadow',
+    'task.default_t1': 'Main task in the power window',
+    'finance.actual': 'Actual $',
+    'finance.target': 'Target $',
+    'finance.name_placeholder': 'Channel name',
     'tasks.no_tasks': "🌑 <b>No tasks for today.</b> Open the «Today» tab and write 1-3 main things. Without direction, the serpent circles without meaning.",
     'tasks.all_done': '🌟 <b>Today\'s tasks are done.</b> The TUMA flow runs smoothly. Don\'t add more — the flow of power matters more than the list of victories.',
     'tasks.partial': "⚖️ Today's tasks: <em>{done} of {total}</em>. The main thing — do the resourceful 🌟 in the power window.",
@@ -138,6 +153,13 @@ const ARKA_DYN_I18N = {
     'word.days_few': 'días',
     'word.days_many': 'días',
     'btn.delete': 'Eliminar',
+    'task.neutral': '⚖️ ordinaria',
+    'task.resource': '🌟 de recurso',
+    'task.shadow': '🌑 de sombra',
+    'task.default_t1': 'Tarea principal en la ventana de poder',
+    'finance.actual': 'Real $',
+    'finance.target': 'Meta $',
+    'finance.name_placeholder': 'Nombre del canal',
     'tasks.no_tasks': '🌑 <b>No hay tareas para hoy.</b> Abre la pestaña «Hoy» y escribe 1-3 tareas principales. Sin dirección, la serpiente gira sin sentido.',
     'tasks.all_done': '🌟 <b>Las tareas del día están hechas.</b> El flujo TUMA corre suave. No añadas más — el flujo de poder importa más que la lista de victorias.',
     'tasks.partial': '⚖️ Tareas del día: <em>{done} de {total}</em>. Lo principal — hacer la tarea de recurso 🌟 en la ventana de poder.',
@@ -253,6 +275,14 @@ function initJournal() {
 
 // ── Задачи дня ───────────────────────────────────────
 const TASK_TYPES = ['neutral', 'resource', 'shadow'];
+function getTaskTypeLabels() {
+  return {
+    neutral: dt('task.neutral'),
+    resource: dt('task.resource'),
+    shadow: dt('task.shadow')
+  };
+}
+// Старая константа оставлена для совместимости (на случай если где-то ещё используется)
 const TASK_TYPE_LABELS = {
   neutral: '⚖️ обычная',
   resource: '🌟 ресурсная',
@@ -267,9 +297,9 @@ function renderTasks() {
     li.className = 'task-item' + (task.done ? ' done' : '');
     li.innerHTML = `
       <div class="task-checkbox${task.done ? ' done' : ''}" data-id="${task.id}"></div>
-      <div class="task-text" contenteditable="true" data-id="${task.id}">${escapeHtml(task.text)}</div>
-      <span class="task-type" data-id="${task.id}" data-type="${task.type}">${TASK_TYPE_LABELS[task.type]}</span>
-      <button class="task-remove" data-id="${task.id}" title="Удалить">✕</button>
+      <div class="task-text" contenteditable="true" data-id="${task.id}">${escapeHtml(task.text || (task._default ? dt(task._default) : ''))}</div>
+      <span class="task-type" data-id="${task.id}" data-type="${task.type}">${getTaskTypeLabels()[task.type]}</span>
+      <button class="task-remove" data-id="${task.id}" title="${dt('btn.delete')}">✕</button>
     `;
     list.appendChild(li);
   });
@@ -624,13 +654,13 @@ function renderFinance() {
     li.className = 'finance-item';
     li.innerHTML = `
       <div class="finance-row1">
-        <input class="finance-name" data-id="${ch.id}" data-field="name" value="${escapeAttr(ch.name)}" placeholder="Название канала">
-        <button class="finance-remove" data-id="${ch.id}" title="Удалить">✕</button>
+        <input class="finance-name" data-id="${ch.id}" data-field="name" value="${escapeAttr(ch.name)}" placeholder="${dt('finance.name_placeholder')}">
+        <button class="finance-remove" data-id="${ch.id}" title="${dt('btn.delete')}">✕</button>
       </div>
       <div class="finance-row2">
-        <span class="finance-amount-label">Факт ₽</span>
+        <span class="finance-amount-label">${dt('finance.actual')}</span>
         <input class="finance-amount" data-id="${ch.id}" data-field="actual" type="number" min="0" value="${ch.actual || 0}">
-        <span class="finance-amount-label">Цель ₽</span>
+        <span class="finance-amount-label">${dt('finance.target')}</span>
         <input class="finance-amount" data-id="${ch.id}" data-field="target" type="number" min="0" value="${ch.target || 0}">
       </div>
       <div class="finance-progress"><div class="finance-progress-fill" style="width:${pct}%"></div></div>

@@ -1,0 +1,367 @@
+/* ═══════════════════════════════════════════════════
+   ДНЕВНИК ДАРА — freemium-крючок к АРКА
+   Принципы: 1 экран = 1 вопрос. Закон no_overload.
+   ═══════════════════════════════════════════════════ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0a1929;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(125, 211, 252, 0.10), transparent 50%),
+    radial-gradient(circle at 80% 90%, rgba(212, 175, 55, 0.08), transparent 50%),
+    linear-gradient(180deg, #0a1929 0%, #0F1F33 50%, #0a1929 100%);
+  color: #ffffff;
+  min-height: 100vh;
+}
+
+.diary-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ═══════════════════════════════════════════════════
+   ШАПКА
+   ═══════════════════════════════════════════════════ */
+.diary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 16px;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.15);
+  margin-bottom: 24px;
+}
+.diary-back {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.diary-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.diary-icon { font-size: 20px; }
+.diary-streak {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: 'Manrope', sans-serif;
+}
+.ds-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #D4AF37;
+  line-height: 1;
+}
+.ds-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+/* ═══════════════════════════════════════════════════
+   СОСТОЯНИЕ A: ВЫБОР НАСТРОЕНИЯ
+   ═══════════════════════════════════════════════════ */
+.diary-input-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px 0;
+}
+.diary-input-state[hidden] { display: none; }
+
+.diary-dar-of-day {
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ddd-icon-wrap {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ddd-icon-wrap img {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.45));
+}
+.ddd-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.ddd-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #D4AF37;
+  letter-spacing: 1px;
+}
+
+.diary-question {
+  font-family: 'Manrope', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 24px;
+}
+
+/* 8 настроений сеткой 4×2 */
+.diary-moods {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+.diary-mood {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(15, 30, 50, 0.6);
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  padding: 6px;
+}
+.diary-mood:hover {
+  background: rgba(212, 175, 55, 0.10);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+.diary-mood.selected {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(125, 211, 252, 0.10));
+  border-color: #D4AF37;
+  box-shadow: 0 0 18px rgba(212, 175, 55, 0.25);
+}
+.dm-symbol {
+  font-size: 24px;
+  line-height: 1;
+}
+.dm-label {
+  font-size: 10px;
+  color: #cbd5e1;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: 0.3px;
+}
+.diary-mood.selected .dm-label {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.diary-note {
+  width: 100%;
+  background: rgba(8, 20, 36, 0.85);
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  border-radius: 12px;
+  color: #ffffff;
+  padding: 12px 14px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 20px;
+}
+.diary-note:focus { border-color: #D4AF37; }
+.diary-note::placeholder { color: #64748b; }
+
+.diary-save-btn {
+  background: linear-gradient(135deg, #D4AF37, #b8860b);
+  color: #0a1929;
+  border: none;
+  padding: 16px 48px;
+  border-radius: 14px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 8px 28px rgba(212, 175, 55, 0.4);
+  width: 100%;
+  max-width: 280px;
+  transition: all 0.15s;
+}
+.diary-save-btn:hover { transform: translateY(-1px); }
+.diary-save-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   СОСТОЯНИЕ B: МИНИ-ЗЕРКАЛО (после выбора)
+   ═══════════════════════════════════════════════════ */
+.diary-mirror-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px 0;
+  animation: dm-fade 0.5s ease-out;
+}
+.diary-mirror-state[hidden] { display: none; }
+@keyframes dm-fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.diary-mirror-glyph {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.diary-mirror-glyph img {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.4));
+}
+
+.diary-mirror-title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #D4AF37;
+  margin-bottom: 16px;
+}
+
+.diary-mirror-text {
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: #e2e8f0;
+  margin-bottom: 32px;
+  max-width: 380px;
+}
+.diary-mirror-text em {
+  color: #7DD3FC;
+  font-style: normal;
+  font-weight: 600;
+}
+.diary-mirror-text strong {
+  color: #D4AF37;
+  font-weight: 700;
+}
+
+/* CTA на АРКА — главный конверсионный элемент */
+.diary-cta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(125, 211, 252, 0.08));
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  max-width: 380px;
+  margin-bottom: 16px;
+  transition: all 0.15s;
+}
+.diary-cta:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(125, 211, 252, 0.12));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(212, 175, 55, 0.25);
+}
+.cta-icon { font-size: 28px; flex-shrink: 0; }
+.cta-text {
+  flex: 1;
+  text-align: left;
+}
+.cta-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #D4AF37;
+}
+.cta-sub {
+  font-size: 12px;
+  color: #cbd5e1;
+  margin-top: 2px;
+}
+.cta-arrow {
+  font-size: 22px;
+  color: #D4AF37;
+  flex-shrink: 0;
+}
+
+.diary-secondary-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 10px 16px;
+  text-decoration: underline;
+  text-decoration-color: rgba(148, 163, 184, 0.3);
+}
+.diary-secondary-btn:hover { color: #ffffff; }
+
+/* ═══════════════════════════════════════════════════
+   ПОДВАЛ
+   ═══════════════════════════════════════════════════ */
+.diary-footer {
+  text-align: center;
+  padding: 20px 0 12px;
+  font-size: 11px;
+  color: #64748b;
+  letter-spacing: 1px;
+}
+
+/* Фидбэк-кнопка (та же что в основном превью) */
+.tester-feedback-btn {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 1000;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.95), rgba(184, 134, 11, 0.95));
+  color: #0a1929;
+  border: none;
+  border-radius: 28px;
+  padding: 10px 16px 10px 12px;
+  font-family: Manrope, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tester-feedback-btn:hover { transform: translateY(-2px); }

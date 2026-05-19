@@ -32,7 +32,23 @@
       <!-- Сюда подставляется живое послание из generateMirror() -->
     </div>
     <button class="mirror-enter-btn" id="mirrorEnterBtn" data-i18n="mirror.enter">Войти в день</button>
+    <!-- Незаметная кнопка шеринга — справа внизу, не отвлекает -->
+    <button class="mirror-share-btn" id="mirrorShareBtn" onclick="openShareCard('mirror')" aria-label="Поделиться">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </button>
   </section>
+
+  <!-- ═════════════ ПРЕВЬЮ ШЕРИНГ-КАРТОЧКИ ═════════════
+       Открывается по клику кнопки «Поделиться».
+       Один экран: карточка + 2 кнопки. -->
+  <div class="share-overlay" id="shareOverlay" hidden onclick="if(event.target===this)closeShareCard()">
+    <button class="share-close" onclick="closeShareCard()" aria-label="Закрыть">✕</button>
+    <canvas id="shareCanvas" width="540" height="960" class="share-canvas"></canvas>
+    <div class="share-actions">
+      <button class="share-action-btn share-action-primary" onclick="downloadShareCard()" data-i18n="share.download">Скачать</button>
+      <button class="share-action-btn" onclick="shareViaTelegram()" data-i18n="share.send">Отправить</button>
+    </div>
+  </div>
 
   <!-- Кнопка возврата к Зеркалу (видна когда юзер «вошёл в день») -->
   <button class="mirror-return-btn" id="mirrorReturnBtn" hidden onclick="returnToMirror()" data-i18n="mirror.return">← Зеркало</button>

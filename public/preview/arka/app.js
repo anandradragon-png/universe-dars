@@ -97,6 +97,14 @@ const ARKA_DYN_I18N = {
     'mirror.teaser_d2': 'Войди — я уже чувствую, как ты входишь в ритм.',
     'mirror.teaser_d3': 'Войди — сегодня я покажу тебе первый паттерн, который заметила.',
     'mirror.teaser_dN': 'Войди — твой день ждёт.',
+    // === ШЕРИНГ-КАРТОЧКА ===
+    'share.download': 'Скачать',
+    'share.send': 'Отправить',
+    'share.default_quote': 'Мой день в АРКА',
+    'share.day_prefix': 'День ',
+    'share.day_suffix': 'в АРКА',
+    'share.tg_message': 'Мой день в АРКА',
+    'share.mirror_quote_tpl': 'Сегодня {dar} ведёт меня',
     'tasks.no_tasks': '🌑 <b>Задач на день пока нет.</b> Открой таб «Сегодня» и напиши 1-3 главных дела. Без направления змей кружит без смысла.',
     'tasks.all_done': '🌟 <b>Задачи дня сделаны.</b> Поток ТУМА течёт ровно. Не добавляй больше — поток силы важнее списка побед.',
     'tasks.partial': '⚖️ Задачи дня: <em>{done} из {total}</em>. Главное — сделать ресурсную 🌟 в окно силы.',
@@ -151,6 +159,14 @@ const ARKA_DYN_I18N = {
     'mirror.teaser_d2': "Enter — I already feel you entering the rhythm.",
     'mirror.teaser_d3': "Enter — today I'll show you the first pattern I've noticed.",
     'mirror.teaser_dN': 'Enter — your day is waiting.',
+    // === SHARE CARD ===
+    'share.download': 'Download',
+    'share.send': 'Send',
+    'share.default_quote': 'My day in ARKA',
+    'share.day_prefix': 'Day ',
+    'share.day_suffix': 'in ARKA',
+    'share.tg_message': 'My day in ARKA',
+    'share.mirror_quote_tpl': 'Today {dar} leads me',
     'tasks.no_tasks': "🌑 <b>No tasks for today.</b> Open the «Today» tab and write 1-3 main things. Without direction, the serpent circles without meaning.",
     'tasks.all_done': '🌟 <b>Today\'s tasks are done.</b> The TUMA flow runs smoothly. Don\'t add more — the flow of power matters more than the list of victories.',
     'tasks.partial': "⚖️ Today's tasks: <em>{done} of {total}</em>. The main thing — do the resourceful 🌟 in the power window.",
@@ -205,6 +221,14 @@ const ARKA_DYN_I18N = {
     'mirror.teaser_d2': 'Entra — ya siento cómo entras en el ritmo.',
     'mirror.teaser_d3': 'Entra — hoy te mostraré el primer patrón que he notado.',
     'mirror.teaser_dN': 'Entra — tu día te espera.',
+    // === TARJETA PARA COMPARTIR ===
+    'share.download': 'Descargar',
+    'share.send': 'Enviar',
+    'share.default_quote': 'Mi día en ARKA',
+    'share.day_prefix': 'Día ',
+    'share.day_suffix': 'en ARKA',
+    'share.tg_message': 'Mi día en ARKA',
+    'share.mirror_quote_tpl': 'Hoy {dar} me guía',
     'tasks.no_tasks': '🌑 <b>No hay tareas para hoy.</b> Abre la pestaña «Hoy» y escribe 1-3 tareas principales. Sin dirección, la serpiente gira sin sentido.',
     'tasks.all_done': '🌟 <b>Las tareas del día están hechas.</b> El flujo TUMA corre suave. No añadas más — el flujo de poder importa más que la lista de victorias.',
     'tasks.partial': '⚖️ Tareas del día: <em>{done} de {total}</em>. Lo principal — hacer la tarea de recurso 🌟 en la ventana de poder.',
@@ -1293,6 +1317,185 @@ function initMirror() {
     enterDay();
   }
 }
+
+// ── Шеринг-карточка инсайтов ─────────────────────────────────
+// Генерирует красивую PNG-карточку с Даром, инсайтом и брендингом.
+// Используется для виральности — юзер делится в Stories/чатах.
+//
+// Размер 540×960 = соотношение 9:16 (Instagram Stories / Telegram Stories).
+
+let _lastShareDataUrl = null;
+
+function drawShareCard(opts) {
+  const canvas = document.getElementById('shareCanvas');
+  if (!canvas) return null;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // Фон — глубокий бирюзово-синий с золотыми пятнами (тема З-МАН)
+  const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+  bgGrad.addColorStop(0, '#0a1929');
+  bgGrad.addColorStop(0.5, '#0F1F33');
+  bgGrad.addColorStop(1, '#0a1929');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+  // Радиальные свечения
+  const glow1 = ctx.createRadialGradient(W * 0.2, H * 0.15, 0, W * 0.2, H * 0.15, W * 0.6);
+  glow1.addColorStop(0, 'rgba(125, 211, 252, 0.18)');
+  glow1.addColorStop(1, 'rgba(125, 211, 252, 0)');
+  ctx.fillStyle = glow1;
+  ctx.fillRect(0, 0, W, H);
+  const glow2 = ctx.createRadialGradient(W * 0.85, H * 0.85, 0, W * 0.85, H * 0.85, W * 0.6);
+  glow2.addColorStop(0, 'rgba(212, 175, 55, 0.15)');
+  glow2.addColorStop(1, 'rgba(212, 175, 55, 0)');
+  ctx.fillStyle = glow2;
+  ctx.fillRect(0, 0, W, H);
+
+  // Золотая рамка-обводка
+  ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(20, 20, W - 40, H - 40);
+
+  // Лого YupDar сверху
+  ctx.fillStyle = '#D4AF37';
+  ctx.font = 'bold 32px Manrope, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🐉 АРКА', W / 2, 100);
+  ctx.font = '14px Manrope, sans-serif';
+  ctx.fillStyle = 'rgba(212, 175, 55, 0.65)';
+  ctx.fillText('Y U P D A R', W / 2, 130);
+
+  // Имя юзера
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 36px Manrope, sans-serif';
+  ctx.fillText(opts.userName || 'Друг', W / 2, 220);
+
+  // Дар (в большом размере)
+  ctx.fillStyle = '#D4AF37';
+  ctx.font = 'bold 64px Manrope, sans-serif';
+  ctx.fillText(opts.darName || '—', W / 2, 320);
+
+  // Архетип
+  ctx.fillStyle = '#7DD3FC';
+  ctx.font = 'italic 22px Manrope, sans-serif';
+  ctx.fillText(opts.archetype || '', W / 2, 360);
+
+  // Цитата / инсайт — центральная часть
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '24px Manrope, sans-serif';
+  const quote = opts.quote || '';
+  const lines = wrapText(ctx, '«' + quote + '»', W - 100);
+  let y = 480;
+  lines.forEach(line => {
+    ctx.fillText(line, W / 2, y);
+    y += 36;
+  });
+
+  // День в АРКА — внизу
+  ctx.fillStyle = 'rgba(212, 175, 55, 0.65)';
+  ctx.font = '16px Manrope, sans-serif';
+  ctx.fillText((opts.dayLabel || '') , W / 2, H - 100);
+
+  // Подпись «public-yup-land1.vercel.app/preview/»
+  ctx.fillStyle = 'rgba(226, 232, 240, 0.4)';
+  ctx.font = '13px Manrope, sans-serif';
+  ctx.fillText('public-yup-land1.vercel.app/preview', W / 2, H - 60);
+
+  // Сохраняем dataURL для скачивания
+  _lastShareDataUrl = canvas.toDataURL('image/png');
+  return _lastShareDataUrl;
+}
+
+function wrapText(ctx, text, maxWidth) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, 4); // максимум 4 строки цитаты
+}
+
+// Открыть шеринг — generates карточка по контексту
+function openShareCard(context, customQuote) {
+  const overlay = document.getElementById('shareOverlay');
+  if (!overlay) return;
+
+  // Подтягиваем данные юзера + Дара дня
+  const { userName, darOfDay } = getMirrorState();
+
+  // Цитата — либо передана, либо генерируется из контекста
+  let quote = customQuote;
+  if (!quote) {
+    if (context === 'mirror' && darOfDay) {
+      // «Сегодня <Дар> ведёт меня» — поэтичная универсальная цитата
+      const tpl = dtOrEmpty('share.mirror_quote_tpl') || 'Сегодня {dar} ведёт меня';
+      quote = tpl.replace('{dar}', darOfDay.name || '');
+    } else {
+      quote = dtOrEmpty('share.default_quote');
+    }
+  }
+
+  // День в АРКА
+  const { arkaDay } = getMirrorState();
+  const dayLabel = (dtOrEmpty('share.day_prefix') || 'День ') + arkaDay + ' ' + (dtOrEmpty('share.day_suffix') || 'в АРКА');
+
+  drawShareCard({
+    userName: userName || dtOrEmpty('banner.friend'),
+    darName: darOfDay ? darOfDay.name : '',
+    archetype: darOfDay ? darOfDay.archetype : '',
+    quote: quote || '',
+    dayLabel
+  });
+
+  overlay.hidden = false;
+}
+window.openShareCard = openShareCard;
+
+function closeShareCard() {
+  const overlay = document.getElementById('shareOverlay');
+  if (overlay) overlay.hidden = true;
+}
+window.closeShareCard = closeShareCard;
+
+function downloadShareCard() {
+  if (!_lastShareDataUrl) return;
+  const a = document.createElement('a');
+  a.href = _lastShareDataUrl;
+  a.download = 'arka-' + Date.now() + '.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+window.downloadShareCard = downloadShareCard;
+
+// Шеринг через Telegram WebApp API (если доступно) или копирование ссылки
+function shareViaTelegram() {
+  const shareUrl = 'https://public-yup-land1.vercel.app/preview/';
+  const shareText = dtOrEmpty('share.tg_message') || 'Мой день в АРКА';
+  // Если открыто в Telegram WebApp — используем нативный API
+  try {
+    if (window.parent && window.parent.Telegram && window.parent.Telegram.WebApp) {
+      const tg = window.parent.Telegram.WebApp;
+      if (tg.openTelegramLink) {
+        const url = 'https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent(shareText);
+        tg.openTelegramLink(url);
+        return;
+      }
+    }
+  } catch (e) {}
+  // Фоллбэк — обычная ссылка t.me/share
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent(shareText), '_blank');
+}
+window.shareViaTelegram = shareViaTelegram;
 
 // ── Запуск ───────────────────────────────────────────
 setGreeting();

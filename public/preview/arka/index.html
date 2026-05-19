@@ -38,6 +38,15 @@
     </button>
   </section>
 
+  <!-- ═════════════ ПОЛУЧЕНИЕ ДРАКОНА ═════════════
+       Когда близкий из Кольца силы посылает 🐉 — анимация. -->
+  <div class="dragon-received-overlay" id="dragonReceivedOverlay" hidden>
+    <div class="dr-dragon">🐉</div>
+    <div class="dr-label" id="dragonReceivedFrom">—</div>
+    <div class="dr-text" data-i18n="arka.dragon_received_text">почувствовал тебя и послал дракона. Прими.</div>
+    <button class="dr-close-btn" onclick="closeDragonReceived()" data-i18n="arka.dragon_received_accept">Принять</button>
+  </div>
+
   <!-- ═════════════ ВВОД ПИСЬМА НА 30 ДНЕЙ ═════════════
        Полноэкранный модал. 1 экран = 1 textarea = 1 кнопка. -->
   <div class="letter-input-overlay" id="letterInputOverlay" hidden>
@@ -604,6 +613,23 @@
       <button class="task-add-btn" id="contentAddBtn" data-i18n="path.content_add">＋ Добавить публикацию</button>
     </section>
 
+    <!-- ═════════════ КОЛЬЦО СИЛЫ ═════════════
+         Социальная фича: 2-3 близких видят твоё эмодзи-состояние,
+         посылают друг другу «🐉» в поддержку. -->
+    <section class="circle-card">
+      <div class="card-header">
+        <span class="card-icon">🐉</span>
+        <h2 class="card-title" data-i18n="arka.circle_title">Кольцо силы</h2>
+      </div>
+      <p class="card-hint" data-i18n="arka.circle_hint">Близкие видят твоё состояние эмодзи. Никаких деталей — только связь.</p>
+
+      <div class="circle-members" id="circleMembers"><!-- рендерится из state.circle --></div>
+
+      <button class="circle-invite-btn" id="circleInviteBtn" onclick="inviteToCircle()">
+        <span data-i18n="arka.circle_invite">＋ Пригласить близкого</span>
+      </button>
+    </section>
+
     <!-- Кнопка "Нужен наставник" -->
     <section class="mentor-call-card">
       <div class="card-header">
@@ -692,6 +718,18 @@ const ARKA_I18N = {
     'arka.letter_open_label': 'Письмо себе из прошлого',
     'arka.letter_open_from': 'Запечатано',
     'arka.letter_open_close': 'Принять',
+    // === КОЛЬЦО СИЛЫ ===
+    'arka.circle_title': 'Кольцо силы',
+    'arka.circle_hint': 'Близкие видят твоё состояние эмодзи. Никаких деталей — только связь.',
+    'arka.circle_invite': '＋ Пригласить близкого',
+    'arka.circle_invite_text': 'Я в АРКА — спутник пути в ритме моего Дара. Войди и узнай свой.',
+    'arka.circle_empty': 'Пока никого. Пригласи 2-3 близких — увидите состояния друг друга.',
+    'arka.circle_state_light': 'в силе',
+    'arka.circle_state_neutral': 'ровно',
+    'arka.circle_state_shadow': 'в тени',
+    'arka.circle_send_dragon': 'Послать дракона в поддержку',
+    'arka.dragon_received_text': 'почувствовал тебя и послал дракона. Прими.',
+    'arka.dragon_received_accept': 'Принять',
     'mirror.enter': 'Войди',
     'mirror.return': '← Зеркало',
     'banner.guest': 'Гость',
@@ -871,6 +909,18 @@ const ARKA_I18N = {
     'arka.letter_open_label': 'Letter to yourself from the past',
     'arka.letter_open_from': 'Sealed on',
     'arka.letter_open_close': 'Accept',
+    // === CIRCLE OF POWER ===
+    'arka.circle_title': 'Circle of Power',
+    'arka.circle_hint': 'Loved ones see your emoji state. No details — just connection.',
+    'arka.circle_invite': '＋ Invite a loved one',
+    'arka.circle_invite_text': "I'm in ARKA — a companion on the path in the rhythm of my DAR. Enter and find yours.",
+    'arka.circle_empty': "No one yet. Invite 2-3 close people — you'll see each other's states.",
+    'arka.circle_state_light': 'in light',
+    'arka.circle_state_neutral': 'steady',
+    'arka.circle_state_shadow': 'in shadow',
+    'arka.circle_send_dragon': 'Send a dragon in support',
+    'arka.dragon_received_text': 'felt you and sent a dragon. Receive it.',
+    'arka.dragon_received_accept': 'Accept',
     'mirror.enter': 'Enter',
     'mirror.return': '← Mirror',
     'banner.guest': 'Guest',
@@ -1050,6 +1100,18 @@ const ARKA_I18N = {
     'arka.letter_open_label': 'Carta a ti misma desde el pasado',
     'arka.letter_open_from': 'Sellada el',
     'arka.letter_open_close': 'Aceptar',
+    // === ANILLO DE PODER ===
+    'arka.circle_title': 'Anillo de Poder',
+    'arka.circle_hint': 'Tus seres queridos ven tu estado en emoji. Sin detalles — solo conexión.',
+    'arka.circle_invite': '＋ Invitar a un ser querido',
+    'arka.circle_invite_text': 'Estoy en ARKA — un compañero en el camino al ritmo de mi DAR. Entra y encuentra el tuyo.',
+    'arka.circle_empty': 'Aún nadie. Invita a 2-3 personas cercanas — verán los estados de cada una.',
+    'arka.circle_state_light': 'en luz',
+    'arka.circle_state_neutral': 'en calma',
+    'arka.circle_state_shadow': 'en sombra',
+    'arka.circle_send_dragon': 'Enviar un dragón en apoyo',
+    'arka.dragon_received_text': 'te sintió y envió un dragón. Recíbelo.',
+    'arka.dragon_received_accept': 'Aceptar',
     'mirror.enter': 'Entra',
     'mirror.return': '← Espejo',
     'banner.guest': 'Invitado',

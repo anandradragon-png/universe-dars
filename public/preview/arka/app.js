@@ -1815,6 +1815,128 @@ function initLetter() {
   if (btn) btn.addEventListener('click', sealLetter);
 }
 
+// ═══════════════════════════════════════════════════
+// КОЛЬЦО СИЛЫ — социальная фича
+// ═══════════════════════════════════════════════════
+// Демо-список близких: имя, эмодзи-состояние, может ли получить «🐉»
+// В реальном проде эти данные будут приходить с сервера через приглашения.
+
+function getCircleMembers() {
+  // Демо-данные. В проде — fetch с сервера.
+  let circle = [];
+  try {
+    const raw = localStorage.getItem('arka_circle');
+    if (raw) circle = JSON.parse(raw);
+  } catch (e) {}
+  // Если пусто — даём демо-данные при первом запуске
+  if (!circle.length) {
+    circle = [
+      { id: 'm1', name: 'Маша', state: 'light', sent: false },
+      { id: 'm2', name: 'Лена', state: 'neutral', sent: false }
+    ];
+    try { localStorage.setItem('arka_circle', JSON.stringify(circle)); } catch (e) {}
+  }
+  return circle;
+}
+
+function saveCircleMembers(list) {
+  try { localStorage.setItem('arka_circle', JSON.stringify(list)); } catch (e) {}
+}
+
+function getStateEmoji(state) {
+  switch (state) {
+    case 'light': return '🌟';
+    case 'shadow': return '🌑';
+    case 'neutral': default: return '⚖️';
+  }
+}
+function getStateLabel(state) {
+  switch (state) {
+    case 'light': return dt('arka.circle_state_light');
+    case 'shadow': return dt('arka.circle_state_shadow');
+    case 'neutral': default: return dt('arka.circle_state_neutral');
+  }
+}
+
+function renderCircle() {
+  const container = document.getElementById('circleMembers');
+  if (!container) return;
+  const members = getCircleMembers();
+  if (!members.length) {
+    container.innerHTML = '<div class="circle-empty">' + escapeHtml(dt('arka.circle_empty')) + '</div>';
+    return;
+  }
+  container.innerHTML = members.map(m => {
+    const initial = (m.name || '?').charAt(0);
+    return '<div class="circle-member">' +
+      '<div class="cm-avatar">' + escapeHtml(initial) + '</div>' +
+      '<div class="cm-info">' +
+        '<div class="cm-name">' + escapeHtml(m.name) + '</div>' +
+        '<div class="cm-status"><span class="cm-status-emoji">' + getStateEmoji(m.state) + '</span> ' + escapeHtml(getStateLabel(m.state)) + '</div>' +
+      '</div>' +
+      '<button class="cm-dragon-btn' + (m.sent ? ' sent' : '') + '" onclick="sendDragon(\'' + m.id + '\')" title="' + escapeAttr(dt('arka.circle_send_dragon')) + '">🐉</button>' +
+    '</div>';
+  }).join('');
+}
+
+function sendDragon(memberId) {
+  const members = getCircleMembers();
+  const m = members.find(x => x.id === memberId);
+  if (!m || m.sent) return;
+  m.sent = true;
+  saveCircleMembers(members);
+  renderCircle();
+  // Простая «вспышка» — короткое сообщение или ничего, не перегружаем UI
+}
+window.sendDragon = sendDragon;
+
+function inviteToCircle() {
+  // В реальном проде — открывает Telegram share с приглашением
+  const inviteUrl = 'https://public-yup-land1.vercel.app/preview/';
+  const text = dt('arka.circle_invite_text');
+  try {
+    if (window.parent && window.parent.Telegram && window.parent.Telegram.WebApp && window.parent.Telegram.WebApp.openTelegramLink) {
+      window.parent.Telegram.WebApp.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(inviteUrl) + '&text=' + encodeURIComponent(text));
+      return;
+    }
+  } catch (e) {}
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(inviteUrl) + '&text=' + encodeURIComponent(text), '_blank');
+}
+window.inviteToCircle = inviteToCircle;
+
+// Симуляция: при первом открытии АРКА в течение дня — иногда «приходит» дракон от близкого
+function maybeReceiveDragon() {
+  // Демо-логика: 30% шанс если есть кто-то в Кольце и сегодня ещё не получали
+  try {
+    const lastReceived = localStorage.getItem('arka_last_dragon_received') || '';
+    if (lastReceived === TODAY) return;  // уже получили сегодня
+    const members = getCircleMembers();
+    if (!members.length) return;
+    if (Math.random() > 0.3) return;
+    const sender = members[Math.floor(Math.random() * members.length)];
+    setTimeout(() => showDragonReceived(sender.name), 4000);  // через 4 сек после загрузки
+    localStorage.setItem('arka_last_dragon_received', TODAY);
+  } catch (e) {}
+}
+
+function showDragonReceived(senderName) {
+  const overlay = document.getElementById('dragonReceivedOverlay');
+  const label = document.getElementById('dragonReceivedFrom');
+  if (!overlay || !label) return;
+  label.textContent = senderName;
+  overlay.hidden = false;
+}
+function closeDragonReceived() {
+  const overlay = document.getElementById('dragonReceivedOverlay');
+  if (overlay) overlay.hidden = true;
+}
+window.closeDragonReceived = closeDragonReceived;
+
+function initCircle() {
+  renderCircle();
+  maybeReceiveDragon();
+}
+
 // Инициализация квеста теней
 function initShadowQuest() {
   renderGrowthMap();
@@ -1879,3 +2001,4 @@ initDoterra();
 initOilHints();
 initShadowQuest();
 initLetter();
+initCircle();

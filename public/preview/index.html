@@ -1095,20 +1095,31 @@
 
     /* Когда юзер внутри АРКА — прячем шапку и нижнюю навигацию YupDar.
        АРКА сама даёт кнопку «← YupDar» для возврата. Меньше шума на экране. */
+    body.in-arka { background: #0a1929 !important; }
     body.in-arka .app-header { display: none !important; }
     body.in-arka .nav-bar { display: none !important; }
-    /* iframe АРКА центрируем (контент рассчитан на мобильную ширину ~480px) */
-    body.in-arka .arka-iframe-full {
-      height: 100vh;
-      min-height: 100vh;
-      max-width: 540px;
-      width: 100%;
-      margin: 0 auto;
-      display: block;
-    }
-    body.in-arka #tab-arka { background: #0a1929; min-height: 100vh; display: flex; justify-content: center; }
     body.in-arka main { padding: 0 !important; margin: 0 !important; background: #0a1929; }
     body.in-arka .tester-feedback-btn { display: none !important; }
+    /* iframe АРКА центрируем (контент рассчитан на мобильную ширину ~540px) */
+    body.in-arka #tab-arka {
+      background: #0a1929;
+      min-height: 100vh;
+      width: 100%;
+      max-width: 100%;
+      display: flex !important;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    body.in-arka .arka-iframe,
+    body.in-arka .arka-iframe-full {
+      height: 100vh !important;
+      min-height: 100vh !important;
+      width: 100% !important;
+      max-width: 540px !important;
+      margin: 0 auto !important;
+      display: block !important;
+      border-radius: 0 !important;
+    }
 
     /* Аккордеон Дара в вкладке «Я» (7 базовых секций + 2 premium АРКА) */
     .me-accordion {

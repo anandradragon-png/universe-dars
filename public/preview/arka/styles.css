@@ -602,7 +602,8 @@ body::after {
   margin-bottom: 10px;
   transition: border 0.2s;
 }
-.goal-input:focus { border-color: var(--accent); background: white; }
+.goal-input:focus { border-color: var(--accent); background: rgba(212, 175, 55, 0.06); }
+.goal-input::placeholder { color: rgba(255,255,255,0.35); }
 .goal-input.small { font-size: 13px; padding: 10px 12px; margin-bottom: 0; }
 
 .goal-row { display: flex; gap: 10px; margin-top: 4px; }
@@ -652,7 +653,8 @@ body::after {
   resize: vertical; outline: none;
   min-height: 70px; transition: border 0.2s;
 }
-.ai-input:focus { border-color: var(--accent); background: white; }
+.ai-input:focus { border-color: var(--accent); background: rgba(212, 175, 55, 0.06); }
+.ai-input::placeholder { color: rgba(255,255,255,0.35); }
 
 .ai-actions {
   display: flex; gap: 8px; margin: 10px 0 12px;
@@ -738,12 +740,13 @@ body::after {
   display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
 }
 .finance-name {
-  flex: 1; background: white;
-  border: 1px solid var(--line); border-radius: 8px;
+  flex: 1; background: rgba(8, 20, 36, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.22); border-radius: 8px;
   padding: 8px 10px; font-family: inherit; font-size: 14px;
-  color: var(--ink); outline: none;
+  color: #ffffff; outline: none;
   min-width: 0;
 }
+.finance-name::placeholder { color: rgba(255,255,255,0.35); }
 .finance-name:focus { border-color: var(--accent); }
 .finance-remove {
   background: none; border: none; cursor: pointer;
@@ -754,12 +757,13 @@ body::after {
   display: flex; gap: 8px; align-items: center;
 }
 .finance-amount {
-  flex: 1; background: white;
-  border: 1px solid var(--line); border-radius: 8px;
+  flex: 1; background: rgba(8, 20, 36, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.22); border-radius: 8px;
   padding: 8px 10px; font-family: inherit; font-size: 13px;
-  color: var(--ink); outline: none;
+  color: #ffffff; outline: none;
   text-align: right; min-width: 0;
 }
+.finance-amount::placeholder { color: rgba(255,255,255,0.35); }
 .finance-amount:focus { border-color: var(--accent); }
 .finance-amount-label {
   font-size: 11px; color: var(--ink-mute);

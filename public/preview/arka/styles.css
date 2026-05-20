@@ -220,9 +220,17 @@ body::after {
 .task-text {
   flex: 1; font-size: 14px; color: var(--ink);
   outline: none; min-width: 0;
+  cursor: text;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px dashed transparent;
+  transition: border-color .15s, background .15s;
 }
+.task-text:hover { border-color: rgba(212,175,55,0.30); background: rgba(212,175,55,0.04); }
+.task-text:focus { border-color: var(--accent, #d4af37); border-style: solid; background: rgba(212,175,55,0.06); }
 .task-text[contenteditable=true]:empty::before {
   content: 'Опиши задачу…'; color: var(--ink-mute);
+  font-style: italic;
 }
 .task-item.done .task-text {
   color: var(--ink-mute); text-decoration: line-through;

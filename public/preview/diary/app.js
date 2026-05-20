@@ -21,7 +21,9 @@ const DIARY_I18N = {
     'diary.cta_sub': 'Глубокая работа с Даром каждый день',
     'diary.tomorrow': 'Завтра приду снова',
     'diary.footer': 'YupDar · бесплатно для всех',
-    'diary.dar_of_day_label': 'Дар сегодня',
+    'diary.dar_of_day_label': 'Твой Дар сегодня',
+    'diary.dar_of_day_label_general': 'Общий Дар дня',
+    'diary.profile_hint': 'Рассчитай свой Дар в YupDar, и Дневник покажет персональный Дар дня',
 
     'scale.energy': 'Энергия',
     'scale.energy_low': 'мало',
@@ -71,7 +73,9 @@ const DIARY_I18N = {
     'diary.cta_sub': 'Deep work with your DAR every day',
     'diary.tomorrow': "I'll come back tomorrow",
     'diary.footer': 'YupDar · free for everyone',
-    'diary.dar_of_day_label': 'DAR today',
+    'diary.dar_of_day_label': 'Your DAR today',
+    'diary.dar_of_day_label_general': 'General DAR of the day',
+    'diary.profile_hint': "Calculate your DAR in YupDar and the Diary will show your personal DAR of the day",
 
     'scale.energy': 'Energy',
     'scale.energy_low': 'low',
@@ -120,7 +124,9 @@ const DIARY_I18N = {
     'diary.cta_sub': 'Trabajo profundo con tu DAR cada día',
     'diary.tomorrow': 'Volveré mañana',
     'diary.footer': 'YupDar · gratis para todos',
-    'diary.dar_of_day_label': 'DAR hoy',
+    'diary.dar_of_day_label': 'Tu DAR hoy',
+    'diary.dar_of_day_label_general': 'DAR general del día',
+    'diary.profile_hint': 'Calcula tu DAR en YupDar y el Diario mostrará tu DAR personal del día',
 
     'scale.energy': 'Energía',
     'scale.energy_low': 'poca',
@@ -227,9 +233,17 @@ function calcDarOfDay() {
     date: { day: now.getDate(), month: now.getMonth() + 1, year: now.getFullYear() },
     time: { hour: now.getHours(), minute: now.getMinutes() }
   };
+  // Персональный Дар дня = есть координаты И имя юзера
+  let isPersonal = false;
   if (profile) {
-    if (profile.tria && profile.tria.coords) input.coords = profile.tria.coords;
-    if (profile.chia) input.person = { firstName: profile.chia.firstName, lastName: profile.chia.lastName };
+    const hasCoords = (profile.tria && profile.tria.coords) || profile.coords;
+    const hasPerson = profile.chia || profile.person;
+    if (hasCoords) input.coords = profile.tria ? profile.tria.coords : profile.coords;
+    if (hasPerson) {
+      const p = profile.chia || profile.person;
+      input.person = { firstName: p.firstName, lastName: p.lastName };
+    }
+    isPersonal = !!(hasCoords && hasPerson);
   }
   const p = DarsLib.calcProfile(input);
   if (!p) return null;
@@ -237,7 +251,8 @@ function calcDarOfDay() {
   return {
     code,
     name: p.synthesis.name,
-    svgPath: DarsLib.getDarSvgPath ? DarsLib.getDarSvgPath(code) : ''
+    svgPath: DarsLib.getDarSvgPath ? DarsLib.getDarSvgPath(code) : '',
+    isPersonal
   };
 }
 
@@ -297,12 +312,17 @@ function renderDarOfDay() {
   if (!wrap) return;
   const dar = calcDarOfDay();
   if (!dar) { wrap.innerHTML = ''; return; }
-  wrap.innerHTML =
+  const label = dar.isPersonal ? t('diary.dar_of_day_label') : t('diary.dar_of_day_label_general');
+  let html =
     '<div class="ddd-icon-wrap">' +
       (dar.svgPath ? '<img src="' + dar.svgPath + '" alt="" onerror="this.style.display=\'none\'">' : '') +
     '</div>' +
-    '<div class="ddd-label">' + t('diary.dar_of_day_label') + '</div>' +
+    '<div class="ddd-label">' + label + '</div>' +
     '<div class="ddd-name">' + dar.name + '</div>';
+  if (!dar.isPersonal) {
+    html += '<div class="ddd-hint">' + t('diary.profile_hint') + '</div>';
+  }
+  wrap.innerHTML = html;
 }
 
 function renderStreak() {

@@ -2141,7 +2141,8 @@
     .dar-detail-header {
       position: sticky;
       top: 0;
-      display: flex;
+      display: grid;
+      grid-template-columns: 40px 1fr 40px;
       align-items: center;
       gap: 10px;
       padding: 14px 16px 10px;
@@ -2150,13 +2151,14 @@
       z-index: 10;
     }
     .dar-detail-header-name {
-      flex: 1;
+      grid-column: 2;
       font-size: 15px;
       font-weight: 700;
       color: var(--gold);
       letter-spacing: 1px;
       text-align: center;
     }
+    .dar-detail-header .book-reader-back { grid-column: 1; }
     .dar-detail-content {
       padding: 16px;
       max-width: 720px;

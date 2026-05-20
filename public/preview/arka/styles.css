@@ -367,15 +367,17 @@ body::after {
   margin-bottom: 10px; color: var(--gold-soft);
 }
 .suggestion-item {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.25);
   border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 6px;
-  font-size: 13px; line-height: 1.5;
+  font-size: 14px; line-height: 1.55;
   display: flex; gap: 10px;
   align-items: flex-start;
+  color: #ffffff;
 }
-.suggestion-text { flex: 1; }
+.suggestion-text { flex: 1; color: #ffffff; }
 .suggestion-add {
   background: white; color: var(--accent-deep);
   border: none; padding: 4px 10px;

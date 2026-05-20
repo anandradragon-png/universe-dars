@@ -1545,13 +1545,19 @@ function renderMirror() {
   if (!el) return;
   const m = generateMirror();
 
-  // Иконка Дара дня — SVG-глиф из основного приложения,
-  // fallback на PNG личного Дара пользователя.
+  // Иконка Дара дня — PNG-глиф из /dar-png/ по коду Дара дня.
+  // Если код не определён — fallback на PNG личного Дара пользователя.
   const iconEl = document.querySelector('#arkaMirror .mirror-icon');
-  if (iconEl && m.darOfDay && m.darOfDay.svgPath) {
-    iconEl.innerHTML = '<img src="' + m.darOfDay.svgPath + '" alt="" style="width:72px;height:72px;filter:drop-shadow(0 0 18px rgba(212,175,55,0.5))" onerror="this.outerHTML=\'' + getUserDarIconHtml(72, 'filter:drop-shadow(0 0 18px rgba(212,175,55,0.5));').replace(/'/g, '&apos;') + '\'">';
-  } else if (iconEl) {
-    iconEl.innerHTML = getUserDarIconHtml(72, 'filter:drop-shadow(0 0 18px rgba(212,175,55,0.5));');
+  if (iconEl) {
+    const map = (typeof loadDarPngMap === 'function') ? loadDarPngMap() : {};
+    const code = m.darOfDay && m.darOfDay.code;
+    const file = code && map[code] ? map[code] : null;
+    if (file) {
+      const src = '/dar-png/' + encodeURIComponent(file);
+      iconEl.innerHTML = '<img src="' + src + '" alt="" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 0 18px rgba(212,175,55,0.5))">';
+    } else {
+      iconEl.innerHTML = getUserDarIconHtml(72, 'filter:drop-shadow(0 0 18px rgba(212,175,55,0.5));');
+    }
   }
 
   // Текст послания — простой и понятный
@@ -1606,6 +1612,19 @@ function backToYupDar() {
   try { window.location.href = '/preview/'; } catch (e) {}
 }
 window.backToYupDar = backToYupDar;
+
+// Синхронизация по времени: при возврате во вкладку обновить
+// зеркало (период дня) и фокус Сегодня (актуальный ритуал)
+function syncByCurrentTime() {
+  try { renderMirror(); } catch (e) {}
+  try { focusTodayByTime(); } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) syncByCurrentTime();
+});
+window.addEventListener('focus', syncByCurrentTime);
+// Каждую минуту тоже проверяем — если юзер сидит долго и наступил новый период
+setInterval(syncByCurrentTime, 60000);
 
 function initMirror() {
   renderMirror();

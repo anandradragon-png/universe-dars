@@ -419,11 +419,30 @@ const BookReader = (function() {
     // Специальное оформление для дара
     let headerHtml = '';
     if (ch.kind === 'dar' && ch.dar_code && ch.dar_name) {
+      // Архетип — из глобального словаря DAR_ARCHETYPES (тот же что использует
+      // Сокровищница и Энциклопедия). Это источник истины по архетипам Даров.
+      let archetype = '';
+      try {
+        if (window.DAR_ARCHETYPES && window.DAR_ARCHETYPES[ch.dar_code]) {
+          archetype = window.DAR_ARCHETYPES[ch.dar_code];
+        }
+      } catch (e) {}
+      // Фоллбэк — из ch.archetype, если он есть в JSON
+      if (!archetype && ch.archetype) archetype = ch.archetype;
+      // Фоллбэк — попытка вытащить из title после двоеточия
+      if (!archetype && ch.title) {
+        const m = ch.title.match(/:\s*(.+?)\s*$/);
+        if (m && m[1]) archetype = m[1].trim();
+      }
+      const archetypeHtml = archetype
+        ? `<div style="font-size:13px;letter-spacing:2px;color:#D4AF37;opacity:0.85;margin-top:6px;font-weight:500">${escapeHtml(archetype)}</div>`
+        : '';
       headerHtml = `
         <div style="text-align:center;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid rgba(212,175,55,0.25);position:relative">
           <div style="position:absolute;top:-4px;right:-6px">${starBtn}</div>
           <div style="font-size:12px;opacity:0.6;letter-spacing:2px;margin-bottom:4px">ДАР &bull; ${ch.dar_code}</div>
           <div style="font-size:26px;letter-spacing:3px;color:#D4AF37">${ch.dar_name}</div>
+          ${archetypeHtml}
         </div>
       `;
     } else {

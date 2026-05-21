@@ -178,6 +178,120 @@
   }
   window.openTesterFeedback = openTesterFeedback;
 
+  // Универсальный «Скоро в проде» — для кнопок-заглушек прототипа
+  function showProtoSoon(featureKey) {
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const messages = {
+      ru: {
+        add_relative: 'Добавление близкого работает в проде. В прототипе пока заглушка — Дары других людей не сохраняются между сессиями.',
+        hero_journey: 'Путешествие Героя — игра, где ты проходишь историю Дара. Будет доступна в проде.',
+        full_message: 'Полное послание — AI-генерация (DeepSeek + твой профиль). Работает в проде по тарифу Книга и выше.',
+        default: 'Эта функция работает в проде. В прототипе пока заглушка.'
+      },
+      en: {
+        add_relative: 'Adding a relative works in production. In the prototype it is a stub — others\' DARs are not saved between sessions.',
+        hero_journey: 'Hero Journey is a game where you walk through the story of a DAR. Will be available in production.',
+        full_message: 'Full Message — AI generation (DeepSeek + your profile). Available in production on the Book tier and above.',
+        default: 'This feature works in production. In the prototype it is a stub.'
+      },
+      es: {
+        add_relative: 'Añadir un familiar funciona en producción. En el prototipo es un marcador — los DAR de otros no se guardan entre sesiones.',
+        hero_journey: 'Viaje del Héroe es un juego donde recorres la historia de un DAR. Disponible en producción.',
+        full_message: 'Mensaje completo — generación AI (DeepSeek + tu perfil). Disponible en producción con la tarifa Libro y superiores.',
+        default: 'Esta función funciona en producción. En el prototipo es un marcador.'
+      }
+    };
+    const dict = messages[lang] || messages.ru;
+    const text = dict[featureKey] || dict.default;
+    showToast(text);
+  }
+  window.showProtoSoon = showProtoSoon;
+
+  // Поделиться приглашением через Telegram (если в TG WebApp — нативный share)
+  function shareInvite() {
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const inviteUrl = 'https://public-yup-land1.vercel.app/preview/';
+    const texts = {
+      ru: 'YupDar — рассчитай свой Дар и открой свою силу',
+      en: 'YupDar — calculate your DAR and open your strength',
+      es: 'YupDar — calcula tu DAR y abre tu fuerza'
+    };
+    const text = texts[lang] || texts.ru;
+    const url = 'https://t.me/share/url?url=' + encodeURIComponent(inviteUrl) + '&text=' + encodeURIComponent(text);
+    if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+    else window.open(url, '_blank');
+  }
+  window.shareInvite = shareInvite;
+
+  // Простой toast-уведомление в нижней части экрана
+  function showToast(text) {
+    let toast = document.getElementById('preview-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'preview-toast';
+      toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(8,20,36,0.95);color:#fff;border:1px solid rgba(212,175,55,0.4);padding:12px 18px;border-radius:12px;font-family:Manrope,sans-serif;font-size:13px;line-height:1.5;max-width:340px;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,0.4);text-align:center;opacity:0;transition:opacity 0.2s;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = text;
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+  }
+  window.showToast = showToast;
+
+  // 💎 История начислений кристаллов (в проде — таблица из БД, в превью — demo)
+  function openCrystalHistory() {
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const i18n = {
+      ru: {
+        title: '💎 История кристаллов',
+        empty: 'Пока ничего не начислено.',
+        proto: 'В проде здесь будет полная история: за рассчёт Дара (+5), за приглашённого друга (+10), за тестовые игры (+1).',
+        close: 'Закрыть'
+      },
+      en: {
+        title: '💎 Crystal history',
+        empty: 'Nothing earned yet.',
+        proto: 'In production: full history — DAR calculation (+5), invited friend (+10), test games (+1).',
+        close: 'Close'
+      },
+      es: {
+        title: '💎 Historial de cristales',
+        empty: 'Nada ganado aún.',
+        proto: 'En producción: historial completo — cálculo del DAR (+5), amigo invitado (+10), juegos de prueba (+1).',
+        close: 'Cerrar'
+      }
+    };
+    const dict = i18n[lang] || i18n.ru;
+    let modal = document.getElementById('crystal-history-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'crystal-history-modal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;';
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = '<div style="background:#0F1F33;border:1px solid rgba(212,175,55,0.3);border-radius:16px;padding:24px;max-width:380px;width:100%;color:#fff;font-family:Manrope,sans-serif;">' +
+      '<div style="font-size:18px;font-weight:700;color:#D4AF37;margin-bottom:12px;text-align:center">' + dict.title + '</div>' +
+      '<div style="font-size:14px;line-height:1.5;color:#cbd5e1;margin-bottom:16px">' + dict.empty + '</div>' +
+      '<div style="font-size:12px;line-height:1.5;color:#7DD3FC;background:rgba(125,211,252,0.08);border:1px solid rgba(125,211,252,0.25);padding:10px 12px;border-radius:8px;margin-bottom:16px">🤖 ' + dict.proto + '</div>' +
+      '<button style="width:100%;background:linear-gradient(135deg,#D4AF37,#b8860b);color:#0a1929;border:none;padding:12px;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer" onclick="document.getElementById(\'crystal-history-modal\').remove()">' + dict.close + '</button>' +
+      '</div>';
+  }
+  window.openCrystalHistory = openCrystalHistory;
+
+  // Тултип на иконке науки — обновляется при смене языка
+  function updateScienceTip() {
+    const btn = document.getElementById('science-btn');
+    if (!btn) return;
+    const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
+    const tips = { ru: '🔬 Наука о Дарах', en: '🔬 Science of DARs', es: '🔬 Ciencia de DAR' };
+    btn.setAttribute('data-tip', tips[lang] || tips.ru);
+  }
+  document.addEventListener('i18n:changed', updateScienceTip);
+  if (document.readyState !== 'loading') updateScienceTip();
+  else document.addEventListener('DOMContentLoaded', updateScienceTip);
+
   // Аккордеон Дара в вкладке «Я» — переключение секций
   function toggleMeAcc(headerBtn) {
     if (!headerBtn) return;
@@ -825,7 +939,7 @@
         <button class="dar-detail-btn dar-detail-btn-book" onclick="openBookOfDars()">
           <span>📖</span> <span>${escapeHtml((window.previewI18n && previewI18n.t('encyc.open_book')) || 'Книга Даров')}</span>
         </button>
-        <button class="dar-detail-btn dar-detail-btn-hero">
+        <button class="dar-detail-btn dar-detail-btn-hero" onclick="showProtoSoon('hero_journey')">
           <span>🌅</span> <span>${escapeHtml((window.previewI18n && previewI18n.t('encyc.open_hero')) || 'Путешествие Героя')}</span>
         </button>
       </div>

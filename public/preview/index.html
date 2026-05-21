@@ -142,10 +142,37 @@
       background: rgba(135,206,235,0.08);
       border-color: rgba(135,206,235,0.3);
       color: #87ceeb;
+      position: fixed;
     }
     .header-action-science.header-action:hover {
       background: rgba(135,206,235,0.18);
       border-color: rgba(135,206,235,0.6);
+    }
+    /* Кастомный тултип на иконке науки — стандартный title слабо виден */
+    .header-action-science::after {
+      content: attr(data-tip);
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-4px);
+      background: rgba(8, 20, 36, 0.95);
+      color: #87ceeb;
+      border: 1px solid rgba(135, 206, 235, 0.4);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 1000;
+    }
+    .header-action-science:hover::after,
+    .header-action-science:focus::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
     /* Кристаллы (1:1 из прода #crystal-counter, index.html:273) */
     .crystal-counter {
@@ -2702,11 +2729,11 @@
       <h1 data-i18n="app.title">YupDar</h1>
       <div class="tagline" data-i18n="app.tagline">ВСЕЛЕННАЯ ДАРОВ</div>
     </div>
-    <div class="crystal-counter" onclick="openProfile()" style="cursor:pointer" title="Кристаллы">💎 <span id="crystal-amount">0</span></div>
+    <div class="crystal-counter" onclick="openCrystalHistory()" style="cursor:pointer" title="История начислений кристаллов">💎 <span id="crystal-amount">0</span></div>
     <button class="header-action" id="btn-lang" onclick="toggleLangPicker(event)" title="Язык">
       🌐 <span id="lang-btn-label">RU</span>
     </button>
-    <button class="header-action header-action-science" onclick="openScienceSurvey()" title="Научное исследование о Дарах" data-i18n="science.header_tooltip" data-i18n-attr="title">
+    <button class="header-action header-action-science" id="science-btn" onclick="openScienceSurvey()" title="Научное исследование о Дарах" data-tip="🔬 Наука о Дарах" data-i18n="science.header_tooltip" data-i18n-attr="title">
       🔬
     </button>
     <button class="header-action" onclick="openProfile()" title="Личный кабинет">
@@ -2757,7 +2784,7 @@
         </div>
 
         <!-- Главная конверсия -->
-        <button class="btn-primary" data-i18n="me.full_message">📜 Полное послание</button>
+        <button class="btn-primary" onclick="showProtoSoon('full_message')" data-i18n="me.full_message">📜 Полное послание</button>
 
         <!-- Действия по своему Дару (не дублируют другие вкладки):
              Оракул дня — здесь, потому что это персональное послание про МЕНЯ.
@@ -2986,7 +3013,7 @@
         <div class="empty-text" data-i18n="family.empty_text">
           Пойми ребёнка, почему конфликтуете с мамой, что объединяет с любимым.
         </div>
-        <button class="btn-primary" data-i18n="family.add_btn">+ Добавить близкого</button>
+        <button class="btn-primary" onclick="showProtoSoon('add_relative')" data-i18n="family.add_btn">+ Добавить близкого</button>
       </div>
 
       <!-- Заглушка реф-блока, отображается под списком близких (потом) -->
@@ -2996,7 +3023,7 @@
           <div class="family-invite-title" data-i18n="family.invite_title">Пригласи друга</div>
           <div class="family-invite-sub" data-i18n="family.invite_sub">Друг рассчитает свой Дар — он появится у тебя в Семье, ты получишь кристаллы.</div>
         </div>
-        <button class="family-invite-btn" data-i18n="family.invite_btn">Поделиться</button>
+        <button class="family-invite-btn" onclick="shareInvite()" data-i18n="family.invite_btn">Поделиться</button>
       </div>
     </section>
 

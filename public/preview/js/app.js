@@ -1489,12 +1489,13 @@
     if (h2Count > 3) {
       html = html.replace(/<h2(\s[^>]*)?>/g, '<p>').replace(/<\/h2>/g, '</p>');
     }
-    // Для глав-даров: PNG-глиф из /dar-png/ в начало главы —
-    // ТОЛЬКО ЕСЛИ в html ещё нет встроенной картинки (избегаем задвоения с глифом из .docx).
+    // PNG-глиф вставляем ТОЛЬКО в явные главы-Дары (ch.kind === 'dar').
+    // В обычных главах (предисловие, введение, теория) глифа быть не должно —
+    // PNG-картинки даров живут только в описании конкретного Дара.
     const hasInlineImg = /<img\b/.test(html);
-    const code = ch.dar_code || extractDarCodeFromTitle(ch.title);
-    if (!hasInlineImg && code && bookState.darPngMap && bookState.darPngMap[code]) {
-      const file = bookState.darPngMap[code];
+    if (ch.kind === 'dar' && ch.dar_code && !hasInlineImg
+        && bookState.darPngMap && bookState.darPngMap[ch.dar_code]) {
+      const file = bookState.darPngMap[ch.dar_code];
       const darImg = `<p style="text-align:center;margin:18px 0"><img class="book-dar-glyph" src="/dar-png/${encodeURIComponent(file)}" alt="${ch.title || ''}" loading="lazy"/></p>`;
       html = darImg + html;
     }

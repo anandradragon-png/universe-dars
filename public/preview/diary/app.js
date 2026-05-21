@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════════════════
-// ДНЕВНИК ДАРА — бесплатный freemium-крючок к АРКА
-// 1 эмодзи настроения + 1 строка → мини-зеркало через Дар × Дар Дня × настроение
+// ДНЕВНИК ДАРА v2 — бесплатный freemium-крючок к АРКА
+// 3 шкалы (Энергия + Настроение + Куда тянет) → мини-зеркало
+// Интерпретация учитывает все 3 параметра + Дар дня
 // ═══════════════════════════════════════════════════════════
 
 const DIARY_KEY = 'arka_diary_entries';
@@ -12,97 +13,165 @@ const DIARY_I18N = {
   ru: {
     'diary.title': 'Дневник Дара',
     'diary.days': 'дней',
-    'diary.question': 'Как ты сейчас?',
-    'diary.note_placeholder': 'Можно добавить одну строку — что зацепило...',
-    'diary.save': 'Записать',
+    'diary.subtitle': 'Отметь как ты — займёт 20 секунд',
+    'diary.note_placeholder': 'Одна строка — что зацепило за день (необязательно)',
+    'diary.save': 'Записать день',
     'diary.mirror_title': 'Мини-зеркало',
     'diary.cta_title': 'Открой АРКА',
     'diary.cta_sub': 'Глубокая работа с Даром каждый день',
     'diary.tomorrow': 'Завтра приду снова',
     'diary.footer': 'YupDar · бесплатно для всех',
-    'diary.dar_of_day_label': 'Дар сегодня',
-    // 8 настроений
-    'mood.light':    { sym: '✦', label: 'В свете' },
-    'mood.flow':     { sym: '◯', label: 'В потоке' },
-    'mood.calm':     { sym: '·', label: 'Спокойно' },
-    'mood.neutral':  { sym: '—', label: 'Ровно' },
-    'mood.heavy':    { sym: '◐', label: 'Тяжело' },
-    'mood.shadow':   { sym: '●', label: 'В тени' },
-    'mood.spark':    { sym: '⚡', label: 'Заряжено' },
-    'mood.unclear':  { sym: '?', label: 'Туман' },
-    // Мини-зеркало: интерпретация по настроению + Дар дня
-    'mirror.light_tpl':    'Сегодня ты <strong>в свете</strong>. Дар дня <em>{darDay}</em> усиливает то, что в тебе уже звучит. Используй это окно — момент редкий.',
-    'mirror.flow_tpl':     'Ты <strong>в потоке</strong>. Дар дня <em>{darDay}</em> подсказывает: не форсируй, движение идёт само. Останься в этом ритме.',
-    'mirror.calm_tpl':     'Внутри <strong>тихо</strong>. Это не пустота — это место, где Дар дня <em>{darDay}</em> может что-то проявить. Прислушайся.',
-    'mirror.neutral_tpl':  'Сегодня <strong>ровно</strong>. Дар дня <em>{darDay}</em> приходит без напора — самое время для рутины и заботы о себе.',
-    'mirror.heavy_tpl':    '<strong>Тяжело.</strong> Дар дня <em>{darDay}</em> просит тебя не давить — замедли темп, дай себе паузу. Это пройдёт.',
-    'mirror.shadow_tpl':   'Ты <strong>в тени</strong>. Дар дня <em>{darDay}</em> зовёт встретиться с тем, что обычно прячется. Это сила, а не слабость.',
-    'mirror.spark_tpl':    '<strong>Заряжено!</strong> Дар дня <em>{darDay}</em> хочет действия. Направь энергию в одно — туда, где она нужнее всего.',
-    'mirror.unclear_tpl':  'Сегодня <strong>туман</strong>. Дар дня <em>{darDay}</em> говорит: не пытайся всё прояснить сразу. Подожди — ясность придёт сама.'
+    'diary.dar_of_day_label': 'Твой Дар сегодня',
+    'diary.dar_of_day_label_general': 'Общий Дар дня',
+    'diary.profile_hint': 'Рассчитай свой Дар в YupDar, и Дневник покажет персональный Дар дня',
+
+    'scale.energy': 'Энергия',
+    'scale.energy_low': 'мало',
+    'scale.energy_high': 'много',
+
+    'scale.mood': 'Настроение',
+    'scale.mood_low': 'плохо',
+    'scale.mood_high': 'хорошо',
+
+    'scale.direction': 'К чему тянет',
+    'dir.action': 'Действовать',
+    'dir.rest': 'Отдохнуть',
+    'dir.people': 'К людям',
+    'dir.alone': 'Побыть одной',
+
+    'mirror.intro_label': 'Твоё состояние сегодня',
+    'mirror.dar_lead': 'Дар дня',
+    'mirror.tip_lead': 'Подсказка',
+
+    // Интерпретации по комбинации vibe (низкая/средняя/высокая) × направление
+    'tip.low_action':   'Энергии мало, но тянет действовать. Сделай одно маленькое дело — и остановись. Не геройствуй сегодня.',
+    'tip.low_rest':     'Тело просит паузы. Это не лень — это мудрость. Дай себе сегодня меньше, чем обычно.',
+    'tip.low_people':   'Тебе нужны не любые люди — а близкие. Выбери одного. Без обязательств — просто рядом.',
+    'tip.low_alone':    'Замри. Тишина сегодня — твоё лекарство. Чай, окно, ничего не делать.',
+
+    'tip.mid_action':   'Ровный фон. Самое время для рутины — то, что давно откладываешь, сегодня пойдёт.',
+    'tip.mid_rest':     'Можно отдыхать без чувства вины. Тело просит — слушай.',
+    'tip.mid_people':   'Спокойный разговор без надрыва — то, что напитает. Выбери тёплого человека.',
+    'tip.mid_alone':    'Время с собой. Прогулка, дневник, разбор стола — что-то простое и личное.',
+
+    'tip.high_action':  'Окно силы открыто. Возьми одно главное дело и направь сюда всю энергию.',
+    'tip.high_rest':    'Энергия есть, но тянет в покой? Послушай — иногда сила копится для завтра.',
+    'tip.high_people':  'Ты как магнит сейчас. Иди к людям — встреча сегодня будет важной.',
+    'tip.high_alone':   'Энергии много, но хочется в одиночество — это творческое состояние. Включи проект, который только твой.',
+
+    'dar.tail': 'усиливает то, что ты выбрала. Действуй из своего ритма, не из чужого.'
   },
+
   en: {
     'diary.title': 'Diary of the DAR',
     'diary.days': 'days',
-    'diary.question': 'How are you right now?',
-    'diary.note_placeholder': 'Add one line — what touched you...',
-    'diary.save': 'Record',
+    'diary.subtitle': 'Note how you feel — takes 20 seconds',
+    'diary.note_placeholder': 'One line — what stood out today (optional)',
+    'diary.save': 'Record the day',
     'diary.mirror_title': 'Mini-Mirror',
     'diary.cta_title': 'Open ARKA',
     'diary.cta_sub': 'Deep work with your DAR every day',
     'diary.tomorrow': "I'll come back tomorrow",
     'diary.footer': 'YupDar · free for everyone',
-    'diary.dar_of_day_label': 'DAR today',
-    'mood.light':    { sym: '✦', label: 'In light' },
-    'mood.flow':     { sym: '◯', label: 'In flow' },
-    'mood.calm':     { sym: '·', label: 'Calm' },
-    'mood.neutral':  { sym: '—', label: 'Steady' },
-    'mood.heavy':    { sym: '◐', label: 'Heavy' },
-    'mood.shadow':   { sym: '●', label: 'In shadow' },
-    'mood.spark':    { sym: '⚡', label: 'Charged' },
-    'mood.unclear':  { sym: '?', label: 'Foggy' },
-    'mirror.light_tpl':    "You are <strong>in light</strong> today. DAR of the day <em>{darDay}</em> amplifies what's already alive in you. Use this window — it's rare.",
-    'mirror.flow_tpl':     "You are <strong>in the flow</strong>. DAR of the day <em>{darDay}</em> says: don't force, movement happens by itself. Stay in this rhythm.",
-    'mirror.calm_tpl':     'It is <strong>quiet</strong> inside. Not emptiness — a place where DAR of the day <em>{darDay}</em> can reveal something. Listen.',
-    'mirror.neutral_tpl':  '<strong>Steady</strong> today. DAR of the day <em>{darDay}</em> comes without pressure — time for routine and self-care.',
-    'mirror.heavy_tpl':    "<strong>Heavy.</strong> DAR of the day <em>{darDay}</em> asks you not to push — slow down, give yourself a pause. This will pass.",
-    'mirror.shadow_tpl':   'You are <strong>in shadow</strong>. DAR of the day <em>{darDay}</em> calls you to meet what usually hides. This is strength, not weakness.',
-    'mirror.spark_tpl':    "<strong>Charged!</strong> DAR of the day <em>{darDay}</em> wants action. Direct the energy into one thing — where it's needed most.",
-    'mirror.unclear_tpl':  "<strong>Foggy</strong> today. DAR of the day <em>{darDay}</em> says: don't try to clear everything at once. Wait — clarity will come."
+    'diary.dar_of_day_label': 'Your DAR today',
+    'diary.dar_of_day_label_general': 'General DAR of the day',
+    'diary.profile_hint': "Calculate your DAR in YupDar and the Diary will show your personal DAR of the day",
+
+    'scale.energy': 'Energy',
+    'scale.energy_low': 'low',
+    'scale.energy_high': 'high',
+
+    'scale.mood': 'Mood',
+    'scale.mood_low': 'bad',
+    'scale.mood_high': 'good',
+
+    'scale.direction': 'What pulls you',
+    'dir.action': 'To act',
+    'dir.rest': 'To rest',
+    'dir.people': 'To people',
+    'dir.alone': 'To be alone',
+
+    'mirror.intro_label': 'Your state today',
+    'mirror.dar_lead': 'DAR of the day',
+    'mirror.tip_lead': 'Hint',
+
+    'tip.low_action':   "Energy is low, but you want to act. Do one small thing — then stop. Don't push today.",
+    'tip.low_rest':     "Your body asks for a pause. It isn't laziness — it's wisdom. Give yourself less than usual today.",
+    'tip.low_people':   'You need not any people — but close ones. Pick one. No obligations — just presence.',
+    'tip.low_alone':    'Be still. Silence is your medicine today. Tea, a window, doing nothing.',
+
+    'tip.mid_action':   'Steady ground. Time for routine — what you keep postponing will move today.',
+    'tip.mid_rest':     'You can rest without guilt. The body asks — listen.',
+    'tip.mid_people':   'A calm conversation without intensity is what will nourish. Pick a warm person.',
+    'tip.mid_alone':    'Time with yourself. A walk, a journal, sorting things — something simple and personal.',
+
+    'tip.high_action':  'A window of power is open. Take one main thing and direct all energy here.',
+    'tip.high_rest':    'You have energy, but feel drawn to stillness? Listen — sometimes power gathers for tomorrow.',
+    'tip.high_people':  'You are a magnet right now. Go to people — a meeting today will matter.',
+    'tip.high_alone':   'High energy with a pull to solitude — that is a creative state. Open the project that is only yours.',
+
+    'dar.tail': 'amplifies what you chose. Act from your own rhythm, not from someone else\'s.'
   },
+
   es: {
     'diary.title': 'Diario del DAR',
     'diary.days': 'días',
-    'diary.question': '¿Cómo estás ahora?',
-    'diary.note_placeholder': 'Añade una línea — qué te tocó...',
-    'diary.save': 'Anotar',
+    'diary.subtitle': 'Anota cómo estás — toma 20 segundos',
+    'diary.note_placeholder': 'Una línea — qué destacó del día (opcional)',
+    'diary.save': 'Anotar el día',
     'diary.mirror_title': 'Mini-espejo',
     'diary.cta_title': 'Abre ARKA',
     'diary.cta_sub': 'Trabajo profundo con tu DAR cada día',
     'diary.tomorrow': 'Volveré mañana',
     'diary.footer': 'YupDar · gratis para todos',
-    'diary.dar_of_day_label': 'DAR hoy',
-    'mood.light':    { sym: '✦', label: 'En luz' },
-    'mood.flow':     { sym: '◯', label: 'En flujo' },
-    'mood.calm':     { sym: '·', label: 'Tranquila' },
-    'mood.neutral':  { sym: '—', label: 'Estable' },
-    'mood.heavy':    { sym: '◐', label: 'Pesada' },
-    'mood.shadow':   { sym: '●', label: 'En sombra' },
-    'mood.spark':    { sym: '⚡', label: 'Cargada' },
-    'mood.unclear':  { sym: '?', label: 'Niebla' },
-    'mirror.light_tpl':    'Hoy estás <strong>en luz</strong>. El DAR del día <em>{darDay}</em> amplifica lo que ya vibra en ti. Usa esta ventana — es rara.',
-    'mirror.flow_tpl':     'Estás <strong>en el flujo</strong>. El DAR del día <em>{darDay}</em> dice: no fuerces, el movimiento ocurre solo. Quédate en este ritmo.',
-    'mirror.calm_tpl':     'Está <strong>silencioso</strong> dentro. No es vacío — es un lugar donde el DAR del día <em>{darDay}</em> puede revelar algo. Escucha.',
-    'mirror.neutral_tpl':  'Hoy <strong>estable</strong>. El DAR del día <em>{darDay}</em> llega sin presión — tiempo para la rutina y el autocuidado.',
-    'mirror.heavy_tpl':    '<strong>Pesado.</strong> El DAR del día <em>{darDay}</em> te pide no presionar — desacelera, date una pausa. Esto pasará.',
-    'mirror.shadow_tpl':   'Estás <strong>en sombra</strong>. El DAR del día <em>{darDay}</em> te llama a encontrarte con lo que se esconde. Es fuerza, no debilidad.',
-    'mirror.spark_tpl':    '<strong>¡Cargada!</strong> El DAR del día <em>{darDay}</em> quiere acción. Dirige la energía a una sola cosa — donde más se necesita.',
-    'mirror.unclear_tpl':  'Hoy <strong>niebla</strong>. El DAR del día <em>{darDay}</em> dice: no intentes aclararlo todo de una vez. Espera — la claridad vendrá.'
+    'diary.dar_of_day_label': 'Tu DAR hoy',
+    'diary.dar_of_day_label_general': 'DAR general del día',
+    'diary.profile_hint': 'Calcula tu DAR en YupDar y el Diario mostrará tu DAR personal del día',
+
+    'scale.energy': 'Energía',
+    'scale.energy_low': 'poca',
+    'scale.energy_high': 'mucha',
+
+    'scale.mood': 'Ánimo',
+    'scale.mood_low': 'mal',
+    'scale.mood_high': 'bien',
+
+    'scale.direction': 'Hacia qué te atrae',
+    'dir.action': 'Actuar',
+    'dir.rest': 'Descansar',
+    'dir.people': 'Con gente',
+    'dir.alone': 'Estar sola',
+
+    'mirror.intro_label': 'Tu estado hoy',
+    'mirror.dar_lead': 'DAR del día',
+    'mirror.tip_lead': 'Sugerencia',
+
+    'tip.low_action':   'Poca energía, pero quieres actuar. Haz una sola cosa pequeña y detente. Hoy no fuerces.',
+    'tip.low_rest':     'El cuerpo pide pausa. No es pereza — es sabiduría. Date hoy menos de lo usual.',
+    'tip.low_people':   'Necesitas no cualquier gente — sino cercana. Elige a una persona. Sin compromisos — solo presencia.',
+    'tip.low_alone':    'Quédate quieta. Hoy el silencio es tu medicina. Té, ventana, no hacer nada.',
+
+    'tip.mid_action':   'Base estable. Tiempo para la rutina — lo que pospones avanzará hoy.',
+    'tip.mid_rest':     'Puedes descansar sin culpa. El cuerpo pide — escucha.',
+    'tip.mid_people':   'Una conversación tranquila, sin intensidad, te nutrirá. Elige una persona cálida.',
+    'tip.mid_alone':    'Tiempo contigo. Un paseo, un diario, ordenar algo — simple y personal.',
+
+    'tip.high_action':  'La ventana de fuerza está abierta. Toma una cosa importante y dirige toda la energía aquí.',
+    'tip.high_rest':    'Tienes energía pero te atrae la quietud. Escucha — a veces la fuerza se guarda para mañana.',
+    'tip.high_people':  'Eres un imán ahora. Ve hacia la gente — un encuentro hoy importará.',
+    'tip.high_alone':   'Mucha energía y atracción a la soledad — es un estado creativo. Abre el proyecto que es solo tuyo.',
+
+    'dar.tail': 'amplifica lo que elegiste. Actúa desde tu ritmo, no desde el de otros.'
   }
 };
 
 function getLang() {
   try {
     const v = localStorage.getItem(DIARY_LANG_KEY);
+    if (v && DIARY_I18N[v]) return v;
+  } catch (e) {}
+  try {
+    const v = window.parent && window.parent.localStorage.getItem(DIARY_LANG_KEY);
     if (v && DIARY_I18N[v]) return v;
   } catch (e) {}
   return 'ru';
@@ -127,62 +196,54 @@ function applyI18n() {
 
 // === Состояние Дневника ===
 function loadEntries() {
-  try {
-    return JSON.parse(localStorage.getItem(DIARY_KEY) || '[]');
-  } catch (e) { return []; }
+  try { return JSON.parse(localStorage.getItem(DIARY_KEY) || '[]'); }
+  catch (e) { return []; }
 }
 function saveEntries(arr) {
   try { localStorage.setItem(DIARY_KEY, JSON.stringify(arr)); } catch (e) {}
 }
-
-// Стрик дней подряд (учитывает только записи в последовательные дни)
 function getStreak() {
   const entries = loadEntries();
   if (!entries.length) return 0;
-  // Уникальные даты, отсортированные по убыванию
   const uniq = [...new Set(entries.map(e => e.date))].sort().reverse();
   let streak = 0;
   const today = new Date(TODAY);
   for (let i = 0; i < uniq.length; i++) {
     const d = new Date(uniq[i]);
     const diff = Math.round((today - d) / 86400000);
-    if (diff === streak) {
-      streak++;
-    } else {
-      break;
-    }
+    if (diff === streak) streak++;
+    else break;
   }
   return streak;
 }
 
-// Сегодняшняя запись — есть ли уже?
-function hasTodayEntry() {
-  return loadEntries().some(e => e.date === TODAY);
-}
-
-// === Дар дня — расчёт по той же системе что в АРКА ===
+// === Дар дня — расчёт ===
 function getUserProfile() {
-  try {
-    return JSON.parse(localStorage.getItem('_yupdar_preview_profile') || 'null');
-  } catch (e) { return null; }
+  try { return JSON.parse(localStorage.getItem('_yupdar_preview_profile') || 'null'); }
+  catch (e) { return null; }
 }
-
 function calcDarOfDay() {
-  // Используем DarsLib из главного приложения если открыт в iframe или main
   let DarsLib = null;
   if (typeof window.DarsLib !== 'undefined') DarsLib = window.DarsLib;
   if (!DarsLib && window.parent && window.parent.DarsLib) DarsLib = window.parent.DarsLib;
   if (!DarsLib) return null;
-
   const profile = getUserProfile();
   const now = new Date();
   const input = {
     date: { day: now.getDate(), month: now.getMonth() + 1, year: now.getFullYear() },
     time: { hour: now.getHours(), minute: now.getMinutes() }
   };
+  // Персональный Дар дня = есть координаты И имя юзера
+  let isPersonal = false;
   if (profile) {
-    if (profile.tria && profile.tria.coords) input.coords = profile.tria.coords;
-    if (profile.chia) input.person = { firstName: profile.chia.firstName, lastName: profile.chia.lastName };
+    const hasCoords = (profile.tria && profile.tria.coords) || profile.coords;
+    const hasPerson = profile.chia || profile.person;
+    if (hasCoords) input.coords = profile.tria ? profile.tria.coords : profile.coords;
+    if (hasPerson) {
+      const p = profile.chia || profile.person;
+      input.person = { firstName: p.firstName, lastName: p.lastName };
+    }
+    isPersonal = !!(hasCoords && hasPerson);
   }
   const p = DarsLib.calcProfile(input);
   if (!p) return null;
@@ -190,80 +251,110 @@ function calcDarOfDay() {
   return {
     code,
     name: p.synthesis.name,
-    svgPath: DarsLib.getDarSvgPath ? DarsLib.getDarSvgPath(code) : ''
+    svgPath: DarsLib.getDarSvgPath ? DarsLib.getDarSvgPath(code) : '',
+    isPersonal
   };
 }
 
-// === Рендер настроений ===
-const MOODS = ['light', 'flow', 'calm', 'neutral', 'heavy', 'shadow', 'spark', 'unclear'];
-let selectedMood = null;
+// === 3 шкалы: Энергия, Настроение, Куда ===
+let energyValue = 0;     // 1..5 (0 = не выбрано)
+let moodValue = 0;       // 1..5
+let directionValue = ''; // 'action' | 'rest' | 'people' | 'alone'
 
-function renderMoods() {
-  const wrap = document.getElementById('diaryMoods');
+function renderScale(containerId, current, onPick) {
+  const wrap = document.getElementById(containerId);
   if (!wrap) return;
-  wrap.innerHTML = MOODS.map(m => {
-    const data = t('mood.' + m);
-    return `
-      <div class="diary-mood" data-mood="${m}">
-        <span class="dm-symbol">${data.sym}</span>
-        <span class="dm-label">${data.label}</span>
-      </div>
-    `;
-  }).join('');
-  wrap.querySelectorAll('.diary-mood').forEach(el => {
-    el.addEventListener('click', () => {
-      selectedMood = el.dataset.mood;
-      wrap.querySelectorAll('.diary-mood').forEach(x => x.classList.toggle('selected', x === el));
-      const saveBtn = document.getElementById('diarySaveBtn');
-      if (saveBtn) saveBtn.disabled = false;
+  let html = '<div class="diary-dots">';
+  for (let i = 1; i <= 5; i++) {
+    html += '<button type="button" class="diary-dot' + (i === current ? ' active' : '') + (i <= current ? ' filled' : '') + '" data-val="' + i + '" aria-label="' + i + '"></button>';
+  }
+  html += '</div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.diary-dot').forEach(b => {
+    b.addEventListener('click', () => {
+      const v = +b.dataset.val;
+      onPick(v);
     });
   });
 }
 
-// === Рендер Дара дня ===
+const DIRECTIONS = ['action', 'rest', 'people', 'alone'];
+function renderDirections() {
+  const wrap = document.getElementById('diaryDirection');
+  if (!wrap) return;
+  wrap.innerHTML = DIRECTIONS.map(d => {
+    return '<button type="button" class="diary-dir-chip' + (directionValue === d ? ' active' : '') + '" data-dir="' + d + '">' + t('dir.' + d) + '</button>';
+  }).join('');
+  wrap.querySelectorAll('.diary-dir-chip').forEach(b => {
+    b.addEventListener('click', () => {
+      directionValue = b.dataset.dir;
+      renderDirections();
+      checkCanSave();
+    });
+  });
+}
+
+function checkCanSave() {
+  const btn = document.getElementById('diarySaveBtn');
+  if (!btn) return;
+  btn.disabled = !(energyValue && moodValue && directionValue);
+}
+
+function renderScales() {
+  renderScale('diaryEnergy', energyValue, v => { energyValue = v; renderScales(); checkCanSave(); });
+  renderScale('diaryMood', moodValue, v => { moodValue = v; renderScales(); checkCanSave(); });
+  renderDirections();
+}
+
+// === Дар дня ===
 function renderDarOfDay() {
   const wrap = document.getElementById('diaryDarOfDay');
   if (!wrap) return;
   const dar = calcDarOfDay();
-  if (!dar) {
-    wrap.innerHTML = '';
-    return;
+  if (!dar) { wrap.innerHTML = ''; return; }
+  const label = dar.isPersonal ? t('diary.dar_of_day_label') : t('diary.dar_of_day_label_general');
+  let html =
+    '<div class="ddd-icon-wrap">' +
+      (dar.svgPath ? '<img src="' + dar.svgPath + '" alt="" onerror="this.style.display=\'none\'">' : '') +
+    '</div>' +
+    '<div class="ddd-label">' + label + '</div>' +
+    '<div class="ddd-name">' + dar.name + '</div>';
+  if (!dar.isPersonal) {
+    html += '<div class="ddd-hint">' + t('diary.profile_hint') + '</div>';
   }
-  wrap.innerHTML = `
-    <div class="ddd-icon-wrap">
-      <img src="${dar.svgPath}" alt="" onerror="this.style.display='none'">
-    </div>
-    <div class="ddd-label">${t('diary.dar_of_day_label')}</div>
-    <div class="ddd-name">${dar.name}</div>
-  `;
+  wrap.innerHTML = html;
 }
 
-// === Рендер стрика ===
 function renderStreak() {
   const wrap = document.getElementById('diaryStreak');
   if (!wrap) return;
-  const num = getStreak();
-  wrap.innerHTML = `
-    <span class="ds-num">${num}</span>
-    <span class="ds-label">${t('diary.days')}</span>
-  `;
+  wrap.innerHTML = '<span class="ds-num">' + getStreak() + '</span><span class="ds-label">' + t('diary.days') + '</span>';
 }
 
-// === Сохранение записи + мини-зеркало ===
+// === Сохранение + мини-зеркало ===
+function vibeBucket(e, m) {
+  // Средняя «vibe»: 1-2 → low, 3 → mid, 4-5 → high
+  const v = (e + m) / 2;
+  if (v <= 2.2) return 'low';
+  if (v <= 3.5) return 'mid';
+  return 'high';
+}
+
 function saveDiaryEntry() {
-  if (!selectedMood) return;
-  const note = document.getElementById('diaryNote').value.trim();
+  if (!(energyValue && moodValue && directionValue)) return;
+  const note = (document.getElementById('diaryNote').value || '').trim();
   const dar = calcDarOfDay();
   const entry = {
     date: TODAY,
-    mood: selectedMood,
+    energy: energyValue,
+    mood: moodValue,
+    direction: directionValue,
     note,
     darOfDay: dar ? dar.code : null,
     darOfDayName: dar ? dar.name : null,
     ts: Date.now()
   };
   const all = loadEntries();
-  // Заменяем сегодняшнюю запись если есть
   const idx = all.findIndex(e => e.date === TODAY);
   if (idx >= 0) all[idx] = entry; else all.push(entry);
   saveEntries(all);
@@ -279,17 +370,39 @@ function showMirror(entry, dar) {
 
   // Глиф Дара дня
   const glyphWrap = document.getElementById('diaryMirrorGlyph');
-  if (glyphWrap && dar && dar.svgPath) {
-    glyphWrap.innerHTML = `<img src="${dar.svgPath}" alt="" onerror="this.style.display='none'">`;
+  if (glyphWrap) {
+    if (dar && dar.svgPath) {
+      glyphWrap.innerHTML = '<img src="' + dar.svgPath + '" alt="" onerror="this.style.display=\'none\'">';
+    } else {
+      glyphWrap.innerHTML = '<span style="font-size:48px;color:#d4af37">✦</span>';
+    }
   }
 
-  // Интерпретация: шаблон по настроению + подставляется Дар дня
-  const tplKey = 'mirror.' + entry.mood + '_tpl';
-  const tpl = t(tplKey) || '';
-  const darName = (dar && dar.name) || '—';
-  const text = tpl.replace(/\{darDay\}/g, darName);
+  // Интерпретация: vibe + direction
+  const vibe = vibeBucket(entry.energy, entry.mood);
+  const tipKey = 'tip.' + vibe + '_' + entry.direction;
+  const tip = t(tipKey) || '';
+  const darName = (dar && dar.name) || '';
+
+  const stateLabel = t('mirror.intro_label');
+  const darLead = t('mirror.dar_lead');
+  const tipLead = t('mirror.tip_lead');
+  const darTail = t('dar.tail');
+
+  let html = '';
+  // Краткая сводка: Энергия N/5 · Настроение N/5 · Направление
+  html += '<div class="dm-summary">';
+  html += '<span class="dm-pair"><b>' + t('scale.energy') + '</b> ' + entry.energy + '/5</span>';
+  html += '<span class="dm-pair"><b>' + t('scale.mood') + '</b> ' + entry.mood + '/5</span>';
+  html += '<span class="dm-pair"><b>' + t('dir.' + entry.direction) + '</b></span>';
+  html += '</div>';
+  // Подсказка от состояния
+  if (tip) html += '<div class="dm-tip"><b>' + tipLead + '.</b> ' + tip + '</div>';
+  // Дар дня
+  if (darName) html += '<div class="dm-dar"><b>' + darLead + ': ' + darName + '</b> — ' + darTail + '</div>';
+
   const textEl = document.getElementById('diaryMirrorText');
-  if (textEl) textEl.innerHTML = text;
+  if (textEl) textEl.innerHTML = html;
 }
 
 function resetDiary() {
@@ -297,16 +410,15 @@ function resetDiary() {
   const mirrorState = document.getElementById('diaryMirrorState');
   if (inputState) inputState.hidden = false;
   if (mirrorState) mirrorState.hidden = true;
-  selectedMood = null;
+  energyValue = 0; moodValue = 0; directionValue = '';
+  renderScales();
   const note = document.getElementById('diaryNote');
   if (note) note.value = '';
-  const saveBtn = document.getElementById('diarySaveBtn');
-  if (saveBtn) saveBtn.disabled = true;
-  // Если уже есть запись сегодня — повторное сохранение её обновит
+  checkCanSave();
 }
 window.resetDiary = resetDiary;
 
-// === Фидбэк-кнопка (та же что в основном превью) ===
+// === Фидбэк-кнопка ===
 function openTesterFeedback() {
   const lang = getLang();
   let template;
@@ -324,15 +436,17 @@ window.openTesterFeedback = openTesterFeedback;
 // === Инициализация ===
 document.addEventListener('DOMContentLoaded', () => {
   applyI18n();
-  renderMoods();
   renderDarOfDay();
   renderStreak();
+  renderScales();
   const saveBtn = document.getElementById('diarySaveBtn');
   if (saveBtn) saveBtn.addEventListener('click', saveDiaryEntry);
-  // Если сегодня уже есть запись — сразу показываем мини-зеркало
+  // Если уже есть запись сегодня — показываем зеркало
   const today = loadEntries().find(e => e.date === TODAY);
-  if (today) {
-    selectedMood = today.mood;
+  if (today && today.energy && today.mood && today.direction) {
+    energyValue = today.energy;
+    moodValue = today.mood;
+    directionValue = today.direction;
     const note = document.getElementById('diaryNote');
     if (note) note.value = today.note || '';
     const dar = calcDarOfDay();

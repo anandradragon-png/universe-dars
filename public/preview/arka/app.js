@@ -286,6 +286,75 @@ function dt(key, params) {
   return str;
 }
 
+// ── Иконка ЛИЧНОГО Дара пользователя (заменяет 🐉) ────────────────
+// Берём профиль из localStorage основного приложения, ищем код Дара,
+// возвращаем <img> с PNG-глифом из /dar-png-map.json.
+// Если профиль не рассчитан — fallback на нейтральный сакральный символ ✦
+let _userDarIconCache = null;
+let _darPngMap = null;
+function loadDarPngMap() {
+  if (_darPngMap !== null) return _darPngMap;
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', '/dar-png-map.json', false);
+    xhr.send();
+    if (xhr.status === 200) _darPngMap = JSON.parse(xhr.responseText);
+    else _darPngMap = {};
+  } catch (e) { _darPngMap = {}; }
+  return _darPngMap;
+}
+function getUserDarIconHtml(size, extraStyle) {
+  size = size || 24;
+  extraStyle = extraStyle || '';
+  // Попытка взять из window.parent
+  let profile = null;
+  try { profile = JSON.parse(window.parent.localStorage.getItem('_yupdar_preview_profile') || 'null'); } catch (e) {}
+  if (!profile) {
+    try { profile = JSON.parse(localStorage.getItem('_yupdar_preview_profile') || 'null'); } catch (e) {}
+  }
+  // Код Дара (синтез) — формат 'X-Y-Z'
+  let code = null;
+  if (profile) {
+    if (profile.synthesis && profile.synthesis.code) code = profile.synthesis.code;
+    else if (profile.code) code = profile.code;
+    else if (profile.oda && profile.tuna && profile.tria) {
+      code = profile.oda.digit + '-' + profile.tuna.digit + '-' + profile.tria.digit;
+    }
+  }
+  const map = loadDarPngMap();
+  const file = code && map[code] ? map[code] : null;
+  if (file) {
+    const src = '/dar-png/' + encodeURIComponent(file);
+    return '<img class="user-dar-ic" src="' + src + '" alt="" style="width:' + size + 'px;height:' + size + 'px;object-fit:contain;vertical-align:middle;' + extraStyle + '" onerror="this.outerHTML=\'<span style=&quot;font-size:' + Math.round(size*0.8) + 'px&quot;>✦</span>\'">';
+  }
+  // Fallback: нейтральный сакральный символ
+  return '<span class="user-dar-fallback" style="font-size:' + Math.round(size*0.85) + 'px;vertical-align:middle;' + extraStyle + '">✦</span>';
+}
+
+// Заменить все статичные 🐉 в DOM на иконку личного Дара
+function replaceArkaDragons() {
+  try {
+    // Атрибуты с эмодзи (textContent)
+    const all = document.querySelectorAll('[data-i18n], .tab-emoji, .streak-icon, .mirror-icon, .ts-icon, .card-icon, .mentor-badge, .dr-dragon, .cm-dragon-btn, .suggest-btn, .evo-ai-title, .mentor-btn, .demo-banner');
+    all.forEach(el => {
+      if (el.innerHTML && el.innerHTML.indexOf('🐉') !== -1) {
+        // Сохраняем структуру — заменяем 🐉 на placeholder
+        el.innerHTML = el.innerHTML.replace(/🐉/g, getUserDarIconHtml(20, 'margin-right:4px;'));
+      }
+    });
+    // Иконка зеркала — крупнее
+    const mIcon = document.querySelector('#arkaMirror .mirror-icon');
+    if (mIcon && mIcon.textContent.trim() === '🐉') {
+      mIcon.innerHTML = getUserDarIconHtml(72, 'filter:drop-shadow(0 0 18px rgba(212,175,55,0.5));');
+    }
+    // Бэйдж стрика
+    const streak = document.querySelector('.streak-icon');
+    if (streak && streak.textContent.trim() === '🐉') {
+      streak.innerHTML = getUserDarIconHtml(22);
+    }
+  } catch (e) {}
+}
+
 // ── Приветствие ──────────────────────────────────────
 // Шапка с приветствием убрана как дубль главного приложения (16.05.2026).
 // Функция оставлена для совместимости, но безопасно проверяет наличие элемента.
@@ -315,7 +384,191 @@ function initTabs() {
 }
 
 // ── Чек-листы ритуалов ───────────────────────────────
+// ── Фокус по времени дня: показываем только актуальный ритуал ───────
+// Снимает перегруз во вкладке «Сегодня» — глаза не разбегаются.
+function getCurrentPeriod() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12)  return 'dawn';   // утро
+  if (h >= 12 && h < 17) return 'day';    // дневной якорь
+  if (h >= 17 && h < 20) return 'dusk';   // главное окно силы
+  return 'night';                          // вечер/ночь
+}
+
+function focusTodayByTime() {
+  const current = getCurrentPeriod();
+  const today = document.querySelector('[data-tab-content="today"]');
+  if (!today) return;
+  // Собираем ВСЕ карточки «Сегодня» в один аккордеон
+  const groups = [];
+  // 1) Окна силы — закрыто по умолчанию (информация о биоритме)
+  const pw = today.querySelector('.power-window');
+  if (pw) groups.push({ el: pw, headerSel: null, defaultOpen: false, type: 'pw' });
+  // 2) Важные дела
+  const tasks = today.querySelector('.tasks-card');
+  if (tasks) groups.push({ el: tasks, headerSel: '.card-header', defaultOpen: false, type: 'tasks' });
+  // 3) Ритуалы по периодам
+  today.querySelectorAll('.ritual[data-ritual]').forEach(r => {
+    groups.push({ el: r, headerSel: '.ritual-header', defaultOpen: r.dataset.ritual === current, type: 'ritual' });
+  });
+  // Прогресс не делаем сворачиваемым (он мелкий, всегда внизу)
+
+  // Применяем классы и навешиваем клики
+  groups.forEach((g, idx) => {
+    g.el.classList.add('today-foldable');
+    if (g.defaultOpen) g.el.classList.remove('today-folded');
+    else g.el.classList.add('today-folded');
+
+    // Для ритуалов поддерживаем старые классы
+    if (g.type === 'ritual') {
+      g.el.classList.toggle('ritual-active', g.defaultOpen);
+      g.el.classList.toggle('ritual-folded', !g.defaultOpen);
+    }
+
+    const header = g.headerSel ? g.el.querySelector(g.headerSel) : g.el;
+    if (!header) return;
+    if (header.dataset.fold) return;
+    header.dataset.fold = '1';
+    header.style.cursor = 'pointer';
+    header.addEventListener('click', (e) => {
+      if (e.target.closest('button, input, a, select, textarea, label, details, summary, .ritual-time')) return;
+      const isOpen = !g.el.classList.contains('today-folded');
+      if (isOpen) {
+        g.el.classList.add('today-folded');
+        if (g.type === 'ritual') {
+          g.el.classList.remove('ritual-active');
+          g.el.classList.add('ritual-folded');
+        }
+      } else {
+        // Сворачиваем все остальные карточки в «Сегодня»
+        groups.forEach(o => {
+          if (o === g) return;
+          o.el.classList.add('today-folded');
+          if (o.type === 'ritual') {
+            o.el.classList.remove('ritual-active');
+            o.el.classList.add('ritual-folded');
+          }
+        });
+        g.el.classList.remove('today-folded');
+        if (g.type === 'ritual') {
+          g.el.classList.remove('ritual-folded');
+          g.el.classList.add('ritual-active');
+        }
+      }
+    });
+  });
+
+  // Легенда — свёрнута по умолчанию
+  const legend = document.querySelector('.task-legend');
+  if (legend && legend.open) legend.open = false;
+}
+
+// Внедряем CSS для свёрнутых ритуалов и секций один раз
+function injectTodayFocusStyles() {
+  if (document.getElementById('today-focus-css')) return;
+  const s = document.createElement('style');
+  s.id = 'today-focus-css';
+  s.textContent = `
+    .ritual[data-ritual] { position: relative; transition: opacity .2s; }
+    .ritual[data-ritual] .ritual-header { cursor: pointer; user-select: none; }
+    .ritual[data-ritual]::after {
+      position: absolute;
+      right: 18px; top: 22px;
+      color: var(--accent-soft, #d4af37);
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .ritual-folded { opacity: 0.7; }
+    .ritual-folded:hover { opacity: 1; }
+    .ritual-folded .ritual-header { margin-bottom: 0; }
+    .ritual-folded::after { content: '▾'; }
+    .ritual-folded .checklist,
+    .ritual-folded .journal { display: none; }
+    .ritual-active { opacity: 1; }
+    .ritual-active::after { content: '▴'; }
+
+    /* Универсальный фолдинг для секций в Дар/Стратегия/Путь */
+    .arka-foldable { position: relative; transition: opacity .2s; }
+    .arka-foldable .card-header { cursor: pointer; user-select: none; }
+    .arka-foldable::after {
+      position: absolute;
+      right: 18px; top: 18px;
+      color: var(--accent-soft, #d4af37);
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .arka-foldable.folded { opacity: 0.7; }
+    .arka-foldable.folded:hover { opacity: 1; }
+    .arka-foldable.folded::after { content: '▾'; }
+    .arka-foldable.folded > *:not(.card-header):not(.section-header) { display: none !important; }
+    .arka-foldable:not(.folded)::after { content: '▴'; }
+
+    /* Аккордеон в «Сегодня»: и для карточек, и для ритуалов */
+    .today-foldable { position: relative; transition: opacity .2s; }
+    .today-foldable::after {
+      position: absolute;
+      right: 18px; top: 18px;
+      color: var(--accent-soft, #d4af37);
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0.7;
+      content: '▴';
+    }
+    .today-foldable.today-folded { opacity: 0.7; }
+    .today-foldable.today-folded:hover { opacity: 1; }
+    .today-foldable.today-folded::after { content: '▾'; }
+    /* Сворачиваем всё, кроме шапок */
+    .today-foldable.today-folded > *:not(.card-header):not(.ritual-header):not(.pw-icon):not(.pw-text) { display: none !important; }
+    /* Окно силы — у него своя структура без card-header */
+    .power-window.today-folded .pw-text > *:not(.pw-title) { display: none !important; }
+  `;
+  document.head.appendChild(s);
+}
+
+// Универсальный аккордеон секций в Дар / Стратегия / Путь
+// Логика: первая секция в табе раскрыта, остальные свёрнуты.
+// Клик по шапке раскрывает её и сворачивает все остальные в табе.
+function initSectionFolding() {
+  const tabs = ['dar', 'strategy', 'path'];
+  tabs.forEach(tabName => {
+    const tabContent = document.querySelector('[data-tab-content="' + tabName + '"]');
+    if (!tabContent) return;
+    const allSections = tabContent.querySelectorAll(':scope > section');
+    // Только те, у которых есть шапка (card-header / section-header / mentor-title)
+    const foldable = [];
+    allSections.forEach(sec => {
+      let header = sec.querySelector('.card-header, .section-header');
+      // Fallback: первая «титульная» строка секции
+      if (!header) header = sec.querySelector('.mentor-title, h2, h3');
+      if (header) foldable.push({sec, header});
+    });
+    foldable.forEach((item, idx) => {
+      item.sec.classList.add('arka-foldable');
+      if (idx === 0) item.sec.classList.remove('folded');
+      else item.sec.classList.add('folded');
+      if (item.header.dataset.fold) return;
+      item.header.dataset.fold = '1';
+      item.header.style.cursor = 'pointer';
+      item.header.addEventListener('click', (e) => {
+        if (e.target.closest('button, input, a, select, textarea, label')) return;
+        const isOpen = !item.sec.classList.contains('folded');
+        if (isOpen) {
+          // свернуть текущий
+          item.sec.classList.add('folded');
+        } else {
+          // свернуть всех остальных в этом табе, раскрыть этот
+          foldable.forEach(o => { if (o !== item) o.sec.classList.add('folded'); });
+          item.sec.classList.remove('folded');
+        }
+      });
+    });
+  });
+}
+
 function initChecklist() {
+  injectTodayFocusStyles();
+  focusTodayByTime();
   document.querySelectorAll('.check-item input[type=checkbox]').forEach(input => {
     const id = input.closest('.check-item').dataset.id;
     if (state.days[TODAY][id]) input.checked = true;
@@ -347,11 +600,14 @@ function celebrate(el) {
 
 // ── Стрик ────────────────────────────────────────────
 function updateStreak() {
+  const d = document.getElementById('streakDays');
+  const w = document.getElementById('streakWord');
+  if (!d || !w) return;  // блок стрика убран из «Сегодня»
   const start = new Date(state.streakStart);
   const today = new Date(TODAY);
   const days = Math.floor((today - start) / 86400000) + 1;
-  document.getElementById('streakDays').textContent = days;
-  document.getElementById('streakWord').textContent =
+  d.textContent = days;
+  w.textContent =
     days === 1 ? 'день' :
     (days % 10 >= 2 && days % 10 <= 4 && (days < 10 || days > 20)) ? 'дня' :
     'дней';
@@ -1289,13 +1545,19 @@ function renderMirror() {
   if (!el) return;
   const m = generateMirror();
 
-  // Иконка Дара дня (SVG из основного приложения) — заменяет общий 🐉
+  // Иконка Дара дня — PNG-глиф из /dar-png/ по коду Дара дня.
+  // Если код не определён — fallback на PNG личного Дара пользователя.
   const iconEl = document.querySelector('#arkaMirror .mirror-icon');
-  if (iconEl && m.darOfDay && m.darOfDay.svgPath) {
-    // SVG-глиф в золотом цвете (как в YupDar Энциклопедии)
-    iconEl.innerHTML = '<img src="' + m.darOfDay.svgPath + '" alt="" style="width:72px;height:72px;filter:drop-shadow(0 0 18px rgba(212,175,55,0.5))" onerror="this.outerHTML=\'🐉\'">';
-  } else if (iconEl) {
-    iconEl.textContent = '🐉';
+  if (iconEl) {
+    const map = (typeof loadDarPngMap === 'function') ? loadDarPngMap() : {};
+    const code = m.darOfDay && m.darOfDay.code;
+    const file = code && map[code] ? map[code] : null;
+    if (file) {
+      const src = '/dar-png/' + encodeURIComponent(file);
+      iconEl.innerHTML = '<img src="' + src + '" alt="" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 0 18px rgba(212,175,55,0.5))">';
+    } else {
+      iconEl.innerHTML = getUserDarIconHtml(72, 'filter:drop-shadow(0 0 18px rgba(212,175,55,0.5));');
+    }
   }
 
   // Текст послания — простой и понятный
@@ -1336,6 +1598,33 @@ function returnToMirror() {
   if (returnBtn) returnBtn.hidden = true;
 }
 window.returnToMirror = returnToMirror;
+
+// Возврат в главное меню YupDar (родительский iframe)
+function backToYupDar() {
+  try {
+    // Если открыто внутри iframe основного приложения — переключаем там вкладку на «Я»
+    if (window.parent && window.parent !== window && typeof window.parent.switchTab === 'function') {
+      window.parent.switchTab('me');
+      return;
+    }
+  } catch (e) {}
+  // Фоллбэк — переход на главное превью
+  try { window.location.href = '/preview/'; } catch (e) {}
+}
+window.backToYupDar = backToYupDar;
+
+// Синхронизация по времени: при возврате во вкладку обновить
+// зеркало (период дня) и фокус Сегодня (актуальный ритуал)
+function syncByCurrentTime() {
+  try { renderMirror(); } catch (e) {}
+  try { focusTodayByTime(); } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) syncByCurrentTime();
+});
+window.addEventListener('focus', syncByCurrentTime);
+// Каждую минуту тоже проверяем — если юзер сидит долго и наступил новый период
+setInterval(syncByCurrentTime, 60000);
 
 function initMirror() {
   renderMirror();
@@ -1397,7 +1686,7 @@ function drawShareCard(opts) {
   ctx.fillStyle = '#D4AF37';
   ctx.font = 'bold 32px Manrope, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('🐉 АРКА', W / 2, 100);
+  ctx.fillText('✦ АРКА', W / 2, 100);
   ctx.font = '14px Manrope, sans-serif';
   ctx.fillStyle = 'rgba(212, 175, 55, 0.65)';
   ctx.fillText('Y U P D A R', W / 2, 130);
@@ -1874,7 +2163,7 @@ function renderCircle() {
         '<div class="cm-name">' + escapeHtml(m.name) + '</div>' +
         '<div class="cm-status"><span class="cm-status-emoji">' + getStateEmoji(m.state) + '</span> ' + escapeHtml(getStateLabel(m.state)) + '</div>' +
       '</div>' +
-      '<button class="cm-dragon-btn' + (m.sent ? ' sent' : '') + '" onclick="sendDragon(\'' + m.id + '\')" title="' + escapeAttr(dt('arka.circle_send_dragon')) + '">🐉</button>' +
+      '<button class="cm-dragon-btn' + (m.sent ? ' sent' : '') + '" onclick="sendDragon(\'' + m.id + '\')" title="' + escapeAttr(dt('arka.circle_send_dragon')) + '">' + getUserDarIconHtml(26) + '</button>' +
     '</div>';
   }).join('');
 }
@@ -2002,3 +2291,71 @@ initOilHints();
 initShadowQuest();
 initLetter();
 initCircle();
+initSectionFolding();
+
+// ── Авто-замена 🐉 на иконку личного Дара пользователя ─────────────
+// Запускается после рендера и затем на каждое изменение DOM
+// (с защитой от бесконечного цикла самоизменений).
+let __dragonReplaceLock = false;
+let __dragonReplaceTimer = null;
+function replaceAllDragonNodes() {
+  if (__dragonReplaceLock) return;
+  __dragonReplaceLock = true;
+  try {
+    const root = document.body;
+    if (!root) { __dragonReplaceLock = false; return; }
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => (n.nodeValue && n.nodeValue.indexOf('🐉') !== -1) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+    });
+    const nodes = [];
+    let n;
+    while ((n = walker.nextNode())) nodes.push(n);
+    if (!nodes.length) { __dragonReplaceLock = false; return; }
+    nodes.forEach(node => {
+      const parent = node.parentNode;
+      if (!parent) return;
+      let size = 20;
+      const cls = parent.className || '';
+      if (cls.indexOf('mirror-icon') !== -1) size = 64;
+      else if (cls.indexOf('streak-icon') !== -1) size = 22;
+      else if (cls.indexOf('tab-emoji') !== -1) size = 22;
+      else if (cls.indexOf('card-icon') !== -1 || cls.indexOf('ts-icon') !== -1) size = 22;
+      else if (cls.indexOf('cm-dragon-btn') !== -1) size = 26;
+      else if (cls.indexOf('dr-dragon') !== -1) size = 110;
+      const html = node.nodeValue.replace(/🐉/g, getUserDarIconHtml(size));
+      const span = document.createElement('span');
+      span.innerHTML = html;
+      parent.replaceChild(span, node);
+    });
+  } catch (e) {}
+  __dragonReplaceLock = false;
+}
+function scheduleDragonReplace() {
+  if (__dragonReplaceLock) return;
+  if (__dragonReplaceTimer) return;
+  __dragonReplaceTimer = setTimeout(() => {
+    __dragonReplaceTimer = null;
+    replaceAllDragonNodes();
+  }, 250);
+}
+// Первичный проход (после всех init)
+setTimeout(replaceAllDragonNodes, 0);
+// Наблюдаем за обновлениями DOM (renderTasks, renderCircle и т.п.) с дебаунсом
+try {
+  const mo = new MutationObserver(muts => {
+    if (__dragonReplaceLock) return;
+    let need = false;
+    for (const m of muts) {
+      // Игнорируем добавления узлов user-dar-ic — это наша же замена
+      if (m.addedNodes && m.addedNodes.length) {
+        for (const a of m.addedNodes) {
+          if (a.nodeType === 3 && a.nodeValue && a.nodeValue.indexOf('🐉') !== -1) { need = true; break; }
+          if (a.nodeType === 1 && a.textContent && a.textContent.indexOf('🐉') !== -1) { need = true; break; }
+        }
+      }
+      if (need) break;
+    }
+    if (need) scheduleDragonReplace();
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+} catch (e) {}

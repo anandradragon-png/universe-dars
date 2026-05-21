@@ -2,6 +2,22 @@
    ЗЕРКАЛО МОМЕНТА (Hero AI при открытии АРКА)
    Один блок, одна кнопка. Закон no_overload в действии.
    ═══════════════════════════════════════════════════════════ */
+
+/* Бейдж «прототип AI» — для блоков, где AI пока работает на правилах.
+   В проде заменится живой DeepSeek-генерацией. */
+.ai-proto-badge {
+  display: inline-block;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #7DD3FC;
+  background: rgba(125, 211, 252, 0.08);
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  padding: 5px 10px;
+  border-radius: 8px;
+  margin: 6px 0 10px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
 .arka-mirror {
   min-height: calc(100vh - 100px);
   display: flex;
@@ -98,6 +114,53 @@
   box-shadow: 0 10px 32px rgba(212, 175, 55, 0.5);
 }
 .mirror-enter-btn:active { transform: translateY(0); }
+
+/* Кнопка «← YupDar» — возврат в главное меню (левый верхний угол) */
+.mirror-back-btn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  background: rgba(8, 20, 36, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.30);
+  color: #D4AF37;
+  padding: 8px 14px;
+  border-radius: 22px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.75;
+}
+.mirror-back-btn:hover {
+  opacity: 1;
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.55);
+}
+/* Вариант для основного интерфейса — компактный круглый, поверх контента */
+.mirror-back-btn-main {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 700;
+  background: rgba(8, 20, 36, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mirror-back-btn-main::before {
+  content: '←';
+  font-size: 18px;
+}
+.mirror-back-btn-main { text-indent: -9999px; overflow: hidden; }
+.mirror-back-btn-main::before { text-indent: 0; position: absolute; }
 
 /* Кнопка «Поделиться» на Зеркале — деликатная, в нижнем углу */
 .mirror-share-btn {

@@ -123,6 +123,7 @@ body::after {
   padding: 4px;
   border-radius: var(--radius-sm);
   margin-bottom: 18px;
+  margin-left: 50px;  /* место для кнопки ← YupDar */
   box-shadow: var(--shadow-soft);
 }
 .tab {
@@ -219,9 +220,17 @@ body::after {
 .task-text {
   flex: 1; font-size: 14px; color: var(--ink);
   outline: none; min-width: 0;
+  cursor: text;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px dashed transparent;
+  transition: border-color .15s, background .15s;
 }
+.task-text:hover { border-color: rgba(212,175,55,0.30); background: rgba(212,175,55,0.04); }
+.task-text:focus { border-color: var(--accent, #d4af37); border-style: solid; background: rgba(212,175,55,0.06); }
 .task-text[contenteditable=true]:empty::before {
   content: 'Опиши задачу…'; color: var(--ink-mute);
+  font-style: italic;
 }
 .task-item.done .task-text {
   color: var(--ink-mute); text-decoration: line-through;
@@ -366,15 +375,17 @@ body::after {
   margin-bottom: 10px; color: var(--gold-soft);
 }
 .suggestion-item {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.25);
   border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 6px;
-  font-size: 13px; line-height: 1.5;
+  font-size: 14px; line-height: 1.55;
   display: flex; gap: 10px;
   align-items: flex-start;
+  color: #ffffff;
 }
-.suggestion-text { flex: 1; }
+.suggestion-text { flex: 1; color: #ffffff; }
 .suggestion-add {
   background: white; color: var(--accent-deep);
   border: none; padding: 4px 10px;
@@ -591,7 +602,8 @@ body::after {
   margin-bottom: 10px;
   transition: border 0.2s;
 }
-.goal-input:focus { border-color: var(--accent); background: white; }
+.goal-input:focus { border-color: var(--accent); background: rgba(212, 175, 55, 0.06); }
+.goal-input::placeholder { color: rgba(255,255,255,0.35); }
 .goal-input.small { font-size: 13px; padding: 10px 12px; margin-bottom: 0; }
 
 .goal-row { display: flex; gap: 10px; margin-top: 4px; }
@@ -641,20 +653,21 @@ body::after {
   resize: vertical; outline: none;
   min-height: 70px; transition: border 0.2s;
 }
-.ai-input:focus { border-color: var(--accent); background: white; }
+.ai-input:focus { border-color: var(--accent); background: rgba(212, 175, 55, 0.06); }
+.ai-input::placeholder { color: rgba(255,255,255,0.35); }
 
 .ai-actions {
   display: flex; gap: 8px; margin: 10px 0 12px;
 }
 .ai-btn {
-  flex: 1; background: white;
-  border: 1px solid var(--accent);
-  color: var(--accent-deep);
+  flex: 1; background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #ffffff;
   padding: 9px 8px; border-radius: 10px;
-  font-family: inherit; font-size: 13px; font-weight: 500;
+  font-family: inherit; font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.2s;
 }
-.ai-btn:hover { background: var(--accent); color: white; }
+.ai-btn:hover { background: rgba(212, 175, 55, 0.25); border-color: var(--accent); }
 .ai-btn:active { transform: scale(0.98); }
 
 .ai-response {
@@ -705,12 +718,15 @@ body::after {
 .mentor-text em { color: white; font-style: normal; font-weight: 600; }
 
 .mentor-btn {
-  background: white; color: var(--accent-deep);
+  background: linear-gradient(135deg, #D4AF37, #b8860b);
+  color: #0a1929;
   border: none; padding: 10px 20px; border-radius: 10px;
-  font-family: inherit; font-size: 14px; font-weight: 600;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  letter-spacing: 0.3px;
   cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
 }
-.mentor-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(0,0,0,0.15); }
+.mentor-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(212,175,55,0.4); }
 .mentor-btn.primary {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
   color: white; width: 100%; padding: 14px;
@@ -727,12 +743,13 @@ body::after {
   display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
 }
 .finance-name {
-  flex: 1; background: white;
-  border: 1px solid var(--line); border-radius: 8px;
+  flex: 1; background: rgba(8, 20, 36, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.22); border-radius: 8px;
   padding: 8px 10px; font-family: inherit; font-size: 14px;
-  color: var(--ink); outline: none;
+  color: #ffffff; outline: none;
   min-width: 0;
 }
+.finance-name::placeholder { color: rgba(255,255,255,0.35); }
 .finance-name:focus { border-color: var(--accent); }
 .finance-remove {
   background: none; border: none; cursor: pointer;
@@ -743,12 +760,13 @@ body::after {
   display: flex; gap: 8px; align-items: center;
 }
 .finance-amount {
-  flex: 1; background: white;
-  border: 1px solid var(--line); border-radius: 8px;
+  flex: 1; background: rgba(8, 20, 36, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.22); border-radius: 8px;
   padding: 8px 10px; font-family: inherit; font-size: 13px;
-  color: var(--ink); outline: none;
+  color: #ffffff; outline: none;
   text-align: right; min-width: 0;
 }
+.finance-amount::placeholder { color: rgba(255,255,255,0.35); }
 .finance-amount:focus { border-color: var(--accent); }
 .finance-amount-label {
   font-size: 11px; color: var(--ink-mute);

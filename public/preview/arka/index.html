@@ -97,6 +97,8 @@
 
   <!-- Кнопка возврата к Зеркалу (видна когда юзер «вошёл в день») -->
   <button class="mirror-return-btn" id="mirrorReturnBtn" hidden onclick="returnToMirror()" data-i18n="mirror.return">← Зеркало</button>
+  <!-- Кнопка возврата в YupDar (всегда в углу пока ты в АРКА) -->
+  <button class="mirror-back-btn mirror-back-btn-main" id="arkaBackYupDarBtn" onclick="backToYupDar()" data-i18n="mirror.back_yupdar">← YupDar</button>
 
   <!-- Основной интерфейс АРКА (скрыт пока показано Зеркало) -->
   <div id="arkaMain" hidden>
@@ -132,12 +134,6 @@
         <div class="pw-time" data-i18n="today.pw_time">Сумерки · 5:30–7:30 и 17:30–19:30</div>
         <div class="pw-hint" data-i18n="today.pw_hint">Время между временами — твоя стихия</div>
       </div>
-    </section>
-
-    <!-- Стрик -->
-    <section class="streak">
-      <span class="streak-icon">🐉</span>
-      <span class="streak-text"><span data-i18n="today.streak_pre">Ты скользишь по змею уже</span> <b id="streakDays">1</b> <span id="streakWord" data-i18n="today.streak_day">день</span></span>
     </section>
 
     <!-- Важные дела дня -->
@@ -179,7 +175,7 @@
         </li>
         <li class="check-item with-oil" data-id="r2">
           <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.r2_text">Frankincense на ладони → вдох</span><button class="info-btn" data-info="r2">?</button></label>
-          <div class="oil-hint" data-oil="frankincense"><span>💧</span><span data-i18n="today.r2_oil">doTERRA Frankincense — присутствие в моменте, замедление времени</span></div>
+          <div class="oil-hint" data-oil="frankincense"><span>💧</span><span data-i18n="today.r2_oil">эфирное масло Frankincense — для присутствия в моменте и замедления времени</span></div>
           <div class="practice-details" id="info-r2" data-i18n="today.r2_details">
             <b>Применение:</b> 1 капля на ладони, потереть, поднести к лицу. <b>3 медленных вдоха.</b><br>
             <b>⚠ Важно:</b> на кожу — только разведённое с базовым маслом (1:1). Внутрь — только пищевую серию (Beadlets).
@@ -223,7 +219,7 @@
         </li>
         <li class="check-item with-oil" data-id="d2">
           <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.d2_text">Balance на запястья</span><button class="info-btn" data-info="d2">?</button></label>
-          <div class="oil-hint" data-oil="balance"><span>💧</span><span data-i18n="today.d2_oil">doTERRA Balance — заземление, опора ЛОГОС-треугольника</span></div>
+          <div class="oil-hint" data-oil="balance"><span>💧</span><span data-i18n="today.d2_oil">эфирное масло Balance — для заземления и опоры ЛОГОС-треугольника</span></div>
           <div class="practice-details" id="info-d2" data-i18n="today.d2_details">
             <b>Применение:</b> 1 капля на внутреннюю сторону каждого запястья. Растереть друг о друга. Поднести к носу.<br>
             <b>Состав Balance:</b> Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile — заземляющая смесь.<br>
@@ -251,7 +247,7 @@
       <ul class="checklist">
         <li class="check-item with-oil" data-id="s1">
           <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.s1_text">Cypress + Vetiver на стопы</span><button class="info-btn" data-info="s1">?</button></label>
-          <div class="oil-hint" data-oil="cypress"><span>💧</span><span data-i18n="today.s1_oil">doTERRA Cypress (поток времени) + Vetiver (глубина) — главное масло З-МАН</span></div>
+          <div class="oil-hint" data-oil="cypress"><span>💧</span><span data-i18n="today.s1_oil">эфирное масло Cypress — для потока времени + Vetiver — для глубины. Сочетание для архетипа З-МАН</span></div>
           <div class="practice-details" id="info-s1" data-i18n="today.s1_details">
             <b>Смесь:</b> 1 капля Cypress + 1 капля Vetiver + 1 чайная ложка базы (фракционированный кокос).<br>
             <b>Нанесение:</b> массажными движениями на стопы (особенно подушечки), вдоль позвоночника снизу вверх.<br>
@@ -292,7 +288,7 @@
       <ul class="checklist">
         <li class="check-item with-oil" data-id="n1">
           <label><input type="checkbox"><span class="check-mark"></span><span class="check-text" data-i18n="today.n1_text">Lavender на подушку</span><button class="info-btn" data-info="n1">?</button></label>
-          <div class="oil-hint" data-oil="lavender"><span>💧</span><span data-i18n="today.n1_oil">doTERRA Lavender — мягкий переход в восстановление</span></div>
+          <div class="oil-hint" data-oil="lavender"><span>💧</span><span data-i18n="today.n1_oil">эфирное масло Lavender — для мягкого перехода в восстановление</span></div>
           <div class="practice-details warn" id="info-n1" data-i18n="today.n1_details">
             <b>⚠ Дозировка КРИТИЧНА:</b> только <b>1–2 капли</b> на подушку или диффузор.<br>
             Больше 2 капель = <b>обратный эффект</b>: возбуждение, бессонница, головная боль. Чем меньше — тем глубже эффект.<br>
@@ -553,6 +549,7 @@
         <h2 class="card-title" data-i18n="strategy.ai_title">Помощник в архетипе З-МАН</h2>
       </div>
       <p class="card-hint" data-i18n="strategy.ai_hint">Опиши ситуацию — получи разбор, прогноз или корректировку <em>языком твоего Дара времени</em>.</p>
+      <div class="ai-proto-badge" data-i18n="ai.proto_badge">🤖 Прототип AI — в проде будет глубже (DeepSeek + твой профиль)</div>
 
       <textarea id="aiInput" class="ai-input" rows="3" placeholder="Например: застряла на шаге 2, не понимаю как двигаться дальше" data-i18n-placeholder="strategy.ai_placeholder"></textarea>
 
@@ -580,6 +577,7 @@
     <section class="mentor-brief">
       <div class="mentor-badge" data-i18n="path.mentor_badge">🐉 Голос З-МАН</div>
       <h2 class="mentor-title" id="mentorGreeting" data-i18n="path.mentor_title">Бриф наставника</h2>
+      <div class="ai-proto-badge" data-i18n="ai.proto_badge">🤖 Прототип AI — в проде будет глубже (DeepSeek + твой профиль)</div>
       <div class="mentor-text" id="mentorText" data-i18n="path.mentor_placeholder">Бриф появится здесь — он зависит от твоего прогресса.</div>
       <button class="mentor-btn" id="mentorRefresh" data-i18n="path.mentor_refresh">Обновить бриф</button>
     </section>
@@ -728,10 +726,12 @@ const ARKA_I18N = {
     'arka.circle_state_neutral': 'ровно',
     'arka.circle_state_shadow': 'в тени',
     'arka.circle_send_dragon': 'Послать дракона в поддержку',
-    'arka.dragon_received_text': 'почувствовал тебя и послал дракона. Прими.',
+    'arka.dragon_received_text': 'почувствовал тебя и послал Дар поддержки. Прими.',
     'arka.dragon_received_accept': 'Принять',
     'mirror.enter': 'Войди',
     'mirror.return': '← Зеркало',
+    'mirror.back_yupdar': '← YupDar',
+    'ai.proto_badge': '🤖 Прототип AI — в проде будет глубже (DeepSeek + твой профиль)',
     'banner.guest': 'Гость',
     'banner.friend': 'Друг',
     'banner.demo_label': 'демо',
@@ -785,7 +785,7 @@ const ARKA_I18N = {
     'today.r1_text': 'Босиком на пол — заземление ЛОГОС',
     'today.r1_details': '<b>Как делать:</b> встань босиком на землю — это даёт самое глубокое заземление. Если нет возможности (зима, квартира) — на холодный пол (плитка, паркет). Стопы плотно прижаты. Закрой глаза. Представь, что от стоп вниз растут серебристо-золотые корни. <b>2–3 минуты.</b><br><b>Аффирмация:</b> «Я в точке, где все времена сходятся».',
     'today.r2_text': 'Frankincense на ладони → вдох',
-    'today.r2_oil': 'doTERRA Frankincense — присутствие в моменте, замедление времени',
+    'today.r2_oil': 'эфирное масло Frankincense — для присутствия в моменте и замедления времени',
     'today.r2_details': '<b>Применение:</b> 1 капля на ладони, потереть, поднести к лицу. <b>3 медленных вдоха.</b><br><b>⚠ Важно:</b> на кожу — только разведённое с базовым маслом (1:1). Внутрь — только пищевую серию (Beadlets).',
     'today.r3_text': 'Стакан воды — поток ТУМА',
     'today.r3_details': '<b>Сколько:</b> 1 стакан 200–300 мл, тёплая или комнатной. Можно с долькой лимона.<br><b>Когда:</b> сразу после пробуждения, до кофе. Через 15–20 минут — завтрак.<br><b>Почему:</b> ночью обезвоживание, поток ТУМА застаивается. Утренняя вода = первый поток дня.',
@@ -795,14 +795,14 @@ const ARKA_I18N = {
     'today.d1_text': '3 минуты «я в точке сейчас»',
     'today.d1_details': '<b>Практика:</b> остановись там, где находишься. Закрой глаза. Положи руку на грудь. Назови вслух или про себя 3 вещи:<br>• что я <em>сейчас</em> вижу (когда открою глаза)<br>• что я <em>сейчас</em> чувствую телом (тепло/холод/мягкость)<br>• что я <em>сейчас</em> слышу<br><b>3 минуты.</b> Это якорь ЛОГОС, возвращающий из суетного времени.',
     'today.d2_text': 'Balance на запястья',
-    'today.d2_oil': 'doTERRA Balance — заземление, опора ЛОГОС-треугольника',
+    'today.d2_oil': 'эфирное масло Balance — для заземления и опоры ЛОГОС-треугольника',
     'today.d2_details': '<b>Применение:</b> 1 капля на внутреннюю сторону каждого запястья. Растереть друг о друга. Поднести к носу.<br><b>Состав Balance:</b> Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile — заземляющая смесь.<br><b>⚠ Важно:</b> чувствительная кожа — развести с базовым маслом 1:1.',
     'today.d3_text': '2 стакана воды в течение дня',
     'today.d3_details': '<b>Не за раз!</b> 1 стакан после 12:00, второй — между 14:00 и 16:00.<br><b>Почему:</b> днём забывается, к вечеру обезвоживание = усталость и спутанность.',
     'today.ritual_dusk': 'Закатный ритуал',
     'today.dusk_badge': '✦ окно силы',
     'today.s1_text': 'Cypress + Vetiver на стопы',
-    'today.s1_oil': 'doTERRA Cypress (поток времени) + Vetiver (глубина) — главное масло З-МАН',
+    'today.s1_oil': 'эфирное масло Cypress — для потока времени + Vetiver — для глубины. Сочетание для архетипа З-МАН',
     'today.s1_details': '<b>Смесь:</b> 1 капля Cypress + 1 капля Vetiver + 1 чайная ложка базы (фракционированный кокос).<br><b>Нанесение:</b> массажными движениями на стопы (особенно подушечки), вдоль позвоночника снизу вверх.<br><b>⚠ Vetiver очень глубокий</b> — только вечером, не перед делами. Vetiver может усыплять.',
     'today.s2_text': '15 минут у воды (ручей/душ/чашка)',
     'today.s2_details': '<b>Что делать у воды:</b><br>• Сядь у источника воды — ручей, ванна, наполненная чашка, кран<br>• Просто наблюдай поток — не торопи мысли<br>• На вдохе представляй, как вода входит в тебя · на выдохе — уносит лишнее<br>• Можно тихо проговорить, что хочешь отпустить, и спустить в воду<br><b>В архетипе З-МАН:</b> вода = ТУМА = время. Контакт с водой = настройка ритма.',
@@ -810,7 +810,7 @@ const ARKA_I18N = {
     'today.s3_details': '<b>Как держать:</b> камень в ладони левой руки (приёмная сторона). Сожми мягко, чувствуй температуру.<br><b>Лабрадорит:</b> защита, глубина, видение скрытого.<br><b>Лунный камень:</b> интуиция, женская мудрость, циклы.<br><b>Обсидиан (чёрный):</b> заземление, защита от чужого ритма.<br><b>Уход:</b> промывать под проточной водой раз в неделю, заряжать на лунном свете.',
     'today.ritual_night': 'Ночное скольжение',
     'today.n1_text': 'Lavender на подушку',
-    'today.n1_oil': 'doTERRA Lavender — мягкий переход в восстановление',
+    'today.n1_oil': 'эфирное масло Lavender — для мягкого перехода в восстановление',
     'today.n1_details': '<b>⚠ Дозировка КРИТИЧНА:</b> только <b>1–2 капли</b> на подушку или диффузор.<br>Больше 2 капель = <b>обратный эффект</b>: возбуждение, бессонница, головная боль. Чем меньше — тем глубже эффект.<br><b>Альтернатива:</b> 1 капля на запястье, или 2 капли в диффузор на 30 минут до сна.',
     'today.n2_text': 'Записать благодарность дня',
     'today.n2_details': 'Одна-две строки в поле ниже. Не «должна» — а <b>заметить</b>. Может быть что угодно: чашка чая, момент тишины, чей-то взгляд, твой собственный жест к себе.',
@@ -919,10 +919,12 @@ const ARKA_I18N = {
     'arka.circle_state_neutral': 'steady',
     'arka.circle_state_shadow': 'in shadow',
     'arka.circle_send_dragon': 'Send a dragon in support',
-    'arka.dragon_received_text': 'felt you and sent a dragon. Receive it.',
+    'arka.dragon_received_text': 'felt you and sent a DAR of support. Receive it.',
     'arka.dragon_received_accept': 'Accept',
     'mirror.enter': 'Enter',
     'mirror.return': '← Mirror',
+    'mirror.back_yupdar': '← YupDar',
+    'ai.proto_badge': '🤖 AI prototype — deeper in production (DeepSeek + your profile)',
     'banner.guest': 'Guest',
     'banner.friend': 'Friend',
     'banner.demo_label': 'demo',
@@ -976,7 +978,7 @@ const ARKA_I18N = {
     'today.r1_text': 'Barefoot on the floor — LOGOS grounding',
     'today.r1_details': '<b>How to do it:</b> stand barefoot on the earth — it gives the deepest grounding. If not possible (winter, apartment) — onto a cold floor (tile, parquet). Feet pressed firmly. Close your eyes. Imagine silver-gold roots growing down from your soles. <b>2–3 minutes.</b><br><b>Affirmation:</b> "I am at the point where all times converge."',
     'today.r2_text': 'Frankincense on the palm → inhale',
-    'today.r2_oil': 'doTERRA Frankincense — presence in the moment, slowing of time',
+    'today.r2_oil': 'essential oil Frankincense — for presence in the moment and slowing of time',
     'today.r2_details': '<b>Application:</b> 1 drop on the palm, rub, bring to face. <b>3 slow inhales.</b><br><b>⚠ Note:</b> on skin — only diluted with carrier oil (1:1). Internal use — only the food-grade series (Beadlets).',
     'today.r3_text': 'Glass of water — TUMA flow',
     'today.r3_details': '<b>How much:</b> 1 glass 200–300 ml, warm or room temperature. Can add a slice of lemon.<br><b>When:</b> right after waking, before coffee. Breakfast 15–20 min later.<br><b>Why:</b> overnight dehydration, the TUMA flow stagnates. Morning water = the first flow of the day.',
@@ -986,14 +988,14 @@ const ARKA_I18N = {
     'today.d1_text': '3 minutes "I am at the point now"',
     'today.d1_details': '<b>Practice:</b> stop where you are. Close your eyes. Place a hand on your chest. Name aloud or silently 3 things:<br>• what I <em>now</em> see (when I open my eyes)<br>• what I <em>now</em> feel in the body (warmth/cold/softness)<br>• what I <em>now</em> hear<br><b>3 minutes.</b> This is the LOGOS anchor, returning you from fussy time.',
     'today.d2_text': 'Balance on the wrists',
-    'today.d2_oil': 'doTERRA Balance — grounding, support of the LOGOS triangle',
+    'today.d2_oil': 'essential oil Balance — for grounding and support of the LOGOS triangle',
     'today.d2_details': '<b>Application:</b> 1 drop on the inside of each wrist. Rub together. Bring to nose.<br><b>Balance composition:</b> Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile — a grounding blend.<br><b>⚠ Note:</b> sensitive skin — dilute with carrier oil 1:1.',
     'today.d3_text': '2 glasses of water through the day',
     'today.d3_details': '<b>Not all at once!</b> 1 glass after 12:00, the second — between 14:00 and 16:00.<br><b>Why:</b> easily forgotten during the day, by evening dehydration = tiredness and confusion.',
     'today.ritual_dusk': 'Sunset Ritual',
     'today.dusk_badge': '✦ power window',
     'today.s1_text': 'Cypress + Vetiver on the feet',
-    'today.s1_oil': 'doTERRA Cypress (flow of time) + Vetiver (depth) — main oil for Z-MAN',
+    'today.s1_oil': 'essential oil Cypress — for the flow of time + Vetiver — for depth. Combination for the Z-MAN archetype',
     'today.s1_details': '<b>Blend:</b> 1 drop Cypress + 1 drop Vetiver + 1 teaspoon carrier (fractionated coconut).<br><b>Application:</b> massage motions onto the feet (especially the pads), along the spine from bottom to top.<br><b>⚠ Vetiver is very deep</b> — only in the evening, not before tasks. Vetiver can be sleep-inducing.',
     'today.s2_text': '15 minutes by water (stream/shower/cup)',
     'today.s2_details': '<b>What to do by water:</b><br>• Sit by a water source — a stream, bath, filled cup, faucet<br>• Just observe the flow — don\'t rush your thoughts<br>• On the inhale imagine water entering you · on the exhale — carrying away the surplus<br>• You can quietly speak what you want to release, and let it flow into the water<br><b>In the Z-MAN archetype:</b> water = TUMA = time. Contact with water = tuning the rhythm.',
@@ -1001,7 +1003,7 @@ const ARKA_I18N = {
     'today.s3_details': '<b>How to hold:</b> the stone in the palm of the left hand (receiving side). Squeeze softly, feel the temperature.<br><b>Labradorite:</b> protection, depth, seeing the hidden.<br><b>Moonstone:</b> intuition, feminine wisdom, cycles.<br><b>Obsidian (black):</b> grounding, protection from foreign rhythm.<br><b>Care:</b> rinse under running water once a week, charge in moonlight.',
     'today.ritual_night': 'Night Glide',
     'today.n1_text': 'Lavender on the pillow',
-    'today.n1_oil': 'doTERRA Lavender — soft transition into restoration',
+    'today.n1_oil': 'essential oil Lavender — for a soft transition into restoration',
     'today.n1_details': '<b>⚠ Dosage is CRITICAL:</b> only <b>1–2 drops</b> on the pillow or diffuser.<br>More than 2 drops = <b>opposite effect</b>: agitation, insomnia, headache. Less = deeper effect.<br><b>Alternative:</b> 1 drop on the wrist, or 2 drops in the diffuser for 30 min before sleep.',
     'today.n2_text': 'Write gratitude of the day',
     'today.n2_details': 'One or two lines in the field below. Not "must" — but <b>notice</b>. Anything can count: a cup of tea, a moment of silence, someone\'s glance, your own gesture toward yourself.',
@@ -1110,10 +1112,12 @@ const ARKA_I18N = {
     'arka.circle_state_neutral': 'en calma',
     'arka.circle_state_shadow': 'en sombra',
     'arka.circle_send_dragon': 'Enviar un dragón en apoyo',
-    'arka.dragon_received_text': 'te sintió y envió un dragón. Recíbelo.',
+    'arka.dragon_received_text': 'te sintió y envió un DAR de apoyo. Recíbelo.',
     'arka.dragon_received_accept': 'Aceptar',
     'mirror.enter': 'Entra',
     'mirror.return': '← Espejo',
+    'mirror.back_yupdar': '← YupDar',
+    'ai.proto_badge': '🤖 Prototipo AI — más profundo en producción (DeepSeek + tu perfil)',
     'banner.guest': 'Invitado',
     'banner.friend': 'Amigo',
     'banner.demo_label': 'demo',
@@ -1167,7 +1171,7 @@ const ARKA_I18N = {
     'today.r1_text': 'Descalzo en el suelo — enraizamiento LOGOS',
     'today.r1_details': '<b>Cómo hacerlo:</b> párate descalzo en la tierra — esto da el enraizamiento más profundo. Si no es posible (invierno, apartamento) — sobre un suelo frío (baldosa, parquet). Pies bien apoyados. Cierra los ojos. Imagina raíces de plata y oro creciendo hacia abajo desde tus pies. <b>2–3 minutos.</b><br><b>Afirmación:</b> «Estoy en el punto donde convergen todos los tiempos».',
     'today.r2_text': 'Frankincense en la palma → inhalar',
-    'today.r2_oil': 'doTERRA Frankincense — presencia en el momento, desaceleración del tiempo',
+    'today.r2_oil': 'aceite esencial Frankincense — para la presencia en el momento y la desaceleración del tiempo',
     'today.r2_details': '<b>Aplicación:</b> 1 gota en la palma, frotar, acercar al rostro. <b>3 inhalaciones lentas.</b><br><b>⚠ Importante:</b> sobre la piel — solo diluido con aceite portador (1:1). Uso interno — solo serie alimentaria (Beadlets).',
     'today.r3_text': 'Vaso de agua — flujo TUMA',
     'today.r3_details': '<b>Cuánto:</b> 1 vaso 200–300 ml, tibia o a temperatura ambiente. Puede llevar una rodaja de limón.<br><b>Cuándo:</b> justo al despertar, antes del café. Desayuno 15–20 min después.<br><b>Por qué:</b> deshidratación nocturna, el flujo TUMA se estanca. El agua matinal = el primer flujo del día.',
@@ -1177,14 +1181,14 @@ const ARKA_I18N = {
     'today.d1_text': '3 minutos «estoy en el punto ahora»',
     'today.d1_details': '<b>Práctica:</b> detente donde estás. Cierra los ojos. Coloca la mano en el pecho. Nombra en voz alta o mentalmente 3 cosas:<br>• qué <em>ahora</em> veo (al abrir los ojos)<br>• qué <em>ahora</em> siento en el cuerpo (calor/frío/suavidad)<br>• qué <em>ahora</em> oigo<br><b>3 minutos.</b> Es el ancla LOGOS, que te devuelve del tiempo ajetreado.',
     'today.d2_text': 'Balance en las muñecas',
-    'today.d2_oil': 'doTERRA Balance — enraizamiento, apoyo del triángulo LOGOS',
+    'today.d2_oil': 'aceite esencial Balance — para el enraizamiento y el apoyo del triángulo LOGOS',
     'today.d2_details': '<b>Aplicación:</b> 1 gota en la parte interna de cada muñeca. Frotar una contra la otra. Acercar a la nariz.<br><b>Composición Balance:</b> Spruce, Ho Wood, Frankincense, Blue Tansy, Blue Chamomile — mezcla enraizadora.<br><b>⚠ Importante:</b> piel sensible — diluir con aceite portador 1:1.',
     'today.d3_text': '2 vasos de agua durante el día',
     'today.d3_details': '<b>¡No de una vez!</b> 1 vaso después de las 12:00, el segundo — entre 14:00 y 16:00.<br><b>Por qué:</b> durante el día se olvida, al atardecer la deshidratación = cansancio y confusión.',
     'today.ritual_dusk': 'Ritual del Atardecer',
     'today.dusk_badge': '✦ ventana de poder',
     'today.s1_text': 'Cypress + Vetiver en los pies',
-    'today.s1_oil': 'doTERRA Cypress (flujo del tiempo) + Vetiver (profundidad) — aceite principal para Z-MAN',
+    'today.s1_oil': 'aceite esencial Cypress — para el flujo del tiempo + Vetiver — para la profundidad. Combinación para el arquetipo Z-MAN',
     'today.s1_details': '<b>Mezcla:</b> 1 gota Cypress + 1 gota Vetiver + 1 cucharadita de portador (coco fraccionado).<br><b>Aplicación:</b> movimientos de masaje en los pies (especialmente las almohadillas), a lo largo de la columna de abajo hacia arriba.<br><b>⚠ Vetiver es muy profundo</b> — solo de noche, no antes de tareas. Vetiver puede inducir sueño.',
     'today.s2_text': '15 minutos junto al agua (arroyo/ducha/taza)',
     'today.s2_details': '<b>Qué hacer junto al agua:</b><br>• Siéntate junto a una fuente de agua — arroyo, bañera, taza llena, grifo<br>• Solo observa el flujo — no apresures los pensamientos<br>• Al inhalar imagina cómo el agua entra en ti · al exhalar — se lleva lo excesivo<br>• Puedes hablar en voz baja lo que quieres soltar, y dejarlo ir al agua<br><b>En el arquetipo Z-MAN:</b> agua = TUMA = tiempo. Contacto con el agua = sintonización del ritmo.',
@@ -1192,7 +1196,7 @@ const ARKA_I18N = {
     'today.s3_details': '<b>Cómo sostener:</b> la piedra en la palma de la mano izquierda (lado receptor). Aprieta suavemente, siente la temperatura.<br><b>Labradorita:</b> protección, profundidad, visión de lo oculto.<br><b>Piedra de luna:</b> intuición, sabiduría femenina, ciclos.<br><b>Obsidiana (negra):</b> enraizamiento, protección del ritmo ajeno.<br><b>Cuidado:</b> enjuagar bajo agua corriente una vez por semana, cargar bajo la luz de la luna.',
     'today.ritual_night': 'Deslizamiento Nocturno',
     'today.n1_text': 'Lavender en la almohada',
-    'today.n1_oil': 'doTERRA Lavender — transición suave hacia la restauración',
+    'today.n1_oil': 'aceite esencial Lavender — para una transición suave hacia la restauración',
     'today.n1_details': '<b>⚠ La dosis es CRÍTICA:</b> solo <b>1–2 gotas</b> en la almohada o difusor.<br>Más de 2 gotas = <b>efecto contrario</b>: agitación, insomnio, dolor de cabeza. Cuanto menos — más profundo el efecto.<br><b>Alternativa:</b> 1 gota en la muñeca, o 2 gotas en el difusor 30 min antes de dormir.',
     'today.n2_text': 'Escribir gratitud del día',
     'today.n2_details': 'Una o dos líneas en el campo de abajo. No «debes» — sino <b>notar</b>. Puede ser cualquier cosa: una taza de té, un momento de silencio, la mirada de alguien, tu propio gesto hacia ti.',

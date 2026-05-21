@@ -169,7 +169,8 @@
     "personal_sub": "Today's energy for you personally",
     "empty": "To get a personal message, calculate your DAR on the «Me» tab.",
     "hint": "The DAR of the Day refreshes every morning.",
-    "ai_message_soon": "AI message coming soon — based on your personal DAR of the day."
+    "ai_message_soon": "AI message coming soon — based on your personal DAR of the day.",
+    "proto_note": "🤖 AI prototype — currently showing DAR description. In production: live Oracle message (DeepSeek + your profile)."
   },
 
   "book": {

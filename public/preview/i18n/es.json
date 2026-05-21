@@ -169,7 +169,8 @@
     "personal_sub": "La energía del día para ti personalmente",
     "empty": "Para recibir un mensaje personal, calcula tu DAR en la pestaña «Yo».",
     "hint": "El DAR del Día se actualiza cada mañana.",
-    "ai_message_soon": "El mensaje de la IA estará disponible pronto — basado en tu DAR personal del día."
+    "ai_message_soon": "El mensaje de la IA estará disponible pronto — basado en tu DAR personal del día.",
+    "proto_note": "🤖 Prototipo AI — ahora se muestra la descripción del DAR. En producción: mensaje en vivo del Oráculo (DeepSeek + tu perfil)."
   },
 
   "book": {

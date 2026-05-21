@@ -2,6 +2,22 @@
    ЗЕРКАЛО МОМЕНТА (Hero AI при открытии АРКА)
    Один блок, одна кнопка. Закон no_overload в действии.
    ═══════════════════════════════════════════════════════════ */
+
+/* Бейдж «прототип AI» — для блоков, где AI пока работает на правилах.
+   В проде заменится живой DeepSeek-генерацией. */
+.ai-proto-badge {
+  display: inline-block;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #7DD3FC;
+  background: rgba(125, 211, 252, 0.08);
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  padding: 5px 10px;
+  border-radius: 8px;
+  margin: 6px 0 10px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
 .arka-mirror {
   min-height: calc(100vh - 100px);
   display: flex;

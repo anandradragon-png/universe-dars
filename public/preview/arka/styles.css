@@ -660,14 +660,14 @@ body::after {
   display: flex; gap: 8px; margin: 10px 0 12px;
 }
 .ai-btn {
-  flex: 1; background: white;
-  border: 1px solid var(--accent);
-  color: var(--accent-deep);
+  flex: 1; background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #ffffff;
   padding: 9px 8px; border-radius: 10px;
-  font-family: inherit; font-size: 13px; font-weight: 500;
+  font-family: inherit; font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.2s;
 }
-.ai-btn:hover { background: var(--accent); color: white; }
+.ai-btn:hover { background: rgba(212, 175, 55, 0.25); border-color: var(--accent); }
 .ai-btn:active { transform: scale(0.98); }
 
 .ai-response {
@@ -718,12 +718,15 @@ body::after {
 .mentor-text em { color: white; font-style: normal; font-weight: 600; }
 
 .mentor-btn {
-  background: white; color: var(--accent-deep);
+  background: linear-gradient(135deg, #D4AF37, #b8860b);
+  color: #0a1929;
   border: none; padding: 10px 20px; border-radius: 10px;
-  font-family: inherit; font-size: 14px; font-weight: 600;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  letter-spacing: 0.3px;
   cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
 }
-.mentor-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(0,0,0,0.15); }
+.mentor-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(212,175,55,0.4); }
 .mentor-btn.primary {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
   color: white; width: 100%; padding: 14px;

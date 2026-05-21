@@ -253,11 +253,23 @@ const BookReader = (function() {
         `}
 
         <!-- Панель кнопок -->
-        <div style="display:flex;gap:6px;margin-bottom:12px">
+        <div style="display:flex;gap:6px;margin-bottom:8px">
           <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleTOC()">&#128220; Главы</button>
           <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleSearch()">&#128269; Поиск</button>
           <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleBookmarks()">&#11088; Закладки</button>
           <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleSettings()">&#9881; Настройки</button>
+        </div>
+        <!-- Доп. панель: к странице / заметка / поделиться -->
+        <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center">
+          <div style="display:flex;gap:4px;flex:1;align-items:center">
+            <input type="number" id="book-goto-input" min="1" max="${totalChapters}" placeholder="№"
+              style="width:60px;padding:8px;background:rgba(255,255,255,0.06);border:1px solid var(--border,rgba(255,255,255,0.15));border-radius:8px;color:var(--text,#fff);font-size:12px;text-align:center;outline:none;font-family:Manrope,sans-serif"
+              onkeydown="if(event.key==='Enter'){BookReader.gotoPage(this.value);this.value=''}">
+            <button class="btn btn-ghost" style="margin:0;font-size:11px;padding:8px 10px;flex:0 0 auto"
+              onclick="var v=document.getElementById('book-goto-input').value;BookReader.gotoPage(v);document.getElementById('book-goto-input').value=''">&#8594;</button>
+          </div>
+          <button class="btn btn-ghost" style="margin:0;font-size:11px;padding:10px 8px" onclick="BookReader.toggleNote()" title="Заметка к главе">&#9999;&#65039;</button>
+          <button class="btn btn-ghost" style="margin:0;font-size:11px;padding:10px 8px" onclick="BookReader.shareChapter()" title="Поделиться главой">&#128279;</button>
         </div>
       </div>
 
@@ -433,6 +445,12 @@ const BookReader = (function() {
     // Помечаем главу прочитанной (если юзер реально получил доступ - не превью-замок)
     markChapterRead(currentPartIdx, currentChapterIdx);
     updateProgressBar();
+    // Swipe-навигация — подцепляется один раз
+    try { attachSwipeHandlers(); } catch(e) {}
+    // Картинкам — курсор zoom-in (визуальная подсказка что есть lightbox)
+    try {
+      wrap.querySelectorAll('.book-img').forEach(img => { img.style.cursor = 'zoom-in'; });
+    } catch(e) {}
   }
 
   function renderYupSoulBannerIfDarEnd(ch) {
@@ -956,6 +974,193 @@ const BookReader = (function() {
     }
   }
 
+  // ═════════════════════════════════════════════════════
+  // НОВЫЕ ФИЧИ (перенесены из прототипа + расширения)
+  // 1) Lightbox для картинок
+  // 2) Поиск «к странице N»
+  // 3) Шеринг текущей главы (Telegram)
+  // 4) Заметки на полях (приватные, по главе)
+  // 5) Swipe-навигация и клавиатурные шорткаты
+  // КОПИРОВАНИЕ ТЕКСТА ОСТАЁТСЯ ЗАПРЕЩЁННЫМ.
+  // ═════════════════════════════════════════════════════
+
+  // ---- Lightbox: клик по картинке открывает её на весь экран ----
+  function openLightbox(src) {
+    let lb = document.getElementById('book-lightbox');
+    if (!lb) {
+      lb = document.createElement('div');
+      lb.id = 'book-lightbox';
+      lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;cursor:zoom-out;opacity:0;transition:opacity 0.2s';
+      lb.addEventListener('click', closeLightbox);
+      document.body.appendChild(lb);
+    }
+    lb.innerHTML = '<img src="' + src + '" alt="" style="max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 0 40px rgba(212,175,55,0.3);border-radius:8px;-webkit-user-select:none;user-select:none;-webkit-user-drag:none" ondragstart="return false" oncontextmenu="return false">' +
+      '<button onclick="event.stopPropagation();BookReader.closeLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer">&#10005;</button>';
+    requestAnimationFrame(() => { lb.style.opacity = '1'; });
+  }
+  function closeLightbox() {
+    const lb = document.getElementById('book-lightbox');
+    if (!lb) return;
+    lb.style.opacity = '0';
+    setTimeout(() => lb.remove(), 200);
+  }
+
+  // ---- Поиск «к странице N» ----
+  function gotoPage(n) {
+    const num = parseInt(n, 10);
+    if (isNaN(num) || num < 1 || num > totalChapters) {
+      const msg = ((window.i18n && i18n.t && i18n.t('book.page_out_of_range')) || ('Страница вне диапазона. Доступно: 1\u2013' + totalChapters));
+      if (typeof showToast === 'function') showToast(msg, 'error');
+      else alert(msg);
+      return;
+    }
+    let g = num - 1;
+    for (let i = 0; i < bookData.parts.length; i++) {
+      const len = bookData.parts[i].chapters.length;
+      if (g < len) { goTo(i, g); return; }
+      g -= len;
+    }
+  }
+
+  // ---- Шеринг текущей главы ----
+  function shareChapter() {
+    if (!bookData) return;
+    const part = bookData.parts[currentPartIdx];
+    const ch = part && part.chapters[currentChapterIdx];
+    if (!ch) return;
+    const gIdx = globalIndex(currentPartIdx, currentChapterIdx) + 1;
+    const title = ch.dar_name ? ('\u0414\u0430\u0440 ' + ch.dar_name) : ch.title;
+    const text = '\ud83d\udcd6 \u0427\u0438\u0442\u0430\u044e \u00ab\u041a\u043d\u0438\u0433\u0443 \u0414\u0430\u0440\u043e\u0432\u00bb \u2014 ' + title + ' (\u0433\u043b\u0430\u0432\u0430 ' + gIdx + '/' + totalChapters + ')';
+    const url = 'https://t.me/YupDarBot?start=book_' + gIdx;
+    const shareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text);
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if (tg && tg.openTelegramLink) tg.openTelegramLink(shareUrl);
+    else window.open(shareUrl, '_blank');
+  }
+
+  // ---- Заметки на полях (приватные, по главе) ----
+  function noteKey(partIdx, chapterIdx) { return partIdx + ':' + chapterIdx; }
+  function loadNotes() {
+    try { return JSON.parse(localStorage.getItem('_book_notes') || '{}'); }
+    catch (e) { return {}; }
+  }
+  function saveNotesMap(map) {
+    try { localStorage.setItem('_book_notes', JSON.stringify(map)); } catch (e) {}
+  }
+  function getNote(partIdx, chapterIdx) {
+    return loadNotes()[noteKey(partIdx, chapterIdx)] || '';
+  }
+  function setNote(partIdx, chapterIdx, text) {
+    const map = loadNotes();
+    if (text && text.trim()) map[noteKey(partIdx, chapterIdx)] = text.trim();
+    else delete map[noteKey(partIdx, chapterIdx)];
+    saveNotesMap(map);
+  }
+  function toggleNote() {
+    let panel = document.getElementById('book-note-panel');
+    if (panel) { panel.remove(); return; }
+    panel = document.createElement('div');
+    panel.id = 'book-note-panel';
+    panel.style.cssText = 'margin:14px 16px;padding:14px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:12px';
+    const existing = getNote(currentPartIdx, currentChapterIdx);
+    const label = ((window.i18n && i18n.t && i18n.t('book.note_label')) || '\u270f\ufe0f \u041c\u043e\u044f \u0437\u0430\u043c\u0435\u0442\u043a\u0430 \u043a \u044d\u0442\u043e\u0439 \u0433\u043b\u0430\u0432\u0435 (\u0442\u043e\u043b\u044c\u043a\u043e \u0434\u043b\u044f \u0442\u0435\u0431\u044f)');
+    const placeholder = ((window.i18n && i18n.t && i18n.t('book.note_placeholder')) || '\u0427\u0442\u043e \u0437\u0430\u0446\u0435\u043f\u0438\u043b\u043e, \u0447\u0442\u043e \u0445\u043e\u0447\u0435\u0448\u044c \u0437\u0430\u043f\u043e\u043c\u043d\u0438\u0442\u044c...');
+    const saveLabel = ((window.i18n && i18n.t && i18n.t('book.note_save')) || '\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c');
+    panel.innerHTML = '<div style="font-size:12px;color:#D4AF37;margin-bottom:8px;letter-spacing:0.5px">' + label + '</div>' +
+      '<textarea id="book-note-ta" rows="4" placeholder="' + placeholder + '" style="width:100%;background:rgba(8,20,36,0.5);border:1px solid rgba(212,175,55,0.2);border-radius:8px;color:#fff;padding:10px;font-family:Manrope,sans-serif;font-size:14px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box">' + existing.replace(/</g,'&lt;') + '</textarea>' +
+      '<button onclick="BookReader.saveNote()" style="margin-top:8px;padding:8px 18px;background:linear-gradient(135deg,#D4AF37,#b8860b);color:#0a1929;border:none;border-radius:8px;font-family:Manrope,sans-serif;font-weight:700;font-size:13px;cursor:pointer">' + saveLabel + '</button>';
+    const chap = document.getElementById('book-chapter');
+    if (chap && chap.parentNode) chap.parentNode.insertBefore(panel, chap.nextSibling);
+    const ta = document.getElementById('book-note-ta');
+    if (ta) ta.focus();
+  }
+  function saveCurrentNote() {
+    const ta = document.getElementById('book-note-ta');
+    if (!ta) return;
+    setNote(currentPartIdx, currentChapterIdx, ta.value);
+    const okMsg = ((window.i18n && i18n.t && i18n.t('book.note_saved')) || '\u2713 \u0417\u0430\u043c\u0435\u0442\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0430');
+    if (typeof showToast === 'function') showToast(okMsg, 'success');
+    setTimeout(() => {
+      const p = document.getElementById('book-note-panel');
+      if (p) p.remove();
+    }, 800);
+  }
+
+  // ---- Swipe-навигация на мобильном ----
+  function attachSwipeHandlers() {
+    const chap = document.getElementById('book-chapter');
+    if (!chap || chap._swipeAttached) return;
+    chap._swipeAttached = true;
+    let startX = 0, startY = 0, startT = 0;
+    chap.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startT = Date.now();
+    }, { passive: true });
+    chap.addEventListener('touchend', (e) => {
+      if (!startX) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      const dt = Date.now() - startT;
+      startX = 0;
+      if (Math.abs(dx) < 60 || Math.abs(dy) > 60 || dt > 600) return;
+      if (dx < 0) nextChapter();
+      else prevChapter();
+    }, { passive: true });
+  }
+
+  // ---- Клавиатурные шорткаты ----
+  let _kbAttached = false;
+  function attachKeyboardShortcuts() {
+    if (_kbAttached) return;
+    _kbAttached = true;
+    document.addEventListener('keydown', (e) => {
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+      if (!document.getElementById('book-chapter')) return;
+      switch (e.key) {
+        case 'ArrowRight': case 'PageDown':
+          e.preventDefault(); nextChapter(); break;
+        case 'ArrowLeft': case 'PageUp':
+          e.preventDefault(); prevChapter(); break;
+        case 'Home':
+          e.preventDefault(); goTo(0, 0); break;
+        case 'End':
+          e.preventDefault(); {
+            const last = bookData.parts.length - 1;
+            goTo(last, bookData.parts[last].chapters.length - 1);
+          } break;
+        case 'b': case 'B':
+          if (!e.ctrlKey && !e.metaKey) { e.preventDefault(); toggleBookmark(); }
+          break;
+        case 'Escape':
+          if (document.getElementById('book-lightbox')) { e.preventDefault(); closeLightbox(); }
+          break;
+      }
+    });
+  }
+
+  // ---- Делегированный клик по картинкам — lightbox ----
+  let _imgClickAttached = false;
+  function attachImageClickHandler() {
+    if (_imgClickAttached) return;
+    _imgClickAttached = true;
+    document.addEventListener('click', (e) => {
+      const img = e.target.closest && e.target.closest('#book-chapter .book-img');
+      if (!img) return;
+      const src = img.getAttribute('src');
+      if (!src) return;
+      img.style.cursor = 'zoom-in';
+      openLightbox(src);
+    });
+  }
+  if (typeof document !== 'undefined') {
+    attachImageClickHandler();
+    attachKeyboardShortcuts();
+  }
+
   return {
     init, render, renderChapter,
     nextChapter, prevChapter, goTo, goToDar, openInTreasury,
@@ -963,6 +1168,11 @@ const BookReader = (function() {
     toggleBookmark, removeBookmark, clearBookmarks,
     setFontSize, setTheme,
     submitPromo, showLocked,
-    copyCardNumber
+    copyCardNumber,
+    // Новые фичи
+    openLightbox, closeLightbox,
+    gotoPage, shareChapter,
+    toggleNote, saveNote: saveCurrentNote,
+    attachSwipeHandlers
   };
 })();

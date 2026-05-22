@@ -122,8 +122,7 @@ body::after {
   background: var(--bg-card);
   padding: 4px;
   border-radius: var(--radius-sm);
-  margin-bottom: 18px;
-  margin-left: 50px;  /* место для кнопки ← YupDar */
+  margin: 50px 0 18px;  /* отступ сверху для кнопки ← YupDar (fixed, z-index:100) */
   box-shadow: var(--shadow-soft);
 }
 .tab {

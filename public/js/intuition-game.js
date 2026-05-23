@@ -649,10 +649,10 @@ const IntuitionGame = (function() {
           ? '<img src="images/dars/' + imgBaseNFC + '.svg" style="' + imgFilter + '" onerror="' + imgFallback + '"/>'
           : '';
         html += `
-          <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:12px 6px;text-align:center;min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;${isSelected ? 'box-shadow:0 0 10px rgba(212,175,55,0.3)' : ''}">
-            <div style="width:72px;height:72px;margin-bottom:6px;display:flex;align-items:center;justify-content:center">${cardImg}</div>
-            <div style="font-size:13px;color:var(--text);letter-spacing:1px;font-weight:bold">${card.name}</div>
-            <div style="font-size:12px;color:#D4AF37;font-weight:700;margin-top:3px;letter-spacing:1px">${card.code}</div>
+          <div style="background:${bg};border:2px solid ${border};border-radius:12px;padding:8px 4px;text-align:center;height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;${isSelected ? 'box-shadow:0 0 10px rgba(212,175,55,0.3)' : ''}">
+            <div style="width:52px;height:52px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${cardImg}</div>
+            <div style="font-size:12px;color:var(--text);letter-spacing:1px;font-weight:bold;line-height:1.2">${card.name}</div>
+            <div style="font-size:10px;color:#D4AF37;font-weight:700;margin-top:2px;letter-spacing:1px">${card.code}</div>
             ${badge}
           </div>`;
       } else {
@@ -668,10 +668,10 @@ const IntuitionGame = (function() {
         // и рамки моргают — см. баг мерцания на Android).
         html += `
           <div class="game-card-back" data-idx="${i}" onclick="IntuitionGame.selectCard(${i})"
-            style="background:#080808;border:2px solid rgba(212,175,55,0.35);border-radius:12px;padding:6px;text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;position:relative;overflow:hidden;box-shadow:inset 0 0 20px rgba(212,175,55,0.05);${selStyle}">
-            <div style="position:relative;width:70%;max-height:72px;display:flex;align-items:center;justify-content:center">
-              <img src="images/caduceus-gold.png" alt="" style="width:100%;height:auto;max-height:72px;object-fit:contain;opacity:${isSelected ? '1' : '0.9'};pointer-events:none;filter:drop-shadow(0 0 8px rgba(212,175,55,0.25))" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-              <div style="display:none;font-size:32px;color:#D4AF37;text-shadow:0 0 10px rgba(212,175,55,0.5);line-height:1">&#10016;</div>
+            style="background:#080808;border:2px solid rgba(212,175,55,0.35);border-radius:12px;padding:6px;text-align:center;cursor:pointer;height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;position:relative;overflow:hidden;box-shadow:inset 0 0 20px rgba(212,175,55,0.05);${selStyle}">
+            <div style="position:relative;width:60%;max-height:56px;display:flex;align-items:center;justify-content:center">
+              <img src="images/caduceus-gold.png" alt="" style="width:100%;height:auto;max-height:56px;object-fit:contain;opacity:${isSelected ? '1' : '0.9'};pointer-events:none;filter:drop-shadow(0 0 8px rgba(212,175,55,0.25))" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+              <div style="display:none;font-size:28px;color:#D4AF37;text-shadow:0 0 10px rgba(212,175,55,0.5);line-height:1">&#10016;</div>
             </div>
             <div class="card-check" style="position:absolute;top:4px;right:4px;font-size:14px;color:#D4AF37;display:${isSelected ? 'block' : 'none'}">&#10003;</div>
           </div>`;

@@ -338,30 +338,27 @@
 
     /* === Подвкладки внутри Сокровищницы === */
     .subtabs {
-      display: flex;
-      gap: 8px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
       margin-bottom: 16px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
-      padding: 2px 16px 6px;
-      margin-left: -16px;
-      margin-right: -16px;
-      scrollbar-width: none;
+      padding: 2px 0 6px;
     }
-    .subtabs::-webkit-scrollbar { display: none; }
     .subtab {
       background: var(--card);
       border: 1px solid var(--border);
       color: var(--text-dim);
-      padding: 8px 14px;
-      border-radius: 20px;
-      font-size: 13px;
+      padding: 8px 6px;
+      border-radius: 14px;
+      font-size: 12px;
       cursor: pointer;
       white-space: nowrap;
       font-family: inherit;
       transition: all 0.2s;
-      flex-shrink: 0;
+      text-align: center;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .subtab.active {
       background: var(--gold-soft);
@@ -2048,10 +2045,12 @@
       filter: invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 10px #D4AF37);
     }
     .oracle-card-name {
-      font-size: 22px;
-      font-weight: 800;
+      font-size: 28px;
+      font-weight: 700;
       color: var(--gold);
-      letter-spacing: 3px;
+      letter-spacing: 2px;
+      font-family: 'Manrope', sans-serif;
+      text-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
     }
     .oracle-card-code {
       font-size: 12px;
@@ -3034,7 +3033,7 @@
       <h2 class="screen-headline" data-i18n="treasury.headline">Сокровищница Даров</h2>
 
       <div class="subtabs">
-        <button class="subtab active" data-subtab="collection" data-i18n="treasury.tab_collection">Моя коллекция</button>
+        <button class="subtab active" data-subtab="collection" data-i18n="treasury.tab_collection">Коллекция</button>
         <button class="subtab" data-subtab="books" data-i18n="treasury.tab_books">Книги</button>
         <button class="subtab" data-subtab="search" data-i18n="treasury.tab_search">Энциклопедия</button>
         <button class="subtab" data-subtab="games" data-i18n="treasury.tab_games">Игры</button>

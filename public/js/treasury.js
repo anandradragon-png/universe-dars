@@ -58,8 +58,16 @@ const Treasury = (function() {
     }
 
     const allDars = window.DARS || {};
-    const totalUnlocked = userDars.length;
     const total = Object.keys(allDars).length;
+    // Уникальные открытые дары — userDars может содержать дубли при рассинхроне
+    // с сервером. Клампим к total: показывать 66/64 неправильно.
+    const uniqueUnlockedCodes = new Set(
+      userDars
+        .map(d => d && (d.dar_code || d.code))
+        .filter(code => code && allDars[code])
+    );
+    const totalUnlocked = Math.min(uniqueUnlockedCodes.size, total);
+    const allUnlocked = totalUnlocked >= total;
 
     // Прогресс-бар
     const pct = Math.round((totalUnlocked / total) * 100);
@@ -145,14 +153,24 @@ const Treasury = (function() {
       html += '</div></div>';
     }
 
-    // Кнопка "Открыть случайный дар"
-    html += `
-      <div style="text-align:center;margin:20px 0">
-        <button class="btn btn-secondary" onclick="Treasury.unlockRandom()" id="btn-unlock-random">
-          &#128142; Открыть случайный дар (20 кристаллов)
-        </button>
-      </div>
-    `;
+    // Кнопка "Открыть случайный дар" — скрываем когда все 64 уже открыты
+    if (allUnlocked) {
+      html += `
+        <div style="text-align:center;margin:20px 0;padding:18px;background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.04));border:1px solid rgba(212,175,55,0.35);border-radius:14px">
+          <div style="font-size:32px;margin-bottom:6px">&#127775;</div>
+          <div style="font-size:15px;color:#D4AF37;font-weight:700;margin-bottom:4px">Все 64 Дара открыты</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Ты прошла полный путь Сокровищницы. Возвращайся к Дарам, чтобы углублять каждый.</div>
+        </div>
+      `;
+    } else {
+      html += `
+        <div style="text-align:center;margin:20px 0">
+          <button class="btn btn-secondary" onclick="Treasury.unlockRandom()" id="btn-unlock-random">
+            &#128142; Открыть случайный дар (20 кристаллов)
+          </button>
+        </div>
+      `;
+    }
 
     container.innerHTML = html;
   }
@@ -1173,6 +1191,20 @@ const Treasury = (function() {
       if (btn) btn.disabled = false;
     };
 
+    // Защита: проверяем не открыты ли все дары — БЕЗ списания кристаллов.
+    // Тестер жаловалась что кнопка активна при 64/64.
+    const allDarsObj = window.DARS || {};
+    const totalDars = Object.keys(allDarsObj).length;
+    const uniqueOpened = new Set(userDars.map(d => d && (d.dar_code || d.code)).filter(Boolean));
+    if (uniqueOpened.size >= totalDars) {
+      const msg = ((window.i18n && i18n.t && i18n.t('treasury.all_unlocked')) || 'Все Дары уже открыты — кристаллы не списаны.');
+      if (typeof showToast === 'function') showToast(msg, 'info');
+      else alert(msg);
+      release();
+      render(); // обновим UI чтобы кнопка скрылась
+      return;
+    }
+
     const cost = 20;
     // Синхронизируем баланс с сервером ПЕРЕД проверкой - UI мог рассинхрониться
     try {
@@ -1202,7 +1234,15 @@ const Treasury = (function() {
           CrystalsUI.animateSpend(result.crystals_spent || cost);
         }
         const darName = getDarName(result.dar_code);
-        userDars.push({ dar_code: result.dar_code, unlock_source: 'crystal_purchase', unlocked_sections: 1 });
+        // Дедупликация: если такой дар уже есть в списке — обновляем,
+        // не пушим (иначе счётчик уходил выше total)
+        const existing = userDars.find(d => d && (d.dar_code === result.dar_code || d.code === result.dar_code));
+        if (existing) {
+          existing.unlock_source = existing.unlock_source || 'crystal_purchase';
+          existing.unlocked_sections = Math.max(existing.unlocked_sections || 0, 1);
+        } else {
+          userDars.push({ dar_code: result.dar_code, unlock_source: 'crystal_purchase', unlocked_sections: 1 });
+        }
         if (typeof showToast === 'function') showToast(`\u2728 Ты открыл новый дар: ${darName}!`, 'success');
         else alert(`Ты открыл дар: ${darName}!`);
         render();

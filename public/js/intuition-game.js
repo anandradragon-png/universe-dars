@@ -1045,8 +1045,10 @@ const IntuitionGame = (function() {
           ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-bottom:4px">&#127942; +${stats._lastPoints} очков в рейтинг</div>` : ''}
           ${stats.streak > 1 ? `<div style="font-size:13px;color:#D4AF37">&#128293; Серия: ${stats.streak}</div>` : ''}
         ` : `
-          <div style="font-size:12px;color:var(--text-dim)">
-            ${currentMode === 'classic' ? 'Правильный ответ: карта ' + (cards.findIndex(c => c.type === 'target') + 1) : 'Попробуй ещё!'}
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">
+            ${currentMode === 'classic'
+              ? '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0439 \u0414\u0430\u0440 \u0432\u044b\u0434\u0435\u043b\u0435\u043d \u0437\u0435\u043b\u0451\u043d\u044b\u043c \u2014 \u044d\u0442\u043e \u043a\u0430\u0440\u0442\u0430 \u2116' + (cards.findIndex(c => c.type === 'target') + 1) + '. \u0422\u044b \u0432\u044b\u0431\u0440\u0430\u043b\u0430 \u0434\u0440\u0443\u0433\u0443\u044e.'
+              : '\u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439 \u0435\u0449\u0451!'}
           </div>
           ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-top:6px">&#127942; +${stats._lastPoints} очков за участие</div>` : ''}
         `}

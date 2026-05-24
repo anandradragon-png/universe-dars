@@ -74,7 +74,49 @@
     "add_btn": "+ Add a loved one",
     "invite_title": "Invite a friend",
     "invite_sub": "Your friend calculates their DAR — and it unlocks in your Treasury.",
-    "invite_btn": "Share"
+    "invite_btn": "Share",
+
+    "add_title": "Add a loved one",
+    "add_hint": "⚠️ Once saved, the entry can't be changed or deleted — protection against substitution.",
+    "field_name": "First name",
+    "field_lastname": "Last name (optional)",
+    "field_date": "Date of birth (DD.MM.YYYY)",
+    "who_is": "RELATIONSHIP",
+    "gender": "GENDER",
+    "gender_female": "Female",
+    "gender_male": "Male",
+
+    "slots_label": "SLOTS USED",
+    "slots_unlimited": "unlimited",
+    "empty_list": "No loved ones added yet.",
+    "add_safety": "⚠️ Once saved, entry can't be changed or deleted.\nProtection against substitution.",
+
+    "btn_oracle": "🔮 Oracle",
+    "btn_compat": "💞 Compat.",
+    "btn_book": "📖 Book",
+    "btn_dar": "📚 DAR",
+
+    "rel_mother": "Mother",
+    "rel_father": "Father",
+    "rel_son": "Son",
+    "rel_daughter": "Daughter",
+    "rel_partner": "Partner",
+    "rel_husband": "Husband",
+    "rel_wife": "Wife",
+    "rel_grandmother": "Grandmother",
+    "rel_grandfather": "Grandfather",
+    "rel_grandson": "Grandson",
+    "rel_granddaughter": "Granddaughter",
+    "rel_brother": "Brother",
+    "rel_sister": "Sister",
+    "rel_friend": "Friend",
+    "rel_other": "Other",
+
+    "err_name": "Enter a name (min 2 characters)",
+    "err_date": "Date in format DD.MM.YYYY",
+    "err_relationship": "Choose the relationship",
+    "saved_toast": "✨ {name} has been added to your family!",
+    "confirm_msg": "Save loved one?\n\nName: {name}\nDate of birth: {date}\nRelationship: {rel}\n\n⚠️ Once saved, this entry CANNOT be changed or deleted. Protection against substitution.\n\nDouble-check the details."
   },
 
   "treasury": {

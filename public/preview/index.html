@@ -1287,6 +1287,123 @@
       white-space: nowrap;
     }
 
+    /* ============ Карточки близких ============ */
+    .family-slots-counter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+    }
+    .family-slots-counter b { color: var(--gold); }
+    .rel-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .rel-card-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .rel-card-rel-icon { font-size: 24px; flex-shrink: 0; }
+    .rel-card-dar-icon {
+      width: 46px; height: 46px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rel-card-dar-icon img { width: 100%; height: 100%; object-fit: contain; }
+    .rel-card-info { flex: 1; min-width: 0; }
+    .rel-card-name {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: bold;
+    }
+    .rel-card-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .rel-card-dar {
+      font-size: 11px;
+      color: var(--gold);
+      margin-top: 2px;
+    }
+    .rel-card-archetype {
+      font-size: 10px;
+      color: var(--gold);
+      font-style: italic;
+    }
+    .rel-card-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .rel-card-btn {
+      flex: 1;
+      padding: 9px;
+      border-radius: 10px;
+      border: 1px solid rgba(212,175,55,0.3);
+      background: rgba(212,175,55,0.08);
+      color: var(--gold);
+      font-size: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .rel-card-btn-compat {
+      border-color: rgba(244,81,30,0.4);
+      background: rgba(244,81,30,0.08);
+      color: #f4511e;
+    }
+    .family-add-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px dashed rgba(212,175,55,0.4);
+      background: rgba(212,175,55,0.08);
+      color: var(--gold);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 8px;
+    }
+    .family-add-hint {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 6px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+    /* Кнопки выбора отношения и пола в модалке */
+    .rel-rel-btn {
+      padding: 10px 6px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text-dim);
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .rel-rel-btn:hover {
+      border-color: rgba(212,175,55,0.4);
+      color: var(--text);
+    }
+    .rel-rel-btn.active {
+      border-color: var(--gold);
+      background: rgba(212,175,55,0.15);
+      color: var(--gold);
+      font-weight: 600;
+    }
+
     /* === Сокровищница: карточки книг === */
     .treasury-book-card {
       display: flex;
@@ -3006,16 +3123,10 @@
       <h2 class="screen-headline" data-i18n="family.headline">Семья</h2>
       <p class="screen-subhead" data-i18n="family.subhead">Близкие и приглашённые друзья — в одном месте.</p>
 
-      <!-- Empty state, пока никого нет -->
-      <div class="empty" id="family-empty">
-        <div class="empty-icon">👨‍👩‍👧</div>
-        <div class="empty-text" data-i18n="family.empty_text">
-          Пойми ребёнка, почему конфликтуете с мамой, что объединяет с любимым.
-        </div>
-        <button class="btn-primary" onclick="showProtoSoon('add_relative')" data-i18n="family.add_btn">+ Добавить близкого</button>
-      </div>
+      <!-- Список близких + кнопка «Добавить» (рендерится в renderFamilyList()) -->
+      <div id="family-list-container"></div>
 
-      <!-- Заглушка реф-блока, отображается под списком близких (потом) -->
+      <!-- Реф-блок отображается под списком, побуждает пригласить друга -->
       <div class="family-invite-card">
         <div class="family-invite-emoji">🤝</div>
         <div class="family-invite-text">
@@ -3025,6 +3136,32 @@
         <button class="family-invite-btn" onclick="shareInvite()" data-i18n="family.invite_btn">Поделиться</button>
       </div>
     </section>
+
+    <!-- ============ МОДАЛКА «Добавить близкого» ============ -->
+    <div class="lk-backdrop" id="family-add-backdrop" onclick="closeFamilyAdd()"></div>
+    <div class="depth-modal" id="family-add-modal" style="max-width:420px">
+      <div class="depth-modal-title" data-i18n="family.add_title">Добавить близкого</div>
+      <div class="depth-modal-hint" data-i18n="family.add_hint">⚠️ После сохранения изменить или удалить нельзя — это защита от подмены.</div>
+
+      <input class="lk-input" id="rel-name" type="text" placeholder="Имя" data-i18n-placeholder="family.field_name" style="margin-bottom:8px">
+      <input class="lk-input" id="rel-last-name" type="text" placeholder="Фамилия (необязательно)" data-i18n-placeholder="family.field_lastname" style="margin-bottom:8px">
+      <input class="lk-input" id="rel-birth-date" type="text" placeholder="Дата рождения (ДД.ММ.ГГГГ)" data-i18n-placeholder="family.field_date" style="margin-bottom:12px">
+
+      <div style="font-size:11px;color:var(--text-dim);letter-spacing:0.5px;margin-bottom:6px" data-i18n="family.who_is">КЕМ ПРИХОДИТСЯ</div>
+      <div id="rel-relationship-buttons" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px"></div>
+
+      <div style="font-size:11px;color:var(--text-dim);letter-spacing:0.5px;margin-bottom:6px" data-i18n="family.gender">ПОЛ</div>
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button class="rel-rel-btn" data-gender="female" onclick="selectRelGender('female')" data-i18n="family.gender_female">Женский</button>
+        <button class="rel-rel-btn" data-gender="male" onclick="selectRelGender('male')" data-i18n="family.gender_male">Мужской</button>
+      </div>
+
+      <div class="error-msg" id="rel-add-status"></div>
+      <div class="lk-btn-row">
+        <button class="lk-btn" onclick="closeFamilyAdd()" data-i18n="common.cancel">Отмена</button>
+        <button class="lk-btn" id="rel-save-btn" onclick="saveRelative()" data-i18n="common.save">Сохранить</button>
+      </div>
+    </div>
 
     <!-- ============ ВКЛАДКА «СОКРОВИЩНИЦА» ============ -->
     <!-- Состав: Моя коллекция / Книги (Даров + для Родителей) / Энциклопедия / Путешествие героя.

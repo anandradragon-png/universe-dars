@@ -24,6 +24,10 @@
     if (name === 'treasury') {
       try { renderCollection(); } catch (e) {}
     }
+    // При входе в Семью — рендерим список близких
+    if (name === 'family') {
+      try { renderFamilyList(); } catch (e) {}
+    }
   }
   window.switchTab = switchTab;
 
@@ -183,21 +187,24 @@
     const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
     const messages = {
       ru: {
-        add_relative: 'Добавление близкого работает в проде. В прототипе пока заглушка — Дары других людей не сохраняются между сессиями.',
         hero_journey: 'Путешествие Героя — игра, где ты проходишь историю Дара. Будет доступна в проде.',
         full_message: 'Полное послание — AI-генерация (DeepSeek + твой профиль). Работает в проде по тарифу Книга и выше.',
+        relative_oracle: 'Оракул для близкого — AI читает послание от его Дара. Работает в проде.',
+        compatibility: 'Совместимость — разбор резонансов и напряжений между вашими Дарами. Работает в проде.',
         default: 'Эта функция работает в проде. В прототипе пока заглушка.'
       },
       en: {
-        add_relative: 'Adding a relative works in production. In the prototype it is a stub — others\' DARs are not saved between sessions.',
         hero_journey: 'Hero Journey is a game where you walk through the story of a DAR. Will be available in production.',
         full_message: 'Full Message — AI generation (DeepSeek + your profile). Available in production on the Book tier and above.',
+        relative_oracle: 'Oracle for loved one — AI reads a message from their DAR. Available in production.',
+        compatibility: 'Compatibility — analysis of resonances and tensions between your DARs. Available in production.',
         default: 'This feature works in production. In the prototype it is a stub.'
       },
       es: {
-        add_relative: 'Añadir un familiar funciona en producción. En el prototipo es un marcador — los DAR de otros no se guardan entre sesiones.',
         hero_journey: 'Viaje del Héroe es un juego donde recorres la historia de un DAR. Disponible en producción.',
         full_message: 'Mensaje completo — generación AI (DeepSeek + tu perfil). Disponible en producción con la tarifa Libro y superiores.',
+        relative_oracle: 'Oráculo para un ser querido — la IA lee un mensaje de su DAR. Disponible en producción.',
+        compatibility: 'Compatibilidad — análisis de resonancias y tensiones entre tus DAR. Disponible en producción.',
         default: 'Esta función funciona en producción. En el prototipo es un marcador.'
       }
     };
@@ -1828,6 +1835,239 @@
     renderMeResult();
   }
   window.saveDepthName = saveDepthName;
+
+  // ════════════════════════════════════════════════════════════════════
+  // СЕМЬЯ — список близких, добавление, расчёт Дара родственника.
+  // В проде это идёт через API (см. public/index.html — DarAPI.getRelatives),
+  // в превью храним всё в localStorage. Изменить/удалить нельзя — защита
+  // от подмены, как в проде.
+  // ════════════════════════════════════════════════════════════════════
+
+  const FAMILY_KEY = '_yupdar_preview_family';
+  const RELATIONSHIP_TYPES = [
+    'mother','father','son','daughter','partner','husband','wife',
+    'grandmother','grandfather','grandson','granddaughter',
+    'brother','sister','friend','other'
+  ];
+  const RELATIONSHIP_ICONS = {
+    mother:'👩', father:'👨', son:'👦', daughter:'👧',
+    partner:'💞', husband:'🤵', wife:'👰',
+    grandmother:'👵', grandfather:'👴', grandson:'🧒', granddaughter:'👧',
+    brother:'👦', sister:'👧', friend:'🤝', other:'✨'
+  };
+
+  function _ft(key) {
+    return (window.previewI18n && previewI18n.t('family.' + key)) || '';
+  }
+
+  function loadFamily() {
+    try { return JSON.parse(localStorage.getItem(FAMILY_KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+  function saveFamily(arr) {
+    try { localStorage.setItem(FAMILY_KEY, JSON.stringify(arr)); } catch (e) {}
+  }
+
+  // Парсер даты ДД.ММ.ГГГГ → { day, month, year }
+  function parseRelDate(str) {
+    const m = String(str || '').match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (!m) return null;
+    const day = +m[1], month = +m[2], year = +m[3];
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2099) return null;
+    return { day, month, year };
+  }
+
+  // Расчёт Дара по дате (берём только ОДА — достаточно для семьи в превью).
+  // В проде есть полный профиль с временем/местом/именем — здесь упрощённо.
+  function calcRelDar(rel) {
+    if (!window.DarsLib || !window.DarsLib.calcOda) return null;
+    const date = parseRelDate(rel.birth_date);
+    if (!date) return null;
+    try {
+      const oda = window.DarsLib.calcOda(date);
+      return {
+        code: oda.code,
+        name: oda.name,
+        archetype: (window.DarsLib.getDarArchetype && window.DarsLib.getDarArchetype(oda.code, previewI18n.getLang())) || ''
+      };
+    } catch (e) { return null; }
+  }
+
+  // SVG-глиф Дара (золотой) — как в Сокровищнице
+  function relDarSvg(darName) {
+    if (!darName) return '';
+    const base = String(darName).toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '');
+    if (!base) return '';
+    return '<img src="/images/dars/' + base + '.svg" onerror="this.style.display=\'none\'">';
+  }
+
+  function escapeRel(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderFamilyList() {
+    const container = document.getElementById('family-list-container');
+    if (!container) return;
+    const list = loadFamily();
+    const slotLimit = 5;  // в превью лимит 5 (в проде определяется тарифом)
+    const slotsLabel = _ft('slots_label') || 'СЛОТЫ ЗАНЯТО';
+
+    let html = '';
+    // Счётчик слотов
+    html += '<div class="family-slots-counter">' +
+      '<span>' + slotsLabel + '</span>' +
+      '<span><b>' + list.length + ' / ' + slotLimit + '</b></span>' +
+      '</div>';
+
+    if (list.length === 0) {
+      html += '<div style="text-align:center;padding:14px 8px;font-size:12px;color:var(--text-dim);font-style:italic">' +
+        (_ft('empty_list') || 'Пока не добавлено ни одного близкого человека.') +
+      '</div>';
+    } else {
+      for (const r of list) {
+        const relIcon = RELATIONSHIP_ICONS[r.relationship] || '✨';
+        const relLabel = _ft('rel_' + r.relationship) || r.relationship;
+        const dar = r.dar || calcRelDar(r);
+        const darIconHtml = dar ? relDarSvg(dar.name) : '';
+        html += '<div class="rel-card">' +
+          '<div class="rel-card-row">' +
+            '<div class="rel-card-rel-icon">' + relIcon + '</div>' +
+            '<div class="rel-card-dar-icon">' + darIconHtml + '</div>' +
+            '<div class="rel-card-info">' +
+              '<div class="rel-card-name">' + escapeRel(r.name) + '</div>' +
+              '<div class="rel-card-meta">' + relLabel + ' · ' + escapeRel(r.birth_date) + '</div>' +
+              (dar ? '<div class="rel-card-dar">' + escapeRel(dar.name) + ' (' + dar.code + ')</div>' : '') +
+              (dar && dar.archetype ? '<div class="rel-card-archetype">' + escapeRel(dar.archetype) + '</div>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="rel-card-actions">' +
+            '<button class="rel-card-btn" onclick="showProtoSoon(\'relative_oracle\')">' + (_ft('btn_oracle') || '🔮') + '</button>' +
+            '<button class="rel-card-btn rel-card-btn-compat" onclick="showProtoSoon(\'compatibility\')">' + (_ft('btn_compat') || '💞') + '</button>' +
+            (dar ? '<button class="rel-card-btn" onclick="openBookOfDars()">' + (_ft('btn_book') || '📖') + '</button>' : '') +
+          '</div>' +
+        '</div>';
+      }
+    }
+
+    // Кнопка «Добавить» — если есть свободный слот
+    if (list.length < slotLimit) {
+      html += '<button class="family-add-btn" onclick="openFamilyAdd()">' +
+        (_ft('add_btn') || '+ Добавить близкого') +
+      '</button>' +
+      '<div class="family-add-hint">' + ((_ft('add_safety') || '⚠️ После сохранения близкого изменить или удалить нельзя.').replace(/\n/g, '<br>')) + '</div>';
+    } else {
+      html += '<div style="text-align:center;font-size:11px;color:#D4AF37;padding:8px 0;line-height:1.5">' +
+        'Все слоты заняты. Близкие привязаны навсегда (защита от подмены).' +
+      '</div>';
+    }
+
+    container.innerHTML = html;
+  }
+  window.renderFamilyList = renderFamilyList;
+
+  // ── Модалка «Добавить близкого» ──────────────────
+  let _selectedRel = '';
+  let _selectedRelGender = '';
+
+  function renderRelationshipButtons() {
+    const wrap = document.getElementById('rel-relationship-buttons');
+    if (!wrap) return;
+    wrap.innerHTML = RELATIONSHIP_TYPES.map(r =>
+      '<button class="rel-rel-btn" data-rel="' + r + '" onclick="selectRelationship(\'' + r + '\')">' +
+        (_ft('rel_' + r) || r) +
+      '</button>'
+    ).join('');
+  }
+
+  function openFamilyAdd() {
+    _selectedRel = '';
+    _selectedRelGender = '';
+    renderRelationshipButtons();
+    ['rel-name','rel-last-name','rel-birth-date','rel-add-status'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (el.tagName === 'INPUT') el.value = '';
+        else el.textContent = '';
+      }
+    });
+    // Маска даты
+    attachDateMask(document.getElementById('rel-birth-date'));
+    // Сброс активных
+    document.querySelectorAll('#rel-relationship-buttons .rel-rel-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('[data-gender]').forEach(b => b.classList.remove('active'));
+    // Открыть
+    const modal = document.getElementById('family-add-modal');
+    const back = document.getElementById('family-add-backdrop');
+    if (modal) modal.style.display = 'block';
+    if (back) back.style.display = 'block';
+  }
+  window.openFamilyAdd = openFamilyAdd;
+
+  function closeFamilyAdd() {
+    const modal = document.getElementById('family-add-modal');
+    const back = document.getElementById('family-add-backdrop');
+    if (modal) modal.style.display = 'none';
+    if (back) back.style.display = 'none';
+  }
+  window.closeFamilyAdd = closeFamilyAdd;
+
+  function selectRelationship(rel) {
+    _selectedRel = rel;
+    document.querySelectorAll('#rel-relationship-buttons .rel-rel-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.rel === rel);
+    });
+  }
+  window.selectRelationship = selectRelationship;
+
+  function selectRelGender(g) {
+    _selectedRelGender = g;
+    document.querySelectorAll('[data-gender]').forEach(b => {
+      b.classList.toggle('active', b.dataset.gender === g);
+    });
+  }
+  window.selectRelGender = selectRelGender;
+
+  function saveRelative() {
+    const status = document.getElementById('rel-add-status');
+    const first = (document.getElementById('rel-name')?.value || '').trim();
+    const last  = (document.getElementById('rel-last-name')?.value || '').trim();
+    const date  = (document.getElementById('rel-birth-date')?.value || '').trim();
+    const name  = [first, last].filter(Boolean).join(' ');
+
+    function showErr(msg) {
+      if (status) { status.style.color = '#f87171'; status.textContent = msg; }
+    }
+    if (!first || first.length < 2) return showErr(_ft('err_name') || 'Укажи имя (минимум 2 символа)');
+    if (!parseRelDate(date)) return showErr(_ft('err_date') || 'Дата в формате ДД.ММ.ГГГГ');
+    if (!_selectedRel) return showErr(_ft('err_relationship') || 'Выбери, кем приходится');
+
+    // Подтверждение
+    const relLabel = _ft('rel_' + _selectedRel) || _selectedRel;
+    const confirmTpl = _ft('confirm_msg') || 'Сохранить близкого?\n\nИмя: {name}\nДата: {date}\nКем: {rel}\n\n⚠️ После сохранения изменить или удалить нельзя.';
+    const confirmMsg = confirmTpl.replace('{name}', name).replace('{date}', date).replace('{rel}', relLabel);
+    if (!confirm(confirmMsg)) return;
+
+    const list = loadFamily();
+    const rel = {
+      id: 'r' + Date.now(),
+      name: name,
+      birth_date: date,
+      relationship: _selectedRel,
+      gender: _selectedRelGender || null,
+      created_at: new Date().toISOString()
+    };
+    // Кэшируем Дар сразу при сохранении
+    const dar = calcRelDar(rel);
+    if (dar) rel.dar = dar;
+    list.push(rel);
+    saveFamily(list);
+
+    closeFamilyAdd();
+    const toastTpl = _ft('saved_toast') || '✨ {name} добавлен в семью!';
+    if (typeof showToast === 'function') showToast(toastTpl.replace('{name}', name));
+    renderFamilyList();
+  }
+  window.saveRelative = saveRelative;
 
   // Старт
   document.addEventListener('DOMContentLoaded', async () => {

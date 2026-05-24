@@ -74,7 +74,49 @@
     "add_btn": "+ Añadir a un ser querido",
     "invite_title": "Invita a un amigo",
     "invite_sub": "Tu amigo calcula su DAR — y se desbloquea en tu Tesoro.",
-    "invite_btn": "Compartir"
+    "invite_btn": "Compartir",
+
+    "add_title": "Añadir a un ser querido",
+    "add_hint": "⚠️ Una vez guardado, no se puede cambiar ni eliminar — protección contra suplantación.",
+    "field_name": "Nombre",
+    "field_lastname": "Apellido (opcional)",
+    "field_date": "Fecha de nacimiento (DD.MM.AAAA)",
+    "who_is": "RELACIÓN",
+    "gender": "SEXO",
+    "gender_female": "Femenino",
+    "gender_male": "Masculino",
+
+    "slots_label": "ESPACIOS USADOS",
+    "slots_unlimited": "ilimitado",
+    "empty_list": "Aún no has añadido a ningún ser querido.",
+    "add_safety": "⚠️ Una vez guardado, no se puede cambiar ni eliminar.\nProtección contra suplantación.",
+
+    "btn_oracle": "🔮 Oráculo",
+    "btn_compat": "💞 Comp.",
+    "btn_book": "📖 Libro",
+    "btn_dar": "📚 DAR",
+
+    "rel_mother": "Madre",
+    "rel_father": "Padre",
+    "rel_son": "Hijo",
+    "rel_daughter": "Hija",
+    "rel_partner": "Pareja",
+    "rel_husband": "Esposo",
+    "rel_wife": "Esposa",
+    "rel_grandmother": "Abuela",
+    "rel_grandfather": "Abuelo",
+    "rel_grandson": "Nieto",
+    "rel_granddaughter": "Nieta",
+    "rel_brother": "Hermano",
+    "rel_sister": "Hermana",
+    "rel_friend": "Amigo",
+    "rel_other": "Otro",
+
+    "err_name": "Indica el nombre (mínimo 2 caracteres)",
+    "err_date": "Fecha en formato DD.MM.AAAA",
+    "err_relationship": "Elige la relación",
+    "saved_toast": "✨ ¡{name} se añadió a tu familia!",
+    "confirm_msg": "¿Guardar al ser querido?\n\nNombre: {name}\nFecha de nacimiento: {date}\nRelación: {rel}\n\n⚠️ Una vez guardado, esta entrada NO se puede cambiar ni eliminar. Protección contra suplantación.\n\nVerifica los datos atentamente."
   },
 
   "treasury": {

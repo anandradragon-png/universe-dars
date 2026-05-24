@@ -1579,24 +1579,11 @@ function renderMirror() {
   el.innerHTML = html;
 }
 
-function enterDay() {
-  const mirror = document.getElementById('arkaMirror');
-  const main = document.getElementById('arkaMain');
-  const returnBtn = document.getElementById('mirrorReturnBtn');
-  if (mirror) mirror.hidden = true;
-  if (main) main.hidden = false;
-  if (returnBtn) returnBtn.hidden = false;
-  try { localStorage.setItem('arka_mirror_seen_at', Date.now().toString()); } catch (e) {}
-}
-
-function returnToMirror() {
-  const mirror = document.getElementById('arkaMirror');
-  const main = document.getElementById('arkaMain');
-  const returnBtn = document.getElementById('mirrorReturnBtn');
-  if (mirror) { renderMirror(); mirror.hidden = false; }
-  if (main) main.hidden = true;
-  if (returnBtn) returnBtn.hidden = true;
-}
+// Зеркало момента убрано 24.05.2026: дублировало Оракул дня.
+// Функции оставлены как заглушки для обратной совместимости (на случай
+// если где-то ещё остались вызовы из шеринг-карточки или других мест).
+function enterDay() { /* no-op */ }
+function returnToMirror() { /* no-op */ }
 window.returnToMirror = returnToMirror;
 
 // Возврат в главное меню YupDar (родительский iframe)
@@ -1614,9 +1601,8 @@ function backToYupDar() {
 window.backToYupDar = backToYupDar;
 
 // Синхронизация по времени: при возврате во вкладку обновить
-// зеркало (период дня) и фокус Сегодня (актуальный ритуал)
+// фокус Сегодня (актуальный ритуал по времени дня)
 function syncByCurrentTime() {
-  try { renderMirror(); } catch (e) {}
   try { focusTodayByTime(); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => {
@@ -1626,22 +1612,8 @@ window.addEventListener('focus', syncByCurrentTime);
 // Каждую минуту тоже проверяем — если юзер сидит долго и наступил новый период
 setInterval(syncByCurrentTime, 60000);
 
-function initMirror() {
-  renderMirror();
-  const btn = document.getElementById('mirrorEnterBtn');
-  if (btn) btn.addEventListener('click', enterDay);
-
-  // Решаем: показывать ли Зеркало сейчас?
-  // - В первое посещение сегодня: ДА
-  // - Если юзер видел Зеркало < 4 часов назад: НЕТ (сразу основной экран)
-  let seenAt = 0;
-  try { seenAt = parseInt(localStorage.getItem('arka_mirror_seen_at') || '0', 10); } catch (e) {}
-  const fourHours = 4 * 60 * 60 * 1000;
-  if (seenAt && (Date.now() - seenAt) < fourHours) {
-    // Юзер недавно «вошёл в день» — показываем основной экран сразу
-    enterDay();
-  }
-}
+// initMirror удалена 24.05.2026 — Зеркало убрано.
+function initMirror() { /* no-op */ }
 
 // ── Шеринг-карточка инсайтов ─────────────────────────────────
 // Генерирует красивую PNG-карточку с Даром, инсайтом и брендингом.

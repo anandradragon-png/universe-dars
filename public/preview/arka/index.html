@@ -22,21 +22,8 @@
   <span id="userDarCode2" hidden></span>
   <span id="arkaDraftBanner" hidden></span>
 
-  <!-- ═════════════════════ ЗЕРКАЛО МОМЕНТА ════════════════════
-       Hero-экран при открытии АРКА. ОДИН блок, ОДНА кнопка.
-       Закон no_overload: больше ничего на этом экране нет.
-       Закрывается по клику «Войти в день» → раскрываются обычные табы. -->
-  <section class="arka-mirror" id="arkaMirror">
-    <div class="mirror-icon">🐉</div>
-    <div class="mirror-message" id="mirrorMessage">
-      <!-- Сюда подставляется живое послание из generateMirror() -->
-    </div>
-    <button class="mirror-enter-btn" id="mirrorEnterBtn" data-i18n="mirror.enter">Войти в день</button>
-    <!-- Незаметная кнопка шеринга — справа внизу, не отвлекает -->
-    <button class="mirror-share-btn" id="mirrorShareBtn" onclick="openShareCard('mirror')" aria-label="Поделиться">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-    </button>
-  </section>
+  <!-- Зеркало момента убрано 24.05.2026: дублировало Оракул дня (вкладка «Я»).
+       Юзер хочет сразу видеть свой день, без промежуточного экрана. -->
 
   <!-- ═════════════ ПОЛУЧЕНИЕ ДРАКОНА ═════════════
        Когда близкий из Кольца силы посылает 🐉 — анимация. -->
@@ -95,13 +82,11 @@
     </div>
   </div>
 
-  <!-- Кнопка возврата к Зеркалу (видна когда юзер «вошёл в день») -->
-  <button class="mirror-return-btn" id="mirrorReturnBtn" hidden onclick="returnToMirror()" data-i18n="mirror.return">← Зеркало</button>
   <!-- Кнопка возврата в YupDar (всегда в углу пока ты в АРКА) -->
   <button class="mirror-back-btn mirror-back-btn-main" id="arkaBackYupDarBtn" onclick="backToYupDar()" data-i18n="mirror.back_yupdar">← YupDar</button>
 
-  <!-- Основной интерфейс АРКА (скрыт пока показано Зеркало) -->
-  <div id="arkaMain" hidden>
+  <!-- Основной интерфейс АРКА (Зеркало убрано — сразу показываем табы) -->
+  <div id="arkaMain">
 
   <!-- Табы -->
   <nav class="tabs">

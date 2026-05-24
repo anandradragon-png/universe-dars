@@ -751,7 +751,7 @@
           <div class="dar-code" id="darCode"></div>
           <!-- Статичный архетип скрыт по решению автора 30.04.2026: чтобы не было путаницы со сгенерированным AI архетипом в полном послании -->
           <div class="dar-archetype" id="darArchetype" style="display:none"></div>
-          <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()"> Получить полное послание</button>
+          <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()"><span data-i18n-emoji>📩</span> <span data-i18n="dar.get_full_message">Получить полное послание</span></button>
           <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()" data-i18n="dar.change_date_short"> Изменить дату</button>
         </div>
         <!-- Призыв к книге -->
@@ -1236,6 +1236,8 @@
 
   <!-- Игровые модули -->
   <script src="js/i18n.js?v=1"></script>
+  <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
+  <script src="js/dars-i18n.js?v=1"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1898,6 +1900,12 @@
     window.DARS = {"4-6-1":"ЖАР","3-7-1":"И-СТОК","2-8-1":"ЛА-ДА","8-2-1":"ЛЕ-ЛИ","7-3-1":"ПРИ-ТОК","6-4-1":"СВЕ-ТО","5-5-1":"ТЕ-ЛО","1-1-2":"БРА-МА","3-8-2":"ГО-РА","4-7-2":"ГУ-НА","8-3-2":"МЕ-РУ","7-4-2":"РО-ДА","5-6-2":"СО-НА","6-5-2":"У-МА","8-4-3":"АНАН-Д-РА","2-1-3":"ВИ-РА","1-2-3":"ЛИ-РА","7-5-3":"МА-ТА","5-7-3":"МАТ-КА","6-6-3":"ПА-РА","4-8-3":"СИ-ЛА","1-3-4":"АР-КА","6-7-4":"ВОС-ХА","2-2-4":"ЗИ-МА","3-1-4":"ЛА-НА","7-6-4":"МА-АТ","5-8-4":"РО-СА","8-5-4":"СЕ-МА","8-6-5":"А-МА","2-3-5":"АР-МА","7-7-5":"ЖИ-ВА","1-4-5":"ЖИ-МА","3-2-5":"РА-МА","4-1-5":"РИ-МА","6-8-5":"ТРО-НА","1-5-6":"КУ-НА","5-1-6":"ЛУ-НА","8-7-6":"СО-ХА","7-8-6":"ТА-РА","2-4-6":"ТО-ТА","3-3-6":"ТУ-РА","4-2-6":"Э-МА","4-3-7":"АР-ХЕЙ","2-5-7":"БРА-Х-МА","3-4-7":"ГРАД","1-6-7":"З-МАН","6-1-7":"МА-НА","5-2-7":"НИ-РА","8-8-7":"ПРА-НА","6-2-8":"БИ-МА","1-7-8":"БИ-РА","5-3-8":"ЗЛА-ТО","3-5-8":"КО-ДА","4-4-8":"ЛИ-КО","7-1-8":"МИ-ДА","2-6-8":"СО-ЛАР","3-6-9":"ИРИЙ","5-4-9":"МИ-РА","1-8-9":"РАЙ","8-1-9":"РОЙ","7-2-9":"ТО-РА","6-3-9":"ТОТ","2-7-9":"ФА-НА","4-5-9":"ШИ-ВА"};
     window.INTEGRATORS = {"1-9-1":"Архитектор Реальности","2-9-2":"Хранитель Бесконечного Пространства","3-9-3":"Сердце Вселенной","4-9-4":"Феникс Вечного Обновления","5-9-5":"Император Света","6-9-6":"Повелитель Времени","7-9-7":"Проводник Мирового Разума","8-9-8":"Творец Совершенной Формы","9-1-1":"Архитектор Вечного Порядка","9-2-2":"Творец Пространства Возможностей","9-3-3":"Сердце Мирового Единства","9-4-4":"Феникс Глобальной Эволюции","9-5-5":"Император Внутреннего Солнца","9-6-6":"Повелитель Судьбоносного Потока","9-7-7":"Голос Космического Разума","9-8-8":"Создатель Живых Границ","9-9-9":"Живое Зеркало Вселенной"};
     const INTEGRATORS = window.INTEGRATORS;
+    // Архетипы — РУ. Английский и испанский подключаются через js/dars-i18n.js
+    // (загружается ниже), где также определены хелперы getDarName(code) и
+    // getDarArchetype(code). Используй их вместо прямого обращения к
+    // DARS[code] / DAR_ARCHETYPES[code] — они автоматически отдают перевод
+    // под текущий язык интерфейса. Источник переводов — английская и
+    // испанская книги Даров (public/preview/book-chapters.{en,es}.json).
     window.DAR_ARCHETYPES = {"8-6-5":"Первородное солнце","8-4-3":"Купол любви","1-3-4":"Портал между мирами","2-3-5":"Усилитель реальности","4-3-7":"Архитектор реальности","6-2-8":"Танец красоты","1-7-8":"Путеводная звезда","1-1-2":"Абсолютное внимание","2-5-7":"Дыхание жизни","2-1-3":"Внутренняя вера","6-7-4":"Крылья ангела","3-8-2":"Вершина власти","3-4-7":"Архитектор единства","4-7-2":"Нить времени","4-6-1":"Внутренний вулкан","7-7-5":"Квинтэссенция жизни","1-4-5":"Алхимическая лаборатория","2-2-4":"Белый огонь","5-3-8":"Золотая спираль","1-6-7":"Змей времени","3-6-9":"Река жизни","3-7-1":"Родник силы","3-5-8":"Программист реальности","1-5-6":"Рог изобилия","2-8-1":"Гармонизатор границ","3-1-4":"Огненный щит","8-2-1":"Голос природы","4-4-8":"Театральная маска","1-2-3":"Ось мира","5-1-6":"Магнит событий","7-6-4":"Цунами вдохновения","6-1-7":"Манна небесная","7-5-3":"Хирург реальности","5-7-3":"Инкубатор реальностей","8-3-2":"Вершина мира","7-1-8":"Туннель реальности","5-4-9":"Древо миров","5-2-7":"Картограф сновидений","6-6-3":"Портал любви","8-8-7":"Выдох вселенной","7-3-1":"Место силы","1-8-9":"Осознанный выбор","3-2-5":"Ядерная радость","4-1-5":"Целительный удар","7-4-2":"Живая нить рода","8-1-9":"Живой алгоритм","5-8-4":"Духовное рождение","6-4-1":"Внутреннее солнце","8-5-4":"Семя","4-8-3":"Атланты","2-6-8":"Расширенное сознание","5-6-2":"Шут","8-7-6":"Сфера покоя","7-8-6":"Конструктор аватара","5-5-1":"Храм души","7-2-9":"Ветер перемен","6-3-9":"Фрактальное зеркало","2-4-6":"Первооткрыватель","6-8-5":"Трон воли","3-3-6":"Колесо сансары","6-5-2":"Дракон порядка","2-7-9":"Священный момент","4-5-9":"Танец жизни","4-2-6":"Фантазия"};
 
     function reduce(n){while(n>9)n=n.toString().split('').reduce((s,d)=>s+parseInt(d),0);return n}
@@ -1981,10 +1989,25 @@
         });
       }
 
-      document.getElementById('darName').textContent=darName;
+      // darName / darArchetype получают data-dar-code, чтобы _refreshDarLabels()
+      // мог перерисовать их при смене языка (через хелперы getDarName/getDarArchetype).
+      const darNameEl = document.getElementById('darName');
+      darNameEl.textContent = (typeof getDarName === 'function') ? getDarName(gift.code) : darName;
+      darNameEl.setAttribute('data-dar-code', gift.code);
+      // Префикс "Код дара:" / "DAR code:" / "Código DAR:" — оборачиваем в span[data-i18n],
+      // чтобы i18n.applyToDOM() мог перерисовать при смене языка. Раньше префикс
+      // вычислялся один раз и застывал на RU при переключении на EN (баг 24.05.2026).
       const _codePrefix = (window.i18n && window.i18n.t && window.i18n.t('dar.code_prefix')) || 'Код дара:';
-      document.getElementById('darCode').textContent=`${_codePrefix} ${gift.code}`;
-      document.getElementById('darArchetype').textContent=isInt?intPhrase:darArchetype;
+      document.getElementById('darCode').innerHTML = '<span data-i18n="dar.code_prefix">' + _codePrefix + '</span> ' + gift.code;
+      const darArchEl = document.getElementById('darArchetype');
+      if (isInt) {
+        darArchEl.textContent = intPhrase;
+        darArchEl.removeAttribute('data-dar-code');
+      } else {
+        darArchEl.textContent = (typeof getDarArchetype === 'function') ? getDarArchetype(gift.code) : darArchetype;
+        darArchEl.setAttribute('data-dar-code', gift.code);
+        darArchEl.setAttribute('data-dar-archetype', '1');
+      }
       // Картинка — пробуем NFC и NFD нормализацию
       const wrap=document.getElementById('darImageWrap');
       wrap.innerHTML='';
@@ -2014,7 +2037,10 @@
       // Сброс блока описания
       document.getElementById('full-description-block').style.display='none';
       const btn=document.getElementById('btn-get-message');
-      btn.textContent = '📩 ' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание'));
+      // Восстанавливаем структуру со span[data-i18n], чтобы i18n.applyToDOM()
+      // мог перерисовать кнопку при смене языка. Раньше тут был плоский
+      // textContent — после смены RU→EN текст не обновлялся (баг 24.05.2026).
+      btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание')) + '</span>';
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';
@@ -2359,7 +2385,10 @@
         console.error('requestMessage error:', e.message);
         // При ошибке возвращаем кнопки на место (раньше было disabled=false,
         // но теперь мы скрываем кнопки через display:none при старте).
-        btn.textContent = '📩 ' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание'));
+        // Восстанавливаем структуру со span[data-i18n], чтобы i18n.applyToDOM()
+      // мог перерисовать кнопку при смене языка. Раньше тут был плоский
+      // textContent — после смены RU→EN текст не обновлялся (баг 24.05.2026).
+      btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание')) + '</span>';
         btn.style.display='';
         const btnChange2=document.getElementById('btn-change-date');
         if(btnChange2) btnChange2.style.display='';
@@ -2585,7 +2614,10 @@
     function hideDescription(){
       document.getElementById('full-description-block').style.display='none';
       const btn=document.getElementById('btn-get-message');
-      btn.textContent = '📩 ' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание'));
+      // Восстанавливаем структуру со span[data-i18n], чтобы i18n.applyToDOM()
+      // мог перерисовать кнопку при смене языка. Раньше тут был плоский
+      // textContent — после смены RU→EN текст не обновлялся (баг 24.05.2026).
+      btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание')) + '</span>';
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';
@@ -3345,6 +3377,28 @@
       const modal = document.getElementById('tariffs-modal');
       if (modal && modal.style.display !== 'none') openTariffsPage();
     });
+
+    // При смене языка обновляем имена и архетипы даров на всех элементах,
+    // которым в момент рендера выставили data-dar-code. Источник переводов —
+    // js/dars-i18n.js (хелперы getDarName / getDarArchetype, читают язык из
+    // window.i18n). Имена 64 даров и их архетипы взяты из английской и
+    // испанской книг Даров.
+    function _refreshDarLabels() {
+      if (typeof getDarName !== 'function') return;
+      document.querySelectorAll('[data-dar-code]').forEach(el => {
+        const code = el.getAttribute('data-dar-code');
+        if (!code) return;
+        if (el.hasAttribute('data-dar-archetype')) {
+          el.textContent = getDarArchetype(code);
+        } else {
+          // Имя дара — основной случай. Для будущих составных строк (например
+          // "ДАР · 1-6-7 · З-МАН") можно добавить data-dar-format.
+          el.textContent = getDarName(code);
+        }
+      });
+    }
+    document.addEventListener('i18n:changed', _refreshDarLabels);
+    document.addEventListener('i18n:ready', _refreshDarLabels);
 
     function closeTariffsPage() {
       const modal = document.getElementById('tariffs-modal');

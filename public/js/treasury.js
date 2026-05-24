@@ -689,13 +689,14 @@ const Treasury = (function() {
   }
 
   function coachContinue(code, questType, questIdx) {
-    // Пользователь хочет ещё побыть в теме
+    // Пользователь хочет ещё побыть в теме.
+    // Раньше тут хардкодом пушилось сообщение «Хорошо, побудем ещё...» —
+    // тестеры жаловались (Алина, 2026-05-19): фраза появлялась каждый раз
+    // после offer_close, а потом API повторял её в своём ответе → бот «заикался».
+    // Теперь просто открываем поле ввода — кнопка сама по себе означает выбор,
+    // юзер пишет следующий ответ, наставник отвечает живо по контексту.
     const dialogue = loadDialogue(code, questType, questIdx);
     dialogue.state = 'open';
-    dialogue.messages.push({
-      role: 'coach',
-      text: 'Хорошо, побудем ещё. Что ты хочешь исследовать глубже в этой теме?'
-    });
     saveDialogue(code, questType, questIdx, dialogue);
     reopenQuestScreen(code, questType, questIdx);
   }

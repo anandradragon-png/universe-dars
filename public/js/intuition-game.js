@@ -852,6 +852,7 @@ const IntuitionGame = (function() {
 
       stats.totalCrystals = (stats.totalCrystals || 0) + earned;
       stats._lastWin = earned;
+      stats._won = true;
       stats._hitBuff = hitBuff;
       stats._hitDebuff = false;
 
@@ -863,6 +864,7 @@ const IntuitionGame = (function() {
     } else {
       stats.streak = 0;
       stats._lastWin = 0;
+      stats._won = false;
       stats._hitBuff = hitBuff;
       stats._hitDebuff = hitDebuff;
     }
@@ -981,7 +983,10 @@ const IntuitionGame = (function() {
   function renderResult() {
     const targetsFound = selected.filter(i => cards[i]?.type === 'target').length;
     const totalTargets = cards.filter(c => c.type === 'target').length;
-    const won = stats._lastWin > 0;
+    // Используем флаг _won, а не _lastWin: в Песочнице (sandbox) кристаллы=0,
+    // поэтому _lastWin всегда 0 даже при правильном выборе. Баг проявлялся как
+    // "Не в этот раз... Правильный ответ: карта 3" при выборе правильной карты.
+    const won = stats._won === true;
     const hitDebuff = stats._hitDebuff;
     const hitBuff = stats._hitBuff;
 
@@ -1041,7 +1046,7 @@ const IntuitionGame = (function() {
           ${hitDebuff ? 'Карта Тени! Результат обнулён' : won ? (currentMode === 'multi' ? `Найдено ${targetsFound}/${totalTargets}!` : 'Интуиция работает!') : 'Не в этот раз...'}
         </div>
         ${won ? `
-          <div style="font-size:14px;color:#D4AF37;margin-bottom:4px">+${stats._lastWin} &#128142; ${hitBuff ? '(Карта Света x2!)' : ''}</div>
+          ${stats._lastWin > 0 ? `<div style="font-size:14px;color:#D4AF37;margin-bottom:4px">+${stats._lastWin} &#128142; ${hitBuff ? '(Карта Света x2!)' : ''}</div>` : ''}
           ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-bottom:4px">&#127942; +${stats._lastPoints} очков в рейтинг</div>` : ''}
           ${stats.streak > 1 ? `<div style="font-size:13px;color:#D4AF37">&#128293; Серия: ${stats.streak}</div>` : ''}
         ` : `

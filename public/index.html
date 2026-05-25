@@ -997,13 +997,16 @@
         </div>
       </div>
     </div>
-    <!-- Вкладка «Дар / АРКА» (этап 1 слияния, 2026-05-25).
-         Этап 3 подключит iframe /preview/arka/ с проверкой тарифа Хранитель. -->
+    <!-- Вкладка «Дар / АРКА» (этап 3 слияния, 2026-05-25).
+         Для тарифа Хранитель (access_level === 'extended') показывается iframe
+         /preview/arka/. Для остальных — замок + кнопка «Открыть АРКА» → тарифы.
+         renderArkaTab() вызывается из switchNav('arka'). -->
     <div class="tab" id="tab-arka">
-      <div style="padding:40px 20px;text-align:center;color:var(--text-muted);max-width:480px;margin:0 auto">
-        <div style="font-size:56px;margin-bottom:18px;opacity:0.6">🏛</div>
-        <div style="font-size:18px;color:var(--text);margin-bottom:10px;letter-spacing:0.3px" data-i18n="arka.coming_title">Скоро здесь будет АРКА</div>
-        <div style="font-size:14px;line-height:1.6" data-i18n="arka.coming_sub">Личный путь в ритме твоего Дара. Окна силы, карта роста, дневник эволюции, тренажёр.</div>
+      <div id="arka-container" style="min-height:calc(100vh - 90px);display:flex;flex-direction:column">
+        <div class="skeleton-card" style="margin:20px">
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1908,6 +1911,56 @@
         // Этап 2 слияния: подгружаем близких в контейнер вкладки «Семья».
         // Та же функция используется в ЛК с контейнером 'relatives-content'.
         if (typeof loadRelatives === 'function') loadRelatives('family-list-container');
+      }
+      if (name === 'arka') {
+        // Этап 3 слияния: рендерим АРКА (iframe для Хранителя, замок для остальных).
+        if (typeof renderArkaTab === 'function') renderArkaTab();
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Вкладка «Дар / АРКА» — этап 3 слияния (2026-05-25).
+    // Для тарифа Хранитель (access_level === 'extended') встраивает
+    // прототип АРКА через iframe. Для остальных — замок + апгрейд.
+    // ──────────────────────────────────────────────────────────
+    function renderArkaTab() {
+      const container = document.getElementById('arka-container');
+      if (!container) return;
+      const accessLevel = (window.PROFILE && window.PROFILE.access_level) || 'basic';
+      const isGuardian = accessLevel === 'extended';
+
+      if (isGuardian) {
+        // Хранитель — встраиваем фуллскрин-iframe АРКА.
+        // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
+        if (!container.querySelector('iframe[data-arka-iframe]')) {
+          container.innerHTML =
+            '<iframe data-arka-iframe src="/preview/arka/" ' +
+            'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
+            'background:#0a1929" ' +
+            'title="АРКА — личный путь в ритме Дара"></iframe>';
+        }
+      } else {
+        // Не-Хранитель — замок + апгрейд.
+        const lockTitle = (window.i18n && i18n.t && i18n.t('arka.lock_title')) || 'АРКА — для Хранителя';
+        const lockDesc = (window.i18n && i18n.t && i18n.t('arka.lock_desc'))
+          || 'Личный путь в ритме твоего Дара. Окна силы, карта роста, дневник эволюции, тренажёр практик.';
+        const lockCta = (window.i18n && i18n.t && i18n.t('arka.lock_cta')) || 'Открыть тариф Хранитель';
+        container.innerHTML =
+          '<div style="padding:40px 20px;text-align:center;max-width:480px;margin:40px auto 0">' +
+            '<div style="font-size:56px;margin-bottom:18px">🔒</div>' +
+            '<div style="font-size:20px;color:#D4AF37;font-weight:700;letter-spacing:0.3px;margin-bottom:10px">' +
+              lockTitle +
+            '</div>' +
+            '<div style="font-size:14px;color:var(--text-dim);line-height:1.6;margin-bottom:24px">' +
+              lockDesc +
+            '</div>' +
+            '<button onclick="openTariffsPage()" ' +
+              'style="padding:13px 22px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);' +
+              'background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(184,134,11,0.15));' +
+              'color:#D4AF37;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700">' +
+              '🛡 ' + lockCta +
+            '</button>' +
+          '</div>';
       }
     }
 

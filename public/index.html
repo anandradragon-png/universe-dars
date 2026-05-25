@@ -824,12 +824,12 @@
       <div id="me-result-extra" style="display:none">
       <div class="me-accordion" id="me-accordion">
         <div class="me-acc-item" data-section="essence">
-          <button class="me-acc-header open" onclick="toggleMeAcc(this)">
+          <button class="me-acc-header" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">✨</span>
             <span class="me-acc-title" data-i18n="me.acc_essence">Твоя Суть</span>
             <span class="me-acc-arrow">▼</span>
           </button>
-          <div class="me-acc-body open" data-i18n="me.acc_essence_text" data-placeholder="1">Нажми «Получить полное послание» под карточкой Дара — здесь появится твоя личная расшифровка.</div>
+          <div class="me-acc-body" data-i18n="me.acc_essence_text" data-placeholder="1">Нажми «Получить полное послание» под карточкой Дара — здесь появится твоя личная расшифровка.</div>
         </div>
         <div class="me-acc-item" data-section="superpowers">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
@@ -879,20 +879,27 @@
           </button>
           <div class="me-acc-body" data-i18n="me.acc_mission_text" data-placeholder="1">Что ты несёшь миру через свой Дар. Появится после получения полного послания.</div>
         </div>
-        <!-- Premium-секции АРКА (с замочками) → ведут на тарифы. -->
-        <div class="me-acc-item me-acc-locked">
-          <button class="me-acc-header" onclick="openTariffsPage()">
+        <!-- Premium-секции АРКА. Замок зависит от тарифа:
+             - extended (Хранитель) → раскрываются с реальным AI-контентом
+             - остальные → замок 🔒 + клик ведёт на тарифы
+             refreshArkaPremiumLocks() обновляет состояние при расчёте Дара. -->
+        <div class="me-acc-item me-acc-locked" data-section="arka_resonance" data-arka-premium="1">
+          <button class="me-acc-header" onclick="onArkaPremiumClick(this)">
             <span class="me-acc-icon">🧬</span>
             <span class="me-acc-title" data-i18n="me.acc_resonance">Резонанс с фазой жизни</span>
+            <span class="me-acc-arrow" style="display:none">▼</span>
             <span class="me-acc-lock" title="АРКА">🔒</span>
           </button>
+          <div class="me-acc-body" data-placeholder="1" data-i18n="me.acc_resonance_text">Где ты сейчас в своём жизненном цикле и какие задачи ставит Дар именно в эту фазу.</div>
         </div>
-        <div class="me-acc-item me-acc-locked">
-          <button class="me-acc-header" onclick="openTariffsPage()">
+        <div class="me-acc-item me-acc-locked" data-section="arka_connections" data-arka-premium="1">
+          <button class="me-acc-header" onclick="onArkaPremiumClick(this)">
             <span class="me-acc-icon">🌌</span>
             <span class="me-acc-title" data-i18n="me.acc_connections">Карта связей</span>
+            <span class="me-acc-arrow" style="display:none">▼</span>
             <span class="me-acc-lock" title="АРКА">🔒</span>
           </button>
+          <div class="me-acc-body" data-placeholder="1" data-i18n="me.acc_connections_text">Кто рядом усиливает твой Дар, а с кем энергия гасится. Карта поддерживающих и сложных контактов.</div>
         </div>
       </div>
 
@@ -2059,6 +2066,35 @@
     }
     window.toggleMeAcc = toggleMeAcc;
 
+    // Премиум-секции АРКА (Резонанс с фазой жизни, Карта связей).
+    // Если тариф Хранитель — раскрываются как обычные секции.
+    // Иначе клик ведёт на тарифы.
+    function onArkaPremiumClick(headerEl) {
+      const item = headerEl ? headerEl.closest('.me-acc-item') : null;
+      const isLocked = item && item.classList.contains('me-acc-locked');
+      if (isLocked) {
+        if (typeof openTariffsPage === 'function') openTariffsPage();
+        return;
+      }
+      toggleMeAcc(headerEl);
+    }
+    window.onArkaPremiumClick = onArkaPremiumClick;
+
+    // Обновление состояния премиум-секций АРКА: замок или открыты.
+    // Вызывается в showResult после расчёта Дара и при обновлении профиля.
+    function refreshArkaPremiumLocks() {
+      const accessLevel = (window.PROFILE && window.PROFILE.access_level) || 'basic';
+      const isGuardian = accessLevel === 'extended';
+      document.querySelectorAll('.me-acc-item[data-arka-premium="1"]').forEach(item => {
+        item.classList.toggle('me-acc-locked', !isGuardian);
+        const lock = item.querySelector('.me-acc-lock');
+        const arrow = item.querySelector('.me-acc-arrow');
+        if (lock) lock.style.display = isGuardian ? 'none' : '';
+        if (arrow) arrow.style.display = isGuardian ? '' : 'none';
+      });
+    }
+    window.refreshArkaPremiumLocks = refreshArkaPremiumLocks;
+
     // ──────────────────────────────────────────────────────────
     // Вкладка «Дар / АРКА» — этап 3 слияния (2026-05-25).
     // Для тарифа Хранитель (access_level === 'extended') встраивает
@@ -2307,6 +2343,9 @@
       // Этап 7 слияния: показываем аккордеон + Дневник + Наука только после расчёта Дара.
       const meExtra = document.getElementById('me-result-extra');
       if (meExtra) meExtra.style.display = 'block';
+      // Обновляем замки на премиум-секциях АРКА (Резонанс / Карта связей)
+      // в зависимости от текущего тарифа.
+      if (typeof refreshArkaPremiumLocks === 'function') refreshArkaPremiumLocks();
       loadDailyDar();
       // Инициализация дневника
       if (typeof initDiary === 'function') initDiary();
@@ -2620,9 +2659,10 @@
 
         btn.style.display='none';
         document.getElementById('btn-change-date').style.display='none';
-        const block=document.getElementById('full-description-block');
-        block.style.display='block';
-        setTimeout(()=>block.scrollIntoView({behavior:'smooth',block:'start'}),100);
+        // Старый full-description-block больше не используется — оставлен скрытым.
+        // Прокручиваем к аккордеону вкладки «Я», куда легло Полное послание.
+        const acc=document.getElementById('me-accordion');
+        if (acc) setTimeout(()=>acc.scrollIntoView({behavior:'smooth',block:'start'}),100);
       }catch(e){
         stopLoadingAnimation();
         console.error('requestMessage error:', e.message);
@@ -2635,9 +2675,15 @@
         btn.style.display='';
         const btnChange2=document.getElementById('btn-change-date');
         if(btnChange2) btnChange2.style.display='';
-        document.getElementById('full-description-content').innerHTML=
-          '<p style="color:#f87171;text-align:center;padding:20px;line-height:1.7"> Мудрый Наставник сейчас отдыхает.<br><br>Попробуйте через минуту.</p>';
-        document.getElementById('full-description-block').style.display='block';
+        // При ошибке показываем подсказку прямо в первой секции аккордеона
+        // (старый full-description-block больше не используется).
+        const errAcc = document.getElementById('me-accordion');
+        if (errAcc) {
+          const firstBody = errAcc.querySelector('.me-acc-item[data-section="essence"] .me-acc-body');
+          if (firstBody) {
+            firstBody.innerHTML = '<p style="color:#f87171;line-height:1.7">Мудрый Наставник сейчас отдыхает. Попробуй через минуту.</p>';
+          }
+        }
       }
     }
 
@@ -2687,25 +2733,15 @@
     }
 
     function buildAccordionFromJSON(data){
+      // Старый рендер в full-description-block отключён (2026-05-25):
+      // он дублировал контент с me-accordion после того как я подключила
+      // раскладывание AI-ответа по аккордеону вкладки «Я».
+      // Контейнер очищаем чтобы не висел старый контент при повторных вызовах.
       const container=document.getElementById('full-description-content');
-      container.innerHTML = renderArchetypeBlock(data);
-      let firstOpened=false;
-      JSON_SECTIONS.forEach(s=>{
-        const text=s.getText(data);
-        if(!text||!text.trim()) return;
-        const isFirst=!firstOpened; firstOpened=true;
-        const item=document.createElement('div');
-        item.className='accordion-item';
-        item.innerHTML=`
-          <button class="accordion-header${isFirst?' open':''}" onclick="toggleAccordion(this)">
-            <span class="accordion-icon">${s.icon}</span>
-            <span class="accordion-title">${s.title}</span>
-            <span class="accordion-arrow">▼</span>
-          </button>
-          <div class="accordion-body${isFirst?' open':''}">${formatText(text)}</div>`;
-        container.appendChild(item);
-      });
-      // Параллельно заполняем аккордеон во вкладке «Я» теми же данными.
+      if (container) container.innerHTML = '';
+      const block=document.getElementById('full-description-block');
+      if (block) block.style.display = 'none';
+      // Заполняем аккордеон во вкладке «Я» теми же данными.
       // Промт AI возвращает ровно эти 7 секций — раскладываем по data-section.
       fillMeAccordionFromJSON(data);
     }

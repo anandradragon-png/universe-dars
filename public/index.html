@@ -1312,10 +1312,11 @@
   <!-- Полноэкранный оверлей «Послание о Даре» — этап 10 слияния (2026-05-25).
        Открывается по кнопке «Читать о своём Даре». Содержит копию
        аккордеона из me-accordion с уже заполненными секциями.
-       Шапка sticky с явным крестиком возврата. -->
-  <div id="message-overlay" style="display:none;position:fixed;inset:0;z-index:9650;background:rgba(8,8,8,0.98);overflow-y:auto">
-    <!-- Sticky-шапка: всегда видна, понятно как закрыть. -->
-    <div style="position:sticky;top:0;z-index:2;background:linear-gradient(180deg,rgba(8,8,8,0.98) 0%,rgba(8,8,8,0.92) 100%);border-bottom:1px solid rgba(212,175,55,0.25);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(10px)">
+       padding-top: 64px — отступ под шапку Telegram WebApp/браузера,
+       чтобы кнопка «Вернуться» не перекрывалась балансом 💎 и аватаркой. -->
+  <div id="message-overlay" style="display:none;position:fixed;inset:0;z-index:9650;background:rgba(8,8,8,0.98);overflow-y:auto;padding-top:64px">
+    <!-- Sticky-шапка overlay (под шапкой Telegram). -->
+    <div style="position:sticky;top:64px;z-index:2;background:linear-gradient(180deg,rgba(8,8,8,0.98) 0%,rgba(8,8,8,0.92) 100%);border-bottom:1px solid rgba(212,175,55,0.25);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(10px)">
       <button onclick="closeMessageOverlay()" style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);color:#D4AF37;padding:8px 14px 8px 10px;border-radius:12px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;display:flex;align-items:center;gap:6px"><span style="font-size:16px;line-height:1">←</span><span data-i18n="message.back">Вернуться</span></button>
       <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:0.5px" data-i18n="message.overlay_title">Послание о Даре</div>
       <div style="width:32px"></div>

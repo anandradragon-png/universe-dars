@@ -1311,14 +1311,20 @@
 
   <!-- Полноэкранный оверлей «Послание о Даре» — этап 10 слияния (2026-05-25).
        Открывается по кнопке «Читать о своём Даре». Содержит копию
-       аккордеона из me-accordion с уже заполненными секциями. -->
-  <div id="message-overlay" style="display:none;position:fixed;inset:0;z-index:9650;background:rgba(8,8,8,0.96);backdrop-filter:blur(8px);overflow-y:auto">
+       аккордеона из me-accordion с уже заполненными секциями.
+       Шапка sticky с явным крестиком возврата. -->
+  <div id="message-overlay" style="display:none;position:fixed;inset:0;z-index:9650;background:rgba(8,8,8,0.98);overflow-y:auto">
+    <!-- Sticky-шапка: всегда видна, понятно как закрыть. -->
+    <div style="position:sticky;top:0;z-index:2;background:linear-gradient(180deg,rgba(8,8,8,0.98) 0%,rgba(8,8,8,0.92) 100%);border-bottom:1px solid rgba(212,175,55,0.25);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(10px)">
+      <button onclick="closeMessageOverlay()" style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);color:#D4AF37;padding:8px 14px 8px 10px;border-radius:12px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;display:flex;align-items:center;gap:6px"><span style="font-size:16px;line-height:1">←</span><span data-i18n="message.back">Вернуться</span></button>
+      <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:0.5px" data-i18n="message.overlay_title">Послание о Даре</div>
+      <div style="width:32px"></div>
+    </div>
     <div style="max-width:600px;margin:0 auto;padding:18px 16px 60px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;position:sticky;top:0;background:rgba(8,8,8,0.95);padding:8px 0;z-index:1">
-        <div style="font-size:18px;color:#D4AF37;font-weight:700;letter-spacing:0.5px" data-i18n="message.overlay_title">Послание о твоём Даре</div>
-        <button onclick="closeMessageOverlay()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-dim);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:18px;font-family:inherit" aria-label="Закрыть">✕</button>
-      </div>
       <div id="message-overlay-content"><!-- сюда клонируется аккордеон --></div>
+      <!-- Шеринг-кнопки внизу, после аккордеона. Заполняются клонами
+           из main-container в openMessageOverlay(). -->
+      <div id="message-overlay-share" style="margin-top:20px"></div>
     </div>
   </div>
 
@@ -2076,6 +2082,7 @@
     function openMessageOverlay() {
       const overlay = document.getElementById('message-overlay');
       const content = document.getElementById('message-overlay-content');
+      const shareHost = document.getElementById('message-overlay-share');
       const accSrc = document.getElementById('me-accordion');
       if (!overlay || !content || !accSrc) return;
       // Клонируем аккордеон в оверлей (отображение копии — display:flex).
@@ -2087,7 +2094,22 @@
       clone.querySelectorAll('.me-acc-body').forEach(b => b.classList.remove('open'));
       content.innerHTML = '';
       content.appendChild(clone);
+      // Шеринг-кнопки внизу: Книга / Карточка / А4 / Поделись с другом.
+      // Клонируем по id из main-container (источник истины — там).
+      if (shareHost) {
+        shareHost.innerHTML = '';
+        ['book-cta', 'share-card-cta', 'share-info-cta', 'share-section'].forEach(id => {
+          const src = document.getElementById(id);
+          if (!src) return;
+          const c = src.cloneNode(true);
+          c.removeAttribute('id'); // чтобы не было дублей id
+          c.style.display = 'block';
+          c.style.marginTop = '12px';
+          shareHost.appendChild(c);
+        });
+      }
       overlay.style.display = 'block';
+      overlay.scrollTop = 0;
       document.body.style.overflow = 'hidden';
     }
     function closeMessageOverlay() {
@@ -2100,12 +2122,18 @@
 
     // Превращает кнопку «📩 Получить полное послание» в «📖 Читать о своём Даре».
     // Вызывается после успешного ответа AI и при восстановлении из кеша.
+    // Также скрывает шеринг-блоки на главном — они теперь только в overlay.
     function setMessageButtonReady() {
       const btn = document.getElementById('btn-get-message');
       if (!btn) return;
       btn.innerHTML = '📖 <span data-i18n="dar.read_message">Читать о своём Даре</span>';
       btn.onclick = openMessageOverlay;
       btn.style.display = '';
+      // Прячем шеринг-блоки и Книгу на главном — закон law_minimal_screen.
+      ['book-cta', 'share-card-cta', 'share-info-cta', 'share-section'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
     }
     window.setMessageButtonReady = setMessageButtonReady;
 

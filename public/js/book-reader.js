@@ -259,17 +259,18 @@ const BookReader = (function() {
           <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleBookmarks()">&#11088; Закладки</button>
           <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleSettings()">&#9881; Настройки</button>
         </div>
-        <!-- Доп. панель: к странице / заметка / поделиться -->
-        <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center">
-          <div style="display:flex;gap:4px;flex:1;align-items:center">
-            <input type="number" id="book-goto-input" min="1" max="${totalChapters}" placeholder="№"
-              style="width:60px;padding:8px;background:rgba(255,255,255,0.06);border:1px solid var(--border,rgba(255,255,255,0.15));border-radius:8px;color:var(--text,#fff);font-size:12px;text-align:center;outline:none;font-family:Manrope,sans-serif"
-              onkeydown="if(event.key==='Enter'){BookReader.gotoPage(this.value);this.value=''}">
-            <button class="btn btn-ghost" style="margin:0;font-size:11px;padding:8px 10px;flex:0 0 auto"
-              onclick="var v=document.getElementById('book-goto-input').value;BookReader.gotoPage(v);document.getElementById('book-goto-input').value=''">&#8594;</button>
-          </div>
-          <button class="btn btn-ghost" style="margin:0;font-size:11px;padding:10px 8px" onclick="BookReader.toggleNote()" title="Заметка к главе">&#9999;&#65039;</button>
-          <button class="btn btn-ghost" style="margin:0;font-size:11px;padding:10px 8px" onclick="BookReader.shareChapter()" title="Поделиться главой">&#128279;</button>
+        <!-- Доп. панель: к странице / заметка / поделиться.
+             Фикс наложения (тестер 25.05.2026): grid 4 колонки —
+             [инпут №][→][✎][🔗]. Без flex-wrap, всегда в одну строку.
+             На мобильном 375px помещается без переносов. -->
+        <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;margin-bottom:12px;align-items:center">
+          <input type="number" id="book-goto-input" min="1" max="${totalChapters}" placeholder="№"
+            style="width:100%;padding:8px;background:rgba(255,255,255,0.06);border:1px solid var(--border,rgba(255,255,255,0.15));border-radius:8px;color:var(--text,#fff);font-size:12px;text-align:center;outline:none;font-family:Manrope,sans-serif;min-width:0"
+            onkeydown="if(event.key==='Enter'){BookReader.gotoPage(this.value);this.value=''}">
+          <button class="btn btn-ghost" style="margin:0;font-size:14px;padding:8px 10px;min-width:36px"
+            onclick="var v=document.getElementById('book-goto-input').value;BookReader.gotoPage(v);document.getElementById('book-goto-input').value=''" title="Перейти к главе">&#8594;</button>
+          <button class="btn btn-ghost" style="margin:0;font-size:14px;padding:8px 10px;min-width:36px" onclick="BookReader.toggleNote()" title="Заметка к главе">&#9999;&#65039;</button>
+          <button class="btn btn-ghost" style="margin:0;font-size:14px;padding:8px 10px;min-width:36px" onclick="BookReader.shareChapter()" title="Поделиться главой">&#128279;</button>
         </div>
       </div>
 

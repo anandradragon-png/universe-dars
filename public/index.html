@@ -1115,20 +1115,28 @@
         </div>
       </div>
     </div>
-    <!-- Вкладка «Семья» (этап 2 слияния, 2026-05-25).
+    <!-- Вкладка «Семья» (этап 8 слияния, 2026-05-25 — приведена в соответствие
+         с планом архитектуры из превью).
          Использует общий API DarAPI.getRelatives и общий кеш _relativesData
-         с ЛК → данные синхронизированы. Кнопки карточек вызывают существующие
-         функции прода (openAddRelative, openRelativeOracle, checkCompatibilityWith,
-         openChildBook, openRelativeInBook). -->
+         с ЛК → данные синхронизированы. -->
     <div class="tab" id="tab-family">
       <div style="padding:18px 16px 40px;max-width:560px;margin:0 auto">
-        <div style="font-size:22px;color:var(--text);font-weight:700;letter-spacing:0.3px;margin-bottom:4px" data-i18n="family.title">Семья</div>
-        <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:18px" data-i18n="family.subtitle">Дары близких, совместимость, карта рода.</div>
+        <div style="font-size:22px;color:var(--text);font-weight:700;letter-spacing:0.3px;margin-bottom:6px" data-i18n="family.title_full">Семья</div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:18px" data-i18n="family.subtitle_full">Близкие и приглашённые друзья в одном месте.</div>
         <div id="family-list-container">
           <div class="skeleton-card">
             <div class="skeleton skeleton-line"></div>
             <div class="skeleton skeleton-line short"></div>
           </div>
+        </div>
+        <!-- Карточка «🤝 Пригласи друга» — этап 8 слияния. -->
+        <div style="margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,rgba(212,175,55,0.10),rgba(212,175,55,0.04));border:1px solid rgba(212,175,55,0.3);border-radius:14px;display:flex;align-items:center;gap:12px">
+          <span style="font-size:28px;flex-shrink:0">🤝</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;color:#D4AF37;font-weight:600;margin-bottom:3px" data-i18n="family.invite_title">Пригласи друга</div>
+            <div style="font-size:11px;color:var(--text-dim);line-height:1.5" data-i18n="family.invite_sub">Друг рассчитает свой Дар. Откроется в твоей Сокровищнице.</div>
+          </div>
+          <button onclick="if(window.Referral&&Referral.shareLink)Referral.shareLink();else openTariffsPage()" style="padding:9px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.10);color:#D4AF37;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif" data-i18n="family.invite_btn">Поделиться</button>
         </div>
       </div>
     </div>

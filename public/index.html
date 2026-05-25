@@ -794,11 +794,15 @@
 
       <!-- Экран игры перенесён во вкладку "Игры" (#tab-games) -->
 
-      <!-- Аккордеон 7 секций + 2 премиум АРКА + Дневник + Наука
-           (этап 7 слияния, 2026-05-25). Видны только после расчёта Дара —
-           обёртка me-result-extra переключается в showResult() рядом с daily-activities. -->
+      <!-- Дневник Дара + Наука. Видны после расчёта Дара.
+           Аккордеон с полным посланием уехал в #message-overlay (этап 10 слияния)
+           — он открывается по кнопке «Читать о своём Даре» полноэкранно,
+           чтобы не загромождать главный экран. -->
       <div id="me-result-extra" style="display:none">
-      <div class="me-accordion" id="me-accordion">
+      <!-- Аккордеон оставлен здесь скрытым (display:none).
+           Используется как data-host: fillMeAccordionFromJSON заполняет
+           его секции, и потом из него мы клонируем содержимое в overlay. -->
+      <div class="me-accordion" id="me-accordion" style="display:none">
         <div class="me-acc-item" data-section="essence">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">✨</span>
@@ -1302,6 +1306,19 @@
       <button id="psu-save-btn" onclick="psuSave()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;font-weight:bold;box-shadow:0 0 15px rgba(212,175,55,0.3)" data-i18n="psu.save_and_continue">Сохранить и продолжить</button>
       <button id="psu-later-btn" onclick="psuSkip()" style="width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif" data-i18n="psu.fill_later">Заполнить позже</button>
       <button id="psu-debug-btn" onclick="psuSendDebugLog()" style="display:none;width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.05);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif">&#128203; <span data-i18n="psu.send_log">Прислать лог разработчику</span></button>
+    </div>
+  </div>
+
+  <!-- Полноэкранный оверлей «Послание о Даре» — этап 10 слияния (2026-05-25).
+       Открывается по кнопке «Читать о своём Даре». Содержит копию
+       аккордеона из me-accordion с уже заполненными секциями. -->
+  <div id="message-overlay" style="display:none;position:fixed;inset:0;z-index:9650;background:rgba(8,8,8,0.96);backdrop-filter:blur(8px);overflow-y:auto">
+    <div style="max-width:600px;margin:0 auto;padding:18px 16px 60px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;position:sticky;top:0;background:rgba(8,8,8,0.95);padding:8px 0;z-index:1">
+        <div style="font-size:18px;color:#D4AF37;font-weight:700;letter-spacing:0.5px" data-i18n="message.overlay_title">Послание о твоём Даре</div>
+        <button onclick="closeMessageOverlay()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-dim);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:18px;font-family:inherit" aria-label="Закрыть">✕</button>
+      </div>
+      <div id="message-overlay-content"><!-- сюда клонируется аккордеон --></div>
     </div>
   </div>
 
@@ -2051,6 +2068,47 @@
     // Аккордеон вкладки «Я» — этап 7 слияния (2026-05-25).
     // Переключение секции: клик по header раскрывает/сворачивает body.
     // ──────────────────────────────────────────────────────────
+    // ──────────────────────────────────────────────────────────
+    // Послание о Даре — полноэкранный overlay (этап 10 слияния).
+    // После получения AI-ответа кнопка меняет текст на «📖 Читать о
+    // своём Даре». Клик открывает overlay с тем же аккордеоном.
+    // ──────────────────────────────────────────────────────────
+    function openMessageOverlay() {
+      const overlay = document.getElementById('message-overlay');
+      const content = document.getElementById('message-overlay-content');
+      const accSrc = document.getElementById('me-accordion');
+      if (!overlay || !content || !accSrc) return;
+      // Клонируем аккордеон в оверлей (отображение копии — display:flex).
+      const clone = accSrc.cloneNode(true);
+      clone.id = 'message-overlay-accordion';
+      clone.style.display = 'flex';
+      // Все секции в клоне свёрнуты по закону минимума — юзер сам раскрывает.
+      clone.querySelectorAll('.me-acc-header').forEach(h => h.classList.remove('open'));
+      clone.querySelectorAll('.me-acc-body').forEach(b => b.classList.remove('open'));
+      content.innerHTML = '';
+      content.appendChild(clone);
+      overlay.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMessageOverlay() {
+      const overlay = document.getElementById('message-overlay');
+      if (overlay) overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    window.openMessageOverlay = openMessageOverlay;
+    window.closeMessageOverlay = closeMessageOverlay;
+
+    // Превращает кнопку «📩 Получить полное послание» в «📖 Читать о своём Даре».
+    // Вызывается после успешного ответа AI и при восстановлении из кеша.
+    function setMessageButtonReady() {
+      const btn = document.getElementById('btn-get-message');
+      if (!btn) return;
+      btn.innerHTML = '📖 <span data-i18n="dar.read_message">Читать о своём Даре</span>';
+      btn.onclick = openMessageOverlay;
+      btn.style.display = '';
+    }
+    window.setMessageButtonReady = setMessageButtonReady;
+
     function toggleMeAcc(headerEl) {
       if (!headerEl) return;
       const isOpen = headerEl.classList.contains('open');
@@ -2365,6 +2423,9 @@
       // Обновляем замки на премиум-секциях АРКА (Резонанс / Карта связей)
       // в зависимости от текущего тарифа.
       if (typeof refreshArkaPremiumLocks === 'function') refreshArkaPremiumLocks();
+      // Если для этого Дара уже было получено полное послание — восстанавливаем
+      // его из кеша (тогда кнопка сразу будет «Читать о своём Даре»).
+      if (typeof tryRestoreMessageCache === 'function') tryRestoreMessageCache(gift.code);
       loadDailyDar();
       // Инициализация дневника
       if (typeof initDiary === 'function') initDiary();
@@ -2838,7 +2899,30 @@
         body.removeAttribute('data-placeholder');
         body.removeAttribute('data-i18n'); // больше не перерисовываем плейсхолдером при смене языка
       });
+      // Кэшируем JSON послания, чтобы при перезагрузке восстановить аккордеон
+      // без повторного запроса AI (промт дорогой).
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        const code = (saved && saved.gift && saved.gift.code) ? saved.gift.code : '';
+        if (code) localStorage.setItem('_msg_cache_' + code, JSON.stringify(data));
+      } catch (e) {}
+      // Переключаем кнопку в режим «Читать о своём Даре» → открывает overlay.
+      if (typeof setMessageButtonReady === 'function') setMessageButtonReady();
     }
+
+    // При входе восстанавливаем кэш послания, если оно уже было получено.
+    function tryRestoreMessageCache(giftCode) {
+      if (!giftCode) return false;
+      try {
+        const raw = localStorage.getItem('_msg_cache_' + giftCode);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data) return false;
+        fillMeAccordionFromJSON(data);
+        return true;
+      } catch (e) { return false; }
+    }
+    window.tryRestoreMessageCache = tryRestoreMessageCache;
 
     // Секции аккордеона (fallback для текстового формата)
     const SECTIONS = [

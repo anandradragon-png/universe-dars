@@ -2119,17 +2119,26 @@
       const shareHost = document.getElementById('message-overlay-share');
       const accSrc = document.getElementById('me-accordion');
       if (!overlay || !content || !accSrc) return;
-      // Если в кеше уже есть AI-послание — прячем CTA-блок «Получить
-      // персональное послание». Если нет — показываем.
+      // Если в кеше уже есть AI-послание — прячем CTA-блок.
+      // Если нет — показываем И АВТОМАТИЧЕСКИ запускаем AI-запрос,
+      // чтобы юзеру не пришлось делать лишний клик.
       const aiCta = document.getElementById('message-overlay-ai-cta');
-      if (aiCta) {
-        let hasCache = false;
-        try {
-          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-          const code = (saved && saved.gift && saved.gift.code) ? saved.gift.code : '';
-          if (code && localStorage.getItem('_msg_cache_' + code)) hasCache = true;
-        } catch (e) {}
-        aiCta.style.display = hasCache ? 'none' : 'block';
+      let hasCache = false;
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        const code = (saved && saved.gift && saved.gift.code) ? saved.gift.code : '';
+        if (code && localStorage.getItem('_msg_cache_' + code)) hasCache = true;
+      } catch (e) {}
+      if (aiCta) aiCta.style.display = hasCache ? 'none' : 'block';
+      // Авто-запуск AI если кеша нет (после короткой задержки чтобы overlay
+      // успел отрисоваться). Защита от двойного запуска — через busy-флаг.
+      if (!hasCache) {
+        setTimeout(() => {
+          const aiBtn = document.getElementById('message-overlay-ai-btn');
+          if (aiBtn && aiBtn.dataset.busy !== '1' && typeof requestMessage === 'function') {
+            requestMessage();
+          }
+        }, 600);
       }
       // Клонируем аккордеон в оверлей (отображение копии — display:flex).
       const clone = accSrc.cloneNode(true);
@@ -2828,6 +2837,8 @@
       if (_loadingPhraseTimer) { clearInterval(_loadingPhraseTimer); _loadingPhraseTimer = null; }
     }
 
+    // Привязываем requestMessage к window, чтобы onclick="requestMessage()"
+    // работал из inline-кнопок в overlay.
     async function requestMessage(){
       const saved=localStorage.getItem(STORAGE_KEY);
       if(!saved){ alert(((window.i18n && i18n.t && i18n.t('dar2.calc_first')) || 'Сначала рассчитайте дар')); return; }
@@ -2903,6 +2914,7 @@
         }
       }
     }
+    window.requestMessage = requestMessage;
 
     // Аккордеон из JSON-структуры (схема v2 от 30.04.2026: archetype + 7 разделов)
     const JSON_SECTIONS = [

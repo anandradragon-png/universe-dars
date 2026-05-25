@@ -2470,19 +2470,15 @@
       if (typeof Referral !== 'undefined') {
         Referral.renderShareButton(gift.code, darName);
       }
-      // Показать призыв к Оракулу (сразу после расчёта дара - первое CTA)
-      const oracleCta = document.getElementById('oracle-cta');
-      if (oracleCta) oracleCta.style.display = 'block';
-      // Показать призыв к книге
-      const bookCta = document.getElementById('book-cta');
-      if (bookCta) bookCta.style.display = 'block';
-      // Показать кнопку карточки для шейринга
-      const shareCardCta = document.getElementById('share-card-cta');
-      if (shareCardCta) shareCardCta.style.display = 'block';
-      // Показать кнопку "Подробная карточка дара" — она сама проверит access_level
-      // и покажет пэйволл если юзер basic.
-      const shareInfoCta = document.getElementById('share-info-cta');
-      if (shareInfoCta) shareInfoCta.style.display = 'block';
+      // CTA-блоки (Книга, Карточка для соцсетей, Подробная карточка А4,
+      // Поделись с другом) на главном экране СКРЫТЫ ВСЕГДА по закону
+      // law_minimal_screen + просьба Светланы 25.05.2026:
+      // «Главное меню должно остаться таким — только Карточка Дара
+      // + кнопка "Читать о своём Даре" + Оракул + Дневник + Наука».
+      // Эти CTA доступны ТОЛЬКО через overlay «Послание о Даре»
+      // (клон в openMessageOverlay → message-overlay-share).
+      // Поэтому здесь ничего не показываем — оставляем как в HTML
+      // (display:none по умолчанию).
       // Показать ежедневные активности
       const dailyBlock = document.getElementById('daily-activities');
       if (dailyBlock) dailyBlock.style.display = 'block';

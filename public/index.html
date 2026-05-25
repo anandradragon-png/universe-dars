@@ -568,46 +568,22 @@
       </div>
     </div>
 
-    <!-- 3. ДОСТИЖЕНИЯ (кристаллы + стрик + коллекция + зал славы) -->
-    <div class="profile-section lk-collapse" id="hall-of-fame-section">
-      <div class="profile-section-title lk-toggle" onclick="this.parentElement.classList.toggle('lk-open')">&#127942; <span data-i18n="profile.section_achievements">Достижения</span> <span class="lk-arrow">&#9660;</span></div>
-      <div class="lk-body">
-        <div style="display:flex;justify-content:space-around;text-align:center;margin-bottom:12px">
-          <div>
-            <div id="profile-crystals" style="font-size:20px;color:#D4AF37">0</div>
-            <div style="font-size:10px;color:var(--text-muted)" data-i18n="profile.crystals">Кристаллы</div>
-          </div>
-          <div>
-            <div id="profile-streak" style="font-size:20px;color:#f39c12">0</div>
-            <div style="font-size:10px;color:var(--text-muted)" data-i18n="profile.days_streak">Дней подряд</div>
-          </div>
-          <div>
-            <div id="profile-collection" style="font-size:20px;color:#D4AF37">0/64</div>
-            <div style="font-size:10px;color:var(--text-muted)" data-i18n="profile.collection">Коллекция</div>
-          </div>
-        </div>
-        <div id="hall-of-fame-content">
-          <div style="font-size:12px;color:var(--text-dim);text-align:center;padding:6px 0;font-style:italic" data-i18n="profile.hall_of_fame_empty">Играй в тренажёре и стань Магом Дня!</div>
-        </div>
-        <div id="leaderboard-name-options" style="display:none"></div>
-        <div id="leaderboard-name-custom-wrap" style="display:none">
-          <input id="leaderboard-custom-input" type="text" maxlength="30" placeholder="Например: Маг Огня" style="width:100%;padding:10px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;outline:none"/>
-        </div>
-        <div id="leaderboard-name-status" style="display:none"></div>
+    <!-- Достижения и Семья переехали из ЛК (2026-05-25):
+         - Достижения → вкладка «Игры» (внутри Сокровищницы)
+         - Семья → вкладка «Семья» (через family-list-container)
+         Скрытые элементы оставлены здесь для совместимости со старым JS,
+         который читает profile-crystals/streak/collection и relatives-content. -->
+    <div style="display:none" id="lk-legacy-hidden">
+      <span id="profile-crystals">0</span>
+      <span id="profile-streak">0</span>
+      <span id="profile-collection">0/64</span>
+      <div id="hall-of-fame-content"></div>
+      <div id="leaderboard-name-options"></div>
+      <div id="leaderboard-name-custom-wrap">
+        <input id="leaderboard-custom-input" type="text" maxlength="30"/>
       </div>
-    </div>
-
-    <!-- 4. СЕМЬЯ И БЛИЗКИЕ -->
-    <div class="profile-section lk-collapse">
-      <div class="profile-section-title lk-toggle" onclick="this.parentElement.classList.toggle('lk-open')">&#128106; <span data-i18n="profile.section_family">Семья и близкие</span> <span class="lk-arrow">&#9660;</span></div>
-      <div class="lk-body">
-        <div id="relatives-content">
-          <div class="skeleton-card">
-            <div class="skeleton skeleton-line"></div>
-            <div class="skeleton skeleton-line short"></div>
-          </div>
-        </div>
-      </div>
+      <div id="leaderboard-name-status"></div>
+      <div id="relatives-content"></div>
     </div>
 
     <!-- 5. ДРУЗЬЯ (рефералы + приглашение) -->
@@ -955,6 +931,24 @@
           <button class="treasury-subtab" onclick="switchNav('base')" data-i18n="treasury.subtab_encyclopedia">Энциклопедия</button>
           <button class="treasury-subtab active" onclick="switchNav('games')" data-i18n="treasury.subtab_games">Игры</button>
         </div>
+
+        <!-- Достижения (переехали из ЛК, 2026-05-25). Свёрнуты по умолчанию
+             по закону law_minimal_screen. Раскрываются по клику. -->
+        <div class="me-accordion" style="padding:0 16px;margin-bottom:12px">
+          <div class="me-acc-item">
+            <button class="me-acc-header" onclick="(function(h){renderAchievementsBlock();toggleMeAcc(h);})(this)">
+              <span class="me-acc-icon">🏆</span>
+              <span class="me-acc-title" data-i18n="profile.section_achievements">Достижения</span>
+              <span class="me-acc-arrow">▼</span>
+            </button>
+            <div class="me-acc-body">
+              <div id="games-achievements-content">
+                <div style="font-size:12px;color:var(--text-dim);text-align:center;padding:6px 0;font-style:italic" data-i18n="profile.hall_of_fame_empty">Играй в тренажёре и стань Магом Дня!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Хаб выбора игры -->
         <div id="games-hub">
           <div style="text-align:center;padding:20px 16px 14px">
@@ -2065,6 +2059,31 @@
       if (body) body.classList.toggle('open', !isOpen);
     }
     window.toggleMeAcc = toggleMeAcc;
+
+    // Рендер блока «Достижения» внутри вкладки «Игры» (переехал из ЛК 25.05.2026).
+    // Читает из window.PROFILE / _profileData те же поля что и старая секция ЛК.
+    function renderAchievementsBlock() {
+      const host = document.getElementById('games-achievements-content');
+      if (!host) return;
+      // Берём данные из window.PROFILE (актуальный профиль) или _profileData (кеш ЛК).
+      const p = (typeof _profileData === 'object' && _profileData) ? _profileData : (window.PROFILE || {});
+      const crystals = p.crystals !== undefined ? p.crystals : 0;
+      const streak = p.streak !== undefined ? p.streak : 0;
+      const darsCount = (p.dars && p.dars.length) ? p.dars.length : 0;
+      const collection = darsCount + '/64';
+      const stats =
+        '<div style="display:flex;justify-content:space-around;text-align:center;margin-bottom:12px">' +
+          '<div><div style="font-size:20px;color:#D4AF37">' + crystals + '</div><div style="font-size:10px;color:var(--text-muted)" data-i18n="profile.crystals">Кристаллы</div></div>' +
+          '<div><div style="font-size:20px;color:#f39c12">' + streak + '</div><div style="font-size:10px;color:var(--text-muted)" data-i18n="profile.days_streak">Дней подряд</div></div>' +
+          '<div><div style="font-size:20px;color:#D4AF37">' + collection + '</div><div style="font-size:10px;color:var(--text-muted)" data-i18n="profile.collection">Коллекция</div></div>' +
+        '</div>';
+      // Зал славы — если есть renderHallOfFame, он подставит контент в hall-of-fame-content (скрытый).
+      // Дублируем его сюда строкой ниже.
+      const hofHidden = document.getElementById('hall-of-fame-content');
+      const hofHtml = hofHidden && hofHidden.innerHTML.trim() ? hofHidden.innerHTML : '<div style="font-size:12px;color:var(--text-dim);text-align:center;padding:6px 0;font-style:italic">Играй в тренажёре и стань Магом Дня!</div>';
+      host.innerHTML = stats + hofHtml;
+    }
+    window.renderAchievementsBlock = renderAchievementsBlock;
 
     // Премиум-секции АРКА (Резонанс с фазой жизни, Карта связей).
     // Если тариф Хранитель — раскрываются как обычные секции.

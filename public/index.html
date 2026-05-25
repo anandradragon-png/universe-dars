@@ -2159,6 +2159,18 @@
     function toggleMeAcc(headerEl) {
       if (!headerEl) return;
       const isOpen = headerEl.classList.contains('open');
+      // Найдём аккордеон-контейнер (родительский .me-accordion).
+      // Перед открытием закрываем все другие секции внутри ЭТОГО же аккордеона —
+      // open-один-за-раз (accordion exclusive mode).
+      const accordion = headerEl.closest('.me-accordion');
+      if (accordion && !isOpen) {
+        accordion.querySelectorAll('.me-acc-header.open').forEach(h => {
+          if (h === headerEl) return;
+          h.classList.remove('open');
+          const b = h.nextElementSibling;
+          if (b) b.classList.remove('open');
+        });
+      }
       const body = headerEl.nextElementSibling;
       headerEl.classList.toggle('open', !isOpen);
       if (body) body.classList.toggle('open', !isOpen);

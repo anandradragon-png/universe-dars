@@ -980,6 +980,24 @@
         </div>
       </div>
     </div>
+    <!-- Вкладка «Семья» (этап 1 слияния, 2026-05-25).
+         Этап 2 заменит плейсхолдер на список близких + расчёт даров. -->
+    <div class="tab" id="tab-family">
+      <div style="padding:40px 20px;text-align:center;color:var(--text-muted);max-width:480px;margin:0 auto">
+        <div style="font-size:56px;margin-bottom:18px;opacity:0.6">👨‍👩‍👧</div>
+        <div style="font-size:18px;color:var(--text);margin-bottom:10px;letter-spacing:0.3px" data-i18n="family.coming_title">Скоро здесь будет твоя Семья</div>
+        <div style="font-size:14px;line-height:1.6" data-i18n="family.coming_sub">Рассчитай Дары близких, увидь совместимость пар, построй карту рода.</div>
+      </div>
+    </div>
+    <!-- Вкладка «Дар / АРКА» (этап 1 слияния, 2026-05-25).
+         Этап 3 подключит iframe /preview/arka/ с проверкой тарифа Хранитель. -->
+    <div class="tab" id="tab-arka">
+      <div style="padding:40px 20px;text-align:center;color:var(--text-muted);max-width:480px;margin:0 auto">
+        <div style="font-size:56px;margin-bottom:18px;opacity:0.6">🏛</div>
+        <div style="font-size:18px;color:var(--text);margin-bottom:10px;letter-spacing:0.3px" data-i18n="arka.coming_title">Скоро здесь будет АРКА</div>
+        <div style="font-size:14px;line-height:1.6" data-i18n="arka.coming_sub">Личный путь в ритме твоего Дара. Окна силы, карта роста, дневник эволюции, тренажёр.</div>
+      </div>
+    </div>
   </div>
   <!-- Модалка: Страница Тарифов YupDar — Вселенная Даров -->
   <div id="tariffs-modal" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,0.95);backdrop-filter:blur(6px);flex-direction:column">
@@ -1203,12 +1221,18 @@
     .psu-gender:hover{border-color:rgba(212,175,55,0.25);background:rgba(212,175,55,0.04)}
   </style>
 
+  <!-- Новая навигация: 4 таба вместо 5.
+       me → активирует существующий tab-calc (Я / расчёт Дара).
+       family → новый tab-family (близкие, появится на этапе 2 слияния).
+       treasury → существующий tab-treasury (Сокровищница, на этапе 4 в неё переедут Игры/Книга/Энциклопедия).
+       arka → новый tab-arka (премиум-приложение АРКА, появится на этапе 3 слияния).
+       Кнопки для games/book/base убраны временно — функции switchNav('games' и т.п.)
+       продолжают работать, доступ восстановится через подразделы Сокровищницы. -->
   <div class="nav-bar">
-    <button class="nav-btn active" id="nav-calc" onclick="switchNav('calc')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span class="nav-label" data-i18n="nav.home">Главная</span></button>
+    <button class="nav-btn active" id="nav-me" onclick="switchNav('me')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg></span><span class="nav-label" data-i18n="nav.me">Я</span></button>
+    <button class="nav-btn" id="nav-family" onclick="switchNav('family')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><circle cx="16" cy="8" r="2.5"/><path d="M3 20c0-3.5 2.5-6 6-6s6 2.5 6 6"/><path d="M14 20c0-2.5 1.5-5 5-5"/></svg></span><span class="nav-label" data-i18n="nav.family">Семья</span></button>
     <button class="nav-btn" id="nav-treasury" onclick="switchNav('treasury')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 6h6"/><path d="M7 9l2-6"/><path d="M2 9h20"/></svg></span><span class="nav-label" data-i18n="nav.treasury">Сокровищница</span></button>
-    <button class="nav-btn" id="nav-games" onclick="switchNav('games')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg></span><span class="nav-label" data-i18n="nav.games">Игры</span></button>
-    <button class="nav-btn" id="nav-book" onclick="switchNav('book')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span class="nav-label" data-i18n="nav.book">Книга</span></button>
-    <button class="nav-btn" id="nav-base" onclick="switchNav('base')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="nav-label" data-i18n="nav.encyclopedia">Энциклопедия</span></button>
+    <button class="nav-btn" id="nav-arka" onclick="switchNav('arka')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9a8 8 0 0 1 16 0v12"/><path d="M4 21h16"/><path d="M9 21V13"/><path d="M15 21V13"/></svg></span><span class="nav-label" data-i18n="nav.arka">Дар</span></button>
   </div>
 
   <!-- Загрузка баннера техработ. Управляется env MAINTENANCE_MESSAGE в Vercel. -->
@@ -1829,18 +1853,26 @@
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-calc').classList.add('active');
-      // Подсветить кнопку «Главная» в нижней навигации
-      const navCalc = document.getElementById('nav-calc');
-      if (navCalc) navCalc.classList.add('active');
+      // Подсветить кнопку «Я» (после этапа 1 слияния — это nav-me; старое имя nav-calc убрано).
+      const navHome = document.getElementById('nav-me') || document.getElementById('nav-calc');
+      if (navHome) navHome.classList.add('active');
       document.getElementById('app').scrollTop = 0;
     }
     window.goHome = goHome;
 
     function switchNav(name) {
+      // Алиасы для новой навигации (этап 1 слияния, 2026-05-25):
+      // 'me' открывает существующий tab-calc (Расчёт Дара) — это вкладка «Я».
+      // Старое имя 'calc' тоже остаётся валидным (используется goHome).
+      var TAB_ALIAS = { me: 'calc' };
+      var tabName = TAB_ALIAS[name] || name;
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      var tabEl = document.getElementById('tab-' + name);
+      var tabEl = document.getElementById('tab-' + tabName);
       var navEl = document.getElementById('nav-' + name);
+      // Если кнопка с таким именем больше не существует (например 'calc' — её сменили на 'me'),
+      // подсвечиваем парную: 'calc' → 'me'.
+      if (!navEl && name === 'calc') navEl = document.getElementById('nav-me');
       if (tabEl) tabEl.classList.add('active');
       if (navEl) navEl.classList.add('active');
       document.getElementById('app').scrollTop = 0;

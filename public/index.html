@@ -727,7 +727,12 @@
         <button class="btn btn-primary" onclick="calculate()" data-i18n="home.calculate_btn"> Рассчитать мой дар</button>
       </div>
       <div id="screen-result" style="display:none">
-        <button class="btn-back" id="btn-back" onclick="resetDate()" data-i18n="dar.back_to_main">← В главное меню</button>
+        <!-- Кнопка «← В главное меню» убрана 2026-05-25 по закону
+             law_personal_data_immutable: 1 юзер = 1 личный Дар,
+             сбросить Дар нельзя. Главное меню — это и есть вкладка «Я».
+             Скрытая заглушка #btn-back оставлена для совместимости с кодом,
+             который ставит ей style.display. -->
+        <button id="btn-back" hidden style="display:none;padding:0;border:0;height:0;width:0;overflow:hidden" aria-hidden="true"></button>
         <div class="result-card">
           <div class="dar-image-wrap" id="darImageWrap"></div>
           <div class="dar-name" id="darName"></div>

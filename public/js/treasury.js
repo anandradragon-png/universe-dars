@@ -72,16 +72,26 @@ const Treasury = (function() {
       </div>
     `;
 
-    // Баннер книги + Путешествие Героя
+    // Карточки разделов внутри Сокровищницы: Книга / Путешествие / Игры / Энциклопедия.
+    // После этапа 4 слияния (2026-05-25) Книга/Игры/Энциклопедия больше не в nav-bar,
+    // их единственная точка входа — отсюда.
     html += `
-      <div style="display:flex;gap:8px;margin:0 0 16px">
-        <div style="flex:1;padding:14px;background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 16px">
+        <div style="padding:14px;background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('book')">
           <div style="font-size:14px;color:#D4AF37;margin-bottom:4px">&#128214; Книга Даров</div>
           <div style="font-size:11px;color:var(--text-dim)">Практики и медитации</div>
         </div>
-        <div style="flex:1;padding:14px;background:linear-gradient(135deg,rgba(255,100,0,0.12),rgba(255,200,0,0.08));border:1px solid rgba(255,140,0,0.35);border-radius:14px;text-align:center;cursor:pointer" onclick="Treasury.startHeroJourney()">
+        <div style="padding:14px;background:linear-gradient(135deg,rgba(255,100,0,0.12),rgba(255,200,0,0.08));border:1px solid rgba(255,140,0,0.35);border-radius:14px;text-align:center;cursor:pointer" onclick="Treasury.startHeroJourney()">
           <div style="font-size:14px;color:#FFA500;margin-bottom:4px">&#127749; Путешествие</div>
           <div style="font-size:11px;color:var(--text-dim)">Квест по твоему дару</div>
+        </div>
+        <div style="padding:14px;background:linear-gradient(135deg,rgba(140,90,200,0.14),rgba(140,90,200,0.06));border:1px solid rgba(140,90,200,0.35);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('games')">
+          <div style="font-size:14px;color:#a479e2;margin-bottom:4px">&#127918; Игры</div>
+          <div style="font-size:11px;color:var(--text-dim)">Интуиция и Атлантида</div>
+        </div>
+        <div style="padding:14px;background:linear-gradient(135deg,rgba(74,134,232,0.14),rgba(74,134,232,0.06));border:1px solid rgba(74,134,232,0.35);border-radius:14px;text-align:center;cursor:pointer" onclick="switchNav('base')">
+          <div style="font-size:14px;color:#4a86e8;margin-bottom:4px">&#128218; Энциклопедия</div>
+          <div style="font-size:11px;color:var(--text-dim)">64 дара и 9 полей</div>
         </div>
       </div>
     `;

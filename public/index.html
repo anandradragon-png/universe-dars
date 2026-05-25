@@ -876,6 +876,103 @@
 
       <!-- Экран игры перенесён во вкладку "Игры" (#tab-games) -->
 
+      <!-- Аккордеон 7 секций + 2 премиум АРКА (этап 7 слияния, 2026-05-25).
+           Тексты пока плейсхолдерные — описывают суть. Когда будет интеграция
+           с dar-content.json по коду пользователя, заполнятся динамически. -->
+      <div class="me-accordion" id="me-accordion">
+        <div class="me-acc-item">
+          <button class="me-acc-header open" onclick="toggleMeAcc(this)">
+            <span class="me-acc-icon">✨</span>
+            <span class="me-acc-title" data-i18n="me.acc_essence">Твоя Суть</span>
+            <span class="me-acc-arrow">▼</span>
+          </button>
+          <div class="me-acc-body open" data-i18n="me.acc_essence_text">Носитель своего Дара. Описание заполняется автоматически по твоему коду из энциклопедии.</div>
+        </div>
+        <div class="me-acc-item">
+          <button class="me-acc-header" onclick="toggleMeAcc(this)">
+            <span class="me-acc-icon">💎</span>
+            <span class="me-acc-title" data-i18n="me.acc_superpowers">Твои Суперсилы</span>
+            <span class="me-acc-arrow">▼</span>
+          </button>
+          <div class="me-acc-body" data-i18n="me.acc_superpowers_text">Уникальные способности твоего архетипа. То, что даётся легче всего и питает.</div>
+        </div>
+        <div class="me-acc-item">
+          <button class="me-acc-header" onclick="toggleMeAcc(this)">
+            <span class="me-acc-icon">💰</span>
+            <span class="me-acc-title" data-i18n="me.acc_wealth">Твой Поток Изобилия</span>
+            <span class="me-acc-arrow">▼</span>
+          </button>
+          <div class="me-acc-body" data-i18n="me.acc_wealth_text">Через что приходят ресурсы. Что включает и что блокирует поток в твоём Даре.</div>
+        </div>
+        <div class="me-acc-item">
+          <button class="me-acc-header" onclick="toggleMeAcc(this)">
+            <span class="me-acc-icon">❤️</span>
+            <span class="me-acc-title" data-i18n="me.acc_relationships">Ты в Отношениях</span>
+            <span class="me-acc-arrow">▼</span>
+          </button>
+          <div class="me-acc-body" data-i18n="me.acc_relationships_text">Как ты любишь, что тебе нужно от близости, твои триггеры.</div>
+        </div>
+        <div class="me-acc-item">
+          <button class="me-acc-header" onclick="toggleMeAcc(this)">
+            <span class="me-acc-icon">⚠️</span>
+            <span class="me-acc-title" data-i18n="me.acc_traps">Твои Ловушки</span>
+            <span class="me-acc-arrow">▼</span>
+          </button>
+          <div class="me-acc-body" data-i18n="me.acc_traps_text">Типичные тени твоего архетипа. Где можно «упасть» и как себе помочь.</div>
+        </div>
+        <div class="me-acc-item">
+          <button class="me-acc-header" onclick="toggleMeAcc(this)">
+            <span class="me-acc-icon">🗝</span>
+            <span class="me-acc-title" data-i18n="me.acc_key">Ключ к Себе</span>
+            <span class="me-acc-arrow">▼</span>
+          </button>
+          <div class="me-acc-body" data-i18n="me.acc_key_text">Главный ресурс твоего Дара. То, что разворачивает тебя в полную силу.</div>
+        </div>
+        <div class="me-acc-item">
+          <button class="me-acc-header" onclick="toggleMeAcc(this)">
+            <span class="me-acc-icon">🌍</span>
+            <span class="me-acc-title" data-i18n="me.acc_mission">Твоё Предназначение</span>
+            <span class="me-acc-arrow">▼</span>
+          </button>
+          <div class="me-acc-body" data-i18n="me.acc_mission_text">Что ты несёшь миру через свой Дар. Как твоя жизнь становится посланием.</div>
+        </div>
+        <!-- Premium-секции АРКА (с замочками) → ведут на тарифы. -->
+        <div class="me-acc-item me-acc-locked">
+          <button class="me-acc-header" onclick="openTariffsPage()">
+            <span class="me-acc-icon">🧬</span>
+            <span class="me-acc-title" data-i18n="me.acc_resonance">Резонанс с фазой жизни</span>
+            <span class="me-acc-lock" title="АРКА">🔒</span>
+          </button>
+        </div>
+        <div class="me-acc-item me-acc-locked">
+          <button class="me-acc-header" onclick="openTariffsPage()">
+            <span class="me-acc-icon">🌌</span>
+            <span class="me-acc-title" data-i18n="me.acc_connections">Карта связей</span>
+            <span class="me-acc-lock" title="АРКА">🔒</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Дневник Дара — freemium-крючок (открывает /preview/diary/). -->
+      <div class="me-diary-card" onclick="window.open('/preview/diary/', '_blank')">
+        <span class="me-diary-icon">📓</span>
+        <div class="me-diary-body">
+          <div class="me-diary-title" data-i18n="me.diary_title">Дневник Дара</div>
+          <div class="me-diary-sub" data-i18n="me.diary_sub">Одна строка в день — и АРКА начнёт замечать твои паттерны. Бесплатно.</div>
+        </div>
+        <span class="me-diary-arrow">→</span>
+      </div>
+
+      <!-- Внеси вклад в науку о Дарах — ссылка на сайт науки. -->
+      <div class="me-science-card" onclick="window.open('https://nauka-yupdar.vercel.app', '_blank')">
+        <span class="me-science-icon">🌍</span>
+        <div class="me-science-body">
+          <div class="me-science-title" data-i18n="me.science_title">Внеси вклад в науку о Дарах</div>
+          <div class="me-science-sub" data-i18n="me.science_sub">Пройди опросник и стань частью первого исследования о Дарах.</div>
+        </div>
+        <span class="me-science-arrow">→</span>
+      </div>
+
       </div><!-- /main-container -->
     </div>
     <div class="tab" id="tab-treasury">
@@ -1268,6 +1365,38 @@
     .psu-gender{flex:1;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:var(--text-dim);font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;transition:all .25s}
     .psu-gender.active{background:linear-gradient(160deg,rgba(212,175,55,0.12),rgba(154,123,26,0.06));border-color:rgba(212,175,55,0.5);color:#D4AF37;font-weight:700;box-shadow:0 0 12px rgba(212,175,55,0.12)}
     .psu-gender:hover{border-color:rgba(212,175,55,0.25);background:rgba(212,175,55,0.04)}
+    /* Аккордеон вкладки «Я» — этап 7 слияния (2026-05-25).
+       7 базовых секций + 2 премиум-секции АРКА с замочками. */
+    .me-accordion{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+    .me-acc-item{background:rgba(255,255,255,0.03);border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:12px;overflow:hidden}
+    .me-acc-header{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:14px;color:var(--text,#f1f5f9);text-align:left;transition:background 0.15s}
+    .me-acc-header:hover{background:rgba(212,175,55,0.08)}
+    .me-acc-header.open{background:rgba(212,175,55,0.12)}
+    .me-acc-icon{font-size:18px;flex-shrink:0}
+    .me-acc-title{flex:1;font-weight:600}
+    .me-acc-arrow{font-size:11px;color:var(--text-dim,#94a3b8);transition:transform 0.25s;flex-shrink:0}
+    .me-acc-header.open .me-acc-arrow{transform:rotate(180deg)}
+    .me-acc-body{max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;padding:0 16px;color:var(--text-dim,#94a3b8);font-size:13px;line-height:1.6}
+    .me-acc-body.open{max-height:1200px;padding:4px 16px 14px}
+    .me-acc-locked .me-acc-title{color:var(--text-dim,#94a3b8)}
+    .me-acc-lock{font-size:14px;color:#D4AF37;flex-shrink:0;opacity:0.85}
+    .me-acc-locked .me-acc-header:hover .me-acc-lock{opacity:1;transform:scale(1.1);transition:transform 0.2s}
+    /* Блок «Дневник Дара» — freemium-крючок */
+    .me-diary-card{margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,rgba(140,90,200,0.10),rgba(140,90,200,0.04));border:1px solid rgba(140,90,200,0.3);border-radius:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s}
+    .me-diary-card:hover{border-color:rgba(140,90,200,0.5)}
+    .me-diary-icon{font-size:28px;flex-shrink:0}
+    .me-diary-body{flex:1;min-width:0}
+    .me-diary-title{font-size:14px;color:#a479e2;font-weight:600;margin-bottom:3px}
+    .me-diary-sub{font-size:11px;color:var(--text-dim);line-height:1.5}
+    .me-diary-arrow{font-size:18px;color:#D4AF37}
+    /* Блок «Внеси вклад в науку» */
+    .me-science-card{margin-top:10px;padding:14px 16px;background:linear-gradient(135deg,rgba(74,134,232,0.10),rgba(74,134,232,0.04));border:1px solid rgba(74,134,232,0.3);border-radius:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s}
+    .me-science-card:hover{border-color:rgba(74,134,232,0.5)}
+    .me-science-icon{font-size:28px;flex-shrink:0}
+    .me-science-body{flex:1;min-width:0}
+    .me-science-title{font-size:14px;color:#4a86e8;font-weight:600;margin-bottom:3px}
+    .me-science-sub{font-size:11px;color:var(--text-dim);line-height:1.5}
+    .me-science-arrow{font-size:18px;color:#D4AF37}
   </style>
 
   <!-- Новая навигация: 4 таба вместо 5.
@@ -1955,6 +2084,19 @@
         if (typeof renderArkaTab === 'function') renderArkaTab();
       }
     }
+
+    // ──────────────────────────────────────────────────────────
+    // Аккордеон вкладки «Я» — этап 7 слияния (2026-05-25).
+    // Переключение секции: клик по header раскрывает/сворачивает body.
+    // ──────────────────────────────────────────────────────────
+    function toggleMeAcc(headerEl) {
+      if (!headerEl) return;
+      const isOpen = headerEl.classList.contains('open');
+      const body = headerEl.nextElementSibling;
+      headerEl.classList.toggle('open', !isOpen);
+      if (body) body.classList.toggle('open', !isOpen);
+    }
+    window.toggleMeAcc = toggleMeAcc;
 
     // ──────────────────────────────────────────────────────────
     // Вкладка «Дар / АРКА» — этап 3 слияния (2026-05-25).

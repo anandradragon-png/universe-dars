@@ -2097,8 +2097,11 @@
       content.appendChild(clone);
       // Шеринг-кнопки внизу: Книга / Карточка / А4 / Поделись с другом.
       // Клонируем по id из main-container (источник истины — там).
+      // ВАЖНО: оборачиваем onclick так, чтобы перед действием закрыть overlay
+      // (иначе для switchNav('book') overlay перекрывает таб Книги).
       if (shareHost) {
         shareHost.innerHTML = '';
+        const wrapHandler = (origOnclick) => 'closeMessageOverlay(); ' + origOnclick;
         ['book-cta', 'share-card-cta', 'share-info-cta', 'share-section'].forEach(id => {
           const src = document.getElementById(id);
           if (!src) return;
@@ -2106,6 +2109,14 @@
           c.removeAttribute('id'); // чтобы не было дублей id
           c.style.display = 'block';
           c.style.marginTop = '12px';
+          // Оборачиваем onclick корневого div'а если он есть.
+          const rootOnclick = c.getAttribute('onclick');
+          if (rootOnclick) c.setAttribute('onclick', wrapHandler(rootOnclick));
+          // Оборачиваем onclick всех кнопок внутри (для share-section с кнопкой Referral).
+          c.querySelectorAll('button[onclick]').forEach(btn => {
+            const o = btn.getAttribute('onclick');
+            if (o) btn.setAttribute('onclick', wrapHandler(o));
+          });
           shareHost.appendChild(c);
         });
       }

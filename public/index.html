@@ -1292,17 +1292,26 @@
         <div id="psu-city-coords" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
       </div>
 
-      <div style="background:rgba(244,81,30,0.12);border:1px solid rgba(244,81,30,0.3);border-radius:10px;padding:10px 12px;margin-bottom:14px">
-        <div style="font-size:11px;color:#F4511E;line-height:1.5" data-i18n-html="psu.accuracy_warning">
-          &#9888;&#65039; Для точных и глубоких расшифровок все данные должны быть <b>настоящими</b>. Вымышленные имя, время или место рождения приведут к посланиям, которые не будут соответствовать тебе.
-        </div>
-      </div>
-
       <div id="psu-status" style="min-height:20px;font-size:12px;text-align:center;color:#f87171;margin-bottom:8px"></div>
 
       <button id="psu-save-btn" onclick="psuSave()" style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;font-weight:bold;box-shadow:0 0 15px rgba(212,175,55,0.3)" data-i18n="psu.save_and_continue">Сохранить и продолжить</button>
       <button id="psu-later-btn" onclick="psuSkip()" style="width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif" data-i18n="psu.fill_later">Заполнить позже</button>
       <button id="psu-debug-btn" onclick="psuSendDebugLog()" style="display:none;width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.05);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif">&#128203; <span data-i18n="psu.send_log">Прислать лог разработчику</span></button>
+    </div>
+  </div>
+
+  <!-- Модалка подтверждения сохранения личных данных (тёплый тон, золото).
+       Открывается из psuSave() ПЕРЕД отправкой на сервер. -->
+  <div id="psu-confirm-overlay" style="display:none;position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
+    <div style="max-width:380px;width:100%;background:linear-gradient(160deg,#181818 0%,#0d0d0d 100%);border:1px solid rgba(212,175,55,0.4);border-radius:18px;padding:24px 22px;box-shadow:0 8px 40px rgba(212,175,55,0.15)">
+      <div style="text-align:center;font-size:42px;margin-bottom:12px">🗝</div>
+      <div style="text-align:center;font-size:18px;color:#D4AF37;font-weight:700;letter-spacing:0.3px;margin-bottom:10px" data-i18n="psu.confirm_title">Проверь данные перед сохранением</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:14px" data-i18n="psu.confirm_body">После сохранения личные данные станут постоянными. Это защита от подмены. Изменить дату, время, место рождения, имя и пол потом будет нельзя.</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:18px" data-i18n="psu.confirm_hint">Расшифровки строятся именно на этих данных. Чем точнее ты их укажешь, тем глубже будут послания.</div>
+      <div style="display:flex;gap:10px">
+        <button onclick="psuConfirmCancel()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif" data-i18n="psu.confirm_back">Проверить ещё раз</button>
+        <button onclick="psuConfirmOk()" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700" data-i18n="psu.confirm_ok">Всё верно, сохранить</button>
+      </div>
     </div>
   </div>
   <style>
@@ -4438,6 +4447,21 @@
       document.getElementById('psu-city-suggest').style.display = 'none';
     }
 
+    // Подтверждение сохранения (закон: личные данные read-only после сохранения).
+    // Показываем модалку перед фактическим сохранением — без красного,
+    // с мягким напоминанием что изменить будет нельзя.
+    function psuConfirmCancel() {
+      const overlay = document.getElementById('psu-confirm-overlay');
+      if (overlay) overlay.style.display = 'none';
+    }
+    function psuConfirmOk() {
+      const overlay = document.getElementById('psu-confirm-overlay');
+      if (overlay) overlay.style.display = 'none';
+      _psuActuallySave();
+    }
+    window.psuConfirmCancel = psuConfirmCancel;
+    window.psuConfirmOk = psuConfirmOk;
+
     async function psuSave() {
       const firstName = document.getElementById('psu-first-name').value.trim();
       const lastName = document.getElementById('psu-last-name').value.trim();
@@ -4469,6 +4493,25 @@
         status.textContent = _t('psu.err_city_pick', 'Выбери город из списка подсказок (для точных координат)');
         return;
       }
+
+      // Все валидации прошли — показываем модалку подтверждения.
+      const overlay = document.getElementById('psu-confirm-overlay');
+      if (overlay) {
+        overlay.style.display = 'flex';
+        return;
+      }
+      // Фолбэк если модалки нет — сохраняем без подтверждения.
+      _psuActuallySave();
+    }
+
+    async function _psuActuallySave() {
+      const firstName = document.getElementById('psu-first-name').value.trim();
+      const lastName = document.getElementById('psu-last-name').value.trim();
+      const birthDate = document.getElementById('psu-birth-date').value.trim();
+      const birthTime = document.getElementById('psu-birth-time').value.trim();
+      const birthPlace = document.getElementById('psu-birth-place').value.trim();
+      const status = document.getElementById('psu-status');
+      const _t = (k, f) => ((window.i18n && i18n.t && i18n.t(k)) || f);
 
       const profile = {
         real_first_name: firstName,

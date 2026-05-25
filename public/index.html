@@ -2680,6 +2680,15 @@
       err.textContent='';
       const gift=calcGift(day,month,year);
       localStorage.setItem(STORAGE_KEY,JSON.stringify({gift,date:raw}));
+      // Также сохраняем дату в _darProfile, чтобы fallback _tryRestoreFromDarProfile
+      // работал у юзеров которые НЕ заполняли PSU (только посчитали Дар).
+      try {
+        const dp = JSON.parse(localStorage.getItem('_darProfile') || '{}');
+        if (!dp.birth_date) {
+          dp.birth_date = raw;
+          localStorage.setItem('_darProfile', JSON.stringify(dp));
+        }
+      } catch(e) {}
 
       // Новый пользователь: сначала собираем профиль, потом показываем результат
       const profile = getLocalProfile();

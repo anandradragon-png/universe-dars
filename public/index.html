@@ -819,61 +819,61 @@
            обёртка me-result-extra переключается в showResult() рядом с daily-activities. -->
       <div id="me-result-extra" style="display:none">
       <div class="me-accordion" id="me-accordion">
-        <div class="me-acc-item">
+        <div class="me-acc-item" data-section="essence">
           <button class="me-acc-header open" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">✨</span>
             <span class="me-acc-title" data-i18n="me.acc_essence">Твоя Суть</span>
             <span class="me-acc-arrow">▼</span>
           </button>
-          <div class="me-acc-body open" data-i18n="me.acc_essence_text">Носитель своего Дара. Описание заполняется автоматически по твоему коду из энциклопедии.</div>
+          <div class="me-acc-body open" data-i18n="me.acc_essence_text" data-placeholder="1">Нажми «Получить полное послание» под карточкой Дара — здесь появится твоя личная расшифровка.</div>
         </div>
-        <div class="me-acc-item">
+        <div class="me-acc-item" data-section="superpowers">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">💎</span>
             <span class="me-acc-title" data-i18n="me.acc_superpowers">Твои Суперсилы</span>
             <span class="me-acc-arrow">▼</span>
           </button>
-          <div class="me-acc-body" data-i18n="me.acc_superpowers_text">Уникальные способности твоего архетипа. То, что даётся легче всего и питает.</div>
+          <div class="me-acc-body" data-i18n="me.acc_superpowers_text" data-placeholder="1">Уникальные способности твоего архетипа. Появится после получения полного послания.</div>
         </div>
-        <div class="me-acc-item">
+        <div class="me-acc-item" data-section="wealth_flow">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">💰</span>
             <span class="me-acc-title" data-i18n="me.acc_wealth">Твой Поток Изобилия</span>
             <span class="me-acc-arrow">▼</span>
           </button>
-          <div class="me-acc-body" data-i18n="me.acc_wealth_text">Через что приходят ресурсы. Что включает и что блокирует поток в твоём Даре.</div>
+          <div class="me-acc-body" data-i18n="me.acc_wealth_text" data-placeholder="1">Через что приходят ресурсы. Появится после получения полного послания.</div>
         </div>
-        <div class="me-acc-item">
+        <div class="me-acc-item" data-section="relationships">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">❤️</span>
             <span class="me-acc-title" data-i18n="me.acc_relationships">Ты в Отношениях</span>
             <span class="me-acc-arrow">▼</span>
           </button>
-          <div class="me-acc-body" data-i18n="me.acc_relationships_text">Как ты любишь, что тебе нужно от близости, твои триггеры.</div>
+          <div class="me-acc-body" data-i18n="me.acc_relationships_text" data-placeholder="1">Как ты любишь и что тебе нужно от близости. Появится после получения полного послания.</div>
         </div>
-        <div class="me-acc-item">
+        <div class="me-acc-item" data-section="traps">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">⚠️</span>
             <span class="me-acc-title" data-i18n="me.acc_traps">Твои Ловушки</span>
             <span class="me-acc-arrow">▼</span>
           </button>
-          <div class="me-acc-body" data-i18n="me.acc_traps_text">Типичные тени твоего архетипа. Где можно «упасть» и как себе помочь.</div>
+          <div class="me-acc-body" data-i18n="me.acc_traps_text" data-placeholder="1">Типичные тени твоего архетипа. Появится после получения полного послания.</div>
         </div>
-        <div class="me-acc-item">
+        <div class="me-acc-item" data-section="key_to_self">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">🗝</span>
             <span class="me-acc-title" data-i18n="me.acc_key">Ключ к Себе</span>
             <span class="me-acc-arrow">▼</span>
           </button>
-          <div class="me-acc-body" data-i18n="me.acc_key_text">Главный ресурс твоего Дара. То, что разворачивает тебя в полную силу.</div>
+          <div class="me-acc-body" data-i18n="me.acc_key_text" data-placeholder="1">Главный ресурс твоего Дара. Появится после получения полного послания.</div>
         </div>
-        <div class="me-acc-item">
+        <div class="me-acc-item" data-section="mission">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">🌍</span>
             <span class="me-acc-title" data-i18n="me.acc_mission">Твоё Предназначение</span>
             <span class="me-acc-arrow">▼</span>
           </button>
-          <div class="me-acc-body" data-i18n="me.acc_mission_text">Что ты несёшь миру через свой Дар. Как твоя жизнь становится посланием.</div>
+          <div class="me-acc-body" data-i18n="me.acc_mission_text" data-placeholder="1">Что ты несёшь миру через свой Дар. Появится после получения полного послания.</div>
         </div>
         <!-- Premium-секции АРКА (с замочками) → ведут на тарифы. -->
         <div class="me-acc-item me-acc-locked">
@@ -2700,6 +2700,37 @@
           </button>
           <div class="accordion-body${isFirst?' open':''}">${formatText(text)}</div>`;
         container.appendChild(item);
+      });
+      // Параллельно заполняем аккордеон во вкладке «Я» теми же данными.
+      // Промт AI возвращает ровно эти 7 секций — раскладываем по data-section.
+      fillMeAccordionFromJSON(data);
+    }
+
+    // Заполнение аккордеона на вкладке «Я» полным посланием от AI
+    // (этап 9 слияния, 2026-05-25). Промт уже возвращает JSON с 7 секциями —
+    // просто кладём текст в .me-acc-body соответствующей секции.
+    function fillMeAccordionFromJSON(data){
+      const acc = document.getElementById('me-accordion');
+      if (!acc) return;
+      // Архетип над карточкой Дара (если AI его вернул)
+      if (data && data.archetype) {
+        const archHost = document.getElementById('darArchetype');
+        const a = typeof data.archetype === 'object' ? data.archetype : { title: String(data.archetype), motto: '' };
+        const archMotto = (a.motto || '').trim();
+        if (archHost && archMotto) {
+          archHost.textContent = '«' + archMotto + '»';
+        }
+      }
+      JSON_SECTIONS.forEach(s => {
+        const item = acc.querySelector('.me-acc-item[data-section="' + s.key + '"]');
+        if (!item) return;
+        const body = item.querySelector('.me-acc-body');
+        if (!body) return;
+        const text = s.getText(data);
+        if (!text || !text.trim()) return;
+        body.innerHTML = formatText(text);
+        body.removeAttribute('data-placeholder');
+        body.removeAttribute('data-i18n'); // больше не перерисовываем плейсхолдером при смене языка
       });
     }
 

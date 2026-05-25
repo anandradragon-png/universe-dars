@@ -1341,6 +1341,14 @@
       <div style="width:32px"></div>
     </div>
     <div style="max-width:600px;margin:0 auto;padding:18px 16px 60px">
+      <!-- Кнопка AI-запроса персонального послания. Показывается если кеша нет.
+           После успешного запроса меняется на «✓ Послание получено». -->
+      <div id="message-overlay-ai-cta" style="margin-bottom:14px;text-align:center">
+        <button id="message-overlay-ai-btn" onclick="requestMessage()" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:14px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;box-shadow:0 0 18px rgba(212,175,55,0.25)">
+          <span>🔮</span><span data-i18n="message.request_ai">Получить персональное послание</span>
+        </button>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.5" data-i18n="message.ai_hint">AI создаст глубокое описание именно для твоего Дара. Займёт 30-60 секунд.</div>
+      </div>
       <div id="message-overlay-content"><!-- сюда клонируется аккордеон --></div>
       <!-- Шеринг-кнопки внизу, после аккордеона. Заполняются клонами
            из main-container в openMessageOverlay(). -->
@@ -2111,6 +2119,18 @@
       const shareHost = document.getElementById('message-overlay-share');
       const accSrc = document.getElementById('me-accordion');
       if (!overlay || !content || !accSrc) return;
+      // Если в кеше уже есть AI-послание — прячем CTA-блок «Получить
+      // персональное послание». Если нет — показываем.
+      const aiCta = document.getElementById('message-overlay-ai-cta');
+      if (aiCta) {
+        let hasCache = false;
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+          const code = (saved && saved.gift && saved.gift.code) ? saved.gift.code : '';
+          if (code && localStorage.getItem('_msg_cache_' + code)) hasCache = true;
+        } catch (e) {}
+        aiCta.style.display = hasCache ? 'none' : 'block';
+      }
       // Клонируем аккордеон в оверлей (отображение копии — display:flex).
       const clone = accSrc.cloneNode(true);
       clone.id = 'message-overlay-accordion';
@@ -2812,17 +2832,15 @@
       const saved=localStorage.getItem(STORAGE_KEY);
       if(!saved){ alert(((window.i18n && i18n.t && i18n.t('dar2.calc_first')) || 'Сначала рассчитайте дар')); return; }
       const{gift}=JSON.parse(saved);
-      const btn=document.getElementById('btn-get-message');
-      // Защита от двойного клика во время загрузки.
-      if (btn && btn.dataset.busy === '1') return;
-      // Кнопка НЕ скрывается (просьба Светланы 25.05.2026: «И кнопка должна
-      // быть, не пропадать»). Только меняем текст на «Получаю послание...»
-      // и блокируем повторный клик через pointer-events.
-      if(btn){
-        btn.dataset.busy = '1';
-        btn.style.pointerEvents = 'none';
-        btn.style.opacity = '0.7';
-        btn.innerHTML = '⏳ <span data-i18n="dar.loading_message">Получаю послание…</span>';
+      // Кнопка теперь ВНУТРИ overlay (message-overlay-ai-btn).
+      // Главная кнопка #btn-get-message только открывает overlay.
+      const aiBtn = document.getElementById('message-overlay-ai-btn');
+      if (aiBtn && aiBtn.dataset.busy === '1') return;
+      if (aiBtn) {
+        aiBtn.dataset.busy = '1';
+        aiBtn.style.pointerEvents = 'none';
+        aiBtn.style.opacity = '0.7';
+        aiBtn.innerHTML = '<span>⏳</span><span data-i18n="dar.loading_message">Получаю послание…</span>';
       }
       try{
         const _prof=JSON.parse(localStorage.getItem('_darProfile')||'{}');
@@ -2856,25 +2874,20 @@
           console.error('Unexpected response structure:', result);
           throw new Error('Неожиданная структура ответа от сервера');
         }
-        // Успех: setMessageButtonReady внутри buildAccordionFromJSON
-        // уже сменит кнопку на «📖 Читать о своём Даре» и снимет блокировку.
-        // Но на всякий случай разблокируем здесь тоже.
-        if(btn){
-          btn.dataset.busy = '';
-          btn.style.pointerEvents = '';
-          btn.style.opacity = '';
-        }
-        // Автоматически открываем overlay с послании, чтобы юзер сразу увидел.
-        if (typeof openMessageOverlay === 'function') setTimeout(openMessageOverlay, 200);
+        // Успех: скрываем кнопку AI (послание получено, кеш заполнен).
+        const aiCta = document.getElementById('message-overlay-ai-cta');
+        if (aiCta) aiCta.style.display = 'none';
+        // Перерисуем содержимое overlay (там уже клонированный аккордеон —
+        // обновим его, чтобы появилось AI-описание).
+        if (typeof openMessageOverlay === 'function') openMessageOverlay();
       }catch(e){
         console.error('requestMessage error:', e.message);
-        // Возвращаем кнопку в исходное состояние «📩 Получить полное послание»,
-        // юзер сможет попробовать ещё раз.
-        if(btn){
-          btn.dataset.busy = '';
-          btn.style.pointerEvents = '';
-          btn.style.opacity = '';
-          btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание')) + '</span>';
+        // Возвращаем AI-кнопку внутри overlay в активное состояние.
+        if(aiBtn){
+          aiBtn.dataset.busy = '';
+          aiBtn.style.pointerEvents = '';
+          aiBtn.style.opacity = '';
+          aiBtn.innerHTML = '<span>🔮</span><span data-i18n="message.request_ai">Получить персональное послание</span>';
         }
         // Показываем подсказку в первой секции аккордеона (она в overlay).
         const errAcc = document.getElementById('me-accordion');

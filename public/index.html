@@ -2458,6 +2458,25 @@
       alert(((window.i18n && i18n.t && i18n.t('dar2.unlocked_in_treasury', { name: darName })) || ('Дар ' + darName + ' открыт в твоей Сокровищнице! +10 кристаллов')));
     }
 
+    // Локальный fallback: пересчитать gift из _darProfile.birth_date.
+    // Используется когда STORAGE_KEY пуст, а сервер недоступен/ничего не вернул.
+    // Закон law_personal_data_immutable: birth_date в _darProfile уже зафиксирован,
+    // можно безопасно пересчитать gift_code из него.
+    function _tryRestoreFromDarProfile() {
+      try {
+        const raw = localStorage.getItem('_darProfile');
+        if (!raw) return null;
+        const dp = JSON.parse(raw);
+        if (!dp || !dp.birth_date) return null;
+        // Формат «ДД.ММ.ГГГГ»
+        const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(dp.birth_date);
+        if (!m) return null;
+        const gift = calcGift(parseInt(m[1],10), parseInt(m[2],10), parseInt(m[3],10));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: dp.birth_date, gift }));
+        return { gift, birthDate: dp.birth_date };
+      } catch (e) { return null; }
+    }
+
     function init(){
       try {
         const saved=localStorage.getItem(STORAGE_KEY);
@@ -2474,10 +2493,18 @@
         }
       } catch(e) { localStorage.removeItem(STORAGE_KEY); }
 
-      // Если localStorage пуст но на сервере есть дар - восстанавливаем
+      // Если localStorage пуст но на сервере есть дар - восстанавливаем.
+      // Показываем мягкий лоадер вместо пустого экрана пока идёт запрос.
       if (typeof DarAPI !== 'undefined') {
-        document.getElementById('screen-input').style.display='none';
-        document.getElementById('screen-result').style.display='none';
+        const screenInput = document.getElementById('screen-input');
+        const screenResult = document.getElementById('screen-result');
+        if (screenInput) screenInput.style.display='none';
+        if (screenResult) screenResult.style.display='none';
+        // Показываем спиннер «Подгружаем твой Дар» в screen-input на время запроса.
+        const loadingHtml = '<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:18px;opacity:0.7">⟳</div><div style="font-size:14px;color:var(--text-dim);letter-spacing:0.5px">Подгружаем твой Дар…</div></div>';
+        const inputBackup = screenInput ? screenInput.innerHTML : '';
+        if (screenInput) { screenInput.innerHTML = loadingHtml; screenInput.style.display='block'; }
+        const restoreInputUI = () => { if (screenInput) { screenInput.innerHTML = inputBackup; screenInput.style.display='block'; } };
 
         DarAPI.getProfile().then(profileData => {
           if (profileData?.user?.dar_code) {
@@ -2490,16 +2517,36 @@
             if (profileData.user.access_level) {
               try { localStorage.setItem('_access_level', profileData.user.access_level); } catch(e) {}
             }
+            restoreInputUI();
             showResult(gift);
           } else {
-            document.getElementById('screen-input').style.display='block';
+            // На сервере дара нет — пробуем fallback из _darProfile.
+            const fb = _tryRestoreFromDarProfile();
+            restoreInputUI();
+            if (fb && fb.gift && fb.gift.code) {
+              if (fb.birthDate) { document.getElementById('dateInput').value = fb.birthDate; if (window._syncDateFieldsFromHidden) window._syncDateFieldsFromHidden(); }
+              showResult(fb.gift);
+            }
           }
         }).catch(() => {
-          document.getElementById('screen-input').style.display='block';
+          // Сервер недоступен — fallback из _darProfile.
+          const fb = _tryRestoreFromDarProfile();
+          restoreInputUI();
+          if (fb && fb.gift && fb.gift.code) {
+            if (fb.birthDate) { document.getElementById('dateInput').value = fb.birthDate; if (window._syncDateFieldsFromHidden) window._syncDateFieldsFromHidden(); }
+            showResult(fb.gift);
+          }
         });
         return;
       }
 
+      // DarAPI нет — пробуем fallback из _darProfile.
+      const fb = _tryRestoreFromDarProfile();
+      if (fb && fb.gift && fb.gift.code) {
+        if (fb.birthDate) { document.getElementById('dateInput').value = fb.birthDate; if (window._syncDateFieldsFromHidden) window._syncDateFieldsFromHidden(); }
+        showResult(fb.gift);
+        return;
+      }
       document.getElementById('screen-input').style.display='block';
       document.getElementById('screen-result').style.display='none';
     }

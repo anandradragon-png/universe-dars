@@ -869,25 +869,31 @@
         </div>
         <!-- Premium-секции АРКА. Замок зависит от тарифа:
              - extended (Хранитель) → раскрываются с реальным AI-контентом
-             - остальные → замок 🔒 + клик ведёт на тарифы
+             - остальные → раскрывается тизер-интрига + кнопка «Открыть в АРКА»
              refreshArkaPremiumLocks() обновляет состояние при расчёте Дара. -->
         <div class="me-acc-item me-acc-locked" data-section="arka_resonance" data-arka-premium="1">
           <button class="me-acc-header" onclick="onArkaPremiumClick(this)">
             <span class="me-acc-icon">🧬</span>
             <span class="me-acc-title" data-i18n="me.acc_resonance">Резонанс с фазой жизни</span>
-            <span class="me-acc-arrow" style="display:none">▼</span>
+            <span class="me-acc-arrow">▼</span>
             <span class="me-acc-lock" title="АРКА">🔒</span>
           </button>
-          <div class="me-acc-body" data-placeholder="1" data-i18n="me.acc_resonance_text">Где ты сейчас в своём жизненном цикле и какие задачи ставит Дар именно в эту фазу.</div>
+          <div class="me-acc-body" data-placeholder="1">
+            <div data-i18n="me.acc_resonance_teaser" style="margin-bottom:12px">Где ты сейчас в своём жизненном цикле и какие задачи ставит Дар именно в эту фазу. Внутри АРКА — твоя личная карта роста на ближайшие 90 дней.</div>
+            <button onclick="openTariffsPage()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(184,134,11,0.1));color:#D4AF37;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif" data-i18n="me.acc_open_in_arka">🛡 Открыть в АРКА</button>
+          </div>
         </div>
         <div class="me-acc-item me-acc-locked" data-section="arka_connections" data-arka-premium="1">
           <button class="me-acc-header" onclick="onArkaPremiumClick(this)">
             <span class="me-acc-icon">🌌</span>
             <span class="me-acc-title" data-i18n="me.acc_connections">Карта связей</span>
-            <span class="me-acc-arrow" style="display:none">▼</span>
+            <span class="me-acc-arrow">▼</span>
             <span class="me-acc-lock" title="АРКА">🔒</span>
           </button>
-          <div class="me-acc-body" data-placeholder="1" data-i18n="me.acc_connections_text">Кто рядом усиливает твой Дар, а с кем энергия гасится. Карта поддерживающих и сложных контактов.</div>
+          <div class="me-acc-body" data-placeholder="1">
+            <div data-i18n="me.acc_connections_teaser" style="margin-bottom:12px">Кто рядом усиливает твой Дар, а с кем энергия гасится. Карта поддерживающих и сложных контактов. Внутри АРКА — рекомендации с кем выстраивать ритм, а от кого защищаться.</div>
+            <button onclick="openTariffsPage()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(184,134,11,0.1));color:#D4AF37;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif" data-i18n="me.acc_open_in_arka">🛡 Открыть в АРКА</button>
+          </div>
         </div>
       </div>
 
@@ -2212,20 +2218,17 @@
     window.renderAchievementsBlock = renderAchievementsBlock;
 
     // Премиум-секции АРКА (Резонанс с фазой жизни, Карта связей).
-    // Если тариф Хранитель — раскрываются как обычные секции.
-    // Иначе клик ведёт на тарифы.
+    // Всегда раскрывают/сворачивают секцию (toggleMeAcc), независимо от тарифа.
+    // - Хранитель видит реальный AI-контент.
+    // - Не-Хранитель видит тизер-интригу + кнопку «Открыть в АРКА».
     function onArkaPremiumClick(headerEl) {
-      const item = headerEl ? headerEl.closest('.me-acc-item') : null;
-      const isLocked = item && item.classList.contains('me-acc-locked');
-      if (isLocked) {
-        if (typeof openTariffsPage === 'function') openTariffsPage();
-        return;
-      }
       toggleMeAcc(headerEl);
     }
     window.onArkaPremiumClick = onArkaPremiumClick;
 
-    // Обновление состояния премиум-секций АРКА: замок или открыты.
+    // Обновление состояния премиум-секций АРКА: замок или нет.
+    // Стрелка ▼ всегда видна — секция раскрывается всегда
+    // (Хранитель видит контент, остальные видят тизер).
     // Вызывается в showResult после расчёта Дара и при обновлении профиля.
     function refreshArkaPremiumLocks() {
       const accessLevel = (window.PROFILE && window.PROFILE.access_level) || 'basic';
@@ -2233,9 +2236,7 @@
       document.querySelectorAll('.me-acc-item[data-arka-premium="1"]').forEach(item => {
         item.classList.toggle('me-acc-locked', !isGuardian);
         const lock = item.querySelector('.me-acc-lock');
-        const arrow = item.querySelector('.me-acc-arrow');
         if (lock) lock.style.display = isGuardian ? 'none' : '';
-        if (arrow) arrow.style.display = isGuardian ? '' : 'none';
       });
     }
     window.refreshArkaPremiumLocks = refreshArkaPremiumLocks;

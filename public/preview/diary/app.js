@@ -59,7 +59,7 @@ const DIARY_I18N = {
     'tip.high_people':  'Ты как магнит сейчас. Иди к людям — встреча сегодня будет важной.',
     'tip.high_alone':   'Энергии много, но хочется в одиночество — это творческое состояние. Включи проект, который только твой.',
 
-    'dar.tail': 'усиливает то, что ты выбрала. Действуй из своего ритма, не из чужого.'
+    'dar.tail': 'усиливает то, что ты сейчас замечаешь. Действуй из своего ритма, не из чужого.'
   },
 
   en: {
@@ -405,16 +405,28 @@ function showMirror(entry, dar) {
   if (textEl) textEl.innerHTML = html;
 }
 
+// «Завтра приду снова» — НЕ сбрасывать форму (раньше так открывался редактор
+// после успешной записи, что раздражало). Закрываем Дневник целиком:
+// - внутри Telegram WebApp пробуем закрыть mini-app
+// - иначе возвращаемся в родительское окно (YupDar)
 function resetDiary() {
-  const inputState = document.getElementById('diaryInputState');
-  const mirrorState = document.getElementById('diaryMirrorState');
-  if (inputState) inputState.hidden = false;
-  if (mirrorState) mirrorState.hidden = true;
-  energyValue = 0; moodValue = 0; directionValue = '';
-  renderScales();
-  const note = document.getElementById('diaryNote');
-  if (note) note.value = '';
-  checkCanSave();
+  try {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.close) {
+      window.Telegram.WebApp.close();
+      return;
+    }
+  } catch (e) {}
+  try {
+    if (window.parent && window.parent !== window) {
+      // Если открыто в iframe внутри YupDar — переключаем родителя на вкладку «Я»
+      if (typeof window.parent.switchNav === 'function') {
+        window.parent.switchNav('me');
+        return;
+      }
+    }
+  } catch (e) {}
+  // Фолбэк — возврат назад в истории
+  try { window.history.back(); } catch (e) {}
 }
 window.resetDiary = resetDiary;
 

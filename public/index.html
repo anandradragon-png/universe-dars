@@ -497,8 +497,11 @@
   </div>
   <button id="btn-profile" onclick="openProfile()"></button>
   <button id="btn-tariffs" onclick="openTariffsPage()" title="Тарифы" style="position:fixed;top:14px;right:58px;z-index:900;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(160deg,rgba(212,175,55,0.25),rgba(184,134,11,0.15));color:#D4AF37;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(212,175,55,0.25);font-family:Manrope,sans-serif" aria-label="Тарифы YupDar">&#128273;</button>
-  <!-- Языковой переключатель сразу на главном экране -->
-  <button id="btn-lang" onclick="toggleLangPicker()" title="Язык / Language / Idioma" style="position:fixed;top:14px;right:102px;z-index:900;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(160deg,rgba(212,175,55,0.10),rgba(184,134,11,0.05));color:#D4AF37;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(212,175,55,0.15);font-family:Manrope,sans-serif;font-weight:700" aria-label="Language"><span id="btn-lang-label">RU</span></button>
+  <!-- Языковой переключатель убран из шапки 2026-05-25 — наезжал на текст.
+       Смена языка теперь только через ЛК → секция «🌐 Язык» (profile-language).
+       Скрытый btn-lang оставлен для совместимости (другие функции
+       обновляют его label при смене языка). -->
+  <button id="btn-lang" hidden style="display:none;width:0;height:0;padding:0;border:0;overflow:hidden" aria-hidden="true"><span id="btn-lang-label">RU</span></button>
   <div id="lang-picker" style="display:none;position:fixed;top:56px;right:102px;z-index:1100;background:linear-gradient(160deg,#1a1a14 0%,#0a0a0a 100%);border:1px solid rgba(212,175,55,0.4);border-radius:10px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,0.6);min-width:140px;font-family:Manrope,sans-serif">
     <button onclick="pickLang('ru')" data-lang-pick="ru" class="lang-pick-row" style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:none;background:transparent;color:#eaeaea;font-size:13px;cursor:pointer;text-align:left;border-radius:6px;font-family:inherit">🇷🇺 Русский</button>
     <button onclick="pickLang('en')" data-lang-pick="en" class="lang-pick-row" style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:none;background:transparent;color:#eaeaea;font-size:13px;cursor:pointer;text-align:left;border-radius:6px;font-family:inherit">🇬🇧 English</button>
@@ -1773,6 +1776,12 @@
                 real_first_name: data.user.real_first_name || localProf.real_first_name || '',
                 real_last_name: data.user.real_last_name || localProf.real_last_name || '',
                 gender: data.user.gender || localProf.gender || '',
+                // birth_date: read-only поле (закон law_personal_data_immutable).
+                // Берём с сервера, иначе из локального профиля, иначе из STORAGE_KEY.
+                birth_date: data.user.birth_date || localProf.birth_date || (function(){
+                  try { return JSON.parse(localStorage.getItem(window.STORAGE_KEY || 'dar_data') || '{}').date || ''; }
+                  catch(e) { return ''; }
+                })(),
                 birth_time: data.user.birth_time || localProf.birth_time || '',
                 birth_place: data.user.birth_place || localProf.birth_place || '',
                 birth_lat: (typeof data.user.birth_lat === 'number' ? data.user.birth_lat : (typeof localProf.birth_lat === 'number' ? localProf.birth_lat : null)),
@@ -4611,7 +4620,20 @@
           if (saved && saved.date) prefillDate = saved.date;
         } catch (e) {}
       }
-      document.getElementById('psu-birth-date').value = prefillDate;
+      const dateInput = document.getElementById('psu-birth-date');
+      dateInput.value = prefillDate;
+      // Дата read-only по закону law_personal_data_immutable, если уже введена.
+      if (prefillDate) {
+        dateInput.readOnly = true;
+        dateInput.style.opacity = '0.7';
+        dateInput.style.cursor = 'not-allowed';
+        dateInput.title = 'Дата рождения зафиксирована и не меняется';
+      } else {
+        dateInput.readOnly = false;
+        dateInput.style.opacity = '';
+        dateInput.style.cursor = '';
+        dateInput.removeAttribute('title');
+      }
       document.getElementById('psu-birth-time').value = p.birth_time || '';
       document.getElementById('psu-birth-place').value = p.birth_place || '';
       _psuGender = p.gender || '';

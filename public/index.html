@@ -980,13 +980,21 @@
         </div>
       </div>
     </div>
-    <!-- Вкладка «Семья» (этап 1 слияния, 2026-05-25).
-         Этап 2 заменит плейсхолдер на список близких + расчёт даров. -->
+    <!-- Вкладка «Семья» (этап 2 слияния, 2026-05-25).
+         Использует общий API DarAPI.getRelatives и общий кеш _relativesData
+         с ЛК → данные синхронизированы. Кнопки карточек вызывают существующие
+         функции прода (openAddRelative, openRelativeOracle, checkCompatibilityWith,
+         openChildBook, openRelativeInBook). -->
     <div class="tab" id="tab-family">
-      <div style="padding:40px 20px;text-align:center;color:var(--text-muted);max-width:480px;margin:0 auto">
-        <div style="font-size:56px;margin-bottom:18px;opacity:0.6">👨‍👩‍👧</div>
-        <div style="font-size:18px;color:var(--text);margin-bottom:10px;letter-spacing:0.3px" data-i18n="family.coming_title">Скоро здесь будет твоя Семья</div>
-        <div style="font-size:14px;line-height:1.6" data-i18n="family.coming_sub">Рассчитай Дары близких, увидь совместимость пар, построй карту рода.</div>
+      <div style="padding:18px 16px 40px;max-width:560px;margin:0 auto">
+        <div style="font-size:22px;color:var(--text);font-weight:700;letter-spacing:0.3px;margin-bottom:4px" data-i18n="family.title">Семья</div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:18px" data-i18n="family.subtitle">Дары близких, совместимость, карта рода.</div>
+        <div id="family-list-container">
+          <div class="skeleton-card">
+            <div class="skeleton skeleton-line"></div>
+            <div class="skeleton skeleton-line short"></div>
+          </div>
+        </div>
       </div>
     </div>
     <!-- Вкладка «Дар / АРКА» (этап 1 слияния, 2026-05-25).
@@ -1895,6 +1903,11 @@
       if (name === 'treasury' || name === 'games' || name === 'base') {
         // На других вкладках тоже обновляем тихо (кристаллы, уровень)
         refreshAccessLevel(true);
+      }
+      if (name === 'family') {
+        // Этап 2 слияния: подгружаем близких в контейнер вкладки «Семья».
+        // Та же функция используется в ЛК с контейнером 'relatives-content'.
+        if (typeof loadRelatives === 'function') loadRelatives('family-list-container');
       }
     }
 
@@ -4668,23 +4681,27 @@
       other:    { ru: 'Другое',       icon: '\u2728' }
     };
 
-    async function loadRelatives() {
-      const container = document.getElementById('relatives-content');
+    async function loadRelatives(containerId) {
+      // containerId — опциональный id целевого контейнера (по умолчанию 'relatives-content' в ЛК).
+      // Этап 2 слияния использует 'family-list-container' для вкладки «Семья».
+      const targetId = containerId || 'relatives-content';
+      const container = document.getElementById(targetId);
       if (!container) return;
 
       try {
         const data = await DarAPI.getRelatives();
         _relativesData = data || { relatives: [], slot_limit: 0, slot_used: 0, access_level: 'basic' };
-        renderRelativesBlock();
+        renderRelativesBlock(targetId);
       } catch (e) {
         console.warn('relatives load failed:', e.message);
         _relativesData = { relatives: [], slot_limit: 0, slot_used: 0, access_level: 'basic' };
-        renderRelativesBlock();
+        renderRelativesBlock(targetId);
       }
     }
 
-    function renderRelativesBlock() {
-      const container = document.getElementById('relatives-content');
+    function renderRelativesBlock(containerId) {
+      const targetId = containerId || 'relatives-content';
+      const container = document.getElementById(targetId);
       if (!container) return;
 
       const { relatives, slot_limit, slot_used, access_level } = _relativesData;

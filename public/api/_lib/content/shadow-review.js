@@ -339,14 +339,14 @@ module.exports = async (req, res) => {
     if (useDeepSeek) {
       try {
         completion = await deepseek.chatCompletion({
-          messages, model: 'deepseek-chat', temperature: 0.75, max_tokens: 500
+          messages, model: 'deepseek-chat', temperature: 0.75, max_tokens: 800
         });
         providerUsed = 'deepseek';
       } catch (dsErr) {
         console.warn('[shadow-review] DeepSeek failed, falling back to Groq:', dsErr.message);
         const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
         completion = await groq.chat.completions.create({
-          messages, model: 'llama-3.3-70b-versatile', temperature: 0.75, max_tokens: 500
+          messages, model: 'llama-3.3-70b-versatile', temperature: 0.75, max_tokens: 800
         });
         providerUsed = 'groq-fallback';
       }
@@ -354,11 +354,11 @@ module.exports = async (req, res) => {
       const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
       try {
         completion = await groq.chat.completions.create({
-          messages, model: 'llama-3.3-70b-versatile', temperature: 0.75, max_tokens: 500
+          messages, model: 'llama-3.3-70b-versatile', temperature: 0.75, max_tokens: 800
         });
       } catch (modelErr) {
         completion = await groq.chat.completions.create({
-          messages, model: 'llama-3.1-8b-instant', temperature: 0.75, max_tokens: 500
+          messages, model: 'llama-3.1-8b-instant', temperature: 0.75, max_tokens: 800
         });
         providerUsed = 'groq-8b';
       }
@@ -430,7 +430,7 @@ module.exports = async (req, res) => {
       try {
         const groq2 = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
         const retryCompletion = await groq2.chat.completions.create({
-          messages: retryMessages, model: 'llama-3.3-70b-versatile', temperature: 0.9, max_tokens: 500
+          messages: retryMessages, model: 'llama-3.3-70b-versatile', temperature: 0.9, max_tokens: 800
         });
         const retryRaw = retryCompletion.choices[0]?.message?.content || '';
         const rs = retryRaw.indexOf('{'); const re = retryRaw.lastIndexOf('}');

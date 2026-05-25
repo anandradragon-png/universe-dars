@@ -759,7 +759,11 @@
           <!-- Статичный архетип скрыт по решению автора 30.04.2026: чтобы не было путаницы со сгенерированным AI архетипом в полном послании -->
           <div class="dar-archetype" id="darArchetype" style="display:none"></div>
           <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()"><span data-i18n-emoji>📩</span> <span data-i18n="dar.get_full_message">Получить полное послание</span></button>
-          <button class="btn btn-ghost" id="btn-change-date" onclick="resetDate()" data-i18n="dar.change_date_short"> Изменить дату</button>
+          <!-- Кнопка «Изменить дату» убрана по закону law_personal_data_immutable
+               (личные данные read-only после сохранения). Скрытый элемент
+               #btn-change-date оставлен для совместимости со старым кодом
+               showResult/requestMessage, который ставит ему display. -->
+          <button id="btn-change-date" hidden style="display:none" onclick="resetDate()" aria-hidden="true"></button>
         </div>
         <!-- Призыв к книге -->
         <div id="book-cta" style="display:none;margin-top:14px;padding:16px;background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.3);border-radius:16px;text-align:center;cursor:pointer" onclick="goToMyDarInBook()">

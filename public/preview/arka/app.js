@@ -1582,10 +1582,10 @@ function renderMirror() {
 function enterDay() {
   const mirror = document.getElementById('arkaMirror');
   const main = document.getElementById('arkaMain');
-  const returnBtn = document.getElementById('mirrorReturnBtn');
   if (mirror) mirror.hidden = true;
   if (main) main.hidden = false;
-  if (returnBtn) returnBtn.hidden = false;
+  // Кнопка «← Зеркало» больше не показывается — Зеркало момента отключено,
+  // АРКА открывается сразу на табах (см. initMirror).
   try { localStorage.setItem('arka_mirror_seen_at', Date.now().toString()); } catch (e) {}
 }
 
@@ -1627,20 +1627,13 @@ window.addEventListener('focus', syncByCurrentTime);
 setInterval(syncByCurrentTime, 60000);
 
 function initMirror() {
-  renderMirror();
+  // Зеркало момента отключено по решению автора 2026-05-25:
+  // Дар уже рассчитан до входа в АРКА — промежуточный экран только перегружает.
+  // АРКА открывается сразу на табах «Сегодня / Дар / Стратегия / Путь».
+  // Кнопка-обработчик «Войди» сохранена на случай возврата фичи.
   const btn = document.getElementById('mirrorEnterBtn');
   if (btn) btn.addEventListener('click', enterDay);
-
-  // Решаем: показывать ли Зеркало сейчас?
-  // - В первое посещение сегодня: ДА
-  // - Если юзер видел Зеркало < 4 часов назад: НЕТ (сразу основной экран)
-  let seenAt = 0;
-  try { seenAt = parseInt(localStorage.getItem('arka_mirror_seen_at') || '0', 10); } catch (e) {}
-  const fourHours = 4 * 60 * 60 * 1000;
-  if (seenAt && (Date.now() - seenAt) < fourHours) {
-    // Юзер недавно «вошёл в день» — показываем основной экран сразу
-    enterDay();
-  }
+  enterDay();
 }
 
 // ── Шеринг-карточка инсайтов ─────────────────────────────────
@@ -2223,7 +2216,10 @@ window.closeDragonReceived = closeDragonReceived;
 
 function initCircle() {
   renderCircle();
-  maybeReceiveDragon();
+  // Демо-оверлей «X почувствовал тебя и послал Дар поддержки. Прими.»
+  // отключён по решению автора 2026-05-25: симуляция перегружает и раздражает.
+  // Функция maybeReceiveDragon оставлена ниже на случай возврата фичи.
+  // maybeReceiveDragon();
 }
 
 // Инициализация квеста теней

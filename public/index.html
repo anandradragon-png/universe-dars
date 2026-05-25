@@ -788,54 +788,16 @@
       </div>
       <!-- Ежедневные активности -->
       <div id="daily-activities" style="display:none;padding-top:16px">
-        <!-- ПРИОРИТЕТНЫЕ ЮЗКЕЙСЫ: Оракул и Совместимость — в самом верху -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-          <div onclick="DailyDar.open()" style="padding:18px 12px;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(156,39,176,0.08));border:1px solid rgba(212,175,55,0.4);border-radius:16px;text-align:center;cursor:pointer;box-shadow:0 2px 12px rgba(212,175,55,0.08)">
-            <div style="font-size:30px;margin-bottom:4px">🔮</div>
-            <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:1px;margin-bottom:2px" data-i18n="daily.oracle_title">Оракул</div>
-            <div style="font-size:10px;color:var(--text-dim);line-height:1.3" data-i18n="daily.oracle_sub">Послание дня</div>
-          </div>
-          <div onclick="openQuickCompatibility()" style="padding:18px 12px;background:linear-gradient(135deg,rgba(233,30,99,0.15),rgba(212,175,55,0.1));border:1px solid rgba(233,30,99,0.4);border-radius:16px;text-align:center;cursor:pointer;box-shadow:0 2px 12px rgba(233,30,99,0.08)">
-            <div style="font-size:30px;margin-bottom:4px">💞</div>
-            <div style="font-size:14px;color:#e91e63;font-weight:700;letter-spacing:1px;margin-bottom:2px" data-i18n="daily.compat_title">Совместимость</div>
-            <div style="font-size:10px;color:var(--text-dim);line-height:1.3" data-i18n="daily.compat_sub">Дары двоих</div>
-          </div>
-        </div>
-
-        <!-- 🌍 Стать соавтором научного исследования -->
-        <div onclick="window.open('https://nauka-yupdar.vercel.app','_blank')" style="padding:18px 16px;background:linear-gradient(135deg,rgba(212,175,55,0.18),rgba(140,90,200,0.10));border:1px solid rgba(212,175,55,0.4);border-radius:16px;text-align:center;cursor:pointer;margin-bottom:14px;box-shadow:0 4px 16px rgba(212,175,55,0.12)">
-          <div style="font-size:24px;margin-bottom:6px">🌍</div>
-          <div style="font-size:15px;color:#D4AF37;font-weight:800;letter-spacing:0.5px;margin-bottom:4px" data-i18n="daily.research_title">Стать соавтором исследования</div>
-          <div style="font-size:11px;color:var(--text-dim);line-height:1.4" data-i18n="daily.research_sub">Помоги науке: пройди опросник из 28 утверждений (≈ 7 мин) и стань частью первой научной работы о Дарах в Дубае</div>
+        <!-- Оракул дня — крупная карточка во всю ширину.
+             Совместимость переехала во вкладку «Семья» (этап 8 слияния).
+             Дневник и Наука переехали в me-result-extra ниже (этап 7). -->
+        <div onclick="DailyDar.open()" style="padding:18px 12px;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(156,39,176,0.08));border:1px solid rgba(212,175,55,0.4);border-radius:16px;text-align:center;cursor:pointer;box-shadow:0 2px 12px rgba(212,175,55,0.08);margin-bottom:14px">
+          <div style="font-size:30px;margin-bottom:4px">🔮</div>
+          <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:1px;margin-bottom:2px" data-i18n="daily.oracle_title">Оракул</div>
+          <div style="font-size:10px;color:var(--text-dim);line-height:1.3" data-i18n="daily.oracle_sub">Послание дня</div>
         </div>
 
         <div style="font-size:14px;color:var(--text);letter-spacing:2px;text-align:center;margin-bottom:12px" data-i18n="daily.section_title">ЕЖЕДНЕВНЫЕ АКТИВНОСТИ</div>
-
-        <!-- Дневник Дара -->
-        <div id="diary-widget" style="background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(212,175,55,0.08));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:14px;margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-            <div style="flex:1">
-              <div style="font-size:14px;color:var(--text)" data-i18n="diary.title">Дневник Дара</div>
-              <div id="diary-status" style="font-size:12px;color:var(--text-dim)" data-i18n="diary.question">Как ты себя сейчас чувствуешь?</div>
-            </div>
-            <div id="diary-streak" style="font-size:11px;color:#D4AF37;display:none">&#128293; 0</div>
-          </div>
-          <div id="diary-mood-buttons" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
-            <button onclick="saveDiaryMood('joy')" class="diary-mood-btn" data-mood="joy">😊 <span data-i18n="diary.mood_joy">Радость</span></button>
-            <button onclick="saveDiaryMood('calm')" class="diary-mood-btn" data-mood="calm">😌 <span data-i18n="diary.mood_calm">Спокойствие</span></button>
-            <button onclick="saveDiaryMood('energy')" class="diary-mood-btn" data-mood="energy">🔥 <span data-i18n="diary.mood_energy">Энергия</span></button>
-            <button onclick="saveDiaryMood('inspiration')" class="diary-mood-btn" data-mood="inspiration">✨ <span data-i18n="diary.mood_inspiration">Вдохновение</span></button>
-            <button onclick="saveDiaryMood('anxiety')" class="diary-mood-btn" data-mood="anxiety">😰 <span data-i18n="diary.mood_anxiety">Тревога</span></button>
-            <button onclick="saveDiaryMood('sadness')" class="diary-mood-btn" data-mood="sadness">😔 <span data-i18n="diary.mood_sadness">Грусть</span></button>
-            <button onclick="saveDiaryMood('irritation')" class="diary-mood-btn" data-mood="irritation">😤 <span data-i18n="diary.mood_irritation">Раздражение</span></button>
-            <button onclick="saveDiaryMood('fatigue')" class="diary-mood-btn" data-mood="fatigue">😴 <span data-i18n="diary.mood_fatigue">Усталость</span></button>
-          </div>
-          <div id="diary-insight-btn" style="display:none;margin-top:10px;text-align:center">
-            <button onclick="getDiaryInsight()" style="padding:8px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <span data-i18n="diary.get_insight">Получить инсайт от AI</span></button>
-          </div>
-          <div id="diary-insight-result" style="display:none;margin-top:10px;padding:12px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:10px;font-size:13px;color:var(--text);line-height:1.7"></div>
-        </div>
 
         <!-- Оракул теперь в верхних приоритетных плитках (см. выше) —
              оставляем скрытый блок для совместимости с кодом daily-dar-name -->
@@ -876,9 +838,10 @@
 
       <!-- Экран игры перенесён во вкладку "Игры" (#tab-games) -->
 
-      <!-- Аккордеон 7 секций + 2 премиум АРКА (этап 7 слияния, 2026-05-25).
-           Тексты пока плейсхолдерные — описывают суть. Когда будет интеграция
-           с dar-content.json по коду пользователя, заполнятся динамически. -->
+      <!-- Аккордеон 7 секций + 2 премиум АРКА + Дневник + Наука
+           (этап 7 слияния, 2026-05-25). Видны только после расчёта Дара —
+           обёртка me-result-extra переключается в showResult() рядом с daily-activities. -->
+      <div id="me-result-extra" style="display:none">
       <div class="me-accordion" id="me-accordion">
         <div class="me-acc-item">
           <button class="me-acc-header open" onclick="toggleMeAcc(this)">
@@ -972,6 +935,7 @@
         </div>
         <span class="me-science-arrow">→</span>
       </div>
+      </div><!-- /#me-result-extra -->
 
       </div><!-- /main-container -->
     </div>
@@ -2351,6 +2315,9 @@
       // Показать ежедневные активности
       const dailyBlock = document.getElementById('daily-activities');
       if (dailyBlock) dailyBlock.style.display = 'block';
+      // Этап 7 слияния: показываем аккордеон + Дневник + Наука только после расчёта Дара.
+      const meExtra = document.getElementById('me-result-extra');
+      if (meExtra) meExtra.style.display = 'block';
       loadDailyDar();
       // Инициализация дневника
       if (typeof initDiary === 'function') initDiary();

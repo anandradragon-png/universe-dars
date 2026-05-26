@@ -6094,16 +6094,49 @@
     });
 
     // Проверяем при загрузке: если есть сохранённый дар, но нет профиля - показать напоминалку
+    // ВАЖНО: сначала ждём ответ от сервера. Если сервер вернул полный профиль —
+    // синхронизация в localStorage уже произошла выше (см. строка ~1784), модалку не показываем.
     function checkProfileReminder() {
       const savedDar = localStorage.getItem(STORAGE_KEY || '_darCalculator');
       if (!savedDar) return; // Новый пользователь - модалка покажется при расчёте дара
-      const profile = getLocalProfile();
-      if (isProfileComplete(profile)) return; // Всё ок
       // Проверяем как давно пропускали (не чаще раза в день)
       const skipped = parseInt(localStorage.getItem('_darProfilePromptSkipped') || '0');
       if (skipped && Date.now() - skipped < 86400000) return; // пропускали меньше суток назад
-      // Показываем напоминалку
-      setTimeout(() => openProfileSetup(false), 1200);
+      // Сначала спросим сервер — если он знает профиль, ничего не показываем.
+      // Это закрывает баг: данные в БД есть, но в localStorage пусто из-за нового устройства/очистки кэша.
+      const doCheck = () => {
+        const profile = getLocalProfile();
+        if (isProfileComplete(profile)) return; // данные пришли с сервера — всё ок
+        setTimeout(() => openProfileSetup(false), 200);
+      };
+      if (typeof DarAPI !== 'undefined' && DarAPI.getProfile) {
+        DarAPI.getProfile()
+          .then(data => {
+            if (data && data.user && data.user.profile_completed) {
+              // На сервере профиль полный — синхронизируем localStorage и НЕ показываем модалку
+              const localProf = getLocalProfile();
+              const serverProf = {
+                real_first_name: data.user.real_first_name || localProf.real_first_name || '',
+                real_last_name: data.user.real_last_name || localProf.real_last_name || '',
+                gender: data.user.gender || localProf.gender || '',
+                birth_date: data.user.birth_date || localProf.birth_date || '',
+                birth_time: data.user.birth_time || localProf.birth_time || '',
+                birth_place: data.user.birth_place || localProf.birth_place || '',
+                birth_lat: (typeof data.user.birth_lat === 'number' ? data.user.birth_lat : (typeof localProf.birth_lat === 'number' ? localProf.birth_lat : null)),
+                birth_lon: (typeof data.user.birth_lon === 'number' ? data.user.birth_lon : (typeof localProf.birth_lon === 'number' ? localProf.birth_lon : null)),
+              };
+              saveLocalProfile(serverProf);
+              return; // модалку не показываем
+            }
+            doCheck();
+          })
+          .catch(() => {
+            // Сервер недоступен — fallback на локальную проверку
+            setTimeout(doCheck, 1000);
+          });
+      } else {
+        setTimeout(doCheck, 1200);
+      }
     }
 
     // === Админ-панель фидбэка ===

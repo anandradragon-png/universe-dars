@@ -540,9 +540,14 @@ const IntuitionGame = (function() {
     // Максимально контрастный ярко-алый фильтр для карты Тени
     const filterRed  = 'invert(40%) sepia(100%) saturate(5000%) hue-rotate(-15deg) brightness(130%) contrast(140%) drop-shadow(0 0 10px rgba(255,56,56,0.8))';
     const filter = tone === 'red' ? filterRed : filterGold;
-    // Если NFC не загрузился — пробуем NFD; если и он не сработал — скрываем img
-    const onerror = "if(!this.dataset.tried){this.dataset.tried='1';this.src='images/dars/" + nfd + ".svg'}else{this.style.display='none'}";
-    return '<img src="images/dars/' + nfc + '.svg" ' +
+    // Используем dar-png-trimmed (центрированные PNG) — у исходных PNG/SVG
+    // некоторые рисунки смещены внутри холста ("значок съехал" — баг от тестера).
+    // Fallback на NFD-имя если NFC не сработал, потом на SVG, потом скрываем.
+    const onerror =
+      "if(!this.dataset.tried){this.dataset.tried='1';this.src='dar-png-trimmed/" + nfd + ".png'}" +
+      "else if(this.dataset.tried==='1'){this.dataset.tried='2';this.src='images/dars/" + nfc + ".svg'}" +
+      "else{this.style.display='none'}";
+    return '<img src="dar-png-trimmed/' + nfc + '.png" ' +
       'style="width:100%;height:100%;object-fit:contain;filter:' + filter + '" ' +
       'onerror="' + onerror + '"/>';
   }
@@ -579,7 +584,8 @@ const IntuitionGame = (function() {
       shadowBlock =
         '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;min-width:92px">' +
           '<div style="font-size:11px;color:#ff3838;letter-spacing:1.5px;font-weight:900;text-shadow:0 0 8px rgba(255,56,56,0.7), 0 0 2px rgba(255,255,255,0.2)">💥 ТЕНЬ</div>' +
-          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:6px;border:2px solid #ff3838;border-radius:10px;background:rgba(255,56,56,0.18);box-sizing:border-box;box-shadow:0 0 16px rgba(255,56,56,0.5), inset 0 0 8px rgba(255,56,56,0.2)">' +
+          // Фон карты Тени — тёмный (был полупрозрачный красный, на нём красный значок терялся — баг от тестера).
+          '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:6px;border:2px solid #ff3838;border-radius:10px;background:rgba(0,0,0,0.55);box-sizing:border-box;box-shadow:0 0 16px rgba(255,56,56,0.5), inset 0 0 8px rgba(255,56,56,0.15)">' +
             renderDarIconHtml(debuffCard.name, 'red') +
           '</div>' +
           '<div style="font-size:13px;color:#ff3838;letter-spacing:1px;text-align:center;font-weight:800;text-shadow:0 0 8px rgba(255,56,56,0.6)">' + debuffCard.name + '</div>' +

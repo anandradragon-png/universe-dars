@@ -10,3 +10,4 @@ public/.env.local
 
 # Claude Code internals
 .claude/
+.mcp.json

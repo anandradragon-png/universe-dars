@@ -278,6 +278,75 @@ async function handleBotWebhook(req, res) {
       return res.status(200).end();
     }
 
+    // ========== ЛОГИРОВАНИЕ БАГОВ ИЗ ЧАТА ТЕСТЕРОВ ==========
+    // Все сообщения из групповых чатов (где бот админ) сохраняем в bug_reports
+    // для разбора Claude. Личные диалоги с ботом сюда не попадают —
+    // там уже обработаны платежи выше, остальное игнорируем.
+    if (update.message
+        && update.message.chat
+        && (update.message.chat.type === 'group' || update.message.chat.type === 'supergroup')) {
+      try {
+        const msg = update.message;
+
+        // Определяем медиа и его file_id
+        let mediaType = null;
+        let mediaFileId = null;
+        let mediaFileUniqueId = null;
+        if (msg.photo && msg.photo.length) {
+          mediaType = 'photo';
+          const biggest = msg.photo[msg.photo.length - 1]; // самое большое разрешение
+          mediaFileId = biggest.file_id;
+          mediaFileUniqueId = biggest.file_unique_id;
+        } else if (msg.video) {
+          mediaType = 'video';
+          mediaFileId = msg.video.file_id;
+          mediaFileUniqueId = msg.video.file_unique_id;
+        } else if (msg.document) {
+          mediaType = 'document';
+          mediaFileId = msg.document.file_id;
+          mediaFileUniqueId = msg.document.file_unique_id;
+        } else if (msg.voice) {
+          mediaType = 'voice';
+          mediaFileId = msg.voice.file_id;
+          mediaFileUniqueId = msg.voice.file_unique_id;
+        } else if (msg.video_note) {
+          mediaType = 'video_note';
+          mediaFileId = msg.video_note.file_id;
+          mediaFileUniqueId = msg.video_note.file_unique_id;
+        }
+
+        const db = getSupabase();
+        const { error: insErr } = await db.from('bug_reports').upsert({
+          telegram_message_id:  msg.message_id,
+          telegram_chat_id:     msg.chat.id,
+          from_user_id:         msg.from?.id || null,
+          from_username:        msg.from?.username || null,
+          from_first_name:      msg.from?.first_name || null,
+          text:                 msg.text || msg.caption || null,
+          media_type:           mediaType,
+          media_file_id:        mediaFileId,
+          media_file_unique_id: mediaFileUniqueId,
+          reply_to_message_id:  msg.reply_to_message?.message_id || null,
+          raw:                  msg,
+          sent_at:              new Date(msg.date * 1000).toISOString()
+        }, { onConflict: 'telegram_chat_id,telegram_message_id' });
+
+        if (insErr) {
+          console.error('[bot-webhook] bug_reports insert failed:', insErr.message);
+        } else {
+          console.log('[bot-webhook] bug logged:', {
+            chat_id: msg.chat.id,
+            msg_id: msg.message_id,
+            from: msg.from?.username || msg.from?.first_name,
+            media: mediaType
+          });
+        }
+      } catch (e) {
+        console.error('[bot-webhook] bug_reports error:', e.message);
+      }
+      return res.status(200).end();
+    }
+
     // Любые другие updates — игнорируем
     return res.status(200).end();
 

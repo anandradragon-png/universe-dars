@@ -4,6 +4,37 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <title>YupDar</title>
+  <!--
+    ============================================================
+    NON-TELEGRAM DETECTOR — для ЮKassa, поисковиков, обычных браузеров.
+    Если страница открыта НЕ в Telegram WebApp — мгновенно редиректим
+    на лендинг index-landing.html (там описание сервиса, тарифы, юр.инфа).
+    Внутри Telegram — продолжаем грузить Mini App как обычно.
+    ?app=1 в URL — принудительно остаться в Mini App (для отладки в браузере).
+    ============================================================
+  -->
+  <script>
+  (function() {
+    try {
+      var params = new URLSearchParams(location.search);
+      if (params.get('app') === '1') return; // ?app=1 — оставаться в Mini App даже в браузере
+      // Признаки Telegram WebApp:
+      var isTG = (
+        (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) ||
+        location.hash.indexOf('tgWebAppData') !== -1 ||
+        params.get('tgWebAppData')
+      );
+      if (!isTG) {
+        // Ставим небольшую задержку чтобы Telegram WebView успел инжектнуть window.Telegram
+        setTimeout(function() {
+          if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) return;
+          // Действительно не Telegram → редирект на лендинг
+          location.replace('/index-landing.html' + location.search);
+        }, 80);
+      }
+    } catch (e) { /* ignore — не ломаем загрузку Mini App из-за детектора */ }
+  })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="yupself-design-system.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>

@@ -1853,6 +1853,14 @@
             document.getElementById('profile-streak').textContent = _profileData.streak;
             document.getElementById('profile-collection').textContent = (_profileData.dars.length || localDars.length) + '/64';
 
+            // Обновить блок «Достижения» во вкладке «Игры» (баг от тестера 28.05.2026:
+            // у части юзеров блок показывал 0/0/0/64 хотя профиль уже подгружен).
+            // _profileData инициализируется нулями, renderAchievementsBlock() вызывался
+            // только при клике на аккордеон — после первого рендера блок не обновлялся.
+            if (typeof renderAchievementsBlock === 'function') {
+              try { renderAchievementsBlock(); } catch(e) {}
+            }
+
             const nlv = LEVELS[_profileData.access_level] || LEVELS.basic;
             const nlvDesc = _pt('level_desc.' + _profileData.access_level, nlv.name);
             document.getElementById('profile-level-badge').innerHTML = `<span class="profile-level-badge ${nlv.css}">${nlv.icon} ${nlv.name}</span>`;

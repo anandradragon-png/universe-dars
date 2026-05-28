@@ -504,17 +504,39 @@ const IntuitionGame = (function() {
     // Фильтруем и по code, и по «зеркалу» (см. getRandomDars): чтобы рядом с
     // target 2-3-5 не оказался 3-2-5 — они визуально путаются.
     const targetSig = target.code.split('-').slice().sort().join('');
-    const pool = getRandomDars(needed + 10).filter(d => {
+    // Берём с большим запасом (+15) на случай если дедупликация урежет pool
+    // ниже needed — тестеры жаловались на повторы карт в одной раскладке.
+    const pool = getRandomDars(needed + 15).filter(d => {
       if (d.code === target.code) return false;
       const sig = d.code.split('-').slice().sort().join('');
       return sig !== targetSig;
     });
     let all = [];
 
+    // target — 3 одинаковых копии (game design: ищем 3 одинаковых дара)
     for (let i = 0; i < lvl.targets; i++) all.push({ ...target, type: 'target' });
-    if (lvl.hasBonus) { const d = pool.shift(); if(d) all.push({ ...d, type: 'buff' }); }
-    if (lvl.hasTrap) { const d = pool.shift(); if(d) all.push({ ...d, type: 'debuff' }); }
-    pool.slice(0, needed).forEach(d => all.push({ ...d, type: 'normal' }));
+
+    // Дедупликация для buff/debuff/normal: каждый дар не должен повторяться
+    // в одной раскладке (кроме target которые by design одинаковые).
+    const usedCodes = new Set([target.code]);
+    function takeUnique() {
+      while (pool.length) {
+        const d = pool.shift();
+        if (!usedCodes.has(d.code)) {
+          usedCodes.add(d.code);
+          return d;
+        }
+      }
+      return null;
+    }
+
+    if (lvl.hasBonus) { const d = takeUnique(); if (d) all.push({ ...d, type: 'buff' }); }
+    if (lvl.hasTrap)  { const d = takeUnique(); if (d) all.push({ ...d, type: 'debuff' }); }
+    for (let i = 0; i < needed; i++) {
+      const d = takeUnique();
+      if (!d) break;
+      all.push({ ...d, type: 'normal' });
+    }
 
     cards = shuffle(all.slice(0, lvl.cards));
   }
@@ -868,12 +890,21 @@ const IntuitionGame = (function() {
         dailyPlayed = true;
       }
     } else {
+      // Жёстко обнуляем серию при проигрыше (включая выбор Карты Тени).
+      // Тестер жаловался «обнуление не работает» — добавляем явный лог
+      // чтобы при следующем баг-репорте видеть что произошло.
       stats.streak = 0;
       stats._lastWin = 0;
       stats._won = false;
       stats._hitBuff = hitBuff;
       stats._hitDebuff = hitDebuff;
+      if (hitDebuff) {
+        console.log('[intuition] Тень выбрана — серия сброшена. targetsFound=', targetsFound);
+      }
     }
+    // Persist немедленно — чтобы при гонке с getProfile серия не восстановилась
+    // из несвежего кэша.
+    try { saveStats(); } catch(e) {}
 
     // Считаем очки для рейтинга
     const pointsEarned = calculatePoints(lvl, won, stats.streak, targetsFound);

@@ -1035,6 +1035,15 @@ const BookReader = (function() {
 
   // ---- Поиск «к странице N» ----
   function gotoPage(n) {
+    // Если книга ещё не догрузилась — мягкое сообщение вместо «Страница вне
+    // диапазона. Доступно: 1-0» (тестер 25.05.2026: «не работает» — было
+    // именно это сообщение из-за гонки fetch /book-chapters.json).
+    if (!bookData || !totalChapters) {
+      const msg = 'Подожди секунду — книга ещё загружается...';
+      if (typeof showToast === 'function') showToast(msg, 'info');
+      else alert(msg);
+      return;
+    }
     const num = parseInt(n, 10);
     if (isNaN(num) || num < 1 || num > totalChapters) {
       const msg = ((window.i18n && i18n.t && i18n.t('book.page_out_of_range')) || ('Страница вне диапазона. Доступно: 1\u2013' + totalChapters));
@@ -1204,3 +1213,8 @@ const BookReader = (function() {
     attachSwipeHandlers
   };
 })();
+
+// Экспорт в window (тестер 25.05.2026: на отдельных Android-устройствах
+// inline-onclick «BookReader.toggleSearch()» не находил BookReader, потому что
+// `const` на top-level не становится свойством window в строгом режиме).
+window.BookReader = BookReader;

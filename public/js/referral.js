@@ -150,3 +150,8 @@ const Referral = (function() {
     getMyLink
   };
 })();
+
+// Экспорт в window (баг от тестера 25.05.2026: кнопка «Пригласи друга»
+// открывала тарифы вместо шеринга — onclick проверял `window.Referral`,
+// но `const Referral` не становится свойством window в современных браузерах).
+window.Referral = Referral;

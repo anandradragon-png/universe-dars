@@ -368,14 +368,21 @@ function showMirror(entry, dar) {
   if (inputState) inputState.hidden = true;
   if (mirrorState) mirrorState.hidden = false;
 
-  // Глиф Дара дня
+  // Глиф Дара дня + подпись с именем (баг от тестера 27.05.2026:
+  // «одинокий значок дара, без подписи»).
   const glyphWrap = document.getElementById('diaryMirrorGlyph');
+  const _darName = (dar && dar.name) || '';
   if (glyphWrap) {
+    let inner = '';
     if (dar && dar.svgPath) {
-      glyphWrap.innerHTML = '<img src="' + dar.svgPath + '" alt="" onerror="this.style.display=\'none\'">';
+      inner = '<img src="' + dar.svgPath + '" alt="" onerror="this.style.display=\'none\'">';
     } else {
-      glyphWrap.innerHTML = '<span style="font-size:48px;color:#d4af37">✦</span>';
+      inner = '<span style="font-size:48px;color:#d4af37">✦</span>';
     }
+    if (_darName) {
+      inner += '<div style="margin-top:6px;font-size:13px;color:#d4af37;letter-spacing:1.5px;font-weight:600;text-align:center">' + _darName + '</div>';
+    }
+    glyphWrap.innerHTML = inner;
   }
 
   // Интерпретация: vibe + direction
@@ -405,28 +412,38 @@ function showMirror(entry, dar) {
   if (textEl) textEl.innerHTML = html;
 }
 
-// «Завтра приду снова» — НЕ сбрасывать форму (раньше так открывался редактор
-// после успешной записи, что раздражало). Закрываем Дневник целиком:
-// - внутри Telegram WebApp пробуем закрыть mini-app
-// - иначе возвращаемся в родительское окно (YupDar)
+// «Завтра приду снова» — закрываем Дневник.
+// Дневник открывается из YupDar через window.open('/preview/diary/', '_blank')
+// (новая вкладка/окно), поэтому правильный путь:
+//  1) window.close() — закрыть вкладку (работает для open'нутых window)
+//  2) iframe-режим (если внутри родителя) — switchNav('me')
+//  3) Фолбэк — history.back()
+// Telegram.WebApp.close() НЕ используем — он закрывает весь YupDar Mini App.
+// Баг от тестера 27.05.2026: «при нажатии "приду завтра" ничего не происходит».
 function resetDiary() {
+  // 1) Если открыто как iframe внутри YupDar — переключаем родителя
   try {
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.close) {
-      window.Telegram.WebApp.close();
+    if (window.parent && window.parent !== window && typeof window.parent.switchNav === 'function') {
+      window.parent.switchNav('me');
       return;
     }
   } catch (e) {}
+  // 2) Если открыто как отдельная вкладка/окно (window.open _blank) — закрываем её
   try {
-    if (window.parent && window.parent !== window) {
-      // Если открыто в iframe внутри YupDar — переключаем родителя на вкладку «Я»
-      if (typeof window.parent.switchNav === 'function') {
-        window.parent.switchNav('me');
-        return;
-      }
-    }
+    window.close();
+    // Если close сработал — вкладка закрылась, дальше код не выполнится.
+    // Если браузер запретил — продолжаем к фолбэку ниже.
   } catch (e) {}
-  // Фолбэк — возврат назад в истории
-  try { window.history.back(); } catch (e) {}
+  // 3) Фолбэк: возврат назад. Если истории нет — редирект на главную YupDar.
+  try {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = '/';
+    }
+  } catch (e) {
+    window.location.href = '/';
+  }
 }
 window.resetDiary = resetDiary;
 

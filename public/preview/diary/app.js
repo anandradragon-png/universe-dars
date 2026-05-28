@@ -37,7 +37,7 @@ const DIARY_I18N = {
     'dir.action': 'Действовать',
     'dir.rest': 'Отдохнуть',
     'dir.people': 'К людям',
-    'dir.alone': 'Побыть одной',
+    'dir.alone': 'Побыть в тишине',
 
     'mirror.intro_label': 'Твоё состояние сегодня',
     'mirror.dar_lead': 'Дар дня',
@@ -140,7 +140,7 @@ const DIARY_I18N = {
     'dir.action': 'Actuar',
     'dir.rest': 'Descansar',
     'dir.people': 'Con gente',
-    'dir.alone': 'Estar sola',
+    'dir.alone': 'Estar en silencio',
 
     'mirror.intro_label': 'Tu estado hoy',
     'mirror.dar_lead': 'DAR del día',

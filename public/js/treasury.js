@@ -58,11 +58,15 @@ const Treasury = (function() {
     }
 
     const allDars = window.DARS || {};
-    const totalUnlocked = userDars.length;
+    // Считаем УНИКАЛЬНЫЕ dar_code — иначе при дубликатах в userDars (один и
+    // тот же дар открыт двумя источниками) счётчик выходил за 64
+    // (тестер 25.05.2026: «66 / 64 даров открыто»).
+    const uniqueCodes = new Set(userDars.map(d => d.dar_code));
+    const totalUnlocked = uniqueCodes.size;
     const total = Object.keys(allDars).length;
 
-    // Прогресс-бар
-    const pct = Math.round((totalUnlocked / total) * 100);
+    // Прогресс-бар (cap на 100% на случай если в DARS меньше уникальных кодов)
+    const pct = Math.min(100, Math.round((totalUnlocked / total) * 100));
     let html = `
       <div class="treasury-header">
         <div class="treasury-progress-label">${totalUnlocked} / ${total} даров открыто</div>
@@ -72,13 +76,14 @@ const Treasury = (function() {
       </div>
     `;
 
-    // Баннер «Путешествие Героя» — квест по своему дару (внутри Коллекции).
-    // Книга/Игры/Энциклопедия теперь доступны через подтабы Сокровищницы выше.
+    // Баннер «Путешествие Героя» — квест по выбранному дару (внутри Коллекции).
+    // «по твоему дару» → «по выбранному дару» (тестер 25.05.2026:
+    // «можно выбрать любой и пройти его, не только свой»).
     html += `
       <div style="margin:0 0 16px">
         <div style="padding:14px;background:linear-gradient(135deg,rgba(255,100,0,0.12),rgba(255,200,0,0.08));border:1px solid rgba(255,140,0,0.35);border-radius:14px;text-align:center;cursor:pointer" onclick="Treasury.startHeroJourney()">
           <div style="font-size:14px;color:#FFA500;margin-bottom:4px">&#127749; Путешествие Героя</div>
-          <div style="font-size:11px;color:var(--text-dim)">Квест по твоему дару</div>
+          <div style="font-size:11px;color:var(--text-dim)">Квест по выбранному дару</div>
         </div>
       </div>
     `;

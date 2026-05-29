@@ -47,8 +47,8 @@ const additions = {
     humor_sub: { ru:'Ироничный портрет', en:'Ironic portrait', es:'Retrato irónico' }
   },
   dar: {
-    get_humor: { ru:'🎤 Читать свой стендап', en:'🎤 Read your stand-up', es:'🎤 Lee tu stand-up' },
-    read_humor: { ru:'🎤 Читать стендап', en:'🎤 Read stand-up', es:'🎤 Leer stand-up' },
+    get_humor: { ru:'🎭 Читать свой стендап', en:'🎭 Read your stand-up', es:'🎭 Lee tu stand-up' },
+    read_humor: { ru:'🎭 Читать стендап', en:'🎭 Read stand-up', es:'🎭 Leer stand-up' },
     read_message: { ru:'📖 Читать о своём Даре', en:'📖 Read about your DAR', es:'📖 Leer sobre tu DAR' }
   },
   message: {

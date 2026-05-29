@@ -68,8 +68,8 @@
     "share_card_sub": "A beautiful image of your DAR for Instagram, VK, Telegram",
     "share_a4_title": "Detailed DAR card (A4)",
     "share_a4_sub": "Print or gift to a loved one on their birthday",
-    "get_humor": "🎤 Read your stand-up",
-    "read_humor": "🎤 Read stand-up",
+    "get_humor": "🎭 Read your stand-up",
+    "read_humor": "🎭 Read stand-up",
     "read_message": "📖 Read about your DAR"
   },
   "profile": {
@@ -616,7 +616,7 @@
   },
   "message": {
     "overlay_title": "Message about your DAR",
-    "back": "← Back"
+    "back": "Back"
   },
   "humor": {
     "overlay_title": "Stand-up Mirror",

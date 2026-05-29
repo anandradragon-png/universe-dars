@@ -69,7 +69,7 @@
     "share_card_sub": "Una imagen bonita de tu DAR para Instagram, VK, Telegram",
     "share_a4_title": "Tarjeta detallada del DAR (A4)",
     "share_a4_sub": "Imprime o regala a un ser querido en su cumpleaños",
-    "get_humor": "🎤 Lee tu stand-up",
+    "get_humor": "🎭 Lee tu stand-up",
     "read_humor": "🎤 Leer stand-up",
     "read_message": "📖 Leer sobre tu DAR"
   },
@@ -617,7 +617,7 @@
   },
   "message": {
     "overlay_title": "Mensaje sobre tu DAR",
-    "back": "← Volver"
+    "back": "Volver"
   },
   "humor": {
     "overlay_title": "Espejo de Stand-up",

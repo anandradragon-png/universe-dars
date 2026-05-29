@@ -63,9 +63,10 @@ const DailyDar = (function() {
   }
 
   // --- Рендер изображения дара ---
+  // Для интеграторов (window.INTEGRATORS) тоже работает — берём имя оттуда.
   function renderDarImage(code, size) {
     size = size || 120;
-    const rawName = window.DARS[code] || '';
+    const rawName = (window.DARS && window.DARS[code]) || (window.INTEGRATORS && window.INTEGRATORS[code]) || '';
     if (!rawName) return `<div style="width:${size}px;height:${size}px;border-radius:50%;border:2px solid var(--border);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-dim);margin:0 auto">${code}</div>`;
     const base = rawName.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'');
     return `<img src="images/dars/${base}.svg" style="width:${size}px;height:${size}px;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 10px #D4AF37);display:block;margin:0 auto" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<div style=\\'width:${size}px;height:${size}px;border-radius:50%;border:2px solid var(--border);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-dim);margin:0 auto\\'>${code}</div>')"/>`;
@@ -94,6 +95,14 @@ const DailyDar = (function() {
       if (prof.gender === 'male' || prof.gender === 'female') gender = prof.gender;
     } catch (e) {}
 
+    // Достаём личный Дар юзера (для режима card нужен — Оракул учитывает
+    // его при объяснении «как тебе это применить»).
+    let personalDar = '';
+    try {
+      const saved = JSON.parse(localStorage.getItem(window.STORAGE_KEY || '_darCalculator') || '{}');
+      if (saved.gift && saved.gift.code) personalDar = saved.gift.code;
+    } catch (e) {}
+
     // Передаём Telegram initData для авторизации — сервер кэширует послание
     // привязанное к user_id, чтобы при перезапуске Mini App оно не потерялось
     const headers = { 'Content-Type': 'application/json' };
@@ -106,7 +115,7 @@ const DailyDar = (function() {
     return fetch(`${API_URL}/api/oracle`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ dar_code: darCode, mode, user_query: userQuery || '', gender })
+      body: JSON.stringify({ dar_code: darCode, mode, user_query: userQuery || '', gender, personal_dar: personalDar })
     })
     .then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -554,12 +563,53 @@ const DailyDar = (function() {
         container.innerHTML = `${limitInfo}${renderLimitReachedBlock('card')}`;
         return;
       }
+      // Готовые вопросы — 8 универсальных, покрывают основные жизненные сферы.
+      // Дропдаун открывается по клику, кликнул на вариант → подставляется
+      // в textarea выше (юзер может отредактировать). Стиль как у "Стендап-зеркало".
+      const presets = [
+        { emoji: '💞', text: 'Что мне важно видеть в моих отношениях сейчас?' },
+        { emoji: '💼', text: 'Каков мой следующий шаг в деле сейчас?' },
+        { emoji: '💰', text: 'Что открывает поток ресурсов в мою жизнь?' },
+        { emoji: '🌿', text: 'Что моё тело говорит мне сегодня?' },
+        { emoji: '🔀', text: 'Какой выбор сейчас в моём потоке?' },
+        { emoji: '🏡', text: 'Что важно мне в семье и роду сейчас?' },
+        { emoji: '🌌', text: 'Куда меня ведёт жизнь?' },
+        { emoji: '✨', text: 'Что мне важно понять про себя сегодня?' }
+      ];
+      let presetsHtml = '';
+      presets.forEach((p, i) => {
+        const borderTop = i === 0 ? '' : 'border-top:1px solid rgba(255,255,255,0.05);';
+        // Передаём индекс — внутри возьмём из массива (избегаем эскейпинга кавычек)
+        presetsHtml += '<button type="button" onclick="DailyDar.pickPresetQuery(' + i + ')" ' +
+          'style="width:100%;padding:14px 16px;background:transparent;border:none;' + borderTop +
+          'color:var(--text);font-family:Manrope,sans-serif;font-size:13px;cursor:pointer;text-align:left;' +
+          'transition:background 0.15s;line-height:1.5" ' +
+          'onmouseover="this.style.background=\'rgba(212,175,55,0.06)\'" ' +
+          'onmouseout="this.style.background=\'transparent\'">' +
+          '<span style="margin-right:8px">' + p.emoji + '</span>' + p.text +
+          '</button>';
+      });
+      // Сохраняем массив в window — нужен для pickPresetQuery
+      window._oraclePresets = presets;
+
       container.innerHTML = `
         ${limitInfo}
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:14px;color:var(--text);margin-bottom:8px">${((window.i18n && i18n.t && i18n.t('oracle.formulate_query')) || 'Сформулируй свой запрос')}</div>
           <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">${((window.i18n && i18n.t && i18n.t('oracle.query_hint')) || 'Какой вопрос тебя волнует? Какие энергии помогут приблизиться к решению?')}</div>
-          <textarea id="daily-card-query" placeholder="Например: Как мне найти баланс между работой и отдыхом?..." style="width:100%;min-height:70px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5"></textarea>
+          <textarea id="daily-card-query" placeholder="Напиши свой вопрос..." style="width:100%;min-height:70px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5;text-align:left;box-sizing:border-box"></textarea>
+
+          <!-- Дропдаун «Выбрать из готовых» в стиле Стендап-зеркала -->
+          <div id="oracle-presets-wrap" style="margin-top:12px;position:relative">
+            <button id="oracle-presets-trigger" type="button" onclick="DailyDar.togglePresets()"
+              style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(212,175,55,0.18);border-radius:14px;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all 0.2s;text-align:left">
+              <span>💡 Выбрать из готовых вопросов</span>
+              <svg id="oracle-presets-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div id="oracle-presets-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:6px;background:#0d0d0d;border:1px solid rgba(212,175,55,0.25);border-radius:14px;overflow:hidden;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-height:60vh;overflow-y:auto">
+              ${presetsHtml}
+            </div>
+          </div>
         </div>
         ${renderCardBack()}
         <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:8px">${((window.i18n && i18n.t && i18n.t('oracle.tap_card_hint')) || 'Нажми на карту, чтобы вытянуть подсказку')}</div>`;
@@ -580,13 +630,49 @@ const DailyDar = (function() {
     }
   }
 
+  // Открыть/закрыть дропдаун с готовыми вопросами
+  function togglePresets() {
+    const list = document.getElementById('oracle-presets-list');
+    const arrow = document.getElementById('oracle-presets-arrow');
+    if (!list) return;
+    const isOpen = list.style.display === 'block';
+    list.style.display = isOpen ? 'none' : 'block';
+    if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  }
+
+  // Юзер кликнул готовый вопрос — подставляем в textarea и закрываем дропдаун
+  function pickPresetQuery(idx) {
+    const presets = window._oraclePresets || [];
+    const p = presets[idx];
+    if (!p) return;
+    const ta = document.getElementById('daily-card-query');
+    if (ta) {
+      ta.value = p.text;
+      ta.focus();
+    }
+    togglePresets();
+  }
+
   function pullCard() {
     if (_cardRevealed) return;
-    // Сохранить запрос пользователя
+    // Сохранить запрос пользователя.
+    // Закон Оракула: вопрос ОБЯЗАТЕЛЕН. Без вопроса не тянем.
     const queryEl = document.getElementById('daily-card-query');
     _userQuery = queryEl ? queryEl.value.trim() : '';
+    if (!_userQuery) {
+      if (queryEl) {
+        queryEl.style.border = '1px solid #e74c3c';
+        queryEl.focus();
+        setTimeout(() => { queryEl.style.border = '1px solid var(--border)'; }, 1800);
+      }
+      if (typeof showToast === 'function') showToast('Сначала задай вопрос Оракулу 🙏', 'info');
+      return;
+    }
 
-    const allCodes = Object.keys(window.DARS);
+    // Тянем из пула 81 (64 Дара + 17 интеграторов) — закон Оракула.
+    const baseCodes = Object.keys(window.DARS || {});
+    const intCodes = Object.keys(window.INTEGRATORS || {});
+    const allCodes = baseCodes.concat(intCodes);
     _pulledCard = allCodes[Math.floor(Math.random() * allCodes.length)];
 
     const inner = document.getElementById('daily-card-inner');
@@ -710,7 +796,7 @@ const DailyDar = (function() {
     }
   }
 
-  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook };
+  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook, togglePresets, pickPresetQuery };
 })();
 
 // Экспортируем в window — нужен для api-client.js (Оракул для родственника

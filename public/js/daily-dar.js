@@ -111,6 +111,13 @@ const DailyDar = (function() {
         headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
       }
     } catch (e) {}
+    // Язык интерфейса — для AI-генерации Оракула на EN/ES
+    // (тестер 29.05.2026: переключаешь язык, а Оракул отвечает на русском).
+    // Сервер читает x-yupdar-lang в _lib/language.js detectLang().
+    try {
+      const lang = localStorage.getItem('_yupdar_lang');
+      if (lang) headers['x-yupdar-lang'] = lang;
+    } catch (e) {}
 
     return fetch(`${API_URL}/api/oracle`, {
       method: 'POST',
@@ -566,15 +573,17 @@ const DailyDar = (function() {
       // Готовые вопросы — 8 универсальных, покрывают основные жизненные сферы.
       // Дропдаун открывается по клику, кликнул на вариант → подставляется
       // в textarea выше (юзер может отредактировать). Стиль как у "Стендап-зеркало".
+      // Тексты через i18n: oracle.preset_* (поддержка ru/en/es).
+      const tt = (k, ru) => (window.i18n && window.i18n.t && window.i18n.t(k)) || ru;
       const presets = [
-        { emoji: '💞', text: 'Что мне важно видеть в моих отношениях сейчас?' },
-        { emoji: '💼', text: 'Каков мой следующий шаг в деле сейчас?' },
-        { emoji: '💰', text: 'Что открывает поток ресурсов в мою жизнь?' },
-        { emoji: '🌿', text: 'Что моё тело говорит мне сегодня?' },
-        { emoji: '🔀', text: 'Какой выбор сейчас в моём потоке?' },
-        { emoji: '🏡', text: 'Что важно мне в семье и роду сейчас?' },
-        { emoji: '🌌', text: 'Куда меня ведёт жизнь?' },
-        { emoji: '✨', text: 'Что мне важно понять про себя сегодня?' }
+        { emoji: '💞', text: tt('oracle.preset_relations', 'Что мне важно видеть в моих отношениях сейчас?') },
+        { emoji: '💼', text: tt('oracle.preset_work', 'Каков мой следующий шаг в деле сейчас?') },
+        { emoji: '💰', text: tt('oracle.preset_resources', 'Что открывает поток ресурсов в мою жизнь?') },
+        { emoji: '🌿', text: tt('oracle.preset_body', 'Что моё тело говорит мне сегодня?') },
+        { emoji: '🔀', text: tt('oracle.preset_choice', 'Какой выбор сейчас в моём потоке?') },
+        { emoji: '🏡', text: tt('oracle.preset_family', 'Что важно мне в семье и роду сейчас?') },
+        { emoji: '🌌', text: tt('oracle.preset_path', 'Куда меня ведёт жизнь?') },
+        { emoji: '✨', text: tt('oracle.preset_self', 'Что мне важно понять про себя сегодня?') }
       ];
       let presetsHtml = '';
       presets.forEach((p, i) => {
@@ -597,13 +606,13 @@ const DailyDar = (function() {
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:14px;color:var(--text);margin-bottom:8px">${((window.i18n && i18n.t && i18n.t('oracle.formulate_query')) || 'Сформулируй свой запрос')}</div>
           <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">${((window.i18n && i18n.t && i18n.t('oracle.query_hint')) || 'Какой вопрос тебя волнует? Какие энергии помогут приблизиться к решению?')}</div>
-          <textarea id="daily-card-query" placeholder="Напиши свой вопрос..." style="width:100%;min-height:70px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5;text-align:left;box-sizing:border-box"></textarea>
+          <textarea id="daily-card-query" placeholder="${tt('oracle.query_placeholder', 'Напиши свой вопрос...')}" style="width:100%;min-height:70px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5;text-align:left;box-sizing:border-box"></textarea>
 
           <!-- Дропдаун «Выбрать из готовых» в стиле Стендап-зеркала -->
           <div id="oracle-presets-wrap" style="margin-top:12px;position:relative">
             <button id="oracle-presets-trigger" type="button" onclick="DailyDar.togglePresets()"
               style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(212,175,55,0.18);border-radius:14px;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all 0.2s;text-align:left">
-              <span>💡 Выбрать из готовых вопросов</span>
+              <span>${tt('oracle.presets_toggle', '💡 Выбрать из готовых вопросов')}</span>
               <svg id="oracle-presets-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
             <div id="oracle-presets-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:6px;background:#0d0d0d;border:1px solid rgba(212,175,55,0.25);border-radius:14px;overflow:hidden;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-height:60vh;overflow-y:auto">
@@ -665,7 +674,8 @@ const DailyDar = (function() {
         queryEl.focus();
         setTimeout(() => { queryEl.style.border = '1px solid var(--border)'; }, 1800);
       }
-      if (typeof showToast === 'function') showToast('Сначала задай вопрос Оракулу 🙏', 'info');
+      const toastMsg = (window.i18n && window.i18n.t && window.i18n.t('oracle.need_query_toast')) || 'Сначала задай вопрос Оракулу 🙏';
+      if (typeof showToast === 'function') showToast(toastMsg, 'info');
       return;
     }
 

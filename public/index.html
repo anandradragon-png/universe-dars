@@ -6631,6 +6631,23 @@
       if (!['ru', 'en', 'es'].includes(lang)) return;
       try {
         localStorage.setItem('_yupdar_lang', lang);
+        // Сбрасываем закэшированные AI-послания (Дар, юмор, секции) —
+        // они на старом языке. После reload сервер сгенерит на новом.
+        // (Тестер 29.05.2026: переключил EN, а текст «Послания о Даре»
+        // остался русским).
+        const keysToClear = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (
+              k.startsWith('_msg_cache_') ||
+              k.startsWith('_humor_cache_') ||
+              k.startsWith('_section_cache_') ||
+              k.startsWith('_oracle_cache_')
+          )) {
+            keysToClear.push(k);
+          }
+        }
+        keysToClear.forEach(k => localStorage.removeItem(k));
       } catch (e) {}
       // Скрываем picker и перезагружаем страницу
       const picker = document.getElementById('lang-picker');

@@ -68,7 +68,10 @@
     "archetype": "Arquetipo",
     "share_card_sub": "Una imagen bonita de tu DAR para Instagram, VK, Telegram",
     "share_a4_title": "Tarjeta detallada del DAR (A4)",
-    "share_a4_sub": "Imprime o regala a un ser querido en su cumpleaños"
+    "share_a4_sub": "Imprime o regala a un ser querido en su cumpleaños",
+    "get_humor": "🎤 Lee tu stand-up",
+    "read_humor": "🎤 Leer stand-up",
+    "read_message": "📖 Leer sobre tu DAR"
   },
   "profile": {
     "title": "Perfil",
@@ -358,7 +361,11 @@
   "treasury": {
     "empty_hint": "¡Calcula tu DAR para empezar tu colección de los 64 DARs!",
     "quest_count_error": "No se pudo registrar la misión. Revisa tu conexión e inténtalo de nuevo.",
-    "meditation_count_error": "No se pudo registrar la meditación. Revisa tu conexión e inténtalo de nuevo."
+    "meditation_count_error": "No se pudo registrar la meditación. Revisa tu conexión e inténtalo de nuevo.",
+    "subtab_collection": "Colección",
+    "subtab_books": "Libros",
+    "subtab_encyclopedia": "Enciclopedia",
+    "subtab_games": "Juegos"
   },
   "oracle": {
     "forming": "El Oráculo está formando el mensaje...",
@@ -371,7 +378,18 @@
     "tap_card_hint": "Toca una carta para sacar una pista",
     "calc_first_title": "Primero calcula tu DAR",
     "calc_first_sub": "Para conocer tu DAR del Día personal, necesitas saber tu DAR por fecha de nacimiento",
-    "data_error": "Error de datos"
+    "data_error": "Error de datos",
+    "query_placeholder": "Escribe tu pregunta...",
+    "presets_toggle": "💡 Elegir de preguntas listas",
+    "need_query_toast": "Primero hazle una pregunta al Oráculo 🙏",
+    "preset_relations": "¿Qué es importante que vea en mis relaciones ahora?",
+    "preset_work": "¿Cuál es mi próximo paso en mi trabajo ahora?",
+    "preset_resources": "¿Qué abre el flujo de recursos hacia mi vida?",
+    "preset_body": "¿Qué me dice mi cuerpo hoy?",
+    "preset_choice": "¿Qué elección está en mi flujo ahora?",
+    "preset_family": "¿Qué es importante para mí en la familia y el linaje ahora?",
+    "preset_path": "¿A dónde me lleva la vida?",
+    "preset_self": "¿Qué es importante que comprenda sobre mí hoy?"
   },
   "book": {
     "chapter_locked": "Este capítulo está disponible en la versión completa. Ingresa un código promocional abajo para desbloquear el libro entero.",
@@ -553,11 +571,57 @@
   },
   "family": {
     "title": "Familia",
-    "subtitle": "Dones de los seres queridos, compatibilidad, mapa familiar."
+    "subtitle": "Dones de los seres queridos, compatibilidad, mapa familiar.",
+    "title_full": "Familia y seres queridos",
+    "subtitle_full": "Desbloquea los DARs de tus seres queridos en tu Tesorería",
+    "invite_title": "Invita a un amigo",
+    "invite_sub": "Tu amigo calculará su DAR. Se abrirá en tu Tesorería.",
+    "invite_btn": "Compartir"
   },
   "arka": {
     "lock_title": "ARKA — para el Guardián",
     "lock_desc": "Un camino personal al ritmo de tu Don. Ventanas de poder, mapa de crecimiento, diario de evolución, entrenador de prácticas.",
     "lock_cta": "Abrir tarifa Guardián"
+  },
+  "me": {
+    "acc_essence": "Tu Esencia",
+    "acc_essence_text": "Portador de tu DAR. Toca «Recibir mensaje completo» bajo la tarjeta del DAR — aquí aparecerá tu interpretación personal.",
+    "acc_superpowers": "Tus Superpoderes",
+    "acc_superpowers_text": "Habilidades únicas de tu arquetipo. Aparecerán después de recibir el mensaje completo.",
+    "acc_wealth": "Tu Flujo de Abundancia",
+    "acc_wealth_text": "Cómo te llegan los recursos. Aparecerá tras el mensaje completo.",
+    "acc_relationships": "Tú en las Relaciones",
+    "acc_relationships_text": "Cómo amas y qué necesitas de la intimidad. Aparecerá tras el mensaje completo.",
+    "acc_traps": "Tus Trampas",
+    "acc_traps_text": "Sombras típicas de tu arquetipo. Aparecerán tras el mensaje completo.",
+    "acc_key": "La Llave a Ti Mismo",
+    "acc_key_text": "El recurso principal de tu DAR. Aparecerá tras el mensaje completo.",
+    "acc_mission": "Tu Misión",
+    "acc_mission_text": "Lo que llevas al mundo a través de tu DAR. Aparecerá tras el mensaje completo.",
+    "acc_resonance": "Resonancia con la Fase de Vida",
+    "acc_resonance_teaser": "Disponible en el plan Guardián",
+    "acc_connections": "Mapa de Conexiones",
+    "acc_connections_teaser": "Disponible en el plan Guardián",
+    "acc_open_in_arka": "🛡 Abrir en ARKA",
+    "diary_title": "Diario del DAR",
+    "diary_sub": "Una línea al día — y ARKA comenzará a notar tus patrones. Gratis.",
+    "science_title": "Contribuye a la Ciencia de los DARs",
+    "science_sub": "Completa las encuestas y sé parte de la primera investigación sobre los DARs"
+  },
+  "msg_style": {
+    "label": "Estilo del mensaje",
+    "full": "Mensaje completo",
+    "full_sub": "Cálido, profundo",
+    "humor": "Espejo de Stand-up",
+    "humor_sub": "Retrato irónico"
+  },
+  "message": {
+    "overlay_title": "Mensaje sobre tu DAR",
+    "back": "← Volver"
+  },
+  "humor": {
+    "overlay_title": "Espejo de Stand-up",
+    "regen_btn": "🔄 Regenerar",
+    "share_card_btn": "📤 Compartir"
   }
 }

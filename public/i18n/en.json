@@ -67,7 +67,10 @@
     "archetype": "Archetype",
     "share_card_sub": "A beautiful image of your DAR for Instagram, VK, Telegram",
     "share_a4_title": "Detailed DAR card (A4)",
-    "share_a4_sub": "Print or gift to a loved one on their birthday"
+    "share_a4_sub": "Print or gift to a loved one on their birthday",
+    "get_humor": "🎤 Read your stand-up",
+    "read_humor": "🎤 Read stand-up",
+    "read_message": "📖 Read about your DAR"
   },
   "profile": {
     "title": "Personal Cabinet",
@@ -357,7 +360,11 @@
   "treasury": {
     "empty_hint": "Calculate your DAR to start your collection of 64 DARs!",
     "quest_count_error": "Could not count the quest. Check your connection and try again.",
-    "meditation_count_error": "Could not count the meditation. Check your connection and try again."
+    "meditation_count_error": "Could not count the meditation. Check your connection and try again.",
+    "subtab_collection": "Collection",
+    "subtab_books": "Books",
+    "subtab_encyclopedia": "Encyclopedia",
+    "subtab_games": "Games"
   },
   "oracle": {
     "forming": "Oracle is forming the message...",
@@ -370,7 +377,18 @@
     "tap_card_hint": "Tap a card to draw a hint",
     "calc_first_title": "Calculate your DAR first",
     "calc_first_sub": "To get your personal DAR of the Day, you need to know your DAR by birth date",
-    "data_error": "Data error"
+    "data_error": "Data error",
+    "query_placeholder": "Write your question...",
+    "presets_toggle": "💡 Choose from ready questions",
+    "need_query_toast": "First ask the Oracle a question 🙏",
+    "preset_relations": "What is important for me to see in my relationships right now?",
+    "preset_work": "What is my next step in my work right now?",
+    "preset_resources": "What opens the flow of resources into my life?",
+    "preset_body": "What is my body telling me today?",
+    "preset_choice": "Which choice is in my flow right now?",
+    "preset_family": "What is important for me in family and lineage right now?",
+    "preset_path": "Where is life leading me?",
+    "preset_self": "What is important for me to understand about myself today?"
   },
   "book": {
     "chapter_locked": "This chapter is available in the full version. Enter a promo code below to unlock the whole book.",
@@ -552,11 +570,57 @@
   },
   "family": {
     "title": "Family",
-    "subtitle": "Gifts of loved ones, compatibility, family map."
+    "subtitle": "Gifts of loved ones, compatibility, family map.",
+    "title_full": "Family and loved ones",
+    "subtitle_full": "Unlock the DARs of loved ones in your Treasury",
+    "invite_title": "Invite a friend",
+    "invite_sub": "Your friend will calculate their DAR. It will open in your Treasury.",
+    "invite_btn": "Share"
   },
   "arka": {
     "lock_title": "ARKA — for the Guardian",
     "lock_desc": "A personal path in the rhythm of your Gift. Windows of power, growth map, evolution journal, practice trainer.",
     "lock_cta": "Open Guardian tier"
+  },
+  "me": {
+    "acc_essence": "Your Essence",
+    "acc_essence_text": "Bearer of your DAR. Tap «Get full message» under the DAR card — your personal interpretation will appear here.",
+    "acc_superpowers": "Your Superpowers",
+    "acc_superpowers_text": "Unique abilities of your archetype. Will appear after you get the full message.",
+    "acc_wealth": "Your Abundance Flow",
+    "acc_wealth_text": "How resources flow to you. Will appear after the full message.",
+    "acc_relationships": "You in Relationships",
+    "acc_relationships_text": "How you love and what you need from intimacy. Will appear after the full message.",
+    "acc_traps": "Your Traps",
+    "acc_traps_text": "Typical shadows of your archetype. Will appear after the full message.",
+    "acc_key": "Key to Yourself",
+    "acc_key_text": "The main resource of your DAR. Will appear after the full message.",
+    "acc_mission": "Your Mission",
+    "acc_mission_text": "What you bring to the world through your DAR. Will appear after the full message.",
+    "acc_resonance": "Resonance with Life Phase",
+    "acc_resonance_teaser": "Available in Guardian tier",
+    "acc_connections": "Connection Map",
+    "acc_connections_teaser": "Available in Guardian tier",
+    "acc_open_in_arka": "🛡 Open in ARKA",
+    "diary_title": "DAR Diary",
+    "diary_sub": "One line a day — and ARKA will start noticing your patterns. Free.",
+    "science_title": "Contribute to the Science of DARs",
+    "science_sub": "Take the surveys and become part of the first DAR research"
+  },
+  "msg_style": {
+    "label": "Message style",
+    "full": "Full message",
+    "full_sub": "Warm, deep",
+    "humor": "Stand-up Mirror",
+    "humor_sub": "Ironic portrait"
+  },
+  "message": {
+    "overlay_title": "Message about your DAR",
+    "back": "← Back"
+  },
+  "humor": {
+    "overlay_title": "Stand-up Mirror",
+    "regen_btn": "🔄 Regenerate",
+    "share_card_btn": "📤 Share"
   }
 }

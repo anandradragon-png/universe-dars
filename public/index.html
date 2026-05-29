@@ -527,13 +527,15 @@
     <div class="aurora-blob"></div>
   </div>
   <button id="btn-profile" onclick="openProfile()"></button>
-  <button id="btn-tariffs" onclick="openTariffsPage()" title="Тарифы" style="position:fixed;top:14px;right:58px;z-index:900;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(160deg,rgba(212,175,55,0.25),rgba(184,134,11,0.15));color:#D4AF37;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(212,175,55,0.25);font-family:Manrope,sans-serif" aria-label="Тарифы YupDar">&#128273;</button>
-  <!-- Языковой переключатель убран из шапки 2026-05-25 — наезжал на текст.
-       Смена языка теперь только через ЛК → секция «🌐 Язык» (profile-language).
-       Скрытый btn-lang оставлен для совместимости (другие функции
-       обновляют его label при смене языка). -->
-  <button id="btn-lang" hidden style="display:none;width:0;height:0;padding:0;border:0;overflow:hidden" aria-hidden="true"><span id="btn-lang-label">RU</span></button>
-  <div id="lang-picker" style="display:none;position:fixed;top:56px;right:102px;z-index:1100;background:linear-gradient(160deg,#1a1a14 0%,#0a0a0a 100%);border:1px solid rgba(212,175,55,0.4);border-radius:10px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,0.6);min-width:140px;font-family:Manrope,sans-serif">
+  <!-- Языковой переключатель ВОЗВРАЩЁН в шапку 29.05.2026.
+       Причина: иностранец, зашедший в приложение, должен СРАЗУ видеть
+       где переключить язык. Прятать в ЛК = заставлять искать на чужом
+       языке. Это критично для UX и зафиксировано законом
+       law_language_picker_always_visible.md.
+       Тарифы (бывшая кнопка-ключ 🔑) убраны из шапки — они доступны
+       через ЛК и через апсейл-кнопки в нужных местах (закон минимума). -->
+  <button id="btn-lang" onclick="toggleLangPicker(event)" title="Language / Idioma" style="position:fixed;top:14px;right:58px;z-index:900;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(160deg,rgba(212,175,55,0.25),rgba(184,134,11,0.15));color:#D4AF37;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(212,175,55,0.25);font-family:Manrope,sans-serif;letter-spacing:0.5px" aria-label="Language switcher"><span id="btn-lang-label">RU</span></button>
+  <div id="lang-picker" style="display:none;position:fixed;top:56px;right:58px;z-index:1100;background:linear-gradient(160deg,#1a1a14 0%,#0a0a0a 100%);border:1px solid rgba(212,175,55,0.4);border-radius:10px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,0.6);min-width:140px;font-family:Manrope,sans-serif">
     <button onclick="pickLang('ru')" data-lang-pick="ru" class="lang-pick-row" style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:none;background:transparent;color:#eaeaea;font-size:13px;cursor:pointer;text-align:left;border-radius:6px;font-family:inherit">🇷🇺 Русский</button>
     <button onclick="pickLang('en')" data-lang-pick="en" class="lang-pick-row" style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:none;background:transparent;color:#eaeaea;font-size:13px;cursor:pointer;text-align:left;border-radius:6px;font-family:inherit">🇬🇧 English</button>
     <button onclick="pickLang('es')" data-lang-pick="es" class="lang-pick-row" style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:none;background:transparent;color:#eaeaea;font-size:13px;cursor:pointer;text-align:left;border-radius:6px;font-family:inherit">🇪🇸 Español</button>
@@ -6635,6 +6637,17 @@
       if (picker) picker.style.display = 'none';
       window.location.reload();
     }
+
+    // Открыть/закрыть выбор языка из шапки (29.05.2026 — переключатель
+    // вернулся в шапку для UX иностранцев). См. закон
+    // law_language_picker_always_visible.md
+    function toggleLangPicker(e) {
+      if (e) e.stopPropagation();
+      const picker = document.getElementById('lang-picker');
+      if (!picker) return;
+      picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+    }
+    window.toggleLangPicker = toggleLangPicker;
 
     // Закрытие picker при клике вне его
     document.addEventListener('click', (e) => {

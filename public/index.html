@@ -3081,10 +3081,12 @@
       const content = document.getElementById('humor-overlay-content');
       if (content) content.innerHTML = renderHumorContent(data);
 
-      // Шеринг-кнопка → открывает модалку с карточкой (QR + реф-ссылка)
+      // Внизу overlay: кнопка-карточка для шеринга + кнопка регенерации стендапа
       const shareWrap = document.getElementById('humor-overlay-share');
       if (shareWrap) {
-        shareWrap.innerHTML = '<button onclick="openHumorShareCard()" style="width:100%;padding:14px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif">📤 <span data-i18n="humor.share_card_btn">Сделать карточку для соцсетей</span></button>';
+        shareWrap.innerHTML = ''
+          + '<button onclick="openHumorShareCard()" style="width:100%;padding:14px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:10px">📤 <span data-i18n="humor.share_card_btn">Сделать карточку для соцсетей</span></button>'
+          + '<button onclick="regenerateHumor()" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif">🔄 <span data-i18n="humor.regen_btn">Сгенерировать новый стендап</span></button>';
       }
 
       const ov = document.getElementById('humor-overlay');
@@ -3122,6 +3124,26 @@
       } catch(e) { alert(text); }
     }
 
+    // Пересоздать стендап (сбросить кеш + закрыть overlay + запустить генерацию)
+    async function regenerateHumor() {
+      try {
+        localStorage.removeItem('_humorData');
+        closeHumorOverlay();
+        // Гарантируем выбор стиля humor
+        try { localStorage.setItem('_msg_style', 'humor'); } catch(e) {}
+        if (typeof selectMessageStyle === 'function') selectMessageStyle('humor');
+        // Запускаем новую генерацию
+        if (typeof requestMessage === 'function') {
+          await requestMessage();
+        }
+      } catch (e) {
+        console.error('regenerateHumor error:', e);
+        if (typeof showToast === 'function') {
+          showToast('Не получилось перегенерировать: ' + e.message, 'error');
+        }
+      }
+    }
+
     // Открыть модалку с карточкой стендапа для соцсетей (QR + реф-ссылка)
     function openHumorShareCard() {
       try {
@@ -3144,6 +3166,7 @@
     window.closeHumorOverlay = closeHumorOverlay;
     window.shareHumorText = shareHumorText;
     window.openHumorShareCard = openHumorShareCard;
+    window.regenerateHumor = regenerateHumor;
 
     // Восстановление состояния селектора и кнопки при загрузке страницы.
     // Если в localStorage есть _msg_style — применяем его.

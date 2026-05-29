@@ -1534,6 +1534,7 @@
   <script src="js/atlantis-game.js?v=1"></script>
   <script src="js/hero-journey.js?v=1"></script>
   <script src="js/share-card.js?v=1"></script>
+  <script src="js/humor-card.js?v=1"></script>
   <script src="js/daily-dar.js?v=4"></script>
   <script>
     const tg = window.Telegram?.WebApp;
@@ -3080,10 +3081,10 @@
       const content = document.getElementById('humor-overlay-content');
       if (content) content.innerHTML = renderHumorContent(data);
 
-      // Шеринг-кнопка
+      // Шеринг-кнопка → открывает модалку с карточкой (QR + реф-ссылка)
       const shareWrap = document.getElementById('humor-overlay-share');
       if (shareWrap) {
-        shareWrap.innerHTML = '<button onclick="shareHumorText()" style="width:100%;padding:14px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif">📤 <span data-i18n="humor.share_btn">Поделиться этим стендапом</span></button>';
+        shareWrap.innerHTML = '<button onclick="openHumorShareCard()" style="width:100%;padding:14px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif">📤 <span data-i18n="humor.share_card_btn">Сделать карточку для соцсетей</span></button>';
       }
 
       const ov = document.getElementById('humor-overlay');
@@ -3121,9 +3122,28 @@
       } catch(e) { alert(text); }
     }
 
+    // Открыть модалку с карточкой стендапа для соцсетей (QR + реф-ссылка)
+    function openHumorShareCard() {
+      try {
+        if (window.HumorCard && typeof window.HumorCard.openModal === 'function') {
+          window.HumorCard.openModal();
+        } else {
+          if (typeof showToast === 'function') {
+            showToast('Модуль карточек ещё загружается, попробуй через секунду', 'error');
+          }
+        }
+      } catch (e) {
+        console.error('openHumorShareCard error:', e);
+        if (typeof showToast === 'function') {
+          showToast('Не получилось открыть карточку: ' + e.message, 'error');
+        }
+      }
+    }
+
     window.openHumorOverlay = openHumorOverlay;
     window.closeHumorOverlay = closeHumorOverlay;
     window.shareHumorText = shareHumorText;
+    window.openHumorShareCard = openHumorShareCard;
 
     // Восстановление состояния селектора и кнопки при загрузке страницы.
     // Если в localStorage есть _msg_style — применяем его.

@@ -2896,9 +2896,13 @@
     // Архитектура расширяема: позже добавим Оракул, Письмо из будущего.
     // ============================================================
 
+    // По умолчанию всегда 'full' (Полное послание).
+    // Выбор стиля НЕ сохраняется между сессиями — иначе после однократного
+    // выбора стендапа селектор показывал бы стендап «дефолтно» что неверно.
+    // Состояние живёт только в памяти текущего открытия приложения.
+    let _currentMessageStyle = 'full';
     function getCurrentMessageStyle() {
-      try { return localStorage.getItem('_msg_style') || 'full'; }
-      catch(e) { return 'full'; }
+      return _currentMessageStyle || 'full';
     }
 
     function toggleMessageStyleDropdown() {
@@ -2918,7 +2922,7 @@
     }
 
     function selectMessageStyle(style) {
-      try { localStorage.setItem('_msg_style', style); } catch(e) {}
+      _currentMessageStyle = style || 'full';
       const cur = document.getElementById('msg-style-current');
       if (cur) {
         if (style === 'humor') {
@@ -3129,8 +3133,7 @@
       try {
         localStorage.removeItem('_humorData');
         closeHumorOverlay();
-        // Гарантируем выбор стиля humor
-        try { localStorage.setItem('_msg_style', 'humor'); } catch(e) {}
+        // Гарантируем выбор стиля humor (только в памяти, не в localStorage).
         if (typeof selectMessageStyle === 'function') selectMessageStyle('humor');
         // Запускаем новую генерацию
         if (typeof requestMessage === 'function') {
@@ -3168,14 +3171,15 @@
     window.openHumorShareCard = openHumorShareCard;
     window.regenerateHumor = regenerateHumor;
 
-    // Восстановление состояния селектора и кнопки при загрузке страницы.
-    // Если в localStorage есть _msg_style — применяем его.
+    // При загрузке страницы СБРАСЫВАЕМ селектор на дефолт «Полное послание».
+    // Стендап — это опциональная альтернатива, юзер выбирает её руками.
     // Если в localStorage есть кеш — кнопка сразу становится "Читать".
     document.addEventListener('DOMContentLoaded', function() {
       try {
-        const style = getCurrentMessageStyle();
-        // Обновляем визуал селектора
-        selectMessageStyle(style);
+        // Чистим устаревший ключ от прошлых сессий (если когда-то сохранили).
+        try { localStorage.removeItem('_msg_style'); } catch(e) {}
+        // Принудительно ставим селектор в дефолтное положение.
+        selectMessageStyle('full');
       } catch(e) {}
     });
 

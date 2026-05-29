@@ -270,10 +270,72 @@ function dedupTop10(data) {
   return data;
 }
 
+// Снимает повтор заголовка раздела в первой фразе текста.
+// AI иногда дублирует label секции в её содержимом:
+//   essence: "🎭 Знакомься — это ты. Ты опираешься на копчик..."
+// UI уже рисует заголовок над блоком, поэтому первая фраза «Знакомься — это ты.»
+// в тексте — это визуальный мусор. Чистим.
+function stripDuplicateHeaders(data) {
+  if (!data || typeof data !== 'object') return data;
+
+  // Карта: поле в JSON → возможные заголовки (как AI их пишет в начале)
+  const HEADERS = {
+    essence: ['знакомься — это ты', 'знакомься - это ты', 'знакомься, это ты', 'знакомься это ты'],
+    superpowers: ['твоя суперсила', 'твоя сила'],
+    mission: ['что вселенная от тебя хочет', 'что вселенная хочет от тебя', 'что мир хочет от тебя', 'что мир от тебя хочет', 'что мир хочет', 'что вселенная хочет'],
+  };
+
+  // Снимаем все НЕ-буквы в начале строки (эмодзи, пробелы, спецсимволы).
+  // \p{L} — любая буква (Unicode), u-флаг обязателен.
+  const stripEmojiPrefix = (s) => String(s || '').replace(/^[^\p{L}]+/u, '').trim();
+
+  const tryStrip = (text, headerVariants) => {
+    if (!text || typeof text !== 'string') return text;
+    const trimmed = stripEmojiPrefix(text);
+    const lower = trimmed.toLowerCase();
+    for (const header of headerVariants) {
+      if (lower.startsWith(header)) {
+        // Режем заголовок + знаки препинания после него + пробел
+        const cut = trimmed.slice(header.length).replace(/^[.,:;—\-\s«»""''`]+/, '');
+        if (cut.length > 20) return cut;
+      }
+    }
+    return text;
+  };
+
+  for (const [key, headers] of Object.entries(HEADERS)) {
+    if (data[key]) data[key] = tryStrip(data[key], headers);
+  }
+
+  // Отношения — заголовок в main
+  if (data.relationships && data.relationships.main) {
+    data.relationships.main = tryStrip(data.relationships.main, ['в отношениях']);
+  }
+
+  // Деньги — заголовок может быть в intro
+  if (data.wealth && data.wealth.intro) {
+    data.wealth.intro = tryStrip(data.wealth.intro, ['деньги']);
+  }
+
+  // Подразделы «Тебе важно:» и «Триггер:» — могут дублироваться внутри текста.
+  // AI иногда пишет: "Тебе важно: Что тебе важно от партнёра..." — двойной заголовок.
+  if (data.relationships && data.relationships.needs) {
+    data.relationships.needs = tryStrip(data.relationships.needs,
+      ['что тебе важно от партнёра', 'что тебе важно']);
+  }
+  if (data.relationships && data.relationships.triggers) {
+    data.relationships.triggers = tryStrip(data.relationships.triggers,
+      ['триггер', 'что бесит']);
+  }
+
+  return data;
+}
+
 function postprocessHumorData(data) {
   try {
     const cleaned = deepClean(data);
-    return dedupTop10(cleaned);
+    const dedupped = dedupTop10(cleaned);
+    return stripDuplicateHeaders(dedupped);
   } catch (e) {
     console.warn('[message-humor] postprocess failed:', e.message);
     return data;

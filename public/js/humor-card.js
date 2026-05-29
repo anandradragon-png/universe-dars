@@ -58,6 +58,55 @@ const HumorCard = (function() {
     }
   }
 
+  function getDarName(darCode) {
+    try {
+      if (window.DARS && window.DARS[darCode]) return window.DARS[darCode];
+    } catch(e) {}
+    return '';
+  }
+
+  function getDarImagePath(darCode) {
+    const name = getDarName(darCode);
+    if (!name) return null;
+    const base = name.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g, '');
+    return base ? 'images/dars/' + base + '.svg' : null;
+  }
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('image load failed: ' + src));
+      img.src = src;
+    });
+  }
+
+  // Все доступные фразы для шеринга: топ-10 + панчлайны разделов + девиз архетипа.
+  function collectPhrases(data) {
+    if (!data) return [];
+    const out = [];
+    const push = (label, text) => {
+      if (!text || typeof text !== 'string') return;
+      const t = text.trim();
+      if (t.length < 12) return;
+      out.push({ label: label, text: t });
+    };
+
+    if (data.archetype && data.archetype.motto) push('Девиз архетипа', data.archetype.motto);
+    push('Финал «Знакомься»', data.essence_punchline);
+    push('Финал «Суперсила»', data.superpowers_punchline);
+    if (Array.isArray(data.top10)) {
+      data.top10.forEach((t, i) => push('Топ-10 · #' + (i + 1), t));
+    }
+    push('Финал «Топ-10»', data.top10_punchline);
+    push('Финал «Деньги»', data.wealth_punchline);
+    push('Финал «Отношения»', data.relationships_punchline);
+    push('Финал «Что Вселенная хочет»', data.mission_punchline);
+    if (data.share_hook) push('Шеринг-крючок', data.share_hook);
+    return out;
+  }
+
   // === QR-код (через Google Chart API → fallback на API quickchart) ===
 
   async function loadQR(text, size = 220) {
@@ -112,7 +161,7 @@ const HumorCard = (function() {
 
   // === Главное: рисуем карточку ===
 
-  async function generateCard(format) {
+  async function generateCard(format, chosenPhrase) {
     const isVertical = format === 'vertical';
     const w = 1080;
     const h = isVertical ? 1920 : 1080;
@@ -124,6 +173,9 @@ const HumorCard = (function() {
 
     const data = getHumorData();
     if (!data) throw new Error('Нет данных стендапа в кеше');
+
+    const darCode = getDarCode();
+    const darName = getDarName(darCode);
 
     // === ФОН: тёмный градиент ===
     const bg = ctx.createLinearGradient(0, 0, 0, h);
@@ -150,19 +202,61 @@ const HumorCard = (function() {
     ctx.fillStyle = topGrad;
     ctx.fillRect(0, 0, w, 4);
 
-    // === 🎤 ВВЕРХУ ===
-    const iconY = isVertical ? 240 : 140;
-    ctx.save();
-    ctx.font = `${isVertical ? 140 : 110}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(212, 175, 55, 0.7)';
-    ctx.shadowBlur = 30;
-    ctx.fillText('🎤', w / 2, iconY);
-    ctx.restore();
+    // === ГЛИФ ДАРА ВМЕСТО МИКРОФОНА ===
+    const iconSize = isVertical ? 260 : 200;
+    const iconCenterY = isVertical ? 290 : 200;
+    const iconY = iconCenterY - iconSize / 2;
+
+    const imgPath = getDarImagePath(darCode);
+    let darImg = null;
+    if (imgPath) {
+      try { darImg = await loadImage(imgPath); } catch (e) {
+        console.warn('[HumorCard] dar glyph load failed:', e.message);
+      }
+    }
+
+    if (darImg) {
+      // Золотое свечение под глифом
+      ctx.save();
+      const glow = ctx.createRadialGradient(w / 2, iconCenterY, 0, w / 2, iconCenterY, iconSize);
+      glow.addColorStop(0, 'rgba(212, 175, 55, 0.30)');
+      glow.addColorStop(0.5, 'rgba(212, 175, 55, 0.10)');
+      glow.addColorStop(1, 'rgba(212, 175, 55, 0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(w / 2 - iconSize, iconCenterY - iconSize, iconSize * 2, iconSize * 2);
+      ctx.restore();
+
+      // Сам SVG глиф в золоте (тот же фильтр что в Сокровищнице)
+      ctx.save();
+      ctx.filter = 'invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(115%) drop-shadow(0 0 18px rgba(212,175,55,0.65))';
+      ctx.drawImage(darImg, w / 2 - iconSize / 2, iconY, iconSize, iconSize);
+      ctx.restore();
+    } else {
+      // Fallback - микрофон если глиф не загрузился
+      ctx.save();
+      ctx.font = `${isVertical ? 140 : 110}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(212, 175, 55, 0.7)';
+      ctx.shadowBlur = 30;
+      ctx.fillText('🎤', w / 2, iconCenterY);
+      ctx.restore();
+    }
+
+    // === НАЗВАНИЕ ДАРА «Дар: ИМЯ» под глифом ===
+    if (darName) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(212, 175, 55, 0.85)';
+      ctx.font = `600 ${isVertical ? 30 : 24}px Manrope, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.letterSpacing = '2px';
+      ctx.fillText('Дар: ' + darName, w / 2, iconCenterY + iconSize / 2 + (isVertical ? 36 : 28));
+      ctx.restore();
+    }
 
     // === АРХЕТИП (главное) ===
-    const archetypeY = isVertical ? 420 : 290;
+    const archetypeY = isVertical ? 480 : 330;
     const arch = data.archetype || {};
     const archTitle = String(arch.title || 'СТЕНДАП-ЗЕРКАЛО').toUpperCase();
 
@@ -211,30 +305,31 @@ const HumorCard = (function() {
     ctx.restore();
     cursorY += isVertical ? 60 : 40;
 
-    // === ЛУЧШИЙ ПАНЧ ИЗ ТОП-10 (берём самый короткий и хитовый) ===
-    if (Array.isArray(data.top10) && data.top10.length) {
-      // Берём самый короткий не пустой пункт (минимум 20 символов)
+    // === ВЫБРАННАЯ ПОЛЬЗОВАТЕЛЕМ ФРАЗА ===
+    // Если фраза не передана — берём дефолт (первый подходящий из топ-10).
+    let punch = (chosenPhrase || '').trim();
+    if (!punch && Array.isArray(data.top10) && data.top10.length) {
       const candidates = data.top10
         .map(s => String(s || '').trim())
-        .filter(s => s.length >= 20 && s.length <= 140);
-      const punch = candidates.length
+        .filter(s => s.length >= 20 && s.length <= 200);
+      punch = candidates.length
         ? candidates.sort((a, b) => a.length - b.length)[Math.floor(candidates.length / 3)]
         : (data.top10[0] || '');
+    }
 
-      if (punch) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(243, 243, 243, 0.95)';
-        ctx.font = `600 ${isVertical ? 40 : 32}px Manrope, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const punchLines = wrapLines(ctx, '«' + punch + '»', w - 180);
-        const punchLineH = isVertical ? 56 : 44;
-        punchLines.forEach((line, i) => {
-          ctx.fillText(line, w / 2, cursorY + i * punchLineH);
-        });
-        cursorY += punchLines.length * punchLineH + (isVertical ? 80 : 50);
-        ctx.restore();
-      }
+    if (punch) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(243, 243, 243, 0.95)';
+      ctx.font = `600 ${isVertical ? 40 : 32}px Manrope, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const punchLines = wrapLines(ctx, '«' + punch + '»', w - 180);
+      const punchLineH = isVertical ? 56 : 44;
+      punchLines.forEach((line, i) => {
+        ctx.fillText(line, w / 2, cursorY + i * punchLineH);
+      });
+      cursorY += punchLines.length * punchLineH + (isVertical ? 80 : 50);
+      ctx.restore();
     }
 
     // === НИЖНЯЯ ЧАСТЬ: CTA + QR ===
@@ -333,6 +428,24 @@ const HumorCard = (function() {
     overlay.id = 'humor-card-overlay';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
 
+    // Собираем фразы для выбора (топ-10 + панчлайны + девиз архетипа)
+    const phrases = collectPhrases(data);
+    let chosenPhraseIdx = 0;
+    // Дефолт: ищем фразу средней длины из топ-10 (как было раньше)
+    if (phrases.length) {
+      const top10s = phrases
+        .map((p, i) => ({ ...p, i }))
+        .filter(p => p.label.indexOf('Топ-10 · ') === 0 && p.text.length >= 20 && p.text.length <= 200);
+      if (top10s.length) {
+        const sorted = top10s.slice().sort((a, b) => a.text.length - b.text.length);
+        chosenPhraseIdx = sorted[Math.floor(sorted.length / 3)].i;
+      }
+    }
+
+    const phraseOptions = phrases.map((p, i) =>
+      `<option value="${i}"${i === chosenPhraseIdx ? ' selected' : ''}>${_esc(p.label)} — ${_esc(p.text.slice(0, 70))}${p.text.length > 70 ? '…' : ''}</option>`
+    ).join('');
+
     overlay.innerHTML = `
       <div style="max-width:480px;width:100%;background:linear-gradient(180deg,#101010,#080808);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:22px 18px;max-height:92vh;overflow-y:auto">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -342,6 +455,10 @@ const HumorCard = (function() {
         <div style="display:flex;gap:8px;margin-bottom:14px;background:rgba(255,255,255,0.03);border-radius:10px;padding:4px">
           <button id="hc-tab-square" data-format="square" style="flex:1;padding:10px;border-radius:8px;border:none;background:rgba(212,175,55,0.18);color:#D4AF37;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;font-size:13px">▢ Квадрат</button>
           <button id="hc-tab-vertical" data-format="vertical" style="flex:1;padding:10px;border-radius:8px;border:none;background:transparent;color:var(--text-dim);font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;font-size:13px">📱 Сторис</button>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:600">✦ Фраза на карточке</div>
+          <select id="hc-phrase-select" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(212,175,55,0.25);background:#0d0d0d;color:var(--text);font-family:Manrope,sans-serif;font-size:13px;cursor:pointer">${phraseOptions}</select>
         </div>
         <div id="hc-preview" style="text-align:center;margin-bottom:14px;min-height:300px;display:flex;align-items:center;justify-content:center">
           <div style="color:var(--text-dim);font-size:13px">Готовлю карточку...</div>
@@ -359,15 +476,20 @@ const HumorCard = (function() {
     const downloadBtn = overlay.querySelector('#hc-download');
     const tabSquare = overlay.querySelector('#hc-tab-square');
     const tabVertical = overlay.querySelector('#hc-tab-vertical');
+    const phraseSelect = overlay.querySelector('#hc-phrase-select');
+
+    function currentPhrase() {
+      const idx = parseInt(phraseSelect.value, 10);
+      return (phrases[idx] && phrases[idx].text) ? phrases[idx].text : '';
+    }
 
     async function renderPreview(format) {
       previewEl.innerHTML = '<div style="color:var(--text-dim);font-size:13px">⏳ Готовлю...</div>';
       downloadBtn.disabled = true;
       downloadBtn.style.opacity = '0.5';
       try {
-        if (!canvases[format]) {
-          canvases[format] = await generateCard(format);
-        }
+        // При каждом перерендере генерируем заново (фраза могла поменяться).
+        canvases[format] = await generateCard(format, currentPhrase());
         previewEl.innerHTML = '';
         const c = canvases[format];
         const previewImg = document.createElement('img');
@@ -394,6 +516,11 @@ const HumorCard = (function() {
 
     tabSquare.addEventListener('click', () => switchTab('square'));
     tabVertical.addEventListener('click', () => switchTab('vertical'));
+
+    // При смене фразы — перерендериваем текущий формат.
+    phraseSelect.addEventListener('change', () => {
+      renderPreview(currentFormat);
+    });
 
     overlay.querySelector('#hc-close').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });

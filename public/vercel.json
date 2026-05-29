@@ -10,6 +10,7 @@
     { "source": "/api/oracle", "destination": "/api/content?type=oracle" },
     { "source": "/api/shadow-review", "destination": "/api/content?type=shadow-review" },
     { "source": "/api/section", "destination": "/api/content?type=section" },
+    { "source": "/api/message-humor", "destination": "/api/content?type=message-humor" },
     { "source": "/api/message", "destination": "/api/content?type=message" },
     { "source": "/api/sandbox-message", "destination": "/api/content?type=sandbox-message" },
     { "source": "/api/compatibility", "destination": "/api/content?type=compatibility" },

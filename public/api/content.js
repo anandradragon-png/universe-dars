@@ -789,6 +789,11 @@ module.exports = async (req, res) => {
   if (type === 'section' || url.includes('/section')) {
     return require('./_lib/content/section')(req, res);
   }
+  // ВАЖНО: 'message-humor' проверяем ДО 'message',
+  // иначе url.includes('/message') перехватит первым.
+  if (type === 'message-humor' || url.includes('/message-humor')) {
+    return require('./_lib/content/message-humor')(req, res);
+  }
   if (type === 'message' || url.includes('/message')) {
     return require('./_lib/content/message')(req, res);
   }
@@ -799,5 +804,5 @@ module.exports = async (req, res) => {
     return require('./_lib/content/child-book')(req, res);
   }
 
-  return res.status(400).json({ error: 'Unknown content type. Expected: oracle, shadow-review, section, message, compatibility, child-book' });
+  return res.status(400).json({ error: 'Unknown content type. Expected: oracle, shadow-review, section, message, message-humor, compatibility, child-book' });
 };

@@ -778,6 +778,26 @@
                текст на «📖 Читать о своём Даре» и onclick на openMessageOverlay.
                При перезагрузке tryRestoreMessageCache восстанавливает состояние
                «Читать» если кеш есть. -->
+          <!-- Селектор стиля послания (дизайн топ-маркетолога) -->
+          <!-- По умолчанию выбрано "Полное послание", альтернатива - "Стендап-зеркало" -->
+          <!-- Архитектура расширяемая: позже сюда добавим Оракул дня, Письмо из будущего и т.д. -->
+          <div id="message-style-selector" style="margin-bottom:14px;position:relative">
+            <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:600">✦ <span data-i18n="msg_style.label">Стиль послания</span></div>
+            <button id="msg-style-trigger" type="button" onclick="toggleMessageStyleDropdown()" style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(212,175,55,0.18);border-radius:14px;color:var(--text);font-family:Manrope,sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all 0.2s;text-align:left">
+              <span id="msg-style-current">📩 <span data-i18n="msg_style.full">Полное послание</span></span>
+              <svg id="msg-style-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div id="msg-style-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:6px;background:#0d0d0d;border:1px solid rgba(212,175,55,0.25);border-radius:14px;overflow:hidden;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,0.5)">
+              <button type="button" data-style="full" onclick="selectMessageStyle('full')" class="msg-style-option" style="width:100%;padding:14px 16px;background:rgba(212,175,55,0.06);border:none;border-left:3px solid #D4AF37;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;cursor:pointer;text-align:left;transition:background 0.15s">
+                <div style="font-weight:700;margin-bottom:2px">📩 <span data-i18n="msg_style.full">Полное послание</span></div>
+                <div style="font-size:12px;color:var(--text-dim)" data-i18n="msg_style.full_sub">Тёплое, глубокое</div>
+              </button>
+              <button type="button" data-style="humor" onclick="selectMessageStyle('humor')" class="msg-style-option" style="width:100%;padding:14px 16px;background:transparent;border:none;border-top:1px solid rgba(255,255,255,0.05);border-left:3px solid transparent;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;cursor:pointer;text-align:left;transition:background 0.15s">
+                <div style="font-weight:700;margin-bottom:2px">🎤 <span data-i18n="msg_style.humor">Стендап-зеркало</span></div>
+                <div style="font-size:12px;color:var(--text-dim)" data-i18n="msg_style.humor_sub">Ироничный портрет</div>
+              </button>
+            </div>
+          </div>
           <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()">📩 <span data-i18n="dar.get_full_message">Получить полное послание</span></button>
           <!-- Кнопка «Изменить дату» убрана по закону law_personal_data_immutable
                (личные данные read-only после сохранения). Скрытый элемент
@@ -1377,6 +1397,21 @@
       <!-- Шеринг-кнопки внизу, после аккордеона. Заполняются клонами
            из main-container в openMessageOverlay(). -->
       <div id="message-overlay-share" style="margin-top:20px"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- OVERLAY СТЕНДАП-ЗЕРКАЛО (новый, параллельно message-overlay) -->
+  <!-- ============================================================ -->
+  <div id="humor-overlay" style="display:none;position:fixed;inset:0;z-index:9650;background:#080808;overflow-y:auto;padding-top:64px">
+    <div style="border-bottom:1px solid rgba(212,175,55,0.25);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:#080808">
+      <button onclick="closeHumorOverlay()" style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);color:#D4AF37;padding:8px 14px 8px 10px;border-radius:12px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;display:flex;align-items:center;gap:6px"><span style="font-size:16px;line-height:1">←</span><span data-i18n="message.back">Вернуться</span></button>
+      <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:0.5px">🎤 <span data-i18n="humor.overlay_title">Стендап-зеркало</span></div>
+      <div style="width:32px"></div>
+    </div>
+    <div style="max-width:600px;margin:0 auto;padding:18px 16px 80px">
+      <div id="humor-overlay-content"><!-- сюда рендерится контент стендапа --></div>
+      <div id="humor-overlay-share" style="margin-top:24px"></div>
     </div>
   </div>
 
@@ -2852,20 +2887,326 @@
 
     // Привязываем requestMessage к window, чтобы onclick="requestMessage()"
     // работал из inline-кнопок в overlay.
+    // ============================================================
+    // СЕЛЕКТОР СТИЛЯ ПОСЛАНИЯ
+    // ============================================================
+    // По умолчанию 'full' (Полное послание - серьёзное, эталон).
+    // Альтернатива 'humor' (Стендап-зеркало - ироничный портрет).
+    // Архитектура расширяема: позже добавим Оракул, Письмо из будущего.
+    // ============================================================
+
+    function getCurrentMessageStyle() {
+      try { return localStorage.getItem('_msg_style') || 'full'; }
+      catch(e) { return 'full'; }
+    }
+
+    function toggleMessageStyleDropdown() {
+      const dd = document.getElementById('msg-style-dropdown');
+      const arrow = document.getElementById('msg-style-arrow');
+      if (!dd) return;
+      const isOpen = dd.style.display === 'block';
+      dd.style.display = isOpen ? 'none' : 'block';
+      if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    function closeMessageStyleDropdown() {
+      const dd = document.getElementById('msg-style-dropdown');
+      const arrow = document.getElementById('msg-style-arrow');
+      if (dd) dd.style.display = 'none';
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+    }
+
+    function selectMessageStyle(style) {
+      try { localStorage.setItem('_msg_style', style); } catch(e) {}
+      const cur = document.getElementById('msg-style-current');
+      if (cur) {
+        if (style === 'humor') {
+          cur.innerHTML = '🎤 <span data-i18n="msg_style.humor">Стендап-зеркало</span>';
+        } else {
+          cur.innerHTML = '📩 <span data-i18n="msg_style.full">Полное послание</span>';
+        }
+      }
+      document.querySelectorAll('.msg-style-option').forEach(opt => {
+        const isActive = opt.dataset.style === style;
+        opt.style.background = isActive ? 'rgba(212,175,55,0.06)' : 'transparent';
+        opt.style.borderLeftColor = isActive ? '#D4AF37' : 'transparent';
+      });
+      closeMessageStyleDropdown();
+      _refreshMessageButtonForStyle(style);
+    }
+
+    function _refreshMessageButtonForStyle(style) {
+      const btn = document.getElementById('btn-get-message');
+      if (!btn) return;
+      const cacheKey = style === 'humor' ? '_humorData' : '_messageData';
+      let hasCache = false;
+      try { hasCache = !!localStorage.getItem(cacheKey); } catch(e) {}
+      if (hasCache) {
+        if (style === 'humor') {
+          btn.innerHTML = '📖 <span data-i18n="dar.read_humor">Читать свой стендап</span>';
+          btn.onclick = openHumorOverlay;
+        } else {
+          btn.innerHTML = '📖 <span data-i18n="dar.read_message">Читать о своём Даре</span>';
+          btn.onclick = (typeof openMessageOverlay === 'function') ? openMessageOverlay : null;
+        }
+      } else {
+        if (style === 'humor') {
+          btn.innerHTML = '🎤 <span data-i18n="dar.get_humor">Получить стендап</span>';
+        } else {
+          btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">Получить полное послание</span>';
+        }
+        btn.onclick = requestMessage;
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const sel = document.getElementById('message-style-selector');
+      if (sel && !sel.contains(e.target)) closeMessageStyleDropdown();
+    });
+
+    window.toggleMessageStyleDropdown = toggleMessageStyleDropdown;
+    window.selectMessageStyle = selectMessageStyle;
+
+    // ============================================================
+    // ЮМОР-OVERLAY (Стендап-зеркало) — рендер + открытие/закрытие
+    // ============================================================
+
+    function _humorEscape(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function _humorBlock(html) {
+      return '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(212,175,55,0.12);border-radius:16px;padding:18px 18px 16px;margin-bottom:14px;line-height:1.65;color:var(--text);font-size:14.5px">' + html + '</div>';
+    }
+
+    function _humorPunchline(text) {
+      if (!text) return '';
+      return '<div style="margin-top:10px;padding:12px 14px;background:linear-gradient(135deg,rgba(212,175,55,0.10),rgba(212,175,55,0.04));border-left:3px solid #D4AF37;border-radius:10px;color:#E8C84A;font-style:italic;font-size:14px;line-height:1.5">' + _humorEscape(text) + '</div>';
+    }
+
+    function _humorParas(text) {
+      if (!text) return '';
+      // Раздел на абзацы по пустым строкам
+      const parts = String(text).split(/\n{2,}|(?<=[.?!])\s{2,}/).map(s => s.trim()).filter(Boolean);
+      if (parts.length === 0) return '<p style="margin:0">' + _humorEscape(text) + '</p>';
+      return parts.map(p => '<p style="margin:0 0 10px">' + _humorEscape(p) + '</p>').join('');
+    }
+
+    function renderHumorContent(data) {
+      if (!data) return '<div style="color:#f87171">Пустые данные стендапа</div>';
+      let html = '';
+
+      // Архетип
+      if (data.archetype) {
+        const title = (data.archetype.title || '').trim();
+        const motto = (data.archetype.motto || '').trim();
+        html += '<div style="text-align:center;padding:22px 18px;background:linear-gradient(135deg,rgba(212,175,55,0.10),rgba(212,175,55,0.03));border:1px solid rgba(212,175,55,0.30);border-radius:18px;margin-bottom:18px">';
+        html += '<div style="font-size:11px;color:var(--text-dim);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">Твой Архетип</div>';
+        html += '<div style="font-size:24px;color:#D4AF37;font-weight:800;letter-spacing:2px;line-height:1.2">' + _humorEscape(title) + '</div>';
+        if (motto) html += '<div style="font-size:13.5px;color:var(--text-dim);margin-top:10px;font-style:italic;line-height:1.5">«' + _humorEscape(motto) + '»</div>';
+        html += '</div>';
+      }
+
+      // 🎭 Знакомься — это ты
+      if (data.essence) {
+        let block = '<h4 style="margin:0 0 12px;color:#E8C84A;font-size:15px;font-weight:700">🎭 Знакомься — это ты</h4>';
+        block += _humorParas(data.essence);
+        block += _humorPunchline(data.essence_punchline);
+        html += _humorBlock(block);
+      }
+
+      // ⚡ Суперсила
+      if (data.superpowers) {
+        let block = '<h4 style="margin:0 0 12px;color:#E8C84A;font-size:15px;font-weight:700">⚡ Твоя суперсила</h4>';
+        block += _humorParas(data.superpowers);
+        block += _humorPunchline(data.superpowers_punchline);
+        html += _humorBlock(block);
+      }
+
+      // 📋 Топ-10
+      if (Array.isArray(data.top10) && data.top10.length) {
+        let block = '<h4 style="margin:0 0 12px;color:#E8C84A;font-size:15px;font-weight:700">📋 Топ-10. Стендап.</h4>';
+        block += '<ol style="margin:0;padding-left:22px;line-height:1.7">';
+        data.top10.forEach(item => {
+          block += '<li style="margin-bottom:10px">' + _humorEscape(item) + '</li>';
+        });
+        block += '</ol>';
+        block += _humorPunchline(data.top10_punchline);
+        html += _humorBlock(block);
+      }
+
+      // 💰 Деньги
+      if (data.wealth) {
+        let block = '<h4 style="margin:0 0 12px;color:#E8C84A;font-size:15px;font-weight:700">💰 Деньги</h4>';
+        if (data.wealth.intro) block += '<p style="margin:0 0 10px">' + _humorEscape(data.wealth.intro) + '</p>';
+        if (data.wealth.includes) block += '<p style="margin:0 0 8px"><b style="color:#90c290">За что платят:</b> ' + _humorEscape(data.wealth.includes) + '</p>';
+        if (data.wealth.blocks) block += '<p style="margin:0 0 8px"><b style="color:#e07798">Что мешает:</b> ' + _humorEscape(data.wealth.blocks) + '</p>';
+        block += _humorPunchline(data.wealth_punchline);
+        html += _humorBlock(block);
+      }
+
+      // ❤️ Отношения
+      if (data.relationships) {
+        let block = '<h4 style="margin:0 0 12px;color:#E8C84A;font-size:15px;font-weight:700">❤️ В отношениях</h4>';
+        if (data.relationships.main) block += _humorParas(data.relationships.main);
+        if (data.relationships.needs) block += '<p style="margin:0 0 8px"><b style="color:#E8C84A">Тебе важно:</b> ' + _humorEscape(data.relationships.needs) + '</p>';
+        if (data.relationships.triggers) block += '<p style="margin:0 0 8px"><b style="color:#e07798">Триггер:</b> ' + _humorEscape(data.relationships.triggers) + '</p>';
+        block += _humorPunchline(data.relationships_punchline);
+        html += _humorBlock(block);
+      }
+
+      // 🌅 Финал
+      if (data.mission) {
+        let block = '<h4 style="margin:0 0 12px;color:#E8C84A;font-size:15px;font-weight:700">🌅 Что Вселенная от тебя хочет</h4>';
+        block += _humorParas(data.mission);
+        block += _humorPunchline(data.mission_punchline);
+        html += _humorBlock(block);
+      }
+
+      // 📤 Шеринг-хук
+      if (data.share_hook) {
+        html += '<div style="margin-top:18px;padding:18px;border:2px dashed #D4AF37;border-radius:14px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(212,175,55,0.02));text-align:center">';
+        html += '<div style="font-size:13.5px;color:var(--text);line-height:1.6;font-style:italic">' + _humorEscape(data.share_hook) + '</div>';
+        html += '</div>';
+      }
+
+      return html;
+    }
+
+    function openHumorOverlay() {
+      let cached = null;
+      try { cached = JSON.parse(localStorage.getItem('_humorData') || 'null'); } catch(e) {}
+      const data = cached && cached.data;
+      const content = document.getElementById('humor-overlay-content');
+      if (content) content.innerHTML = renderHumorContent(data);
+
+      // Шеринг-кнопка
+      const shareWrap = document.getElementById('humor-overlay-share');
+      if (shareWrap) {
+        shareWrap.innerHTML = '<button onclick="shareHumorText()" style="width:100%;padding:14px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif">📤 <span data-i18n="humor.share_btn">Поделиться этим стендапом</span></button>';
+      }
+
+      const ov = document.getElementById('humor-overlay');
+      if (ov) {
+        ov.style.display = 'block';
+        ov.scrollTop = 0;
+      }
+    }
+
+    function closeHumorOverlay() {
+      const ov = document.getElementById('humor-overlay');
+      if (ov) ov.style.display = 'none';
+    }
+
+    function shareHumorText() {
+      let cached = null;
+      try { cached = JSON.parse(localStorage.getItem('_humorData') || 'null'); } catch(e) {}
+      const d = cached && cached.data;
+      if (!d) return;
+      const arch = d.archetype && d.archetype.title ? d.archetype.title : '';
+      const motto = d.archetype && d.archetype.motto ? d.archetype.motto : '';
+      const top3 = Array.isArray(d.top10) ? d.top10.slice(0, 3).map((t,i) => (i+1) + '. ' + t).join('\n') : '';
+      const text = '🎤 ' + arch + (motto ? '\n«' + motto + '»' : '') + (top3 ? '\n\n' + top3 : '') + '\n\nУзнай свой Дар: https://yupdar.com';
+      try {
+        if (navigator.share) {
+          navigator.share({ text: text }).catch(()=>{});
+          return;
+        }
+      } catch(e) {}
+      try {
+        navigator.clipboard.writeText(text).then(
+          () => { if (typeof showToast === 'function') showToast('Скопировано! Можешь вставить в чат другу.', 'success'); },
+          () => alert(text)
+        );
+      } catch(e) { alert(text); }
+    }
+
+    window.openHumorOverlay = openHumorOverlay;
+    window.closeHumorOverlay = closeHumorOverlay;
+    window.shareHumorText = shareHumorText;
+
+    // Восстановление состояния селектора и кнопки при загрузке страницы.
+    // Если в localStorage есть _msg_style — применяем его.
+    // Если в localStorage есть кеш — кнопка сразу становится "Читать".
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        const style = getCurrentMessageStyle();
+        // Обновляем визуал селектора
+        selectMessageStyle(style);
+      } catch(e) {}
+    });
+
+    // ============================================================
+
     async function requestMessage(){
       const saved=localStorage.getItem(STORAGE_KEY);
       if(!saved){ alert(((window.i18n && i18n.t && i18n.t('dar2.calc_first')) || 'Сначала рассчитайте дар')); return; }
       const{gift}=JSON.parse(saved);
-      // Главная кнопка #btn-get-message: меняем текст на «⏳ Получаю послание…»
-      // на время загрузки. НЕ скрываем (просьба Светланы 25.05).
+      const _style = getCurrentMessageStyle();
+
       const btn = document.getElementById('btn-get-message');
       if (btn && btn.dataset.busy === '1') return;
       if (btn) {
         btn.dataset.busy = '1';
         btn.style.pointerEvents = 'none';
         btn.style.opacity = '0.7';
-        btn.innerHTML = '⏳ <span>Получаю послание…</span>';
+        btn.innerHTML = _style === 'humor'
+          ? '⏳ <span>Готовлю стендап…</span>'
+          : '⏳ <span>Получаю послание…</span>';
       }
+
+      // Ветка ЮМОР — отдельный flow, не трогает старый код для 'full'.
+      if (_style === 'humor') {
+        try {
+          const _prof = JSON.parse(localStorage.getItem('_darProfile')||'{}');
+          const _hHeaders = { 'Content-Type': 'application/json' };
+          try {
+            if (window.Telegram?.WebApp?.initData) _hHeaders['x-telegram-init-data'] = window.Telegram.WebApp.initData;
+            const _lang = localStorage.getItem('_yupdar_lang');
+            if (_lang) _hHeaders['x-yupdar-lang'] = _lang;
+          } catch(e) {}
+          const resp = await fetch(`${API_URL}/api/message-humor`, {
+            method: 'POST',
+            headers: _hHeaders,
+            body: JSON.stringify({ giftCode: gift.code, gender: _prof.gender || '' })
+          });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const result = await resp.json();
+          if (result.error) throw new Error(result.error);
+          if (!result.data) throw new Error('Пустой ответ от AI');
+
+          try {
+            localStorage.setItem('_humorData', JSON.stringify({
+              data: result.data,
+              darCode: gift.code,
+              ts: Date.now()
+            }));
+          } catch(e) {}
+
+          if (btn) {
+            btn.dataset.busy = '';
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+            btn.innerHTML = '📖 <span data-i18n="dar.read_humor">Читать свой стендап</span>';
+            btn.onclick = openHumorOverlay;
+          }
+          setTimeout(() => { if (typeof openHumorOverlay === 'function') openHumorOverlay(); }, 200);
+          return;
+        } catch (e) {
+          console.error('humor generation error:', e.message);
+          if (btn) {
+            btn.dataset.busy = '';
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+            btn.innerHTML = '🎤 <span data-i18n="dar.get_humor">Получить стендап</span>';
+          }
+          if (typeof showToast === 'function') {
+            showToast('Стендап-комик отдыхает. Попробуй через минуту.', 'error');
+          }
+          return;
+        }
+      }
+      // Ниже — старый код для 'full' (НЕ трогаем по закону f46ef76).
       try{
         const _prof=JSON.parse(localStorage.getItem('_darProfile')||'{}');
         const _msgHeaders = { 'Content-Type': 'application/json' };

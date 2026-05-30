@@ -2320,10 +2320,27 @@
     // Для тарифа Хранитель (access_level === 'extended') встраивает
     // прототип АРКА через iframe. Для остальных — замок + апгрейд.
     // ──────────────────────────────────────────────────────────
-    function renderArkaTab() {
+    async function renderArkaTab() {
       const container = document.getElementById('arka-container');
       if (!container) return;
-      const accessLevel = (window.PROFILE && window.PROFILE.access_level) || 'basic';
+      let accessLevel = (window.PROFILE && window.PROFILE.access_level) || 'basic';
+
+      // Если в кеше профиля basic — может быть свежие данные ещё не успели прийти.
+      // Force-refresh с сервера, ОБХОДЯ кеш window.PROFILE.
+      if (accessLevel === 'basic' && typeof DarAPI !== 'undefined' && DarAPI.getProfile) {
+        try {
+          const fresh = await DarAPI.getProfile();
+          if (fresh && fresh.user && fresh.user.access_level) {
+            accessLevel = fresh.user.access_level;
+            // Обновим window.PROFILE чтобы другие места тоже знали
+            if (window.PROFILE) window.PROFILE.access_level = accessLevel;
+            try { localStorage.setItem('_access_level', accessLevel); } catch(e) {}
+          }
+        } catch (e) {
+          console.warn('renderArkaTab: force-refresh failed', e.message);
+        }
+      }
+
       // АРКА доступна Хранителю (extended) И Мастеру (premium).
       // Мастер выше Хранителя в иерархии → автоматически включает все его права.
       const isGuardian = accessLevel === 'extended' || accessLevel === 'premium';

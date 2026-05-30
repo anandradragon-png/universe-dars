@@ -136,15 +136,6 @@
       </div>
     </section>
 
-    <!-- Послание дня под Дар (динамическое из /api/arka-today) -->
-    <section class="message-of-day" id="messageOfDayCard" style="margin: 14px 0; padding: 18px; background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 14px; display:none">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <span style="font-size:22px">🐉</span>
-        <h2 id="messageOfDayTitle" style="margin:0;font-size:15px;color:#D4AF37;font-weight:700;letter-spacing:0.5px">Послание дня</h2>
-      </div>
-      <div id="messageOfDayText" style="font-size:14px;line-height:1.6;color:var(--text);margin-bottom:10px"></div>
-      <div id="messageOfDayAnchor" style="font-size:13px;color:#D4AF37;font-style:italic;line-height:1.5;padding:10px 12px;background:rgba(212,175,55,0.08);border-left:3px solid #D4AF37;border-radius:8px"></div>
-    </section>
 
     <!-- Важные дела дня -->
     <section class="tasks-card">
@@ -1477,7 +1468,8 @@ setTimeout(applyArkaI18n, 0);
 
   function applyArkaToday(data) {
     if (!data) return;
-    // Окна силы: подменяем подпись и подсказку
+    // Окна силы: подменяем подпись и подсказку под Дар юзера.
+    // Послание дня здесь НЕ делаем — оно живёт в Оракуле, не дублируем.
     const pwTime = document.getElementById('powerWindowTime');
     const pwHint = document.getElementById('powerWindowHint');
     if (data.power_windows) {
@@ -1486,25 +1478,6 @@ setTimeout(applyArkaI18n, 0);
       const evening = (data.power_windows.evening || '').split('.')[0];
       if (pwTime && morning) pwTime.textContent = morning;
       if (pwHint && evening) pwHint.textContent = evening;
-    }
-    // Послание дня: показываем карточку и заполняем
-    const card = document.getElementById('messageOfDayCard');
-    const titleEl = document.getElementById('messageOfDayTitle');
-    const textEl = document.getElementById('messageOfDayText');
-    const anchorEl = document.getElementById('messageOfDayAnchor');
-    if (data.main_message && card) {
-      if (titleEl && data.main_message.title) titleEl.textContent = data.main_message.title;
-      if (textEl && data.main_message.text) {
-        // Простая разбивка на абзацы по двойному переносу
-        const html = String(data.main_message.text).split(/\n{2,}/)
-          .map(p => '<p style="margin:0 0 8px">' + p.trim().replace(/[<>]/g, '') + '</p>')
-          .join('');
-        textEl.innerHTML = html;
-      }
-      if (anchorEl && data.main_message.anchor) {
-        anchorEl.textContent = '🎯 ' + data.main_message.anchor;
-      }
-      card.style.display = 'block';
     }
   }
 })();

@@ -944,7 +944,11 @@
       </div>
 
       <!-- Дневник Дара — freemium-крючок (открывает /preview/diary/). -->
-      <div class="me-diary-card" onclick="window.open('/preview/diary/', '_blank')">
+      <!-- ВАЖНО: открываем в ТЕКУЩЕЙ вкладке (не _blank), иначе Telegram
+           Mini App открывает встроенный браузер и пользователь "выпадает"
+           из приложения. Внутри страницы /preview/diary/ есть своя кнопка
+           «Назад», которая возвращает на этот же index.html. -->
+      <div class="me-diary-card" onclick="location.href='/preview/diary/'">
         <span class="me-diary-icon">📓</span>
         <div class="me-diary-body">
           <div class="me-diary-title" data-i18n="me.diary_title">Дневник Дара</div>

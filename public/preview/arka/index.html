@@ -1292,19 +1292,69 @@ document.addEventListener('DOMContentLoaded', applyArkaI18n);
 // Сразу пробуем — на случай если DOM уже готов
 setTimeout(applyArkaI18n, 0);
 
-// Подтягиваем профиль пользователя из родительского preview (общая БД localStorage)
+// Подтягиваем профиль пользователя.
+// АРКА запускается как iframe внутри YupDar (родитель — public/index.html).
+// Профиль может лежать в РАЗНЫХ ключах:
+//   1) Боевой YupDar: _darProfile + dar_data_<USER_ID> (главный источник)
+//   2) Старый preview-режим: _yupdar_preview_profile (legacy, не используем)
+// Сначала пробуем боевой формат, потом legacy.
 (function pullUserProfile() {
   const PROFILE_KEY = '_yupdar_preview_profile';
-  function read(storage) {
+
+  function readLegacy(storage) {
     try {
       const raw = storage.getItem(PROFILE_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch (e) { return null; }
   }
-  let profile = read(localStorage);
-  // Если открыто из родителя (iframe) — читаем оттуда (на случай разных origin внутри одного домена это не понадобится, но добавим try)
+
+  // Читает профиль из боевых ключей YupDar (_darProfile + dar_data_<USER_ID>)
+  // и приводит к формату {chia: {firstName, lastName, code, name}}.
+  function readFromYupDar(storage) {
+    try {
+      const profRaw = storage.getItem('_darProfile');
+      if (!profRaw) return null;
+      const prof = JSON.parse(profRaw);
+
+      // Ищем рассчитанный Дар. Ключ имеет формат dar_data_<USER_ID>,
+      // перебираем все ключи storage чтобы не зависеть от USER_ID.
+      let darCode = '';
+      let darName = '';
+      for (let i = 0; i < storage.length; i++) {
+        const key = storage.key(i);
+        if (!key || !key.startsWith('dar_data_')) continue;
+        try {
+          const d = JSON.parse(storage.getItem(key) || '{}');
+          if (d.gift && d.gift.code) {
+            darCode = d.gift.code;
+            darName = d.gift.name || '';
+            break;
+          }
+        } catch (e) {}
+      }
+
+      if (!darCode) return null;  // нет рассчитанного Дара — профиль не готов
+
+      return {
+        chia: {
+          firstName: prof.real_first_name || '',
+          lastName: prof.real_last_name || '',
+          code: darCode,
+          name: darName
+        }
+      };
+    } catch (e) { return null; }
+  }
+
+  // Пробуем по порядку: родительский YupDar → свой localStorage YupDar → legacy preview.
+  let profile = null;
+  try { profile = readFromYupDar(window.parent.localStorage); } catch (e) {}
+  if (!profile) profile = readFromYupDar(localStorage);
   if (!profile) {
-    try { profile = read(window.parent.localStorage); } catch (e) {}
+    profile = readLegacy(localStorage);
+    if (!profile) {
+      try { profile = readLegacy(window.parent.localStorage); } catch (e) {}
+    }
   }
   // Применяем имя и Дар
   const nameEl = document.getElementById('userName');

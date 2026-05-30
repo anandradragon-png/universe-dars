@@ -873,6 +873,9 @@ module.exports = async (req, res) => {
   if (type === 'child-book' || url.includes('/child-book')) {
     return require('./_lib/content/child-book')(req, res);
   }
+  if (type === 'arka-today' || url.includes('/arka-today')) {
+    return require('./_lib/content/arka-today')(req, res);
+  }
 
   return res.status(400).json({ error: 'Unknown content type. Expected: oracle, shadow-review, section, message, message-humor, compatibility, child-book' });
 };

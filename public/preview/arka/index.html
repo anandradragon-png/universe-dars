@@ -126,14 +126,24 @@
   <!-- ═════════════════════ ТАБ: СЕГОДНЯ ════════════════════ -->
   <div class="tab-content active" data-tab-content="today">
 
-    <!-- Окно силы -->
-    <section class="power-window">
+    <!-- Окно силы (динамически адаптируется под Дар юзера через /api/arka-today) -->
+    <section class="power-window" id="powerWindowCard">
       <div class="pw-icon">✦</div>
       <div class="pw-text">
         <div class="pw-title" data-i18n="today.pw_title">Окна силы сегодня</div>
-        <div class="pw-time" data-i18n="today.pw_time">Сумерки · 5:30–7:30 и 17:30–19:30</div>
-        <div class="pw-hint" data-i18n="today.pw_hint">Время между временами — твоя стихия</div>
+        <div class="pw-time" id="powerWindowTime" data-i18n="today.pw_time">Сумерки · 5:30–7:30 и 17:30–19:30</div>
+        <div class="pw-hint" id="powerWindowHint" data-i18n="today.pw_hint">Время между временами — твоя стихия</div>
       </div>
+    </section>
+
+    <!-- Послание дня под Дар (динамическое из /api/arka-today) -->
+    <section class="message-of-day" id="messageOfDayCard" style="margin: 14px 0; padding: 18px; background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 14px; display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:22px">🐉</span>
+        <h2 id="messageOfDayTitle" style="margin:0;font-size:15px;color:#D4AF37;font-weight:700;letter-spacing:0.5px">Послание дня</h2>
+      </div>
+      <div id="messageOfDayText" style="font-size:14px;line-height:1.6;color:var(--text);margin-bottom:10px"></div>
+      <div id="messageOfDayAnchor" style="font-size:13px;color:#D4AF37;font-style:italic;line-height:1.5;padding:10px 12px;background:rgba(212,175,55,0.08);border-left:3px solid #D4AF37;border-radius:8px"></div>
     </section>
 
     <!-- Важные дела дня -->
@@ -1381,15 +1391,23 @@ setTimeout(applyArkaI18n, 0);
     if (darNameEl) darNameEl.textContent = profile.chia.name || profile.chia.code;
     if (darCodeEl) darCodeEl.textContent = profile.chia.code;
     if (darCodeEl2) darCodeEl2.textContent = profile.chia.code + ' · ' + (profile.chia.name || '');
-    // Показываем баннер только если Дар НЕ З-МАН (1-6-7)
-    if (profile.chia.code !== '1-6-7' && banner) banner.style.display = 'block';
+    // Баннер «демо-режим» больше НЕ показываем для пользователей с рассчитанным Даром.
+    // Вместо этого тянем персональный контент через API.
+    if (banner) banner.style.display = 'none';
+    // Скрываем хардкод-секции, рассчитанные специально под З-МАН,
+    // для пользователей с ДРУГИМ Даром (см. функцию ниже).
+    hideZmanOnlySections(profile.chia.code);
+    // Загружаем персональный «Сегодня» через AI.
+    loadArkaToday(profile.chia.code, (profile.chia.gender || ''));
   } else if (profile && profile.oda && profile.oda.code) {
     // Минимум: рассчитан Дар по дате (ОДА)
     if (nameEl) nameEl.textContent = bt('banner.friend');
     if (darNameEl) darNameEl.textContent = profile.oda.name || profile.oda.code;
     if (darCodeEl) darCodeEl.textContent = profile.oda.code;
     if (darCodeEl2) darCodeEl2.textContent = profile.oda.code + ' · ' + (profile.oda.name || '');
-    if (profile.oda.code !== '1-6-7' && banner) banner.style.display = 'block';
+    if (banner) banner.style.display = 'none';
+    hideZmanOnlySections(profile.oda.code);
+    loadArkaToday(profile.oda.code, (profile.oda.gender || ''));
   } else {
     // Профиля нет — показываем баннер-приглашение рассчитать Дар
     if (nameEl) nameEl.textContent = bt('banner.guest');
@@ -1398,6 +1416,95 @@ setTimeout(applyArkaI18n, 0);
     if (banner) {
       banner.innerHTML = bt('banner.demo_full');
       banner.style.display = 'block';
+    }
+  }
+
+  // Скрываем секции которые сделаны специально под З-МАН (Рассветный ритуал,
+  // Дневной якорь, эфирные масла дня). Для пользователей с другим Даром
+  // эти секции вводят в заблуждение. Когда сделаем универсальные ритуалы
+  // через AI — можно показывать снова.
+  function hideZmanOnlySections(darCode) {
+    if (darCode === '1-6-7') return;  // З-МАН — оставляем как есть
+    // Селекторы конкретных секций которые скрываем
+    const selectors = [
+      'section.ritual[data-ritual="dawn"]',
+      'section.ritual[data-ritual="day"]',
+      'section.ritual[data-ritual="evening"]',
+      '.task-legend',  // легенда с упоминанием З-МАН
+    ];
+    selectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => { el.style.display = 'none'; });
+    });
+  }
+
+  // Загружает персональный «Сегодня» через API /api/arka-today.
+  // Подменяет тексты в «Окнах силы» и показывает блок «Послание дня».
+  async function loadArkaToday(darCode, gender) {
+    if (!darCode) return;
+    // Проверяем кеш (живёт сутки)
+    const CACHE_KEY = '_arka_today_' + darCode;
+    const CACHE_TTL = 86400000;
+    try {
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+      if (cached && cached.ts && (Date.now() - cached.ts < CACHE_TTL)) {
+        applyArkaToday(cached.data);
+        return;
+      }
+    } catch (e) {}
+
+    // Загружаем с сервера
+    try {
+      const apiBase = (function() {
+        try { return window.parent.API_URL || ''; } catch (e) { return ''; }
+      })();
+      const resp = await fetch(apiBase + '/api/arka-today', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ giftCode: darCode, gender: gender || '' })
+      });
+      if (!resp.ok) return;
+      const json = await resp.json();
+      if (json.error || !json.data) return;
+      // Кешируем
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: json.data, ts: Date.now() }));
+      } catch (e) {}
+      applyArkaToday(json.data);
+    } catch (e) {
+      console.warn('[arka-today] load failed', e.message);
+    }
+  }
+
+  function applyArkaToday(data) {
+    if (!data) return;
+    // Окна силы: подменяем подпись и подсказку
+    const pwTime = document.getElementById('powerWindowTime');
+    const pwHint = document.getElementById('powerWindowHint');
+    if (data.power_windows) {
+      // Краткое описание трёх окон в строку (утро / день / вечер)
+      const morning = (data.power_windows.morning || '').split('.')[0];
+      const evening = (data.power_windows.evening || '').split('.')[0];
+      if (pwTime && morning) pwTime.textContent = morning;
+      if (pwHint && evening) pwHint.textContent = evening;
+    }
+    // Послание дня: показываем карточку и заполняем
+    const card = document.getElementById('messageOfDayCard');
+    const titleEl = document.getElementById('messageOfDayTitle');
+    const textEl = document.getElementById('messageOfDayText');
+    const anchorEl = document.getElementById('messageOfDayAnchor');
+    if (data.main_message && card) {
+      if (titleEl && data.main_message.title) titleEl.textContent = data.main_message.title;
+      if (textEl && data.main_message.text) {
+        // Простая разбивка на абзацы по двойному переносу
+        const html = String(data.main_message.text).split(/\n{2,}/)
+          .map(p => '<p style="margin:0 0 8px">' + p.trim().replace(/[<>]/g, '') + '</p>')
+          .join('');
+        textEl.innerHTML = html;
+      }
+      if (anchorEl && data.main_message.anchor) {
+        anchorEl.textContent = '🎯 ' + data.main_message.anchor;
+      }
+      card.style.display = 'block';
     }
   }
 })();

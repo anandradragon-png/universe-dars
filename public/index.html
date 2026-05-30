@@ -687,20 +687,8 @@
       </div>
     </div>
 
-    <!-- 6.5. ЯЗЫК ПРИЛОЖЕНИЯ -->
-    <div class="profile-section lk-collapse" id="profile-language">
-      <div class="profile-section-title lk-toggle" onclick="this.parentElement.classList.toggle('lk-open')">&#127760; <span data-i18n="profile.language">Язык</span> <span class="lk-arrow">&#9660;</span></div>
-      <div class="lk-body">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-          <button onclick="setLangLK('ru')" id="lang-btn-ru" class="lang-btn" style="padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;min-width:90px">🇷🇺 Русский</button>
-          <button onclick="setLangLK('en')" id="lang-btn-en" class="lang-btn" style="padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;min-width:90px">🇬🇧 English</button>
-          <button onclick="setLangLK('es')" id="lang-btn-es" class="lang-btn" style="padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;min-width:90px">🇪🇸 Español</button>
-        </div>
-        <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:8px;line-height:1.4" data-i18n="profile.language_hint">
-          Текст AI-послания будет генерироваться на выбранном языке.
-        </div>
-      </div>
-    </div>
+    <!-- 6.5. ЯЗЫК ПРИЛОЖЕНИЯ — убран из ЛК по закону law_language_picker_always_visible.md
+         (переключатель языка только в шапке, не дублируем в ЛК) -->
 
     <!-- 7. О ПРИЛОЖЕНИИ -->
     <div class="profile-section lk-collapse">
@@ -2316,7 +2304,9 @@
     // Вызывается в showResult после расчёта Дара и при обновлении профиля.
     function refreshArkaPremiumLocks() {
       const accessLevel = (window.PROFILE && window.PROFILE.access_level) || 'basic';
-      const isGuardian = accessLevel === 'extended';
+      // АРКА-секции доступны Хранителю (extended) и Мастеру (premium).
+      // Мастер выше Хранителя → включает все его права.
+      const isGuardian = accessLevel === 'extended' || accessLevel === 'premium';
       document.querySelectorAll('.me-acc-item[data-arka-premium="1"]').forEach(item => {
         item.classList.toggle('me-acc-locked', !isGuardian);
         const lock = item.querySelector('.me-acc-lock');
@@ -2334,7 +2324,9 @@
       const container = document.getElementById('arka-container');
       if (!container) return;
       const accessLevel = (window.PROFILE && window.PROFILE.access_level) || 'basic';
-      const isGuardian = accessLevel === 'extended';
+      // АРКА доступна Хранителю (extended) И Мастеру (premium).
+      // Мастер выше Хранителя в иерархии → автоматически включает все его права.
+      const isGuardian = accessLevel === 'extended' || accessLevel === 'premium';
 
       if (isGuardian) {
         // Хранитель — встраиваем фуллскрин-iframe АРКА.
@@ -3207,7 +3199,25 @@
       // Ветка ЮМОР — отдельный flow, не трогает старый код для 'full'.
       if (_style === 'humor') {
         try {
-          const _prof = JSON.parse(localStorage.getItem('_darProfile')||'{}');
+          let _prof = JSON.parse(localStorage.getItem('_darProfile')||'{}');
+          // FIX: если в localStorage пол пустой — тянем с сервера.
+          // Иначе AI получает "РОД НЕ УКАЗАН" и пишет наугад (часто в женском).
+          let _gender = _prof.gender || '';
+          if (!_gender && typeof DarAPI !== 'undefined' && DarAPI.getProfile) {
+            try {
+              const _srv = await DarAPI.getProfile();
+              if (_srv && _srv.user && _srv.user.gender) {
+                _gender = _srv.user.gender;
+                // Подсаживаем в localStorage чтобы в следующий раз не дёргать сервер
+                try {
+                  _prof.gender = _gender;
+                  localStorage.setItem('_darProfile', JSON.stringify(_prof));
+                } catch(e) {}
+              }
+            } catch(e) {
+              console.warn('humor: getProfile fallback failed', e.message);
+            }
+          }
           const _hHeaders = { 'Content-Type': 'application/json' };
           try {
             if (window.Telegram?.WebApp?.initData) _hHeaders['x-telegram-init-data'] = window.Telegram.WebApp.initData;
@@ -3217,7 +3227,7 @@
           const resp = await fetch(`${API_URL}/api/message-humor`, {
             method: 'POST',
             headers: _hHeaders,
-            body: JSON.stringify({ giftCode: gift.code, gender: _prof.gender || '' })
+            body: JSON.stringify({ giftCode: gift.code, gender: _gender })
           });
           if (!resp.ok) throw new Error('HTTP ' + resp.status);
           const result = await resp.json();

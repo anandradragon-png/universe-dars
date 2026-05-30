@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>АРКА — день в Даре З-МАН</title>
+<title>АРКА — личный путь в ритме твоего Дара</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -159,7 +159,13 @@
       <button class="task-add-btn" id="taskAddBtn" data-i18n="today.task_add">＋ Добавить задачу</button>
     </section>
 
-    <!-- Рассветный ритуал -->
+    <!-- Динамические ритуалы под Дар юзера (через /api/arka-today).
+         Показываются для ВСЕХ пользователей. Для З-МАН — дополняют старые
+         (с маслами doTERRA), для остальных — заменяют. -->
+    <div id="dynamicRituals"></div>
+
+    <!-- Рассветный ритуал (хардкод под З-МАН — оставлен для совместимости,
+         скрывается для не-З-МАН в pullUserProfile через hideZmanOnlySections) -->
     <section class="ritual" data-ritual="dawn">
       <div class="ritual-header">
         <span class="ritual-icon">🌅</span>
@@ -1479,6 +1485,54 @@ setTimeout(applyArkaI18n, 0);
       if (pwTime && morning) pwTime.textContent = morning;
       if (pwHint && evening) pwHint.textContent = evening;
     }
+    // Ритуалы: рендерим в контейнер #dynamicRituals.
+    // Для всех Даров — выдаёт 3 универсальных ритуала (утро/день/вечер).
+    if (data.rituals) {
+      renderRituals(data.rituals);
+    }
+  }
+
+  // Безопасный рендер текста (защита от XSS) — внутри iframe нам важно
+  // не пускать пользовательский ввод как HTML.
+  function _esc(s) {
+    return String(s || '').replace(/[&<>"']/g, function(c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+    });
+  }
+
+  function renderRituals(rituals) {
+    const container = document.getElementById('dynamicRituals');
+    if (!container || !rituals) return;
+    const icons = { dawn: '🌅', midday: '🌞', evening: '🌙' };
+    const order = ['dawn', 'midday', 'evening'];
+    let html = '';
+    for (const key of order) {
+      const r = rituals[key];
+      if (!r || !r.title) continue;
+      const stepsArr = Array.isArray(r.steps) ? r.steps : [];
+      let stepsHtml = '';
+      stepsArr.forEach(function(step, i) {
+        const stepId = 'dr_' + key + '_' + i;
+        stepsHtml +=
+          '<li class="check-item">' +
+            '<label>' +
+              '<input type="checkbox" id="' + stepId + '">' +
+              '<span class="check-mark"></span>' +
+              '<span class="check-text">' + _esc(step) + '</span>' +
+            '</label>' +
+          '</li>';
+      });
+      html +=
+        '<section class="ritual" data-dynamic-ritual="' + key + '">' +
+          '<div class="ritual-header">' +
+            '<span class="ritual-icon">' + icons[key] + '</span>' +
+            '<h2 class="ritual-title">' + _esc(r.title) + '</h2>' +
+            (r.time ? '<span class="ritual-time">' + _esc(r.time) + '</span>' : '') +
+          '</div>' +
+          '<ul class="checklist">' + stepsHtml + '</ul>' +
+        '</section>';
+    }
+    container.innerHTML = html;
   }
 })();
 </script>

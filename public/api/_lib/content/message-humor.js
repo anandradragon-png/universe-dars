@@ -396,8 +396,9 @@ function stripDuplicateHeaders(data) {
     const lower = trimmed.toLowerCase();
     for (const header of headerVariants) {
       if (lower.startsWith(header)) {
-        // Режем заголовок + знаки препинания после него + пробел
-        const cut = trimmed.slice(header.length).replace(/^[.,:;—\-\s«»""''`]+/, '');
+        // Режем заголовок + ВСЕ знаки препинания после него + пробел.
+        // Включая ?, ! — AI часто пишет «Что мир хочет от тебя? Мир хочет...»
+        const cut = trimmed.slice(header.length).replace(/^[.,:;—\-\s«»""''`?!]+/, '');
         if (cut.length > 20) return cut;
       }
     }

@@ -810,7 +810,12 @@
           <div style="font-size:15px;color:#D4AF37;margin-bottom:4px">📄 <span data-i18n="dar.share_a4_title">Подробная карточка дара (A4)</span></div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5" data-i18n="dar.share_a4_sub">Распечатать или подарить близкому на день рождения</div>
         </div>
-        <div id="share-section" style="display:none"></div>
+        <!-- Шеринг-блок «Поделись с другом» — НЕ виден на главной (29.05.2026
+             убрали по просьбе тестера). Остаётся как data-host (display:none)
+             потому что Referral.renderShareButton() заполняет его при расчёте
+             Дара, и потом overlay «Послание о Даре» клонирует его внутрь себя.
+             Юзер видит шеринг только под расшифровкой Дара, не на главной. -->
+        <div id="share-section" style="display:none !important"></div>
         <div id="full-description-block" style="display:none">
           <div id="full-description-content"></div>
           <button class="btn btn-ghost" onclick="hideDescription()" style="margin-top:12px" data-i18n="dar.hide_description"> Скрыть описание</button>

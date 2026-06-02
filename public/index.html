@@ -5026,6 +5026,25 @@
       }
     }
 
+    // Карточка-приглашение для подруги/родственника (Алина 02.06.2026).
+    // Открывает виральную версию ShareCard:
+    //   - Заголовок «ТВОЙ ДАР» с именем подруги
+    //   - Глиф её Дара
+    //   - CTA + QR-код с РЕФ-ссылкой Алины
+    // Когда подруга сканирует QR → попадает в YupDar по приглашению Алины.
+    function shareRelativeCard(darCode, friendName) {
+      try {
+        if (!darCode || typeof ShareCard === 'undefined') return;
+        const refLink = (typeof Referral !== 'undefined' && Referral.getMyLink)
+          ? Referral.getMyLink()
+          : ('https://t.me/' + (window.BOT_USERNAME || 'YupDarBot'));
+        ShareCard.openInviteCard(darCode, friendName, refLink);
+      } catch (e) {
+        console.error('shareRelativeCard error:', e);
+      }
+    }
+    window.shareRelativeCard = shareRelativeCard;
+
     function openOracleFromResult() {
       if (typeof DailyDar === 'undefined') return;
       DailyDar.open();
@@ -5797,11 +5816,15 @@
                 ${darArch ? `<div style="font-size:10px;color:#D4AF37;font-style:italic">${darArch}</div>` : ''}
               </div>
             </div>
-            <div style="display:flex;gap:6px">
-              <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128302; Оракул</button>
-              <button onclick='checkCompatibilityWith(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(244,81,30,0.4);background:rgba(244,81,30,0.08);color:#f4511e;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128149; Совмест.</button>
-              ${(['son','daughter','grandson','granddaughter'].includes(r.relationship)) ? `<button onclick="openChildBook(${r.id})" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128214; Книга</button>` : ''}
-              <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128218; Дар</button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128302; Оракул</button>
+              <button onclick='checkCompatibilityWith(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(244,81,30,0.4);background:rgba(244,81,30,0.08);color:#f4511e;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128149; Совмест.</button>
+              ${(['son','daughter','grandson','granddaughter'].includes(r.relationship)) ? `<button onclick="openChildBook(${r.id})" style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128214; Книга</button>` : ''}
+              <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128218; Дар</button>
+              <!-- Карточка близкого для соцсетей. Запрос Алины 02.06.2026 «хотела
+                   подруге отправить карточку с её посланием». Открывает ShareCard
+                   с Даром РОДСТВЕННИКА, а не Алины (раньше Алина шарила свой shareMyDar). -->
+              <button onclick="shareRelativeCard('${r.dar_code}', ${JSON.stringify(r.name).replace(/"/g,'&quot;')})" style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(180,120,255,0.08);color:#b478ff;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128229; Карточка</button>
             </div>
           </div>`;
         }

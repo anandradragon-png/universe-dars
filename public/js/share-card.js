@@ -39,6 +39,8 @@ const ShareCard = (function() {
   }
 
   function getUserName() {
+    // Override приоритетнее (для карточки родственника, 02.06.2026)
+    if (window._shareCardOverrideName) return window._shareCardOverrideName;
     try {
       const prof = JSON.parse(localStorage.getItem('_darProfile') || '{}');
       const first = (prof.real_first_name || '').trim();
@@ -51,6 +53,8 @@ const ShareCard = (function() {
   }
 
   function getBirthDate() {
+    // Override приоритетнее (для карточки родственника, 02.06.2026)
+    if (window._shareCardOverrideDate) return window._shareCardOverrideDate;
     try {
       const saved = localStorage.getItem(window.STORAGE_KEY || 'dar_data');
       if (saved) {
@@ -127,7 +131,24 @@ const ShareCard = (function() {
 
   // === Главная функция генерации ===
 
+  // Загрузить QR-код через внешний сервис (как в humor-card.js).
+  // Используем тот же quickchart-совместимый эндпоинт.
+  function loadQR(text, size) {
+    size = size || 220;
+    const url = 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&format=png&margin=0&color=D4AF37&bgcolor=080808&data=' + encodeURIComponent(text);
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('QR load failed'));
+      img.src = url;
+    });
+  }
+
   async function generateCard(darCode, format) {
+    // Виральный режим (для родственника/подруги) — включается через override.
+    // Меняем заголовок «МОЙ ДАР» → «ТВОЙ ДАР», добавляем CTA + QR-код снизу.
+    const isInvite = !!window._shareCardInviteMode;
     const isVertical = format === 'vertical';
     const w = 1080;
     const h = isVertical ? 1920 : 1080;
@@ -216,13 +237,14 @@ const ShareCard = (function() {
     const darName = (window.DARS && window.DARS[darCode]) || darCode;
     const darArchetype = (window.DAR_ARCHETYPES && window.DAR_ARCHETYPES[darCode]) || '';
 
-    // Заголовок "МОЙ ДАР"
+    // Заголовок — «ТВОЙ ДАР» для виральной карточки подруги, иначе «МОЙ ДАР»
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.font = "32px 'Manrope', sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText('М О Й   Д А Р', w / 2, isVertical ? 200 : 140);
+    const headerText = isInvite ? 'Т В О Й   Д А Р' : 'М О Й   Д А Р';
+    ctx.fillText(headerText, w / 2, isVertical ? 200 : 140);
     ctx.restore();
 
     // Название дара (большое золотое)
@@ -277,7 +299,7 @@ const ShareCard = (function() {
     ctx.stroke();
     ctx.restore();
 
-    // === Имя пользователя ===
+    // === Имя пользователя (в виральном режиме скрываем дату чтобы освободить место под QR) ===
     const userName = getUserName();
     if (userName) {
       ctx.save();
@@ -289,36 +311,104 @@ const ShareCard = (function() {
       ctx.restore();
     }
 
-    // === Дата рождения ===
-    const birthDate = getBirthDate();
-    if (birthDate) {
-      ctx.save();
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-      ctx.font = `${isVertical ? 32 : 28}px 'Manrope', sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      const dateY = divY + (isVertical ? 130 : 100) + (userName ? 0 : -40);
-      ctx.fillText(birthDate, w / 2, dateY);
-      ctx.restore();
+    // === Дата рождения (только в обычном режиме) ===
+    if (!isInvite) {
+      const birthDate = getBirthDate();
+      if (birthDate) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.font = `${isVertical ? 32 : 28}px 'Manrope', sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const dateY = divY + (isVertical ? 130 : 100) + (userName ? 0 : -40);
+        ctx.fillText(birthDate, w / 2, dateY);
+        ctx.restore();
+      }
     }
 
-    // === Хештеги ===
-    ctx.save();
-    ctx.fillStyle = 'rgba(212, 175, 55, 0.85)';
-    ctx.font = `${isVertical ? 30 : 26}px 'Manrope', sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText('#ВселеннаяДаров   #YupDar', w / 2, h - (isVertical ? 110 : 80));
-    ctx.restore();
+    // === Виральный режим (для подруги): добавляем CTA + QR-код ===
+    if (isInvite && window._shareCardInviteLink) {
+      const refLink = window._shareCardInviteLink;
+      const qrSize = isVertical ? 240 : 200;
+      const qrX = (w - qrSize) / 2;
+      const qrY = h - qrSize - (isVertical ? 200 : 140);
 
-    // === Подпись YupDar внизу ===
-    ctx.save();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.font = `${isVertical ? 26 : 22}px 'Manrope', sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText('Y u p D a r   ·   t.me/YupDarBot', w / 2, h - (isVertical ? 50 : 35));
-    ctx.restore();
+      // CTA-фраза НАД QR
+      ctx.save();
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = `bold ${isVertical ? 42 : 36}px 'Manrope', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.shadowColor = 'rgba(212, 175, 55, 0.5)';
+      ctx.shadowBlur = 16;
+      ctx.fillText('Узнай свой Дар', w / 2, qrY - 20);
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.font = `${isVertical ? 28 : 24}px 'Manrope', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('по дате рождения · 30 секунд', w / 2, qrY - 60);
+      ctx.restore();
+
+      // QR-код с реф-ссылкой Алины
+      try {
+        const qrImg = await loadQR(refLink, qrSize);
+        // Белая рамка-подложка под QR для контраста
+        ctx.save();
+        ctx.fillStyle = '#080808';
+        ctx.fillRect(qrX - 12, qrY - 12, qrSize + 24, qrSize + 24);
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(qrX - 12, qrY - 12, qrSize + 24, qrSize + 24);
+        ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+        ctx.restore();
+      } catch (e) {
+        // QR не загрузился — рисуем подпись со ссылкой
+        ctx.save();
+        ctx.fillStyle = '#D4AF37';
+        ctx.font = `${isVertical ? 30 : 26}px 'Manrope', sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('@YupDarBot', w / 2, qrY + qrSize / 2);
+        ctx.restore();
+      }
+
+      // Подпись под QR
+      ctx.save();
+      ctx.fillStyle = 'rgba(212, 175, 55, 0.85)';
+      ctx.font = `${isVertical ? 26 : 22}px 'Manrope', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Наведи камеру', w / 2, qrY + qrSize + 18);
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.font = `${isVertical ? 24 : 20}px 'Manrope', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('yupdar.com · #ВселеннаяДаров', w / 2, h - (isVertical ? 50 : 35));
+      ctx.restore();
+    } else {
+      // Обычный режим (своя карточка): хештеги + подпись
+      ctx.save();
+      ctx.fillStyle = 'rgba(212, 175, 55, 0.85)';
+      ctx.font = `${isVertical ? 30 : 26}px 'Manrope', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('#ВселеннаяДаров   #YupDar', w / 2, h - (isVertical ? 110 : 80));
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.font = `${isVertical ? 26 : 22}px 'Manrope', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('Y u p D a r   ·   t.me/YupDarBot', w / 2, h - (isVertical ? 50 : 35));
+      ctx.restore();
+    }
 
     return canvas;
   }
@@ -415,8 +505,17 @@ const ShareCard = (function() {
 
   // === МОДАЛКА ===
 
-  async function openModal(darCode) {
+  // openModal(darCode, opts)
+  //   opts.displayName — имя для карточки (по умолчанию getUserName())
+  //   opts.birthDate   — дата для карточки (по умолчанию своя)
+  // Расширение 02.06.2026: Алина хотела отправить подруге карточку с её
+  // Даром. Без этого ShareCard рисовал имя/дату Алины поверх Дара подруги.
+  async function openModal(darCode, opts) {
     if (!darCode) return;
+    opts = opts || {};
+    // Временно подменяем имя/дату через override, если передано
+    window._shareCardOverrideName = opts.displayName || null;
+    window._shareCardOverrideDate = opts.birthDate || null;
     let modal = document.getElementById('share-card-modal');
     if (!modal) {
       modal = document.createElement('div');
@@ -526,6 +625,30 @@ const ShareCard = (function() {
   function closeModal() {
     const modal = document.getElementById('share-card-modal');
     if (modal) modal.style.display = 'none';
+    // Очищаем override-переменные виральной карточки
+    window._shareCardOverrideName = null;
+    window._shareCardOverrideDate = null;
+    window._shareCardInviteMode = false;
+    window._shareCardInviteLink = null;
+  }
+
+  // Открыть ВИРАЛЬНУЮ карточку для подруги/родственника.
+  // Запрос Алины 02.06.2026: «хотела подруге отправить карточку с её посланием
+  // которая привлекает внимание и вызывает желание зайти в приложение».
+  // Отличия от обычной карточки:
+  //   - Заголовок «ТВОЙ ДАР» (не «МОЙ ДАР»)
+  //   - Имя ПОДРУГИ (через override)
+  //   - Дата подруги НЕ показывается (личное)
+  //   - Внизу CTA «Узнай свой Дар» + QR-код с реф-ссылкой Алины
+  // Когда подруга сканирует QR → попадает в @YupDarBot по реф-ссылке Алины →
+  // Алина получает кристаллы за приглашённого друга.
+  async function openInviteCard(darCode, friendName, referralLink) {
+    if (!darCode) return;
+    window._shareCardOverrideName = friendName || null;
+    window._shareCardOverrideDate = null;
+    window._shareCardInviteMode = true;
+    window._shareCardInviteLink = referralLink || ('https://t.me/' + (window.BOT_USERNAME || 'YupDarBot'));
+    return openModal(darCode);
   }
 
   // === ПОДРОБНАЯ КАРТОЧКА ДАРА (A4, только для платных) ===
@@ -740,5 +863,5 @@ const ShareCard = (function() {
     });
   }
 
-  return { openModal, closeModal, download, switchTab, openInfoCard };
+  return { openModal, openInviteCard, closeModal, download, switchTab, openInfoCard };
 })();

@@ -270,7 +270,8 @@
   "dar2": {
     "unlocked_in_treasury": "DAR {name} is unlocked in your Treasury! +10 crystals",
     "calc_first": "Calculate your DAR first",
-    "confirm_change_date": "Change date of birth?\n\nIf you made a mistake, you can enter the correct date. Your unlocked DARs and crystals will be kept."
+    "confirm_change_date": "Change date of birth?\n\nIf you made a mistake, you can enter the correct date. Your unlocked DARs and crystals will be kept.",
+    "change_date_blocked": "Date of birth cannot be changed — it's your permanent DAR. If there's an error, please contact support."
   },
   "reset": {
     "error": "Reset error:",

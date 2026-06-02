@@ -271,7 +271,8 @@
   "dar2": {
     "unlocked_in_treasury": "¡El DAR {name} está desbloqueado en tu Tesoro! +10 cristales",
     "calc_first": "Primero calcula tu DAR",
-    "confirm_change_date": "¿Cambiar la fecha de nacimiento?\n\nSi cometiste un error, puedes ingresar la fecha correcta. Tus DARs desbloqueados y cristales se conservarán."
+    "confirm_change_date": "¿Cambiar la fecha de nacimiento?\n\nSi cometiste un error, puedes ingresar la fecha correcta. Tus DARs desbloqueados y cristales se conservarán.",
+    "change_date_blocked": "La fecha de nacimiento no se puede cambiar — es tu DAR permanente. Si hay un error, escribe a soporte."
   },
   "reset": {
     "error": "Error al restablecer:",

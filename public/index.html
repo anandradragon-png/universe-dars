@@ -588,7 +588,10 @@
       <div class="profile-section-title lk-toggle" onclick="this.parentElement.classList.toggle('lk-open')">&#10024; <span data-i18n="profile.section_dar">Мой дар</span> <span class="lk-arrow">&#9660;</span></div>
       <div class="lk-body">
         <div id="profile-dar-content" style="text-align:center;color:var(--text-muted)" data-i18n="profile.calculate_first">Рассчитай свой дар</div>
-        <button onclick="changeBirthDateFromProfile()" style="width:100%;margin-top:8px;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.35);background:rgba(212,175,55,0.06);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#128197; <span data-i18n="dar.change_date">Изменить дату рождения</span></button>
+        <!-- Кнопка «Изменить дату рождения» УДАЛЕНА 02.06.2026 (Алина показала
+             что меняя дату она получала другой Дар). Закон law_personal_data_immutable:
+             личные данные read-only. При ошибке — через поддержку или новый
+             родственник за платную монету (фича отложена). -->
         <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px">
           <div id="profile-level-info"></div>
           <button onclick="openPricing()" style="width:100%;margin-top:8px;padding:11px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;letter-spacing:0.5px" data-i18n="profile.tariffs_btn">&#128737; Тарифы</button>
@@ -4056,26 +4059,15 @@
     }
     window.openDarInBook = openDarInBook;
 
-    // Изменить дату рождения из Личного Кабинета — подтверждает намерение,
-    // закрывает ЛК, показывает стартовый экран ввода даты (сохранённый дар при этом
-    // не удаляется — просто откроется форма заново).
+    // 🔒 ЗАБЛОКИРОВАНО 02.06.2026 (Алина показала что меняя дату получала
+    // другой Дар + Light/тень меняется). Закон law_personal_data_immutable:
+    // дата рождения read-only после первого сохранения. Функция оставлена как
+    // no-op на случай если её дёргает старый кэшированный JS у юзеров.
     function changeBirthDateFromProfile() {
-      if (!confirm(((window.i18n && i18n.t && i18n.t('dar2.confirm_change_date')) || 'Изменить дату рождения?\n\nПри ошибке ввода ты можешь указать правильную дату. Прежние открытые дары и кристаллы сохранятся.'))) return;
-      try { closeProfile(); } catch(e) {}
-      setTimeout(() => {
-        try {
-          if (typeof resetDate === 'function') resetDate();
-          else {
-            // Fallback: вручную показываем экран ввода
-            const sr = document.getElementById('screen-result');
-            const si = document.getElementById('screen-input');
-            if (sr) sr.style.display = 'none';
-            if (si) si.style.display = 'block';
-          }
-          // Переключиться на вкладку сокровищницы где стартовый экран (калькулятор)
-          if (typeof switchNav === 'function') switchNav('treasury');
-        } catch (e) { console.error('changeBirthDateFromProfile:', e); }
-      }, 300);
+      try {
+        alert(((window.i18n && i18n.t && i18n.t('dar2.change_date_blocked'))
+          || 'Дату рождения изменить нельзя — это твой постоянный Дар. Если есть ошибка, напиши в поддержку.'));
+      } catch(e) {}
     }
     window.changeBirthDateFromProfile = changeBirthDateFromProfile;
 

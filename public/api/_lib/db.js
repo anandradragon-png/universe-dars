@@ -150,9 +150,10 @@ const FROZEN_REWARDS = new Set([
   'hero_shadow_battle',
   'hero_step_complete',
   'hero_journey_complete',
-  'weekly_top1', 'weekly_top2', 'weekly_top3',
-  'monthly_top1', 'monthly_top2', 'monthly_top3',
-  'title_weekly_mage', 'title_monthly_mage',
+  // ⚠️ title_week / title_month / weekly_top* / monthly_top* — НЕ блокируем.
+  // Это победы в рейтинге игры Интуиции, а игру Светлана разрешила оставить.
+  // Алина 02.06.2026 получила +100 title_week + +300 title_month за реальные
+  // победы в игре — это штатные награды.
   'streak_bonus_7', 'streak_bonus_30', 'streak_bonus_100',
   'donation', 'donation_tbank', 'donation_darai', 'donation_yookassa',
   // НЕ блокируем: intuition_win, intuition_round, purchase_book_*,

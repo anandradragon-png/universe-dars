@@ -115,8 +115,60 @@ async function unlockSection(userId, darCode, sectionIndex) {
 
 // ---- Кристаллы ----
 
+// 🔒 КРИСТАЛЬНАЯ ЗАМОРОЗКА (с 02.06.2026 по решению Светланы).
+// Причина: «Отключи начисление кристаллов везде кроме игры в интуицию.
+// До того времени пока мы не придумаем нормальное утилити для них.»
+//
+// Разрешены ТОЛЬКО:
+//   - 'intuition_win'  — победа в игре «Найди 3 карты»
+//   - 'intuition_round' — служебная запись (amount=0)
+//   - все траты (отрицательный amount) — это списания, их не блокируем
+//   - покупки (purchase_book_*, promo_premium и т.п.) — бонусы за реальный платёж,
+//     это часть монетизации, оставляем
+//
+// Заблокированы:
+//   - 'daily_login'  — за вход (главная жалоба)
+//   - 'signup'       — бонус новичку 50💎
+//   - 'profile_completed' — за заполнение профиля
+//   - 'referral_*'   — реферальные бонусы (кроме покупок)
+//   - 'quest_*', 'hero_*' — за квесты/Путь Героя
+//   - 'diary_entry'  — за запись в дневник
+//   - все остальные положительные награды
+//
+// Когда включать обратно: после появления внятных утилити для трат
+// (АРКА премиум-разлоки / магазин эмодзи / реальные товары).
+const FROZEN_REWARDS = new Set([
+  'daily_login',
+  'signup',
+  'profile_completed',
+  'diary_entry',
+  'quest_complete',
+  'referral_duplicate',
+  'was_referred',
+  'referral_buyer_bonus',
+  'hero_awakening',
+  'hero_shadow_battle',
+  'hero_step_complete',
+  'hero_journey_complete',
+  'weekly_top1', 'weekly_top2', 'weekly_top3',
+  'monthly_top1', 'monthly_top2', 'monthly_top3',
+  'title_weekly_mage', 'title_monthly_mage',
+  'streak_bonus_7', 'streak_bonus_30', 'streak_bonus_100',
+  'donation', 'donation_tbank', 'donation_darai', 'donation_yookassa',
+  // НЕ блокируем: intuition_win, intuition_round, purchase_book_*,
+  // promo_premium, promo_extended, и все траты (amount < 0)
+]);
+
 async function addCrystals(userId, amount, reason, metadata = null) {
   const db = getSupabase();
+
+  // 🔒 ЗАМОРОЗКА: если это положительная награда и она в списке заблокированных —
+  // молча возвращаем текущий баланс БЕЗ начисления и БЕЗ записи в лог.
+  // Списания (amount < 0) пропускаем всегда — это траты, не награды.
+  if (amount > 0 && FROZEN_REWARDS.has(reason)) {
+    const { data: user } = await db.from('users').select('crystals').eq('id', userId).single();
+    return user?.crystals || 0;
+  }
 
   // Записать в лог.
   // Metadata сохраняем как объект — поле JSONB в Supabase, не делаем JSON.stringify

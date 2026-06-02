@@ -87,10 +87,15 @@ async function handleProfile(req, res) {
         return res.json({ success: true, crystals_earned: crystalsEarned });
       }
 
-      // Ежедневный вход — прогрессивный 7-дневный цикл (11.05.2026)
-      // День 1-7: 1, 2, 4, 6, 10, 12, 15 кристаллов.
-      // После 7 дня — снова с 1.
-      // Пропуск дня — сброс до дня 1.
+      // Ежедневный вход — НАЧИСЛЕНИЕ КРИСТАЛЛОВ ОТКЛЮЧЕНО (02.06.2026).
+      // Причина (от Светланы): «Отключи начисление кристаллов за вход.
+      // До того времени пока мы не придумаем нормальное утилити для них.»
+      // Кристаллы накапливались без понятного использования — это создавало
+      // у юзеров ложные ожидания. Включим обратно когда появится нормальный
+      // спендинг (АРКА / магазин / разблокировки и т.п.).
+      //
+      // Streak (счётчик дней подряд) ОБНОВЛЯЕМ — он используется в UI
+      // («Дней подряд» в Достижениях) и не требует начисления кристаллов.
       if (action === 'daily_login') {
         const today = new Date().toISOString().slice(0, 10);
         const lastDate = user.last_streak_date;
@@ -107,17 +112,13 @@ async function handleProfile(req, res) {
         const continuesStreak = lastDate === yesterday;
         const newStreak = continuesStreak ? (user.streak_count || 0) + 1 : 1;
 
-        // Позиция в 7-дневном цикле
         const prevCycleDay = user.daily_streak_day || 0;
         let cycleDay;
         if (!continuesStreak) {
-          cycleDay = 1; // сброс при пропуске или первый вход
+          cycleDay = 1;
         } else {
           cycleDay = prevCycleDay >= 7 ? 1 : prevCycleDay + 1;
         }
-
-        const DAILY_REWARDS = [1, 2, 4, 6, 10, 12, 15]; // дни 1..7
-        const crystals = DAILY_REWARDS[cycleDay - 1] || 1;
 
         await updateUser(user.id, {
           streak_count: newStreak,
@@ -125,16 +126,13 @@ async function handleProfile(req, res) {
           daily_streak_day: cycleDay
         });
 
-        const newBalance = await addCrystals(user.id, crystals, 'daily_login', {
-          streak: newStreak,
-          cycle_day: cycleDay
-        });
-
+        // НЕТ addCrystals(). Возвращаем crystals_earned: 0 — клиент НЕ покажет тост.
         return res.json({
           streak: newStreak,
           cycle_day: cycleDay,
-          crystals_earned: crystals,
-          total_crystals: newBalance
+          crystals_earned: 0,
+          total_crystals: user.crystals || 0,
+          disabled: 'daily_login_rewards_paused_2026_06_02'
         });
       }
 

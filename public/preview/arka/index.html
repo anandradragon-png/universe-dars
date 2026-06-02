@@ -1258,16 +1258,20 @@ const ARKA_I18N = {
 };
 
 function getArkaLang() {
-  // Ключ из preview/js/i18n.js
-  const KEY = '_yupdar_preview_lang';
-  try {
-    const fromParent = window.parent.localStorage.getItem(KEY);
-    if (fromParent && ARKA_I18N[fromParent]) return fromParent;
-  } catch (e) {}
-  try {
-    const fromLocal = localStorage.getItem(KEY);
-    if (fromLocal && ARKA_I18N[fromLocal]) return fromLocal;
-  } catch (e) {}
+  // Главный YupDar пишет в '_yupdar_lang', preview-версия — в '_yupdar_preview_lang'.
+  // Читаем ОБА (баг от тестера Helga 02.06.2026: «выбран RU в YupDar, в АРКА всё на EN» —
+  // АРКА читала только preview-ключ, его не было → падала на navigator.language = en).
+  const KEYS = ['_yupdar_lang', '_yupdar_preview_lang'];
+  for (const KEY of KEYS) {
+    try {
+      const fromParent = window.parent.localStorage.getItem(KEY);
+      if (fromParent && ARKA_I18N[fromParent]) return fromParent;
+    } catch (e) {}
+    try {
+      const fromLocal = localStorage.getItem(KEY);
+      if (fromLocal && ARKA_I18N[fromLocal]) return fromLocal;
+    } catch (e) {}
+  }
   // Резерв — браузерный язык
   const browser = (navigator.language || 'ru').slice(0, 2).toLowerCase();
   if (ARKA_I18N[browser]) return browser;
@@ -1286,9 +1290,9 @@ function applyArkaI18n() {
     if (dict[key] !== undefined) el.placeholder = dict[key];
   });
 }
-// Слушаем смену языка из родительского окна
+// Слушаем смену языка из родительского окна (оба ключа — главный и preview)
 window.addEventListener('storage', (e) => {
-  if (e.key === '_yupdar_preview_lang') applyArkaI18n();
+  if (e.key === '_yupdar_lang' || e.key === '_yupdar_preview_lang') applyArkaI18n();
 });
 // Также слушаем кастомное событие, которое отправляет родитель при смене языка
 try {

@@ -1546,6 +1546,32 @@
       // системный диалог "Вы уверены, что хотите выйти?".
       try { if (tg.enableClosingConfirmation) tg.enableClosingConfirmation(); } catch(e) {}
 
+      // BackButton API (02.06.2026 — Helga в чате тестеров):
+      // На вкладках Семья / Сокровищница / АРКА показываем стрелку «назад»
+      // в шапке Telegram. Клик возвращает на главную «Я». Без этого юзер
+      // на АРКА тапает системную стрелку Telegram → закрывается весь Mini App.
+      try {
+        if (tg.BackButton && typeof tg.BackButton.onClick === 'function') {
+          tg.BackButton.onClick(function() {
+            // Если открыт какой-то overlay — закрываем его (не возвращаем на главную).
+            const overlays = ['message-overlay', 'humor-overlay', 'daily-dar-screen'];
+            for (const id of overlays) {
+              const el = document.getElementById(id);
+              if (el && el.style.display !== 'none' && el.style.display !== '') {
+                // Используем существующие close-функции если они есть
+                if (id === 'message-overlay' && typeof closeMessageOverlay === 'function') { closeMessageOverlay(); return; }
+                if (id === 'humor-overlay' && typeof closeHumorOverlay === 'function') { closeHumorOverlay(); return; }
+                if (id === 'daily-dar-screen' && typeof DailyDar !== 'undefined' && DailyDar.close) { DailyDar.close(); return; }
+                el.style.display = 'none';
+                return;
+              }
+            }
+            // Иначе — на главную «Я»
+            if (typeof switchNav === 'function') switchNav('me');
+          });
+        }
+      } catch (e) {}
+
       // Фикс нижней панели при сворачивании/разворачивании бота в Telegram.
       // Мерцание у тестеров было от агрессивного display:none/display:''.
       // Теперь:
@@ -2169,6 +2195,20 @@
         // Этап 3 слияния: рендерим АРКА (iframe для Хранителя, замок для остальных).
         if (typeof renderArkaTab === 'function') renderArkaTab();
       }
+
+      // BackButton (02.06.2026): показываем стрелку «назад» в шапке Telegram
+      // на всех вкладках кроме «Я» (главная). Клик возвращает на «Я».
+      try {
+        const tgWA = window.Telegram?.WebApp;
+        if (tgWA && tgWA.BackButton) {
+          const isHome = (name === 'me' || name === 'calc');
+          if (isHome) {
+            tgWA.BackButton.hide && tgWA.BackButton.hide();
+          } else {
+            tgWA.BackButton.show && tgWA.BackButton.show();
+          }
+        }
+      } catch (e) {}
     }
 
     // ──────────────────────────────────────────────────────────

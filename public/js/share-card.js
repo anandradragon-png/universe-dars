@@ -285,7 +285,11 @@ const ShareCard = (function() {
     }
 
     // === Разделительная линия ===
-    const divY = isVertical ? h - 460 : h - 280;
+    // В виральном режиме поднимаем выше — снизу нужно место под CTA + QR
+    // (тестер Алина 03.06.2026: «в карточках всё наложилось»).
+    const divY = isInvite
+      ? (isVertical ? h - 720 : h - 540)
+      : (isVertical ? h - 460 : h - 280);
     ctx.save();
     const lineGrad = ctx.createLinearGradient(w * 0.2, divY, w * 0.8, divY);
     lineGrad.addColorStop(0, 'rgba(212, 175, 55, 0)');
@@ -329,27 +333,30 @@ const ShareCard = (function() {
     // === Виральный режим (для подруги): добавляем CTA + QR-код ===
     if (isInvite && window._shareCardInviteLink) {
       const refLink = window._shareCardInviteLink;
-      const qrSize = isVertical ? 240 : 200;
+      const qrSize = isVertical ? 220 : 180;
       const qrX = (w - qrSize) / 2;
-      const qrY = h - qrSize - (isVertical ? 200 : 140);
+      // QR — снизу с отступом от края + ниже имени.
+      // На квадрате 1080: divY=540, имя на ~590, QR от 750 до 930, подпись 950.
+      // На вертикали 1920: divY=1200, имя на ~1250, QR от 1410 до 1630.
+      const qrY = h - qrSize - (isVertical ? 280 : 150);
 
       // CTA-фраза НАД QR
       ctx.save();
       ctx.fillStyle = '#D4AF37';
-      ctx.font = `bold ${isVertical ? 42 : 36}px 'Manrope', sans-serif`;
+      ctx.font = `bold ${isVertical ? 40 : 34}px 'Manrope', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
       ctx.shadowColor = 'rgba(212, 175, 55, 0.5)';
       ctx.shadowBlur = 16;
-      ctx.fillText('Узнай свой Дар', w / 2, qrY - 20);
+      ctx.fillText('Узнай свой Дар', w / 2, qrY - 50);
       ctx.restore();
 
       ctx.save();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-      ctx.font = `${isVertical ? 28 : 24}px 'Manrope', sans-serif`;
+      ctx.font = `${isVertical ? 26 : 22}px 'Manrope', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
-      ctx.fillText('по дате рождения · 30 секунд', w / 2, qrY - 60);
+      ctx.fillText('по дате рождения · 30 секунд', w / 2, qrY - 18);
       ctx.restore();
 
       // QR-код с реф-ссылкой Алины
@@ -513,7 +520,13 @@ const ShareCard = (function() {
   async function openModal(darCode, opts) {
     if (!darCode) return;
     opts = opts || {};
-    // Временно подменяем имя/дату через override, если передано
+    // КРИТИЧНО: ВСЕГДА сбрасываем виральный режим в обычном openModal.
+    // Тестер Алина 03.06.2026: «в дарах у всех моё имя» — флаги виральной
+    // карточки оставались выставленными после openInviteCard, потому что юзер
+    // мог закрыть модалку не через closeModal (свайп, ESC, тап вне модалки).
+    window._shareCardInviteMode = false;
+    window._shareCardInviteLink = null;
+    // Имя/дата — override применяется только если передан явно в opts
     window._shareCardOverrideName = opts.displayName || null;
     window._shareCardOverrideDate = opts.birthDate || null;
     let modal = document.getElementById('share-card-modal');

@@ -248,6 +248,58 @@ function saveEntryToServer(entry) {
   } catch (e) {}
 }
 
+// One-time миграция: при первом запуске после деплоя серверной синхронизации
+// (03.06.2026) пушим все локальные записи на сервер. Это спасает историю
+// тех юзеров (Диса с 10 днями), у кого записи лежали ТОЛЬКО в localStorage.
+// Запускается один раз — флаг в localStorage.
+async function migrateLocalToServer() {
+  const MIGRATION_FLAG = 'arka_diary_migrated_to_server_v1';
+  if (localStorage.getItem(MIGRATION_FLAG)) return; // уже мигрировали
+  const local = loadEntries();
+  if (!local.length) {
+    try { localStorage.setItem(MIGRATION_FLAG, '1'); } catch (e) {}
+    return;
+  }
+  // Получаем что уже на сервере чтобы не дублировать
+  let serverDates = new Set();
+  try {
+    const resp = await fetch('/api/diary', {
+      method: 'POST',
+      headers: getTelegramHeaders(),
+      body: JSON.stringify({ action: 'get_arka' })
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      (data.entries || []).forEach(e => { if (e.date) serverDates.add(e.date); });
+    }
+  } catch (e) { /* offline — попробуем в следующий раз */ return; }
+
+  // Пушим только те локальные записи которых нет на сервере
+  let pushed = 0;
+  for (const entry of local) {
+    if (!entry.date || serverDates.has(entry.date)) continue;
+    if (!(entry.energy && entry.mood && entry.direction)) continue;
+    try {
+      await fetch('/api/diary', {
+        method: 'POST',
+        headers: getTelegramHeaders(),
+        body: JSON.stringify({
+          action: 'save_arka',
+          date_key: entry.date,
+          energy: entry.energy,
+          mood: entry.mood,
+          direction: entry.direction,
+          comment: entry.note || '',
+          dar_code: entry.darOfDay || null
+        })
+      });
+      pushed++;
+    } catch (e) { /* пропускаем — попробуем при следующем запуске */ }
+  }
+  try { localStorage.setItem(MIGRATION_FLAG, '1'); } catch (e) {}
+  if (pushed > 0) console.log('[diary] Migrated', pushed, 'local entries to server.');
+}
+
 // Загрузить записи с сервера и смержить с локальным кэшем.
 // Сервер — источник правды (свежие записи всегда побеждают).
 async function syncEntriesFromServer() {
@@ -567,8 +619,9 @@ document.addEventListener('DOMContentLoaded', () => {
     showMirror(todayLocal, dar);
   }
 
-  // Серверная синхронизация в фоне
-  syncEntriesFromServer().then(merged => {
+  // One-time миграция локальных записей на сервер (для существующих тестеров),
+  // потом стандартная синхронизация.
+  migrateLocalToServer().then(() => syncEntriesFromServer()).then(merged => {
     if (!merged) return;
     renderStreak();
     // Если на сервере есть запись за сегодня, а в UI её ещё нет — показываем

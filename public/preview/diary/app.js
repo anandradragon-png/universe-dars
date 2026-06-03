@@ -195,12 +195,92 @@ function applyI18n() {
 }
 
 // === Состояние Дневника ===
+// localStorage = кэш для офлайна и мгновенного отображения.
+// Сервер (Supabase через /api/diary) = источник правды, синхронизация между
+// устройствами. Тестер Диса 03.06.2026: «зашёл в бот через десктопное приложение
+// ТГ — нет прогресса, всё обнулилось. На мобильном — 10 дней». Раньше дневник
+// жил ТОЛЬКО в localStorage конкретного устройства, поэтому десктоп и мобайл
+// видели разные данные.
 function loadEntries() {
   try { return JSON.parse(localStorage.getItem(DIARY_KEY) || '[]'); }
   catch (e) { return []; }
 }
 function saveEntries(arr) {
   try { localStorage.setItem(DIARY_KEY, JSON.stringify(arr)); } catch (e) {}
+}
+
+// Получить initData Telegram WebApp для авторизации на API.
+// Дневник открыт как iframe внутри YupDar или как самостоятельная страница.
+function getTelegramHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    // Сначала смотрим в своём окне
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+      headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
+      return headers;
+    }
+    // Если открыт как iframe — пробуем родителя
+    if (window.parent && window.parent.Telegram && window.parent.Telegram.WebApp && window.parent.Telegram.WebApp.initData) {
+      headers['x-telegram-init-data'] = window.parent.Telegram.WebApp.initData;
+    }
+  } catch (e) {}
+  return headers;
+}
+
+// Сохранить запись на сервер (best-effort). localStorage уже обновлён вызывающей
+// функцией — это резервная копия. Если сервер недоступен, попробуем синкнуть
+// позже при следующей загрузке (TODO: pending-queue, для MVP достаточно).
+function saveEntryToServer(entry) {
+  try {
+    fetch('/api/diary', {
+      method: 'POST',
+      headers: getTelegramHeaders(),
+      body: JSON.stringify({
+        action: 'save_arka',
+        date_key: entry.date,
+        energy: entry.energy,
+        mood: entry.mood,
+        direction: entry.direction,
+        comment: entry.note || '',
+        dar_code: entry.darOfDay || null
+      })
+    }).catch(() => {}); // тихо игнорируем ошибки — данные в localStorage есть
+  } catch (e) {}
+}
+
+// Загрузить записи с сервера и смержить с локальным кэшем.
+// Сервер — источник правды (свежие записи всегда побеждают).
+async function syncEntriesFromServer() {
+  try {
+    const resp = await fetch('/api/diary', {
+      method: 'POST',
+      headers: getTelegramHeaders(),
+      body: JSON.stringify({ action: 'get_arka' })
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    if (!data || !Array.isArray(data.entries)) return null;
+    // Маппим серверный формат → клиентский (поле note → comment → note)
+    const serverEntries = data.entries.map(e => ({
+      date: e.date,
+      energy: e.energy,
+      mood: e.mood,
+      direction: e.direction,
+      note: e.comment || '',
+      darOfDay: e.dar_code || null,
+      ts: e.ts || null
+    }));
+    // Мержим с локальным кэшем: сервер выигрывает по дате
+    const local = loadEntries();
+    const byDate = {};
+    local.forEach(e => { if (e.date) byDate[e.date] = e; });
+    serverEntries.forEach(e => { if (e.date) byDate[e.date] = e; });
+    const merged = Object.values(byDate).sort((a, b) => (a.date < b.date ? 1 : -1));
+    saveEntries(merged);
+    return merged;
+  } catch (e) {
+    return null;
+  }
 }
 function getStreak() {
   const entries = loadEntries();
@@ -358,6 +438,8 @@ function saveDiaryEntry() {
   const idx = all.findIndex(e => e.date === TODAY);
   if (idx >= 0) all[idx] = entry; else all.push(entry);
   saveEntries(all);
+  // Сразу пушим на сервер для синхронизации между устройствами
+  saveEntryToServer(entry);
   showMirror(entry, dar);
   renderStreak();
 }
@@ -466,19 +548,39 @@ window.openTesterFeedback = openTesterFeedback;
 document.addEventListener('DOMContentLoaded', () => {
   applyI18n();
   renderDarOfDay();
-  renderStreak();
   renderScales();
   const saveBtn = document.getElementById('diarySaveBtn');
   if (saveBtn) saveBtn.addEventListener('click', saveDiaryEntry);
-  // Если уже есть запись сегодня — показываем зеркало
-  const today = loadEntries().find(e => e.date === TODAY);
-  if (today && today.energy && today.mood && today.direction) {
-    energyValue = today.energy;
-    moodValue = today.mood;
-    directionValue = today.direction;
+
+  // Сначала рисуем по локальному кэшу (мгновенно), потом обновляем с сервера.
+  // Это решает проблему синхронизации между мобильным и десктопным Telegram —
+  // запись с любого устройства подтянется на остальные при следующем открытии.
+  renderStreak();
+  const todayLocal = loadEntries().find(e => e.date === TODAY);
+  if (todayLocal && todayLocal.energy && todayLocal.mood && todayLocal.direction) {
+    energyValue = todayLocal.energy;
+    moodValue = todayLocal.mood;
+    directionValue = todayLocal.direction;
     const note = document.getElementById('diaryNote');
-    if (note) note.value = today.note || '';
+    if (note) note.value = todayLocal.note || '';
     const dar = calcDarOfDay();
-    showMirror(today, dar);
+    showMirror(todayLocal, dar);
   }
+
+  // Серверная синхронизация в фоне
+  syncEntriesFromServer().then(merged => {
+    if (!merged) return;
+    renderStreak();
+    // Если на сервере есть запись за сегодня, а в UI её ещё нет — показываем
+    const today = merged.find(e => e.date === TODAY);
+    if (today && today.energy && today.mood && today.direction && !energyValue) {
+      energyValue = today.energy;
+      moodValue = today.mood;
+      directionValue = today.direction;
+      const note = document.getElementById('diaryNote');
+      if (note) note.value = today.note || '';
+      const dar = calcDarOfDay();
+      showMirror(today, dar);
+    }
+  });
 });

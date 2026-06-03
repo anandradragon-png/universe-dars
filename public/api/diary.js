@@ -194,6 +194,69 @@ ${moodSummary}
       }
     }
 
+    // ========== АРКА-ДНЕВНИК: СОХРАНИТЬ ЗАПИСЬ ==========
+    // Запись АРКА = { energy: 1-5, mood: 1-5, direction: act/rest/people/alone, note? }
+    // Храним в той же таблице dar_diary хитро: mood='arka', а сам объект в note как JSON.
+    // Это позволяет не менять схему БД (Светлана не любит ручные миграции).
+    // Тестер Диса 03.06.2026: данные АРКА-Дневника не синхронизировались между
+    // мобильным и десктопным Telegram (хранились только в localStorage устройства).
+    if (action === 'save_arka') {
+      const { date_key, energy, mood, direction, comment, dar_code } = req.body;
+      const dateKey = date_key || new Date().toISOString().slice(0, 10);
+      const payload = {
+        v: 1,
+        energy: typeof energy === 'number' ? energy : null,
+        mood: typeof mood === 'number' ? mood : null,
+        direction: direction || null,
+        comment: (comment || '').slice(0, 500),
+        dar_code: dar_code || null,
+        ts: Date.now()
+      };
+      try {
+        await db.from('dar_diary').upsert({
+          user_id: user.id,
+          date_key: dateKey,
+          mood: 'arka',
+          note: JSON.stringify(payload)
+        }, { onConflict: 'user_id,date_key' });
+        return res.json({ success: true });
+      } catch (e) {
+        console.error('[diary] save_arka error:', e.message);
+        return res.status(500).json({ error: 'Не удалось сохранить' });
+      }
+    }
+
+    // ========== АРКА-ДНЕВНИК: ПОЛУЧИТЬ ВСЕ ЗАПИСИ ==========
+    if (action === 'get_arka') {
+      try {
+        const { data } = await db
+          .from('dar_diary')
+          .select('date_key, mood, note')
+          .eq('user_id', user.id)
+          .eq('mood', 'arka')
+          .order('date_key', { ascending: false })
+          .limit(365);
+        const entries = (data || []).map(row => {
+          try {
+            const obj = JSON.parse(row.note || '{}');
+            return {
+              date: row.date_key,
+              energy: obj.energy,
+              mood: obj.mood,
+              direction: obj.direction,
+              comment: obj.comment || '',
+              dar_code: obj.dar_code || null,
+              ts: obj.ts || null
+            };
+          } catch (e) { return null; }
+        }).filter(Boolean);
+        return res.json({ entries });
+      } catch (e) {
+        console.error('[diary] get_arka error:', e.message);
+        return res.json({ entries: [] });
+      }
+    }
+
     return res.status(400).json({ error: 'Unknown action' });
   } catch (e) {
     console.error('[diary] error:', e.message);

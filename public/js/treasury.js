@@ -15,10 +15,15 @@ const Treasury = (function() {
   // Группировка по полю (КУН = 3-я цифра кода)
   function getFieldId(code) { return parseInt(code.split('-')[2]); }
 
+  // Локализация с фоллбэком на русский (Telegram-кэш может загрузить
+  // treasury.js до готовности словаря — тогда отдаём fb).
+  function _t(k, fb, vars) { return (window.i18n && i18n.t && i18n.t(k, vars)) || fb; }
+
   const FIELD_NAMES = {
     1:'ЛОГОС', 2:'НИМА', 3:'АНДРА', 4:'ЗИНГРА',
     5:'ЛУБА', 6:'ТУМА', 7:'АСТРА', 8:'БИТРА', 9:'ОМА'
   };
+  function getFieldName(id) { return _t('treasury.field_names.' + id, FIELD_NAMES[id]); }
 
   const FIELD_COLORS = {
     1:'#e74c3c', 2:'#87ceeb', 3:'#2ecc71', 4:'#f39c12',
@@ -69,7 +74,7 @@ const Treasury = (function() {
     const pct = Math.min(100, Math.round((totalUnlocked / total) * 100));
     let html = `
       <div class="treasury-header">
-        <div class="treasury-progress-label">${totalUnlocked} / ${total} даров открыто</div>
+        <div class="treasury-progress-label">${totalUnlocked} / ${total} ${_t('treasury.dars_unlocked_label', 'даров открыто')}</div>
         <div class="treasury-progress-bar">
           <div class="treasury-progress-fill" style="width:${pct}%"></div>
         </div>
@@ -82,8 +87,8 @@ const Treasury = (function() {
     html += `
       <div style="margin:0 0 16px">
         <div style="padding:14px;background:linear-gradient(135deg,rgba(255,100,0,0.12),rgba(255,200,0,0.08));border:1px solid rgba(255,140,0,0.35);border-radius:14px;text-align:center;cursor:pointer" onclick="Treasury.startHeroJourney()">
-          <div style="font-size:14px;color:#FFA500;margin-bottom:4px">&#127749; Путешествие Героя</div>
-          <div style="font-size:11px;color:var(--text-dim)">Квест по выбранному дару</div>
+          <div style="font-size:14px;color:#FFA500;margin-bottom:4px">&#127749; ${_t('treasury.hero_journey_title', 'Путешествие Героя')}</div>
+          <div style="font-size:11px;color:var(--text-dim)">${_t('treasury.hero_journey_sub', 'Квест по выбранному дару')}</div>
         </div>
       </div>
     `;
@@ -104,7 +109,7 @@ const Treasury = (function() {
       html += `
         <div class="treasury-field">
           <div class="treasury-field-header">
-            <span class="treasury-field-name">${FIELD_NAMES[fieldId]}</span>
+            <span class="treasury-field-name">${getFieldName(fieldId)}</span>
             <span class="treasury-field-count">${fieldUnlocked}/${fieldDars.length}</span>
           </div>
           <div class="treasury-grid">
@@ -151,7 +156,7 @@ const Treasury = (function() {
     html += `
       <div style="text-align:center;margin:20px 0">
         <button class="btn btn-secondary" onclick="Treasury.unlockRandom()" id="btn-unlock-random">
-          &#128142; Открыть случайный дар (20 кристаллов)
+          &#128142; ${_t('treasury.unlock_random', 'Открыть случайный дар (20 кристаллов)', { n: 20 })}
         </button>
       </div>
     `;

@@ -365,7 +365,22 @@
     "subtab_collection": "Collection",
     "subtab_books": "Books",
     "subtab_encyclopedia": "Encyclopedia",
-    "subtab_games": "Games"
+    "subtab_games": "Games",
+    "dars_unlocked_label": "DARs unlocked",
+    "hero_journey_title": "The Hero’s Journey",
+    "hero_journey_sub": "A quest through the chosen DAR",
+    "unlock_random": "Unlock a random DAR ({n} crystals)",
+    "field_names": {
+      "1": "LOGOS",
+      "2": "NIMA",
+      "3": "ANDRA",
+      "4": "ZINGRA",
+      "5": "LUBA",
+      "6": "TUMA",
+      "7": "ASTRA",
+      "8": "BITRA",
+      "9": "OMA"
+    }
   },
   "oracle": {
     "forming": "Oracle is forming the message...",
@@ -576,7 +591,25 @@
     "subtitle_full": "Unlock the DARs of loved ones in your Treasury",
     "invite_title": "Invite a friend",
     "invite_sub": "Your friend will calculate their DAR. It will open in your Treasury.",
-    "invite_btn": "Share"
+    "invite_btn": "Share",
+    "slots_occupied": "SLOTS USED",
+    "slots_unlimited": "unlimited",
+    "locked_title": "Available from the Master plan",
+    "locked_master": "Master: unlimited slots",
+    "locked_keeper": "Keeper: unlimited + Practice Library (in development)",
+    "upgrade_btn": "Upgrade plan",
+    "empty": "No loved ones added yet.",
+    "dar_prefix": "DAR:",
+    "btn_oracle": "Oracle",
+    "btn_compat": "Compat.",
+    "btn_book": "Book",
+    "btn_dar": "DAR",
+    "btn_card": "Card",
+    "add_btn": "Add a loved one",
+    "add_warning_1": "Once saved, a loved one cannot be edited or deleted.",
+    "add_warning_2": "This protects against impersonation.",
+    "all_full_1": "All slots are taken.",
+    "all_full_2": "Loved ones are linked permanently (protection against impersonation). Upgrade your access level for more slots."
   },
   "arka": {
     "lock_title": "ARKA — for the Guardian",

@@ -36,9 +36,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260605">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260605b">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260605"></script>
+  <script src="js/maintenance.js?v=20260605b"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1512,9 +1512,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260605"></script>
+  <script src="js/i18n.js?v=20260605b"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260605"></script>
+  <script src="js/dars-i18n.js?v=20260605b"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1526,18 +1526,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260605"></script>
-  <script src="js/upgrade-modal.js?v=20260605"></script>
-  <script src="js/crystals.js?v=20260605"></script>
-  <script src="js/treasury.js?v=20260605"></script>
-  <script src="js/referral.js?v=20260605"></script>
-  <script src="js/book-reader.js?v=20260605"></script>
-  <script src="js/intuition-game.js?v=20260605"></script>
-  <script src="js/atlantis-game.js?v=20260605"></script>
-  <script src="js/hero-journey.js?v=20260605"></script>
-  <script src="js/share-card.js?v=20260605"></script>
-  <script src="js/humor-card.js?v=20260605"></script>
-  <script src="js/daily-dar.js?v=20260605"></script>
+  <script src="js/api-client.js?v=20260605b"></script>
+  <script src="js/upgrade-modal.js?v=20260605b"></script>
+  <script src="js/crystals.js?v=20260605b"></script>
+  <script src="js/treasury.js?v=20260605b"></script>
+  <script src="js/referral.js?v=20260605b"></script>
+  <script src="js/book-reader.js?v=20260605b"></script>
+  <script src="js/intuition-game.js?v=20260605b"></script>
+  <script src="js/atlantis-game.js?v=20260605b"></script>
+  <script src="js/hero-journey.js?v=20260605b"></script>
+  <script src="js/share-card.js?v=20260605b"></script>
+  <script src="js/humor-card.js?v=20260605b"></script>
+  <script src="js/daily-dar.js?v=20260605b"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2402,7 +2402,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260605b" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';
@@ -4439,6 +4439,18 @@
     document.addEventListener('i18n:changed', _refreshDarLabels);
     document.addEventListener('i18n:ready', _refreshDarLabels);
 
+    // Карточки близких рендерятся через JS (renderRelativesBlock), поэтому
+    // applyToDOM их не трогает. При смене языка перерисовываем тот контейнер,
+    // который уже отрисован, чтобы метки/кнопки сменили язык.
+    function _refreshRelativesOnLang() {
+      if (typeof renderRelativesBlock !== 'function') return;
+      ['relatives-content', 'family-list-container'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.innerHTML.trim()) renderRelativesBlock(id);
+      });
+    }
+    document.addEventListener('i18n:changed', _refreshRelativesOnLang);
+
     function closeTariffsPage() {
       const modal = document.getElementById('tariffs-modal');
       if (modal) {
@@ -5763,9 +5775,10 @@
       const container = document.getElementById(targetId);
       if (!container) return;
 
+      const _t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
       const { relatives, slot_limit, slot_used, access_level } = _relativesData;
       const isUnlimited = slot_limit === null;
-      const limitText = isUnlimited ? 'безлимит' : `${slot_used} / ${slot_limit}`;
+      const limitText = isUnlimited ? _t('family.slots_unlimited', 'безлимит') : `${slot_used} / ${slot_limit}`;
       const canAdd = isUnlimited || (slot_used < slot_limit);
       const isLocked = !isUnlimited && slot_limit === 0;
 
@@ -5775,12 +5788,12 @@
         // Странник - функция недоступна
         html += `<div style="background:rgba(212,175,55,0.08);border:1px dashed rgba(212,175,55,0.35);border-radius:12px;padding:14px;text-align:center">
           <div style="font-size:24px;margin-bottom:6px">&#128274;</div>
-          <div style="font-size:13px;color:var(--text);margin-bottom:4px">Доступно с тарифа Мастер</div>
+          <div style="font-size:13px;color:var(--text);margin-bottom:4px">${_t('family.locked_title', 'Доступно с тарифа Мастер')}</div>
           <div style="font-size:11px;color:var(--text-dim);line-height:1.5">
-            Мастер: безлимит слотов<br>
-            Хранитель: безлимит + Библиотека Практик (в разработке)
+            ${_t('family.locked_master', 'Мастер: безлимит слотов')}<br>
+            ${_t('family.locked_keeper', 'Хранитель: безлимит + Библиотека Практик (в разработке)')}
           </div>
-          <button onclick="openTariffsPage()" style="margin-top:10px;padding:9px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(184,134,11,0.1));color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600">&#128142; Улучшить тариф</button>
+          <button onclick="openTariffsPage()" style="margin-top:10px;padding:9px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(184,134,11,0.1));color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600">&#128142; ${_t('family.upgrade_btn', 'Улучшить тариф')}</button>
         </div>`;
         container.innerHTML = html;
         return;
@@ -5788,18 +5801,19 @@
 
       // Заголовок со счётчиком слотов
       html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:11px;color:var(--text-dim);letter-spacing:0.5px">
-        <span>СЛОТЫ ЗАНЯТО</span>
+        <span>${_t('family.slots_occupied', 'СЛОТЫ ЗАНЯТО')}</span>
         <span><b style="color:#D4AF37">${limitText}</b></span>
       </div>`;
 
       // Список добавленных близких
       if (relatives.length === 0) {
         html += `<div style="text-align:center;padding:14px 8px;font-size:12px;color:var(--text-dim);font-style:italic">
-          Пока не добавлено ни одного близкого человека.
+          ${_t('family.empty', 'Пока не добавлено ни одного близкого человека.')}
         </div>`;
       } else {
         for (const r of relatives) {
           const rel = RELATIONSHIP_LABELS[r.relationship] || RELATIONSHIP_LABELS.other;
+          const relLabel = _t('rel.rel_' + r.relationship, rel.ru);
           const darName = (window.DARS && window.DARS[r.dar_code]) || '';
           const darArch = (window.DAR_ARCHETYPES && window.DAR_ARCHETYPES[r.dar_code]) || '';
           // SVG-иконка дара с золотым фильтром (как в основной Сокровищнице)
@@ -5813,20 +5827,20 @@
               <div style="flex-shrink:0;width:46px;height:46px;display:flex;align-items:center;justify-content:center">${darImgHtml}</div>
               <div style="flex:1;min-width:0">
                 <div style="font-size:14px;color:var(--text);font-weight:bold">${escapeRelText(r.name)}</div>
-                <div style="font-size:11px;color:var(--text-dim)">${rel.ru} &bull; ${escapeRelText(r.birth_date)}</div>
-                ${darName ? `<div style="font-size:11px;color:#D4AF37;margin-top:2px">Дар: ${darName} (${r.dar_code})</div>` : ''}
+                <div style="font-size:11px;color:var(--text-dim)">${relLabel} &bull; ${escapeRelText(r.birth_date)}</div>
+                ${darName ? `<div style="font-size:11px;color:#D4AF37;margin-top:2px">${_t('family.dar_prefix', 'Дар:')} ${darName} (${r.dar_code})</div>` : ''}
                 ${darArch ? `<div style="font-size:10px;color:#D4AF37;font-style:italic">${darArch}</div>` : ''}
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128302; Оракул</button>
-              <button onclick='checkCompatibilityWith(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(244,81,30,0.4);background:rgba(244,81,30,0.08);color:#f4511e;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128149; Совмест.</button>
-              ${(['son','daughter','grandson','granddaughter'].includes(r.relationship)) ? `<button onclick="openChildBook(${r.id})" style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128214; Книга</button>` : ''}
-              <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128218; Дар</button>
+              <button onclick='openRelativeOracle(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128302; ${_t('family.btn_oracle', 'Оракул')}</button>
+              <button onclick='checkCompatibilityWith(${JSON.stringify(r).replace(/'/g, "&apos;")})' style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(244,81,30,0.4);background:rgba(244,81,30,0.08);color:#f4511e;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128149; ${_t('family.btn_compat', 'Совмест.')}</button>
+              ${(['son','daughter','grandson','granddaughter'].includes(r.relationship)) ? `<button onclick="openChildBook(${r.id})" style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(46,204,113,0.4);background:rgba(46,204,113,0.08);color:#2ecc71;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128214; ${_t('family.btn_book', 'Книга')}</button>` : ''}
+              <button onclick="openRelativeInBook('${r.dar_code}')" style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128218; ${_t('family.btn_dar', 'Дар')}</button>
               <!-- Карточка близкого для соцсетей. Запрос Алины 02.06.2026 «хотела
                    подруге отправить карточку с её посланием». Открывает ShareCard
                    с Даром РОДСТВЕННИКА, а не Алины (раньше Алина шарила свой shareMyDar). -->
-              <button onclick="shareRelativeCard('${r.dar_code}', ${JSON.stringify(r.name).replace(/"/g,'&quot;')})" style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(180,120,255,0.08);color:#b478ff;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128229; Карточка</button>
+              <button onclick="shareRelativeCard('${r.dar_code}', ${JSON.stringify(r.name).replace(/"/g,'&quot;')})" style="flex:1;min-width:70px;padding:9px;border-radius:10px;border:1px solid rgba(180,120,255,0.4);background:rgba(180,120,255,0.08);color:#b478ff;font-size:10px;cursor:pointer;font-family:Manrope,sans-serif">&#128229; ${_t('family.btn_card', 'Карточка')}</button>
             </div>
           </div>`;
         }
@@ -5835,16 +5849,16 @@
       // Кнопка "Добавить" (если есть свободный слот)
       if (canAdd) {
         html += `<button onclick="openAddRelative()" style="width:100%;padding:12px;border-radius:12px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-top:8px">
-          &#10010; Добавить близкого
+          &#10010; ${_t('family.add_btn', 'Добавить близкого')}
         </button>
         <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:6px;font-style:italic;line-height:1.5">
-          &#9888;&#65039; После сохранения близкого изменить или удалить нельзя.<br>
-          Это защита от подмены.
+          &#9888;&#65039; ${_t('family.add_warning_1', 'После сохранения близкого изменить или удалить нельзя.')}<br>
+          ${_t('family.add_warning_2', 'Это защита от подмены.')}
         </div>`;
       } else {
         html += `<div style="text-align:center;font-size:11px;color:#D4AF37;padding:8px 0;line-height:1.5">
-          Все слоты заняты.<br>
-          Близкие привязаны навсегда (защита от подмены). Повысь уровень доступа для большего количества слотов.
+          ${_t('family.all_full_1', 'Все слоты заняты.')}<br>
+          ${_t('family.all_full_2', 'Близкие привязаны навсегда (защита от подмены). Повысь уровень доступа для большего количества слотов.')}
         </div>`;
       }
 

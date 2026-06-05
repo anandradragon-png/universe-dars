@@ -90,6 +90,7 @@ const ARKA_DYN_I18N = {
     'task.resource': '🌟 ресурсная',
     'task.shadow': '🌑 теневая',
     'task.default_t1': 'Главная задача в окне силы',
+    'task.placeholder': 'Опиши задачу…',
     'finance.actual': 'Факт ₽',
     'finance.target': 'Цель ₽',
     'finance.name_placeholder': 'Название канала',
@@ -155,6 +156,7 @@ const ARKA_DYN_I18N = {
     'task.resource': '🌟 resource',
     'task.shadow': '🌑 shadow',
     'task.default_t1': 'Main task in the power window',
+    'task.placeholder': 'Describe the task…',
     'finance.actual': 'Actual $',
     'finance.target': 'Target $',
     'finance.name_placeholder': 'Channel name',
@@ -217,6 +219,7 @@ const ARKA_DYN_I18N = {
     'task.resource': '🌟 de recurso',
     'task.shadow': '🌑 de sombra',
     'task.default_t1': 'Tarea principal en la ventana de poder',
+    'task.placeholder': 'Describe la tarea…',
     'finance.actual': 'Real $',
     'finance.target': 'Meta $',
     'finance.name_placeholder': 'Nombre del canal',
@@ -257,9 +260,15 @@ const ARKA_DYN_I18N = {
   }
 };
 function dynLang() {
-  const KEY = '_yupdar_preview_lang';
-  try { const v = window.parent.localStorage.getItem(KEY); if (v && ARKA_DYN_I18N[v]) return v; } catch (e) {}
-  try { const v = localStorage.getItem(KEY); if (v && ARKA_DYN_I18N[v]) return v; } catch (e) {}
+  // Главный YupDar пишет язык в '_yupdar_lang', preview-версия — в '_yupdar_preview_lang'.
+  // Читаем ОБА, как getArkaLang() в index.html. Раньше тут был только preview-ключ —
+  // в проде язык лежит в '_yupdar_lang', поэтому ВСЕ динамические строки (типы задач,
+  // дефолтная задача, советы наставника) падали на ru при EN/ES интерфейсе.
+  const KEYS = ['_yupdar_lang', '_yupdar_preview_lang'];
+  for (const KEY of KEYS) {
+    try { const v = window.parent.localStorage.getItem(KEY); if (v && ARKA_DYN_I18N[v]) return v; } catch (e) {}
+    try { const v = localStorage.getItem(KEY); if (v && ARKA_DYN_I18N[v]) return v; } catch (e) {}
+  }
   return 'ru';
 }
 function dt(key, params) {
@@ -648,7 +657,7 @@ function renderTasks() {
     li.className = 'task-item' + (task.done ? ' done' : '');
     li.innerHTML = `
       <div class="task-checkbox${task.done ? ' done' : ''}" data-id="${task.id}"></div>
-      <div class="task-text" contenteditable="true" data-id="${task.id}">${escapeHtml(task.text || (task._default ? dt(task._default) : ''))}</div>
+      <div class="task-text" contenteditable="true" data-id="${task.id}" data-ph="${escapeHtml(dt('task.placeholder'))}">${escapeHtml(task.text || (task._default ? dt(task._default) : ''))}</div>
       <span class="task-type" data-id="${task.id}" data-type="${task.type}">${getTaskTypeLabels()[task.type]}</span>
       <button class="task-remove" data-id="${task.id}" title="${dt('btn.delete')}">✕</button>
     `;
@@ -2288,6 +2297,21 @@ initShadowQuest();
 initLetter();
 initCircle();
 initSectionFolding();
+
+// ── Пересборка динамических строк при смене языка ──────────────────
+// Статичный HTML перерисовывает applyArkaI18n (index.html). Строки, собранные
+// в JS (типы задач, дефолтная задача, приветствие, советы), перерисовываем тут.
+function _arkaReRenderLang() {
+  try { setGreeting(); } catch (e) {}
+  try { renderTasks(); } catch (e) {}
+  try { renderSteps(); } catch (e) {}
+  try { renderFinance(); } catch (e) {}
+  try { renderContent(); } catch (e) {}
+}
+window.addEventListener('storage', (e) => {
+  if (e.key === '_yupdar_lang' || e.key === '_yupdar_preview_lang') _arkaReRenderLang();
+});
+try { window.parent.document.addEventListener('i18n:changed', _arkaReRenderLang); } catch (e) {}
 
 // ── Авто-замена 🐉 на иконку личного Дара пользователя ─────────────
 // Запускается после рендера и затем на каждое изменение DOM

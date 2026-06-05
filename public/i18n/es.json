@@ -366,7 +366,22 @@
     "subtab_collection": "Colección",
     "subtab_books": "Libros",
     "subtab_encyclopedia": "Enciclopedia",
-    "subtab_games": "Juegos"
+    "subtab_games": "Juegos",
+    "dars_unlocked_label": "DARs desbloqueados",
+    "hero_journey_title": "El Viaje del Héroe",
+    "hero_journey_sub": "Una misión a través del DAR elegido",
+    "unlock_random": "Desbloquear un DAR aleatorio ({n} cristales)",
+    "field_names": {
+      "1": "LOGOS",
+      "2": "NIMA",
+      "3": "ANDRA",
+      "4": "ZINGRA",
+      "5": "LUBA",
+      "6": "TUMA",
+      "7": "ASTRA",
+      "8": "BITRA",
+      "9": "OMA"
+    }
   },
   "oracle": {
     "forming": "El Oráculo está formando el mensaje...",
@@ -577,7 +592,25 @@
     "subtitle_full": "Desbloquea los DARs de tus seres queridos en tu Tesorería",
     "invite_title": "Invita a un amigo",
     "invite_sub": "Tu amigo calculará su DAR. Se abrirá en tu Tesorería.",
-    "invite_btn": "Compartir"
+    "invite_btn": "Compartir",
+    "slots_occupied": "ESPACIOS OCUPADOS",
+    "slots_unlimited": "ilimitado",
+    "locked_title": "Disponible desde el plan Maestro",
+    "locked_master": "Maestro: espacios ilimitados",
+    "locked_keeper": "Guardián: ilimitado + Biblioteca de Prácticas (en desarrollo)",
+    "upgrade_btn": "Mejorar plan",
+    "empty": "Aún no se ha añadido ningún ser querido.",
+    "dar_prefix": "DAR:",
+    "btn_oracle": "Oráculo",
+    "btn_compat": "Compat.",
+    "btn_book": "Libro",
+    "btn_dar": "DAR",
+    "btn_card": "Tarjeta",
+    "add_btn": "Añadir ser querido",
+    "add_warning_1": "Una vez guardado, un ser querido no se puede editar ni eliminar.",
+    "add_warning_2": "Es una protección contra la suplantación.",
+    "all_full_1": "Todos los espacios están ocupados.",
+    "all_full_2": "Los seres queridos se vinculan de forma permanente (protección contra suplantación). Mejora tu nivel de acceso para más espacios."
   },
   "arka": {
     "lock_title": "ARKA — para el Guardián",

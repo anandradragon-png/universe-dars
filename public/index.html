@@ -38,7 +38,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="yupself-design-system.css?v=20260605">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260605">
+  <script src="js/maintenance.js?v=20260605"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -2284,7 +2284,7 @@
     function setMessageButtonReady() {
       const btn = document.getElementById('btn-get-message');
       if (!btn) return;
-      btn.innerHTML = '📖 <span data-i18n="dar.read_message">Читать о своём Даре</span>';
+      btn.innerHTML = '<span data-i18n="dar.read_message">' + (((window.i18n && i18n.t && i18n.t('dar.read_message')) || '📖 Читать о своём Даре')) + '</span>';
       btn.onclick = openMessageOverlay;
       btn.style.display = '';
       // Прячем шеринг-блоки и Книгу на главном — закон law_minimal_screen.
@@ -2988,10 +2988,11 @@
       _currentMessageStyle = style || 'full';
       const cur = document.getElementById('msg-style-current');
       if (cur) {
+        const _t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
         if (style === 'humor') {
-          cur.innerHTML = '🎭 <span data-i18n="msg_style.humor">Стендап-зеркало</span>';
+          cur.innerHTML = '🎭 <span data-i18n="msg_style.humor">' + _t('msg_style.humor', 'Стендап-зеркало') + '</span>';
         } else {
-          cur.innerHTML = '📩 <span data-i18n="msg_style.full">Полное послание</span>';
+          cur.innerHTML = '📩 <span data-i18n="msg_style.full">' + _t('msg_style.full', 'Полное послание') + '</span>';
         }
       }
       document.querySelectorAll('.msg-style-option').forEach(opt => {
@@ -3009,19 +3010,20 @@
       const cacheKey = style === 'humor' ? '_humorData' : '_messageData';
       let hasCache = false;
       try { hasCache = !!localStorage.getItem(cacheKey); } catch(e) {}
+      const _t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
       if (hasCache) {
         if (style === 'humor') {
-          btn.innerHTML = '📖 <span data-i18n="dar.read_humor">Читать свой стендап</span>';
+          btn.innerHTML = '<span data-i18n="dar.read_humor">' + _t('dar.read_humor', '🎭 Читать стендап') + '</span>';
           btn.onclick = openHumorOverlay;
         } else {
-          btn.innerHTML = '📖 <span data-i18n="dar.read_message">Читать о своём Даре</span>';
+          btn.innerHTML = '<span data-i18n="dar.read_message">' + _t('dar.read_message', '📖 Читать о своём Даре') + '</span>';
           btn.onclick = (typeof openMessageOverlay === 'function') ? openMessageOverlay : null;
         }
       } else {
         if (style === 'humor') {
-          btn.innerHTML = '🎭 <span data-i18n="dar.get_humor">Получить стендап</span>';
+          btn.innerHTML = '<span data-i18n="dar.get_humor">' + _t('dar.get_humor', '🎭 Читать свой стендап') + '</span>';
         } else {
-          btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">Получить полное послание</span>';
+          btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">' + _t('dar.get_full_message', 'Получить полное послание') + '</span>';
         }
         btn.onclick = requestMessage;
       }
@@ -3315,7 +3317,7 @@
             btn.dataset.busy = '';
             btn.style.pointerEvents = '';
             btn.style.opacity = '';
-            btn.innerHTML = '📖 <span data-i18n="dar.read_humor">Читать свой стендап</span>';
+            btn.innerHTML = '<span data-i18n="dar.read_humor">' + (((window.i18n && i18n.t && i18n.t('dar.read_humor')) || '🎭 Читать стендап')) + '</span>';
             btn.onclick = openHumorOverlay;
           }
           setTimeout(() => { if (typeof openHumorOverlay === 'function') openHumorOverlay(); }, 200);
@@ -3326,7 +3328,7 @@
             btn.dataset.busy = '';
             btn.style.pointerEvents = '';
             btn.style.opacity = '';
-            btn.innerHTML = '🎭 <span data-i18n="dar.get_humor">Получить стендап</span>';
+            btn.innerHTML = '<span data-i18n="dar.get_humor">' + (((window.i18n && i18n.t && i18n.t('dar.get_humor')) || '🎭 Читать свой стендап')) + '</span>';
           }
           if (typeof showToast === 'function') {
             showToast('Стендап-комик отдыхает. Попробуй через минуту.', 'error');

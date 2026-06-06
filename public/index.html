@@ -36,9 +36,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260606">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260606b">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260606"></script>
+  <script src="js/maintenance.js?v=20260606b"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1512,9 +1512,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260606"></script>
+  <script src="js/i18n.js?v=20260606b"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260606"></script>
+  <script src="js/dars-i18n.js?v=20260606b"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1526,18 +1526,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260606"></script>
-  <script src="js/upgrade-modal.js?v=20260606"></script>
-  <script src="js/crystals.js?v=20260606"></script>
-  <script src="js/treasury.js?v=20260606"></script>
-  <script src="js/referral.js?v=20260606"></script>
-  <script src="js/book-reader.js?v=20260606"></script>
-  <script src="js/intuition-game.js?v=20260606"></script>
-  <script src="js/atlantis-game.js?v=20260606"></script>
-  <script src="js/hero-journey.js?v=20260606"></script>
-  <script src="js/share-card.js?v=20260606"></script>
-  <script src="js/humor-card.js?v=20260606"></script>
-  <script src="js/daily-dar.js?v=20260606"></script>
+  <script src="js/api-client.js?v=20260606b"></script>
+  <script src="js/upgrade-modal.js?v=20260606b"></script>
+  <script src="js/crystals.js?v=20260606b"></script>
+  <script src="js/treasury.js?v=20260606b"></script>
+  <script src="js/referral.js?v=20260606b"></script>
+  <script src="js/book-reader.js?v=20260606b"></script>
+  <script src="js/intuition-game.js?v=20260606b"></script>
+  <script src="js/atlantis-game.js?v=20260606b"></script>
+  <script src="js/hero-journey.js?v=20260606b"></script>
+  <script src="js/share-card.js?v=20260606b"></script>
+  <script src="js/humor-card.js?v=20260606b"></script>
+  <script src="js/daily-dar.js?v=20260606b"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2402,7 +2402,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260606" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260606b" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';
@@ -5814,10 +5814,13 @@
         for (const r of relatives) {
           const rel = RELATIONSHIP_LABELS[r.relationship] || RELATIONSHIP_LABELS.other;
           const relLabel = _t('rel.rel_' + r.relationship, rel.ru);
-          const darName = (window.DARS && window.DARS[r.dar_code]) || '';
-          const darArch = (window.DAR_ARCHETYPES && window.DAR_ARCHETYPES[r.dar_code]) || '';
-          // SVG-иконка дара с золотым фильтром (как в основной Сокровищнице)
-          const darImgBase = darName ? darName.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'') : '';
+          // Имя/архетип — в текущем языке (EN/ES/RU) через хелперы dars-i18n.js.
+          // Карточки перерисовываются на i18n:changed (см. _refreshRelativesOnLang).
+          const darName = (typeof getDarName === 'function') ? getDarName(r.dar_code) : ((window.DARS && window.DARS[r.dar_code]) || '');
+          const darArch = (typeof getDarArchetype === 'function') ? getDarArchetype(r.dar_code) : ((window.DAR_ARCHETYPES && window.DAR_ARCHETYPES[r.dar_code]) || '');
+          // SVG-иконка дара: имена файлов на русском, поэтому берём RU-имя независимо от языка.
+          const darNameRu = (window.DARS && window.DARS[r.dar_code]) || '';
+          const darImgBase = darNameRu ? darNameRu.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'') : '';
           const darImgHtml = darImgBase
             ? `<img src="images/dars/${darImgBase}.svg" style="width:46px;height:46px;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 6px #D4AF37)" onerror="this.style.display='none'">`
             : '<div style="width:46px;height:46px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#D4AF37">✦</div>';
@@ -6024,19 +6027,21 @@
         document.body.appendChild(modal);
       }
       modal.style.display = 'flex';
+      const _t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
       const rel = RELATIONSHIP_LABELS[relative.relationship] || RELATIONSHIP_LABELS.other;
+      const relLabel = _t('rel.rel_' + relative.relationship, rel.ru);
       modal.innerHTML = `
         <div id="rel-oracle-content" style="position:relative;background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 22px 22px;max-width:440px;width:100%;max-height:88vh;overflow-y:auto">
           <button onclick="closeRelativeOracleModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
           <div style="text-align:center;margin-bottom:14px">
             <div style="font-size:36px;margin-bottom:6px">${rel.icon}</div>
-            <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase">Послание Оракула для</div>
+            <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase">${_t('oracle.rel_message_for', 'Послание Оракула для')}</div>
             <div style="font-size:18px;color:var(--text);margin-top:4px">${escapeRelText(relative.name)}</div>
-            <div style="font-size:11px;color:#D4AF37;margin-top:2px">${rel.ru}</div>
+            <div style="font-size:11px;color:#D4AF37;margin-top:2px">${relLabel}</div>
           </div>
           <div style="text-align:center;padding:30px 16px">
             <div style="font-size:32px;margin-bottom:12px;animation:pulse 1.5s ease-in-out infinite">&#128302;</div>
-            <div style="font-size:13px;color:#D4AF37;letter-spacing:1px">Оракул формирует послание...</div>
+            <div style="font-size:13px;color:#D4AF37;letter-spacing:1px">${_t('oracle.forming', 'Оракул формирует послание...')}</div>
           </div>
           <div class="skeleton-card">
             <div class="skeleton skeleton-line"></div>
@@ -6050,10 +6055,14 @@
     function renderRelativeOracleResult(relative, data) {
       const content = document.getElementById('rel-oracle-content');
       if (!content) return;
+      const _t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
       const rel = RELATIONSHIP_LABELS[relative.relationship] || RELATIONSHIP_LABELS.other;
-      const darName = (window.DARS && window.DARS[relative.dar_code]) || '';
+      const relLabel = _t('rel.rel_' + relative.relationship, rel.ru);
+      // Имя дара — в текущем языке; для SVG-иконки берём RU-имя (файлы на русском).
+      const darName = (typeof getDarName === 'function') ? getDarName(relative.dar_code) : ((window.DARS && window.DARS[relative.dar_code]) || '');
+      const darNameRu = (window.DARS && window.DARS[relative.dar_code]) || '';
       // Золотая SVG-иконка дара
-      const darImgBase = darName ? darName.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'') : '';
+      const darImgBase = darNameRu ? darNameRu.toLowerCase().normalize('NFC').replace(/[^а-яёa-z]/g,'') : '';
       const darImgHtml = darImgBase
         ? `<img src="images/dars/${darImgBase}.svg" style="width:64px;height:64px;object-fit:contain;filter:invert(85%) sepia(25%) saturate(600%) hue-rotate(10deg) brightness(110%) drop-shadow(0 0 10px #D4AF37);margin:0 auto 4px;display:block" onerror="this.style.display='none'">`
         : '';
@@ -6063,34 +6072,34 @@
         <div style="text-align:center;margin-bottom:18px">
           <div style="font-size:36px;margin-bottom:4px">${rel.icon}</div>
           ${darImgHtml}
-          <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase">Послание для</div>
+          <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase">${_t('oracle.message_for', 'Послание для')}</div>
           <div style="font-size:20px;color:var(--text);margin-top:4px">${escapeRelText(relative.name)}</div>
-          <div style="font-size:11px;color:#D4AF37;margin-top:2px">${rel.ru}${darName ? ' &bull; Дар ' + darName : ''}</div>
+          <div style="font-size:11px;color:#D4AF37;margin-top:2px">${relLabel}${darName ? ' &bull; ' + _t('oracle.dar_word', 'Дар') + ' ' + darName : ''}</div>
         </div>
       `;
 
       if (data.prophecy) {
         html += `<div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:14px">
-          <div style="font-size:12px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#128302; Послание дня</div>
+          <div style="font-size:12px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#128302; ${_t('oracle.message_of_day', 'Послание дня')}</div>
           <div style="font-size:14px;color:#e0e0e0;line-height:1.7;font-style:italic">${escapeRelText(data.prophecy)}</div>
         </div>`;
       }
 
       if (data.energies && data.energies.length > 0) {
         html += `<div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:14px;margin-bottom:14px">
-          <div style="font-size:12px;color:#D4AF37;letter-spacing:1px;margin-bottom:8px">&#10024; Энергии дня</div>
+          <div style="font-size:12px;color:#D4AF37;letter-spacing:1px;margin-bottom:8px">&#10024; ${_t('oracle.energies_of_day', 'Энергии дня')}</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px">${data.energies.map(e => `<span style="padding:5px 10px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.25);border-radius:8px;font-size:11px;color:#D4AF37">${escapeRelText(e)}</span>`).join('')}</div>
         </div>`;
       }
 
       if (data.practice) {
         html += `<div style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.25);border-radius:14px;padding:14px;margin-bottom:14px">
-          <div style="font-size:12px;color:#2ecc71;letter-spacing:1px;margin-bottom:8px">&#128150; Как поддержать</div>
+          <div style="font-size:12px;color:#2ecc71;letter-spacing:1px;margin-bottom:8px">&#128150; ${_t('oracle.how_to_support', 'Как поддержать')}</div>
           <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${escapeRelText(data.practice)}</div>
         </div>`;
       }
 
-      html += `<button onclick="closeRelativeOracleModal()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;margin-top:6px">Спасибо</button>`;
+      html += `<button onclick="closeRelativeOracleModal()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;margin-top:6px">${_t('common.thanks', 'Спасибо')}</button>`;
 
       content.innerHTML = html;
     }

@@ -141,11 +141,31 @@ const BookReader = (function() {
   }
 
   // -------- Инициализация --------
+  // Язык книги: ru → /book-chapters.json, en/es → /book-chapters.{lang}.json.
+  // Оригиналы EN/ES — авторские книги Даров (а не перевод RU-файла).
+  function _bookLang() {
+    try {
+      if (window.i18n && typeof window.i18n.getLang === 'function') {
+        const l = window.i18n.getLang();
+        if (l) return l;
+      }
+      const stored = localStorage.getItem('_yupdar_lang');
+      if (stored) return stored;
+    } catch(e) {}
+    return 'ru';
+  }
+  function _bookUrl() {
+    const lang = _bookLang();
+    const file = (lang === 'en' || lang === 'es') ? `/book-chapters.${lang}.json` : '/book-chapters.json';
+    return file + '?v=20260606b';
+  }
+  let _loadedBookLang = null;
   async function init() {
     loadSettings();
     loadProgress();
     try {
-      const resp = await fetch('/book-chapters.json?v=1');
+      _loadedBookLang = _bookLang();
+      const resp = await fetch(_bookUrl());
       bookData = await resp.json();
       totalChapters = bookData.parts.reduce((s, p) => s + p.chapters.length, 0);
     } catch(e) {
@@ -1197,6 +1217,21 @@ const BookReader = (function() {
   if (typeof document !== 'undefined') {
     attachImageClickHandler();
     attachKeyboardShortcuts();
+    // Смена языка → перезагрузка книги на оригинале EN/ES/RU и перерисовка.
+    const _onLangChange = async () => {
+      if (!bookData) return;            // ещё не инициализировались
+      if (_loadedBookLang === _bookLang()) return;  // язык не изменился
+      try {
+        _loadedBookLang = _bookLang();
+        const resp = await fetch(_bookUrl());
+        bookData = await resp.json();
+        totalChapters = bookData.parts.reduce((s, p) => s + p.chapters.length, 0);
+        currentPartIdx = 0;
+        currentChapterIdx = 0;
+        render();
+      } catch(e) { console.error('[BookReader] reload error:', e); }
+    };
+    window.addEventListener('i18n:changed', _onLangChange);
   }
 
   return {

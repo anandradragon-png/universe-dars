@@ -25,7 +25,8 @@
     "coming_soon": "Pronto",
     "not_now": "Ahora no",
     "saving": "Guardando...",
-    "saved": "Guardado"
+    "saved": "Guardado",
+    "thanks": "Gracias"
   },
   "app": {
     "title": "YupDar",
@@ -815,7 +816,13 @@
     "preset_path": "¿A dónde me lleva la vida?",
     "preset_self": "¿Qué es importante que comprenda sobre mí hoy?",
     "message_failed_title": "No se pudo obtener el mensaje",
-    "message_failed_later": "No se pudo obtener el mensaje. Inténtalo más tarde."
+    "message_failed_later": "No se pudo obtener el mensaje. Inténtalo más tarde.",
+    "rel_message_for": "El mensaje del Oráculo para",
+    "message_for": "Mensaje para",
+    "dar_word": "DAR",
+    "message_of_day": "Mensaje del día",
+    "energies_of_day": "Energías del día",
+    "how_to_support": "Cómo apoyar"
   },
   "book": {
     "chapter_locked": "Este capítulo está disponible en la versión completa. Ingresa un código promocional abajo para desbloquear el libro entero.",

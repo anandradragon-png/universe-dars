@@ -24,7 +24,8 @@
     "coming_soon": "Soon",
     "not_now": "Not now",
     "saving": "Saving...",
-    "saved": "Saved"
+    "saved": "Saved",
+    "thanks": "Thank you"
   },
   "app": {
     "title": "YupDar",
@@ -814,7 +815,13 @@
     "preset_path": "Where is life leading me?",
     "preset_self": "What is important for me to understand about myself today?",
     "message_failed_title": "Could not get the message",
-    "message_failed_later": "Could not get the message. Please try later."
+    "message_failed_later": "Could not get the message. Please try later.",
+    "rel_message_for": "The Oracle's message for",
+    "message_for": "Message for",
+    "dar_word": "DAR",
+    "message_of_day": "Message of the Day",
+    "energies_of_day": "Energies of the Day",
+    "how_to_support": "How to support"
   },
   "book": {
     "chapter_locked": "This chapter is available in the full version. Enter a promo code below to unlock the whole book.",

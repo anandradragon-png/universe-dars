@@ -86,24 +86,24 @@ const HumorCard = (function() {
   function collectPhrases(data) {
     if (!data) return [];
     const out = [];
-    const push = (label, text) => {
+    const push = (label, text, kind) => {
       if (!text || typeof text !== 'string') return;
       const t = text.trim();
       if (t.length < 12) return;
-      out.push({ label: label, text: t });
+      out.push({ label: label, text: t, kind: kind || '' });
     };
 
-    if (data.archetype && data.archetype.motto) push('Девиз архетипа', data.archetype.motto);
-    push('Финал «Знакомься»', data.essence_punchline);
-    push('Финал «Суперсила»', data.superpowers_punchline);
+    if (data.archetype && data.archetype.motto) push(((window.i18n && i18n.t && i18n.t('humor.label_motto')) || 'Девиз архетипа'), data.archetype.motto, 'motto');
+    push(((window.i18n && i18n.t && i18n.t('humor.label_essence')) || 'Финал «Знакомься»'), data.essence_punchline, 'essence');
+    push(((window.i18n && i18n.t && i18n.t('humor.label_superpowers')) || 'Финал «Суперсила»'), data.superpowers_punchline, 'superpowers');
     if (Array.isArray(data.top10)) {
-      data.top10.forEach((t, i) => push('Топ-10 · #' + (i + 1), t));
+      data.top10.forEach((t, i) => push(((window.i18n && i18n.t && i18n.t('humor.label_top10_item', { n: i + 1 })) || ('Топ-10 · #' + (i + 1))), t, 'top10'));
     }
-    push('Финал «Топ-10»', data.top10_punchline);
-    push('Финал «Деньги»', data.wealth_punchline);
-    push('Финал «Отношения»', data.relationships_punchline);
-    push('Финал «Что Вселенная хочет»', data.mission_punchline);
-    if (data.share_hook) push('Шеринг-крючок', data.share_hook);
+    push(((window.i18n && i18n.t && i18n.t('humor.label_top10_final')) || 'Финал «Топ-10»'), data.top10_punchline, 'top10_final');
+    push(((window.i18n && i18n.t && i18n.t('humor.label_wealth')) || 'Финал «Деньги»'), data.wealth_punchline, 'wealth');
+    push(((window.i18n && i18n.t && i18n.t('humor.label_relationships')) || 'Финал «Отношения»'), data.relationships_punchline, 'relationships');
+    push(((window.i18n && i18n.t && i18n.t('humor.label_mission')) || 'Финал «Что Вселенная хочет»'), data.mission_punchline, 'mission');
+    if (data.share_hook) push(((window.i18n && i18n.t && i18n.t('humor.label_share_hook')) || 'Шеринг-крючок'), data.share_hook, 'share_hook');
     return out;
   }
 
@@ -172,7 +172,7 @@ const HumorCard = (function() {
     const ctx = canvas.getContext('2d');
 
     const data = getHumorData();
-    if (!data) throw new Error('Нет данных стендапа в кеше');
+    if (!data) throw new Error(((window.i18n && i18n.t && i18n.t('humor.err_no_data')) || 'Нет данных стендапа в кеше'));
 
     const darCode = getDarCode();
     const darName = getDarName(darCode);
@@ -251,14 +251,14 @@ const HumorCard = (function() {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.letterSpacing = '2px';
-      ctx.fillText('Дар: ' + darName, w / 2, iconCenterY + iconSize / 2 + (isVertical ? 36 : 28));
+      ctx.fillText(((window.i18n && i18n.t && i18n.t('humor.card_dar_label')) || 'Дар:') + ' ' + darName, w / 2, iconCenterY + iconSize / 2 + (isVertical ? 36 : 28));
       ctx.restore();
     }
 
     // === АРХЕТИП (главное) ===
     const archetypeY = isVertical ? 480 : 330;
     const arch = data.archetype || {};
-    const archTitle = String(arch.title || 'СТЕНДАП-ЗЕРКАЛО').toUpperCase();
+    const archTitle = String(arch.title || ((window.i18n && i18n.t && i18n.t('humor.card_default_archetype')) || 'СТЕНДАП-ЗЕРКАЛО')).toUpperCase();
 
     ctx.save();
     ctx.fillStyle = '#D4AF37';
@@ -343,7 +343,7 @@ const HumorCard = (function() {
     ctx.font = `700 ${isVertical ? 30 : 24}px Manrope, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Узнай свой Дар', w / 2, qrY - (isVertical ? 60 : 40));
+    ctx.fillText(((window.i18n && i18n.t && i18n.t('humor.card_cta')) || 'Узнай свой Дар'), w / 2, qrY - (isVertical ? 60 : 40));
     ctx.restore();
 
     ctx.save();
@@ -383,7 +383,7 @@ const HumorCard = (function() {
     ctx.font = `600 ${isVertical ? 20 : 16}px Manrope, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Вселенная ДАРов · @YupDarBot', w / 2, h - 40);
+    ctx.fillText(((window.i18n && i18n.t && i18n.t('humor.card_brand')) || 'Вселенная ДАРов') + ' · @YupDarBot', w / 2, h - 40);
     ctx.restore();
 
     return canvas;
@@ -435,7 +435,7 @@ const HumorCard = (function() {
     if (phrases.length) {
       const top10s = phrases
         .map((p, i) => ({ ...p, i }))
-        .filter(p => p.label.indexOf('Топ-10 · ') === 0 && p.text.length >= 20 && p.text.length <= 200);
+        .filter(p => p.kind === 'top10' && p.text.length >= 20 && p.text.length <= 200);
       if (top10s.length) {
         const sorted = top10s.slice().sort((a, b) => a.text.length - b.text.length);
         chosenPhraseIdx = sorted[Math.floor(sorted.length / 3)].i;
@@ -449,22 +449,22 @@ const HumorCard = (function() {
     overlay.innerHTML = `
       <div style="max-width:480px;width:100%;background:linear-gradient(180deg,#101010,#080808);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:22px 18px;max-height:92vh;overflow-y:auto">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <div style="font-size:16px;color:#D4AF37;font-weight:700">🎤 Карточка стендапа</div>
+          <div style="font-size:16px;color:#D4AF37;font-weight:700">🎤 ${((window.i18n && i18n.t && i18n.t('humor.modal_title')) || 'Карточка стендапа')}</div>
           <button id="hc-close" style="background:transparent;border:none;color:var(--text-dim);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1">×</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:14px;background:rgba(255,255,255,0.03);border-radius:10px;padding:4px">
-          <button id="hc-tab-square" data-format="square" style="flex:1;padding:10px;border-radius:8px;border:none;background:rgba(212,175,55,0.18);color:#D4AF37;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;font-size:13px">▢ Квадрат</button>
-          <button id="hc-tab-vertical" data-format="vertical" style="flex:1;padding:10px;border-radius:8px;border:none;background:transparent;color:var(--text-dim);font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;font-size:13px">📱 Сторис</button>
+          <button id="hc-tab-square" data-format="square" style="flex:1;padding:10px;border-radius:8px;border:none;background:rgba(212,175,55,0.18);color:#D4AF37;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;font-size:13px">▢ ${((window.i18n && i18n.t && i18n.t('humor.tab_square')) || 'Квадрат')}</button>
+          <button id="hc-tab-vertical" data-format="vertical" style="flex:1;padding:10px;border-radius:8px;border:none;background:transparent;color:var(--text-dim);font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;font-size:13px">📱 ${((window.i18n && i18n.t && i18n.t('humor.tab_vertical')) || 'Сторис')}</button>
         </div>
         <div style="margin-bottom:14px">
-          <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:600">✦ Фраза на карточке</div>
+          <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:600">✦ ${((window.i18n && i18n.t && i18n.t('humor.phrase_label')) || 'Фраза на карточке')}</div>
           <select id="hc-phrase-select" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(212,175,55,0.25);background:#0d0d0d;color:var(--text);font-family:Manrope,sans-serif;font-size:13px;cursor:pointer">${phraseOptions}</select>
         </div>
         <div id="hc-preview" style="text-align:center;margin-bottom:14px;min-height:300px;display:flex;align-items:center;justify-content:center">
-          <div style="color:var(--text-dim);font-size:13px">Готовлю карточку...</div>
+          <div style="color:var(--text-dim);font-size:13px">${((window.i18n && i18n.t && i18n.t('humor.preparing_card')) || 'Готовлю карточку...')}</div>
         </div>
-        <button id="hc-download" disabled style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(160deg,#E8C84A,#D4AF37 30%,#9A7B1A 70%,#D4AF37);color:#080808;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;opacity:0.5">⬇ Скачать карточку</button>
-        <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text-dim);line-height:1.5">QR-код на карточке ведёт на твою реферальную ссылку.<br>Когда друзья перейдут — ты получишь кристаллы.</div>
+        <button id="hc-download" disabled style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(160deg,#E8C84A,#D4AF37 30%,#9A7B1A 70%,#D4AF37);color:#080808;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;opacity:0.5">⬇ ${((window.i18n && i18n.t && i18n.t('humor.download_btn')) || 'Скачать карточку')}</button>
+        <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text-dim);line-height:1.5">${((window.i18n && i18n.t && i18n.t('humor.qr_hint')) || 'QR-код на карточке ведёт на твою реферальную ссылку.<br>Когда друзья перейдут — ты получишь кристаллы.')}</div>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -484,7 +484,7 @@ const HumorCard = (function() {
     }
 
     async function renderPreview(format) {
-      previewEl.innerHTML = '<div style="color:var(--text-dim);font-size:13px">⏳ Готовлю...</div>';
+      previewEl.innerHTML = '<div style="color:var(--text-dim);font-size:13px">⏳ ' + ((window.i18n && i18n.t && i18n.t('humor.preparing')) || 'Готовлю...') + '</div>';
       downloadBtn.disabled = true;
       downloadBtn.style.opacity = '0.5';
       try {
@@ -500,7 +500,7 @@ const HumorCard = (function() {
         downloadBtn.style.opacity = '1';
         currentFormat = format;
       } catch (e) {
-        previewEl.innerHTML = '<div style="color:#f87171;font-size:13px">Ошибка: ' + _esc(e.message) + '</div>';
+        previewEl.innerHTML = '<div style="color:#f87171;font-size:13px">' + ((window.i18n && i18n.t && i18n.t('humor.error_prefix')) || 'Ошибка:') + ' ' + _esc(e.message) + '</div>';
       }
     }
 

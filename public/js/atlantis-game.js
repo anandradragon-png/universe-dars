@@ -19,16 +19,16 @@ const AtlantisGame = (function() {
   'use strict';
 
   const PLAYERS = {
-    user: { id: 'user', name: 'Ты', icon: '🧙' },
-    rival: { id: 'rival', name: 'Противник', icon: '🧝' },
-    forces: { id: 'forces', name: 'Высшие Силы', icon: '✨' }
+    user: { id: 'user', get name() { return ((window.i18n && i18n.t && i18n.t('atlantis.player_you')) || 'Ты'); }, icon: '🧙' },
+    rival: { id: 'rival', get name() { return ((window.i18n && i18n.t && i18n.t('atlantis.player_rival')) || 'Противник'); }, icon: '🧝' },
+    forces: { id: 'forces', get name() { return ((window.i18n && i18n.t && i18n.t('atlantis.player_forces')) || 'Высшие Силы'); }, icon: '✨' }
   };
 
   const PARAM_LABELS = {
-    magic:    { ru: 'Магия',    icon: '🔮', color: '#9c27b0' },
-    life:     { ru: 'Жизнь',    icon: '💚', color: '#4ade80' },
-    power:    { ru: 'Сила',     icon: '⚡', color: '#f59e0b' },
-    mightSum: { ru: 'Мощность', icon: '💥', color: '#ef4444' }
+    magic:    { get ru() { return ((window.i18n && i18n.t && i18n.t('atlantis.param_magic')) || 'Магия'); },    icon: '🔮', color: '#9c27b0' },
+    life:     { get ru() { return ((window.i18n && i18n.t && i18n.t('atlantis.param_life')) || 'Жизнь'); },    icon: '💚', color: '#4ade80' },
+    power:    { get ru() { return ((window.i18n && i18n.t && i18n.t('atlantis.param_power')) || 'Сила'); },     icon: '⚡', color: '#f59e0b' },
+    mightSum: { get ru() { return ((window.i18n && i18n.t && i18n.t('atlantis.param_might')) || 'Мощность'); }, icon: '💥', color: '#ef4444' }
   };
 
   // ===== СОСТОЯНИЕ =====
@@ -95,7 +95,7 @@ const AtlantisGame = (function() {
     state.hands.rival = drawCards(4);
     state.hands.forces = drawCards(4);
     state.currentTurn = 'user'; // первая партия — ходит юзер
-    state.log.push('Партия началась. Первый ход твой.');
+    state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_game_started')) || 'Партия началась. Первый ход твой.'));
     startRound();
   }
 
@@ -115,7 +115,7 @@ const AtlantisGame = (function() {
     // Ход противника: AI выбирает параметр + выкладывает свою карту
     const p = aiChooseParam('rival');
     state.currentParam = p;
-    state.log.push(`Противник выбирает параметр: ${PARAM_LABELS[p].ru}`);
+    state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_rival_chose_param', { param: PARAM_LABELS[p].ru })) || `Противник выбирает параметр: ${PARAM_LABELS[p].ru}`));
     answerRival();
     state.phase = 'lay_cards';
     autofillFromDeck('user');
@@ -174,7 +174,7 @@ const AtlantisGame = (function() {
     if (state.currentTurn !== 'user') return; // только когда ходит юзер
     state.currentParam = param;
     state.phase = 'lay_cards';
-    state.log.push(`Ты выбираешь параметр: ${PARAM_LABELS[param].ru}`);
+    state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_you_chose_param', { param: PARAM_LABELS[param].ru })) || `Ты выбираешь параметр: ${PARAM_LABELS[param].ru}`));
     autofillFromDeck('user');
     const need = needCardsPerPlayer();
     if (state.played.user.length >= need) {
@@ -199,7 +199,7 @@ const AtlantisGame = (function() {
         state.played[playerId].push(card);
       }
       if (fromDeck > 0) {
-        state.log.push(`Высшие Силы дают ${PLAYERS[playerId].name} ${fromDeck} карт из колоды на стол`);
+        state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_forces_give_cards', { player: PLAYERS[playerId].name, n: fromDeck })) || `Высшие Силы дают ${PLAYERS[playerId].name} ${fromDeck} карт из колоды на стол`));
       }
     }
   }
@@ -297,14 +297,14 @@ const AtlantisGame = (function() {
       state._pendingWinner = winners[0];
       state._pendingTie = false;
       state._pendingTieParticipants = null;
-      state.log.push(`${PLAYERS[winners[0]].name}: ${PARAM_LABELS[p].ru}=${sums[winners[0]]}`);
+      state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_winner_score', { player: PLAYERS[winners[0]].name, param: PARAM_LABELS[p].ru, score: sums[winners[0]] })) || `${PLAYERS[winners[0]].name}: ${PARAM_LABELS[p].ru}=${sums[winners[0]]}`));
     } else {
       // Новая ничья — участвуют ТОЛЬКО те у кого максимум
       state._pendingWinner = null;
       state._pendingTie = true;
       state._pendingTieParticipants = winners;
       const names = winners.map(w => PLAYERS[w].name).join(' + ');
-      state.log.push(`Спор: ${names} (${PARAM_LABELS[p].ru}=${max})`);
+      state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_dispute', { names: names, param: PARAM_LABELS[p].ru, max: max })) || `Спор: ${names} (${PARAM_LABELS[p].ru}=${max})`));
     }
     render();
   }
@@ -330,12 +330,12 @@ const AtlantisGame = (function() {
       // (перемешиваются). Никто не забирает себе. Право хода переходит
       // к ДРУГОМУ игроку (не тому кто ходил в раунде).
       state.deck = shuffle(state.deck.concat(allCards));
-      state.log.push(`✨ Высшие забирают все ${allCards.length} карт в общую колоду. Ход переходит.`);
+      state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_forces_take', { n: allCards.length })) || `✨ Высшие забирают все ${allCards.length} карт в общую колоду. Ход переходит.`));
       switchTurnToOther();
     } else {
       // Юзер или противник — забирает все карты себе
       state.hands[winner].push(...allCards);
-      state.log.push(`${PLAYERS[winner].name} забирает ${allCards.length} карт — следующий ход его`);
+      state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_player_takes', { player: PLAYERS[winner].name, n: allCards.length })) || `${PLAYERS[winner].name} забирает ${allCards.length} карт — следующий ход его`));
       state.currentTurn = winner;
     }
 
@@ -366,7 +366,7 @@ const AtlantisGame = (function() {
     const summary = Object.entries(added).filter(([, n]) => n > 0)
       .map(([id, n]) => PLAYERS[id].name + ' +' + n).join(', ');
     if (summary) {
-      state.log.push('Высшие Силы добирают карты: ' + summary);
+      state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_replenish', { summary: summary })) || ('Высшие Силы добирают карты: ' + summary)));
     }
   }
 
@@ -461,7 +461,7 @@ const AtlantisGame = (function() {
     state.hands.user[myIdx] = rivalCard;
     state.hands.rival[rivalIdx] = myCard;
     state.exchangeUsed.user = true;
-    state.log.push(`Обмен: ${myCard.name} ↔ ${rivalCard.name}`);
+    state.log.push(((window.i18n && i18n.t && i18n.t('atlantis.log_exchange', { a: myCard.name, b: rivalCard.name })) || `Обмен: ${myCard.name} ↔ ${rivalCard.name}`));
     render();
   }
 
@@ -601,9 +601,9 @@ const AtlantisGame = (function() {
     const hand = state.hands[playerId];
     let badge = '';
     if (playerId === 'rival' && state.currentTurn === 'rival') {
-      badge = '<span style="font-size:9px;color:#ff9800;background:rgba(255,152,0,0.15);border:1px solid rgba(255,152,0,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">▶ ХОДИТ</span>';
+      badge = '<span style="font-size:9px;color:#ff9800;background:rgba(255,152,0,0.15);border:1px solid rgba(255,152,0,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">▶ ' + ((window.i18n && i18n.t && i18n.t('atlantis.badge_moving')) || 'ХОДИТ') + '</span>';
     } else if (playerId === 'forces') {
-      badge = '<span style="font-size:9px;color:#c084fc;background:rgba(156,39,176,0.15);border:1px solid rgba(156,39,176,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">БАНК</span>';
+      badge = '<span style="font-size:9px;color:#c084fc;background:rgba(156,39,176,0.15);border:1px solid rgba(156,39,176,0.4);border-radius:6px;padding:2px 6px;margin-left:6px;letter-spacing:1px">' + ((window.i18n && i18n.t && i18n.t('atlantis.badge_bank')) || 'БАНК') + '</span>';
     }
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;margin-bottom:6px">
@@ -617,12 +617,12 @@ const AtlantisGame = (function() {
     const params = ['magic', 'life', 'power', 'mightSum'];
     return `
       <div style="padding:8px 10px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.3);border-radius:10px;margin-bottom:8px">
-        <div style="font-size:11px;color:#4ade80;text-align:center;margin-bottom:6px;letter-spacing:1px;font-weight:700">▶ ТВОЙ ХОД · ВЫБЕРИ ПАРАМЕТР</div>
+        <div style="font-size:11px;color:#4ade80;text-align:center;margin-bottom:6px;letter-spacing:1px;font-weight:700">▶ ${((window.i18n && i18n.t && i18n.t('atlantis.your_turn_choose_param')) || 'ТВОЙ ХОД · ВЫБЕРИ ПАРАМЕТР')}</div>
         <div style="display:flex;gap:6px;justify-content:center">
           ${params.map(p => {
             const lbl = PARAM_LABELS[p];
             const isMight = p === 'mightSum';
-            return `<button onclick="AtlantisGame.chooseParam('${p}')" title="${lbl.ru}${isMight ? ' (3 карты, сумма)' : ''}"
+            return `<button onclick="AtlantisGame.chooseParam('${p}')" title="${lbl.ru}${isMight ? ((window.i18n && i18n.t && i18n.t('atlantis.might_hint')) || ' (3 карты, сумма)') : ''}"
               style="flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid ${lbl.color};background:rgba(255,255,255,0.04);color:${lbl.color};font-size:11px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;display:flex;flex-direction:column;gap:2px;align-items:center;min-width:0">
               <span style="font-size:16px">${lbl.icon}</span>
               <span>${lbl.ru}${isMight ? ' ×3' : ''}</span>
@@ -638,14 +638,14 @@ const AtlantisGame = (function() {
     const laid = state.played.user.length;
     const paramLbl = PARAM_LABELS[state.currentParam];
     const turnInfo = state.currentTurn === 'user'
-      ? '<div style="font-size:10px;color:#4ade80;letter-spacing:1px;font-weight:700;margin-bottom:4px">▶ ТВОЙ ХОД</div>'
-      : '<div style="font-size:10px;color:#ff9800;letter-spacing:1px;font-weight:700;margin-bottom:4px">▶ ХОДИТ 🧝 ПРОТИВНИК — ОТВЕТЬ</div>';
+      ? '<div style="font-size:10px;color:#4ade80;letter-spacing:1px;font-weight:700;margin-bottom:4px">▶ ' + ((window.i18n && i18n.t && i18n.t('atlantis.your_turn')) || 'ТВОЙ ХОД') + '</div>'
+      : '<div style="font-size:10px;color:#ff9800;letter-spacing:1px;font-weight:700;margin-bottom:4px">▶ ' + ((window.i18n && i18n.t && i18n.t('atlantis.rival_turn_answer')) || 'ХОДИТ 🧝 ПРОТИВНИК — ОТВЕТЬ') + '</div>';
     return `
       <div style="padding:12px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.3);border-radius:12px;margin-bottom:10px;text-align:center">
         ${turnInfo}
-        <div style="font-size:12px;color:var(--text-dim);margin-bottom:3px">Параметр сражения</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:3px">${((window.i18n && i18n.t && i18n.t('atlantis.battle_param')) || 'Параметр сражения')}</div>
         <div style="font-size:18px;color:${paramLbl.color};font-weight:800;letter-spacing:2px">${paramLbl.icon} ${paramLbl.ru.toUpperCase()}</div>
-        <div style="font-size:11px;color:var(--text);margin-top:4px">${laid >= need ? 'Все выложили' : 'Выложи карту ' + laid + '/' + need}</div>
+        <div style="font-size:11px;color:var(--text);margin-top:4px">${laid >= need ? ((window.i18n && i18n.t && i18n.t('atlantis.all_laid')) || 'Все выложили') : ((window.i18n && i18n.t && i18n.t('atlantis.lay_card_progress', { laid: laid, need: need })) || ('Выложи карту ' + laid + '/' + need))}</div>
       </div>
     `;
   }
@@ -659,18 +659,18 @@ const AtlantisGame = (function() {
     if (userInDispute) {
       return `
         <div style="padding:12px;background:rgba(255,152,0,0.08);border:1px solid rgba(255,152,0,0.4);border-radius:12px;margin-bottom:10px;text-align:center">
-          <div style="font-size:13px;color:#ff9800;font-weight:700;margin-bottom:4px">⚖️ СПОР: ${names}</div>
-          <div style="font-size:11px;color:var(--text-dim)">Выложи ещё одну карту (${paramLbl.icon} ${paramLbl.ru})</div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Остальные участники наблюдают и карт не подкладывают</div>
+          <div style="font-size:13px;color:#ff9800;font-weight:700;margin-bottom:4px">⚖️ ${((window.i18n && i18n.t && i18n.t('atlantis.dispute_label')) || 'СПОР')}: ${names}</div>
+          <div style="font-size:11px;color:var(--text-dim)">${((window.i18n && i18n.t && i18n.t('atlantis.lay_one_more', { param: paramLbl.icon + ' ' + paramLbl.ru })) || `Выложи ещё одну карту (${paramLbl.icon} ${paramLbl.ru})`)}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${((window.i18n && i18n.t && i18n.t('atlantis.others_watch')) || 'Остальные участники наблюдают и карт не подкладывают')}</div>
         </div>
       `;
     }
     // Юзер не в споре — наблюдает
     return `
       <div style="padding:12px;background:rgba(156,39,176,0.08);border:1px solid rgba(156,39,176,0.4);border-radius:12px;margin-bottom:10px;text-align:center">
-        <div style="font-size:13px;color:#c084fc;font-weight:700;margin-bottom:6px">⚖️ СПОР БЕЗ ТЕБЯ: ${names}</div>
-        <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Твои карты больше не подкладываются. Наблюдай за спором.</div>
-        <button onclick="AtlantisGame.watchTiebreaker()" style="padding:10px 20px;background:linear-gradient(135deg,#c084fc,#9c27b0);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;font-size:13px">👁 Смотреть спор →</button>
+        <div style="font-size:13px;color:#c084fc;font-weight:700;margin-bottom:6px">⚖️ ${((window.i18n && i18n.t && i18n.t('atlantis.dispute_without_you')) || 'СПОР БЕЗ ТЕБЯ')}: ${names}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">${((window.i18n && i18n.t && i18n.t('atlantis.your_cards_no_more')) || 'Твои карты больше не подкладываются. Наблюдай за спором.')}</div>
+        <button onclick="AtlantisGame.watchTiebreaker()" style="padding:10px 20px;background:linear-gradient(135deg,#c084fc,#9c27b0);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;font-size:13px">👁 ${((window.i18n && i18n.t && i18n.t('atlantis.watch_dispute')) || 'Смотреть спор →')}</button>
       </div>
     `;
   }
@@ -686,9 +686,9 @@ const AtlantisGame = (function() {
       <div style="padding:14px;background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.45);border-radius:14px;margin-bottom:10px;text-align:center">
         <div style="font-size:14px;color:#D4AF37;margin-bottom:8px;font-weight:700">${paramLbl.icon} ${paramLbl.ru}</div>
         <div style="display:flex;justify-content:space-around;font-size:12px;gap:6px">
-          <div style="color:${u === max ? '#4ade80' : 'var(--text-dim)'};font-weight:${u === max ? 800 : 500}">Ты: ${u}${u === max ? ' ★' : ''}</div>
-          <div style="color:${r === max ? '#4ade80' : 'var(--text-dim)'};font-weight:${r === max ? 800 : 500}">Против.: ${r}${r === max ? ' ★' : ''}</div>
-          <div style="color:${f === max ? '#4ade80' : 'var(--text-dim)'};font-weight:${f === max ? 800 : 500}">Высшие: ${f}${f === max ? ' ★' : ''}</div>
+          <div style="color:${u === max ? '#4ade80' : 'var(--text-dim)'};font-weight:${u === max ? 800 : 500}">${((window.i18n && i18n.t && i18n.t('atlantis.short_you')) || 'Ты')}: ${u}${u === max ? ' ★' : ''}</div>
+          <div style="color:${r === max ? '#4ade80' : 'var(--text-dim)'};font-weight:${r === max ? 800 : 500}">${((window.i18n && i18n.t && i18n.t('atlantis.short_rival')) || 'Против.')}: ${r}${r === max ? ' ★' : ''}</div>
+          <div style="color:${f === max ? '#4ade80' : 'var(--text-dim)'};font-weight:${f === max ? 800 : 500}">${((window.i18n && i18n.t && i18n.t('atlantis.short_forces')) || 'Высшие')}: ${f}${f === max ? ' ★' : ''}</div>
         </div>
       </div>
     `;
@@ -731,10 +731,10 @@ const AtlantisGame = (function() {
       maxSum = Math.max(uSum, rSum, fSum);
       const winners = [];
       // Правильные формы глагола: "Ты побеждаешь", "Противник побеждает", "Высшие побеждают"
-      if (uSum === maxSum) winners.push('Ты побеждаешь!');
-      if (rSum === maxSum) winners.push('Противник побеждает!');
-      if (fSum === maxSum) winners.push('Высшие побеждают!');
-      winnerLabel = winners.length === 1 ? winners[0] : '⚖️ Ничья';
+      if (uSum === maxSum) winners.push(((window.i18n && i18n.t && i18n.t('atlantis.you_win')) || 'Ты побеждаешь!'));
+      if (rSum === maxSum) winners.push(((window.i18n && i18n.t && i18n.t('atlantis.rival_wins')) || 'Противник побеждает!'));
+      if (fSum === maxSum) winners.push(((window.i18n && i18n.t && i18n.t('atlantis.forces_win')) || 'Высшие побеждают!'));
+      winnerLabel = winners.length === 1 ? winners[0] : ('⚖️ ' + ((window.i18n && i18n.t && i18n.t('atlantis.tie')) || 'Ничья'));
     }
 
     const rowStyle = 'display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:4px';
@@ -758,18 +758,18 @@ const AtlantisGame = (function() {
     return `
       <div style="padding:10px;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(212,175,55,0.04));border:1.5px solid rgba(212,175,55,0.35);border-radius:12px;margin-bottom:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;font-weight:700">⚔️ ПОЛЕ</div>
+          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;font-weight:700">⚔️ ${((window.i18n && i18n.t && i18n.t('atlantis.field')) || 'ПОЛЕ')}</div>
           ${paramLbl ? `<div style="font-size:11px;color:${paramLbl.color};font-weight:700">${paramLbl.icon} ${paramLbl.ru}</div>` : ''}
           ${winnerLabel ? `<div style="font-size:11px;color:#4ade80;font-weight:700">${winnerLabel}</div>` : ''}
         </div>
-        ${makeRow('🧝', 'Противник', rSum, renderStack(state.played.rival, false), false)}
-        ${makeRow('✨', 'Высшие', fSum, renderStack(state.played.forces, false), false)}
-        ${makeRow('🧙', 'Ты', uSum, renderStack(state.played.user, true), true)}
+        ${makeRow('🧝', ((window.i18n && i18n.t && i18n.t('atlantis.short_rival_full')) || 'Противник'), rSum, renderStack(state.played.rival, false), false)}
+        ${makeRow('✨', ((window.i18n && i18n.t && i18n.t('atlantis.short_forces')) || 'Высшие'), fSum, renderStack(state.played.forces, false), false)}
+        ${makeRow('🧙', ((window.i18n && i18n.t && i18n.t('atlantis.short_you')) || 'Ты'), uSum, renderStack(state.played.user, true), true)}
 
         ${isAwaiting ? `
           <button onclick="AtlantisGame.flipCards()"
             style="width:100%;margin-top:8px;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#E8C84A,#D4AF37);color:#080808;font-size:14px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;box-shadow:0 0 14px rgba(212,175,55,0.35);animation:atlPulse 1.5s ease-in-out infinite">
-            🔄 ПЕРЕВЕРНУТЬ КАРТЫ
+            🔄 ${((window.i18n && i18n.t && i18n.t('atlantis.flip_cards')) || 'ПЕРЕВЕРНУТЬ КАРТЫ')}
           </button>
           <style>@keyframes atlPulse{0%,100%{box-shadow:0 0 14px rgba(212,175,55,0.35)}50%{box-shadow:0 0 22px rgba(212,175,55,0.7)}}</style>
         ` : ''}
@@ -777,7 +777,7 @@ const AtlantisGame = (function() {
         ${isResult ? `
           <button onclick="AtlantisGame.continueAfterReveal()"
             style="width:100%;margin-top:8px;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#4ade80,#22c55e);color:#080808;font-size:14px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;box-shadow:0 0 12px rgba(74,222,128,0.4)">
-            Далее →
+            ${((window.i18n && i18n.t && i18n.t('atlantis.next')) || 'Далее →')}
           </button>
         ` : ''}
       </div>
@@ -794,19 +794,19 @@ const AtlantisGame = (function() {
     // Высшие Силы — банк, они не соревнуются за победу.
     let titleText, titleColor, subtitle, emoji;
     if (counts.user > counts.rival) {
-      titleText = 'ТЫ ПОБЕДИЛ(А)!';
+      titleText = ((window.i18n && i18n.t && i18n.t('atlantis.end_you_won')) || 'ТЫ ПОБЕДИЛ(А)!');
       titleColor = '#4ade80';
-      subtitle = 'Поздравляю, маг Атлантиды! 🏆';
+      subtitle = ((window.i18n && i18n.t && i18n.t('atlantis.end_you_won_sub')) || 'Поздравляю, маг Атлантиды! 🏆');
       emoji = '🎉';
     } else if (counts.rival > counts.user) {
-      titleText = 'ПРОТИВНИК ПОБЕДИЛ';
+      titleText = ((window.i18n && i18n.t && i18n.t('atlantis.end_rival_won')) || 'ПРОТИВНИК ПОБЕДИЛ');
       titleColor = '#ff6b6b';
-      subtitle = 'В следующий раз! Удачи тебе, маг.';
+      subtitle = ((window.i18n && i18n.t && i18n.t('atlantis.end_rival_won_sub')) || 'В следующий раз! Удачи тебе, маг.');
       emoji = '💫';
     } else {
-      titleText = 'НИЧЬЯ';
+      titleText = ((window.i18n && i18n.t && i18n.t('atlantis.end_tie')) || 'НИЧЬЯ');
       titleColor = '#D4AF37';
-      subtitle = 'Силы равны — всё решится в следующей партии';
+      subtitle = ((window.i18n && i18n.t && i18n.t('atlantis.end_tie_sub')) || 'Силы равны — всё решится в следующей партии');
       emoji = '⚖️';
     }
     const max = Math.max(counts.user, counts.rival);
@@ -856,25 +856,25 @@ const AtlantisGame = (function() {
         <div style="display:flex;justify-content:space-around;margin:12px 0;padding:12px;background:rgba(0,0,0,0.4);border-radius:12px;position:relative;z-index:2">
           <div style="text-align:center;${counts.user > counts.rival ? 'color:#4ade80;font-weight:800' : 'color:var(--text-dim)'}">
             <div style="font-size:24px">🧙</div>
-            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ТЫ</div>
+            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">${((window.i18n && i18n.t && i18n.t('atlantis.stat_you')) || 'ТЫ')}</div>
             <div style="font-size:20px;font-weight:900;margin-top:2px">${counts.user}</div>
-            ${counts.user > counts.rival ? '<div style="font-size:9px;color:#4ade80;font-weight:700">★ победитель</div>' : ''}
+            ${counts.user > counts.rival ? '<div style="font-size:9px;color:#4ade80;font-weight:700">★ ' + ((window.i18n && i18n.t && i18n.t('atlantis.winner')) || 'победитель') + '</div>' : ''}
           </div>
           <div style="text-align:center;${counts.rival > counts.user ? 'color:#ff6b6b;font-weight:800' : 'color:var(--text-dim)'}">
             <div style="font-size:24px">🧝</div>
-            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ПРОТИВНИК</div>
+            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">${((window.i18n && i18n.t && i18n.t('atlantis.stat_rival')) || 'ПРОТИВНИК')}</div>
             <div style="font-size:20px;font-weight:900;margin-top:2px">${counts.rival}</div>
-            ${counts.rival > counts.user ? '<div style="font-size:9px;color:#ff6b6b;font-weight:700">★ победитель</div>' : ''}
+            ${counts.rival > counts.user ? '<div style="font-size:9px;color:#ff6b6b;font-weight:700">★ ' + ((window.i18n && i18n.t && i18n.t('atlantis.winner')) || 'победитель') + '</div>' : ''}
           </div>
           <div style="text-align:center;color:#c084fc;opacity:0.8">
             <div style="font-size:24px">✨</div>
-            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">ВЫСШИЕ (БАНК)</div>
+            <div style="font-size:10px;letter-spacing:1px;margin-top:2px">${((window.i18n && i18n.t && i18n.t('atlantis.stat_forces')) || 'ВЫСШИЕ (БАНК)')}</div>
             <div style="font-size:20px;font-weight:900;margin-top:2px">${counts.forces}</div>
           </div>
         </div>
 
-        <button onclick="AtlantisGame.start()" style="padding:14px 30px;background:linear-gradient(135deg,#E8C84A,#D4AF37,#9A7B1A);border:none;border-radius:12px;color:#080808;font-weight:900;cursor:pointer;font-family:Manrope,sans-serif;font-size:15px;letter-spacing:2px;box-shadow:0 4px 20px rgba(212,175,55,0.4);position:relative;z-index:2">🔄 СЫГРАТЬ ЕЩЁ</button>
-        <button onclick="AtlantisGame.quit()" style="margin-left:8px;padding:14px 20px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:12px;color:var(--text-dim);cursor:pointer;font-family:Manrope,sans-serif;font-size:13px;position:relative;z-index:2">← К играм</button>
+        <button onclick="AtlantisGame.start()" style="padding:14px 30px;background:linear-gradient(135deg,#E8C84A,#D4AF37,#9A7B1A);border:none;border-radius:12px;color:#080808;font-weight:900;cursor:pointer;font-family:Manrope,sans-serif;font-size:15px;letter-spacing:2px;box-shadow:0 4px 20px rgba(212,175,55,0.4);position:relative;z-index:2">🔄 ${((window.i18n && i18n.t && i18n.t('atlantis.play_again')) || 'СЫГРАТЬ ЕЩЁ')}</button>
+        <button onclick="AtlantisGame.quit()" style="margin-left:8px;padding:14px 20px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:12px;color:var(--text-dim);cursor:pointer;font-family:Manrope,sans-serif;font-size:13px;position:relative;z-index:2">← ${((window.i18n && i18n.t && i18n.t('atlantis.to_games')) || 'К играм')}</button>
       </div>
     `;
   }
@@ -882,7 +882,7 @@ const AtlantisGame = (function() {
   function renderMyHand() {
     const hand = state.hands.user;
     if (!hand.length) {
-      return '<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">У тебя нет карт на руках</div>';
+      return '<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">' + ((window.i18n && i18n.t && i18n.t('atlantis.no_cards_in_hand')) || 'У тебя нет карт на руках') + '</div>';
     }
     const isLay = state.phase === 'lay_cards';
     const isTie = state.phase === 'tiebreaker';
@@ -903,8 +903,8 @@ const AtlantisGame = (function() {
     return `
       <div style="padding:10px;background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.3);border-radius:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:13px;color:#D4AF37;font-weight:700">🧙 Твои карты (${hand.length})${highlight ? ' · сорт. по ' + PARAM_LABELS[highlight].icon : ''}</div>
-          ${!state.exchangeUsed.user && state.phase === 'choose_param' ? '<button onclick="AtlantisGame.promptExchange()" style="font-size:10px;padding:4px 8px;border-radius:8px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;cursor:pointer">🔄 Обмен (1/партию)</button>' : ''}
+          <div style="font-size:13px;color:#D4AF37;font-weight:700">🧙 ${((window.i18n && i18n.t && i18n.t('atlantis.your_cards', { n: hand.length })) || `Твои карты (${hand.length})`)}${highlight ? ' · ' + ((window.i18n && i18n.t && i18n.t('atlantis.sorted_by')) || 'сорт. по') + ' ' + PARAM_LABELS[highlight].icon : ''}</div>
+          ${!state.exchangeUsed.user && state.phase === 'choose_param' ? '<button onclick="AtlantisGame.promptExchange()" style="font-size:10px;padding:4px 8px;border-radius:8px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;cursor:pointer">🔄 ' + ((window.i18n && i18n.t && i18n.t('atlantis.exchange_btn')) || 'Обмен (1/партию)') + '</button>' : ''}
         </div>
         <div style="display:flex;gap:6px;overflow-x:auto;padding:4px 0;opacity:${tieDim ? '0.5' : '1'}">
           ${indexed.map(({ c, i }) => {
@@ -923,7 +923,7 @@ const AtlantisGame = (function() {
     const last5 = state.log.slice(-5).reverse();
     return `
       <div style="margin-top:10px;padding:10px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-radius:10px">
-        <div style="font-size:10px;color:var(--text-muted);letter-spacing:1px;margin-bottom:4px">📜 Ход игры</div>
+        <div style="font-size:10px;color:var(--text-muted);letter-spacing:1px;margin-bottom:4px">📜 ${((window.i18n && i18n.t && i18n.t('atlantis.game_log')) || 'Ход игры')}</div>
         ${last5.map(msg => '<div style="font-size:11px;color:var(--text-dim);line-height:1.5">· ' + msg + '</div>').join('')}
       </div>
     `;
@@ -947,8 +947,8 @@ const AtlantisGame = (function() {
     container.innerHTML = `
       <div style="padding:10px 10px 40px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px">
-          <div style="font-size:15px;color:#D4AF37;letter-spacing:2px;font-weight:700;flex:1">🏛 АТЛАНТИДА</div>
-          <button onclick="AtlantisGame.showRules()" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(212,175,55,0.55);background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.08));color:#D4AF37;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;box-shadow:0 0 8px rgba(212,175,55,0.2)">📜 Правила</button>
+          <div style="font-size:15px;color:#D4AF37;letter-spacing:2px;font-weight:700;flex:1">🏛 ${((window.i18n && i18n.t && i18n.t('atlantis.title_short')) || 'АТЛАНТИДА')}</div>
+          <button onclick="AtlantisGame.showRules()" style="padding:7px 12px;border-radius:10px;border:1.5px solid rgba(212,175,55,0.55);background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.08));color:#D4AF37;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;box-shadow:0 0 8px rgba(212,175,55,0.2)">📜 ${((window.i18n && i18n.t && i18n.t('atlantis.rules_btn')) || 'Правила')}</button>
           <div style="font-size:10px;color:var(--text-dim);flex-shrink:0">🎴 ${state.deck.length}</div>
         </div>
         ${renderOpponentRow('rival')}
@@ -979,12 +979,12 @@ const AtlantisGame = (function() {
     }
     modal.innerHTML = `
       <div style="background:linear-gradient(135deg,#0a0a0a,#111);border:1px solid rgba(212,175,55,0.4);border-radius:16px;padding:20px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto">
-        <div style="font-size:14px;color:#D4AF37;font-weight:700;text-align:center;margin-bottom:10px">🔄 Какую свою карту обменять?</div>
-        <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:12px">Противник даст случайную взамен</div>
+        <div style="font-size:14px;color:#D4AF37;font-weight:700;text-align:center;margin-bottom:10px">🔄 ${((window.i18n && i18n.t && i18n.t('atlantis.which_card_swap')) || 'Какую свою карту обменять?')}</div>
+        <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:12px">${((window.i18n && i18n.t && i18n.t('atlantis.rival_gives_random')) || 'Противник даст случайную взамен')}</div>
         <div style="display:flex;gap:6px;overflow-x:auto;padding:4px 0">
           ${state.hands.user.map((c, i) => renderCard(c, { onClick: 'AtlantisGame._doExchange(' + i + ')', size: 'big' })).join('')}
         </div>
-        <button onclick="AtlantisGame._closeExchangeModal()" style="margin-top:10px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);cursor:pointer">Отмена</button>
+        <button onclick="AtlantisGame._closeExchangeModal()" style="margin-top:10px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);cursor:pointer">${((window.i18n && i18n.t && i18n.t('atlantis.cancel')) || 'Отмена')}</button>
       </div>
     `;
     modal.style.display = 'flex';
@@ -1017,74 +1017,74 @@ const AtlantisGame = (function() {
 
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:32px;margin-bottom:6px">🏛</div>
-          <div style="font-size:18px;color:#D4AF37;letter-spacing:2px;font-weight:800">ЛЕГЕНДЫ АТЛАНТИДЫ</div>
-          <div style="font-size:11px;color:var(--text-dim);margin-top:3px;font-style:italic">Правила игры</div>
+          <div style="font-size:18px;color:#D4AF37;letter-spacing:2px;font-weight:800">${((window.i18n && i18n.t && i18n.t('atlantis.title_full')) || 'ЛЕГЕНДЫ АТЛАНТИДЫ')}</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:3px;font-style:italic">${((window.i18n && i18n.t && i18n.t('atlantis.rules_subtitle')) || 'Правила игры')}</div>
         </div>
 
         <div style="font-size:13px;color:var(--text);line-height:1.7">
 
           <div style="margin-bottom:14px;padding:10px;background:rgba(212,175,55,0.06);border-left:3px solid #D4AF37;border-radius:8px">
-            <b style="color:#D4AF37">🎯 Цель:</b> набрать больше карт на руках, чем противник.
+            <b style="color:#D4AF37">🎯 ${((window.i18n && i18n.t && i18n.t('atlantis.rules_goal_label')) || 'Цель:')}</b> ${((window.i18n && i18n.t && i18n.t('atlantis.rules_goal_text')) || 'набрать больше карт на руках, чем противник.')}
           </div>
 
-          <div style="margin-bottom:10px"><b style="color:#D4AF37">🎴 Колода и игроки</b></div>
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">🎴 ${((window.i18n && i18n.t && i18n.t('atlantis.rules_deck_title')) || 'Колода и игроки')}</b></div>
           <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
-            • 64 карты, каждая — один из даров-юпиков<br>
-            • Играют трое: <b style="color:#4ade80">Ты</b>, <b style="color:#ff9800">Противник</b> и <b style="color:#c084fc">Высшие Силы (банк)</b><br>
-            • На старте у каждого по 4 карты
+            • ${((window.i18n && i18n.t && i18n.t('atlantis.rules_deck_1')) || '64 карты, каждая — один из даров-юпиков')}<br>
+            • ${((window.i18n && i18n.t && i18n.t('atlantis.rules_deck_2_prefix')) || 'Играют трое:')} <b style="color:#4ade80">${((window.i18n && i18n.t && i18n.t('atlantis.player_you')) || 'Ты')}</b>, <b style="color:#ff9800">${((window.i18n && i18n.t && i18n.t('atlantis.player_rival')) || 'Противник')}</b> ${((window.i18n && i18n.t && i18n.t('atlantis.rules_and')) || 'и')} <b style="color:#c084fc">${((window.i18n && i18n.t && i18n.t('atlantis.rules_forces_bank')) || 'Высшие Силы (банк)')}</b><br>
+            • ${((window.i18n && i18n.t && i18n.t('atlantis.rules_deck_3')) || 'На старте у каждого по 4 карты')}
           </div>
 
-          <div style="margin-bottom:10px"><b style="color:#D4AF37">💎 Параметры каждой карты</b></div>
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">💎 ${((window.i18n && i18n.t && i18n.t('atlantis.rules_params_title')) || 'Параметры каждой карты')}</b></div>
           <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
-            • <span style="color:#c084fc">🔮 Магия</span> — первая цифра кода<br>
-            • <span style="color:#4ade80">💚 Жизнь</span> — вторая цифра<br>
-            • <span style="color:#f59e0b">⚡ Сила</span> — третья цифра<br>
-            • <span style="color:#ef4444">💥 Мощность</span> — сумма всех трёх
+            • <span style="color:#c084fc">🔮 ${((window.i18n && i18n.t && i18n.t('atlantis.param_magic')) || 'Магия')}</span> ${((window.i18n && i18n.t && i18n.t('atlantis.rules_param_magic')) || '— первая цифра кода')}<br>
+            • <span style="color:#4ade80">💚 ${((window.i18n && i18n.t && i18n.t('atlantis.param_life')) || 'Жизнь')}</span> ${((window.i18n && i18n.t && i18n.t('atlantis.rules_param_life')) || '— вторая цифра')}<br>
+            • <span style="color:#f59e0b">⚡ ${((window.i18n && i18n.t && i18n.t('atlantis.param_power')) || 'Сила')}</span> ${((window.i18n && i18n.t && i18n.t('atlantis.rules_param_power')) || '— третья цифра')}<br>
+            • <span style="color:#ef4444">💥 ${((window.i18n && i18n.t && i18n.t('atlantis.param_might')) || 'Мощность')}</span> ${((window.i18n && i18n.t && i18n.t('atlantis.rules_param_might')) || '— сумма всех трёх')}
           </div>
 
-          <div style="margin-bottom:10px"><b style="color:#D4AF37">▶ Ход игры</b></div>
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">▶ ${((window.i18n && i18n.t && i18n.t('atlantis.rules_flow_title')) || 'Ход игры')}</b></div>
           <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
-            1. <b>Ходящий</b> выбирает параметр сражения (Магия / Жизнь / Сила / Мощность)<br>
-            2. Все трое выкладывают карту закрытой рубашкой<br>
-            3. Нажимаешь <b>«Перевернуть»</b> — карты раскрываются<br>
-            4. У кого значение выбранного параметра выше — <b>забирает все карты со стола</b> себе<br>
-            5. <b>Право следующего хода</b> переходит к победителю раунда
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_flow_1')) || '1. <b>Ходящий</b> выбирает параметр сражения (Магия / Жизнь / Сила / Мощность)')}<br>
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_flow_2')) || '2. Все трое выкладывают карту закрытой рубашкой')}<br>
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_flow_3')) || '3. Нажимаешь <b>«Перевернуть»</b> — карты раскрываются')}<br>
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_flow_4')) || '4. У кого значение выбранного параметра выше — <b>забирает все карты со стола</b> себе')}<br>
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_flow_5')) || '5. <b>Право следующего хода</b> переходит к победителю раунда')}
           </div>
 
-          <div style="margin-bottom:10px"><b style="color:#ef4444">💥 Особый ход — Мощность</b></div>
+          <div style="margin-bottom:10px"><b style="color:#ef4444">💥 ${((window.i18n && i18n.t && i18n.t('atlantis.rules_might_title')) || 'Особый ход — Мощность')}</b></div>
           <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
-            Каждый выкладывает <b>3 карты сразу</b>. Считается сумма Мощности всех трёх. Если карт не хватает — Высшие добирают из колоды сразу на стол.
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_might_text')) || 'Каждый выкладывает <b>3 карты сразу</b>. Считается сумма Мощности всех трёх. Если карт не хватает — Высшие добирают из колоды сразу на стол.')}
           </div>
 
-          <div style="margin-bottom:10px"><b style="color:#c084fc">✨ Высшие Силы — банк</b></div>
+          <div style="margin-bottom:10px"><b style="color:#c084fc">✨ ${((window.i18n && i18n.t && i18n.t('atlantis.rules_forces_title')) || 'Высшие Силы — банк')}</b></div>
           <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
-            Они не ходят как игрок, только докладывают карту в каждый раунд.<br>
-            <b>Если побеждают Высшие</b> — все карты со стола уходят обратно в общую колоду, а право хода переходит <b>к другому игроку</b> (не к тому, кто ходил).
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_forces_1')) || 'Они не ходят как игрок, только докладывают карту в каждый раунд.')}<br>
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_forces_2')) || '<b>Если побеждают Высшие</b> — все карты со стола уходят обратно в общую колоду, а право хода переходит <b>к другому игроку</b> (не к тому, кто ходил).')}
           </div>
 
-          <div style="margin-bottom:10px"><b style="color:#ff9800">⚖️ Ничья — спор</b></div>
+          <div style="margin-bottom:10px"><b style="color:#ff9800">⚖️ ${((window.i18n && i18n.t && i18n.t('atlantis.rules_tie_title')) || 'Ничья — спор')}</b></div>
           <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
-            Если у двоих одинаковый максимум — они <b>спорят</b>: докладывают ещё по одной карте. Остальные только наблюдают и карт больше не подкладывают. Победитель спора забирает <b>все</b> карты со стола.
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_tie_text')) || 'Если у двоих одинаковый максимум — они <b>спорят</b>: докладывают ещё по одной карте. Остальные только наблюдают и карт больше не подкладывают. Победитель спора забирает <b>все</b> карты со стола.')}
           </div>
 
-          <div style="margin-bottom:10px"><b style="color:#D4AF37">🔄 Обмен картами</b></div>
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">🔄 ${((window.i18n && i18n.t && i18n.t('atlantis.rules_exchange_title')) || 'Обмен картами')}</b></div>
           <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
-            Раз за партию можешь обменять свою карту на случайную карту противника.
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_exchange_text')) || 'Раз за партию можешь обменять свою карту на случайную карту противника.')}
           </div>
 
-          <div style="margin-bottom:10px"><b style="color:#D4AF37">🎴 Добор</b></div>
+          <div style="margin-bottom:10px"><b style="color:#D4AF37">🎴 ${((window.i18n && i18n.t && i18n.t('atlantis.rules_draw_title')) || 'Добор')}</b></div>
           <div style="margin-bottom:14px;padding-left:10px;font-size:12px;color:var(--text-dim)">
-            Между раундами Высшие Силы добирают из колоды карты всем, у кого на руках <b>меньше 4</b> — чтобы все вошли в новый раунд равными.
+            ${((window.i18n && i18n.t && i18n.t('atlantis.rules_draw_text')) || 'Между раундами Высшие Силы добирают из колоды карты всем, у кого на руках <b>меньше 4</b> — чтобы все вошли в новый раунд равными.')}
           </div>
 
           <div style="margin-top:16px;padding:10px;background:rgba(74,222,128,0.06);border-left:3px solid #4ade80;border-radius:8px">
-            <b style="color:#4ade80">👑 Конец партии</b><br>
-            <span style="font-size:12px;color:var(--text-dim)">Когда в колоде и на руках не остаётся достаточно карт для следующего раунда. Выигрывает тот из двоих (Ты или Противник), у кого больше карт на руках. Высшие Силы не участвуют в определении победителя.</span>
+            <b style="color:#4ade80">👑 ${((window.i18n && i18n.t && i18n.t('atlantis.rules_end_title')) || 'Конец партии')}</b><br>
+            <span style="font-size:12px;color:var(--text-dim)">${((window.i18n && i18n.t && i18n.t('atlantis.rules_end_text')) || 'Когда в колоде и на руках не остаётся достаточно карт для следующего раунда. Выигрывает тот из двоих (Ты или Противник), у кого больше карт на руках. Высшие Силы не участвуют в определении победителя.')}</span>
           </div>
 
         </div>
 
-        <button onclick="AtlantisGame.closeRules()" style="margin-top:14px;width:100%;padding:12px;background:linear-gradient(135deg,#E8C84A,#D4AF37);border:none;border-radius:10px;color:#080808;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;font-size:14px">Понятно, играю!</button>
+        <button onclick="AtlantisGame.closeRules()" style="margin-top:14px;width:100%;padding:12px;background:linear-gradient(135deg,#E8C84A,#D4AF37);border:none;border-radius:10px;color:#080808;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;font-size:14px">${((window.i18n && i18n.t && i18n.t('atlantis.rules_got_it')) || 'Понятно, играю!')}</button>
       </div>
     `;
     modal.style.display = 'flex';

@@ -47,6 +47,41 @@ const IntuitionGame = (function() {
     grand:   { name: 'Юпик-грандмастер', icon: '👑', accuracy: 0.92, desc: 'Угадывает в 92% случаев' }
   };
 
+  // Локализованные подписи для конфигов (резолвятся в момент рендера, т.к.
+  // window.i18n может быть ещё не готов на этапе загрузки модуля и язык
+  // может меняться в рантайме). Русский — фоллбэк (закон проекта).
+  function modeName(key) {
+    const fb = { classic: 'Классика', multi: 'Мультипоиск' };
+    return ((window.i18n && i18n.t && i18n.t('intuition.mode_' + key)) || fb[key] || (MODES[key] && MODES[key].name) || key);
+  }
+  function modeDesc(key) {
+    const fb = { classic: 'Найди загаданный дар', multi: 'Найди загаданные дары, остерегайся Карты Тени' };
+    return ((window.i18n && i18n.t && i18n.t('intuition.mode_' + key + '_desc')) || fb[key] || (MODES[key] && MODES[key].desc) || '');
+  }
+  function levelLabel(modeKey, levelKey) {
+    const lvl = MODES[modeKey] && MODES[modeKey].levels[levelKey];
+    const fb = lvl ? lvl.label : levelKey;
+    // Подписи уровней содержат число карт через · — переводим только слово,
+    // число берём из конфига чтобы не дублировать ключи на каждое число.
+    const names = { sandbox: 'Песочница', medium: 'Средне', hard: 'Сложно', expert: 'Эксперт' };
+    const nameKey = (lvl && lvl.sandbox) ? 'sandbox' : levelKey;
+    const word = ((window.i18n && i18n.t && i18n.t('intuition.level_' + nameKey)) || names[nameKey] || fb);
+    return lvl ? (word + ' · ' + lvl.cards) : word;
+  }
+  function aiName(key) {
+    const fb = { novice: 'Юпик-новичок', medium: 'Юпик-ученик', master: 'Юпик-мастер', grand: 'Юпик-грандмастер' };
+    return ((window.i18n && i18n.t && i18n.t('intuition.ai_' + key)) || fb[key] || (AI_OPPONENTS[key] && AI_OPPONENTS[key].name) || key);
+  }
+  function aiNameShort(key) {
+    const fb = { novice: 'новичок', medium: 'ученик', master: 'мастер', grand: 'грандмастер' };
+    return ((window.i18n && i18n.t && i18n.t('intuition.ai_short_' + key)) || fb[key] || aiName(key).replace('Юпик-', ''));
+  }
+  function aiDesc(key) {
+    const ai = AI_OPPONENTS[key];
+    const pct = ai ? Math.round(ai.accuracy * 100) : 0;
+    return ((window.i18n && i18n.t && i18n.t('intuition.ai_desc', { n: pct })) || ('Угадывает в ' + pct + '% случаев'));
+  }
+
   let battleMode = false;        // играем ли батл
   let battleOpponent = 'novice'; // текущий AI-противник
   let aiChoice = null;           // индекс карты которую "выбрал" AI
@@ -147,8 +182,8 @@ const IntuitionGame = (function() {
             <div style="font-size:9px;color:var(--text-dim)">&#128142;</div>
           </div>
         </div>
-        ${stats.streak > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-bottom:8px">&#128293; Серия: ${stats.streak} подряд</div>` : ''}
-        ${!dailyPlayed ? `<div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:8px;margin-bottom:12px;font-size:11px;color:#D4AF37">&#127873; x2 кристаллов за первую игру дня!</div>` : ''}
+        ${stats.streak > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-bottom:8px">&#128293; ${((window.i18n && i18n.t && i18n.t('intuition.streak_inarow', { n: stats.streak })) || ('Серия: ' + stats.streak + ' подряд'))}</div>` : ''}
+        ${!dailyPlayed ? `<div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:8px;margin-bottom:12px;font-size:11px;color:#D4AF37">&#127873; ${((window.i18n && i18n.t && i18n.t('intuition.x2_first_game')) || 'x2 кристаллов за первую игру дня!')}</div>` : ''}
       </div>
 
       <!-- Режим -->
@@ -158,11 +193,11 @@ const IntuitionGame = (function() {
             <button class="btn ${currentMode === key ? 'btn-secondary' : 'btn-ghost'}"
               style="flex:1;margin:0;padding:10px 6px;font-size:12px"
               onclick="IntuitionGame.setMode('${key}')">
-              ${mode.icon} ${mode.name}
+              ${mode.icon} ${modeName(key)}
             </button>
           `).join('')}
         </div>
-        <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:8px">${MODES[currentMode].desc}</div>
+        <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:8px">${modeDesc(currentMode)}</div>
       </div>
 
       <!-- Соло / Батл -->
@@ -171,12 +206,12 @@ const IntuitionGame = (function() {
           <button class="btn ${!battleMode ? 'btn-secondary' : 'btn-ghost'}"
             style="flex:1;margin:0;padding:10px 6px;font-size:12px"
             onclick="IntuitionGame.setBattleMode(false)">
-            &#127775; Соло
+            &#127775; ${((window.i18n && i18n.t && i18n.t('intuition.solo')) || 'Соло')}
           </button>
           <button class="btn ${battleMode ? 'btn-secondary' : 'btn-ghost'}"
             style="flex:1;margin:0;padding:10px 6px;font-size:12px"
             onclick="IntuitionGame.setBattleMode(true)">
-            &#9876; Батл vs AI
+            &#9876; ${((window.i18n && i18n.t && i18n.t('intuition.battle_vs_ai')) || 'Батл vs AI')}
           </button>
         </div>
       </div>
@@ -185,18 +220,18 @@ const IntuitionGame = (function() {
       ${battleMode ? `
         <div style="padding:0 16px 10px">
           <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:10px 12px">
-            <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;text-align:center">&#9876; Выбери противника</div>
+            <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;text-align:center">&#9876; ${((window.i18n && i18n.t && i18n.t('intuition.choose_opponent')) || 'Выбери противника')}</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
               ${Object.entries(AI_OPPONENTS).map(([key, ai]) => `
                 <button class="btn ${battleOpponent === key ? 'btn-secondary' : 'btn-ghost'}"
                   style="width:auto;margin:0;padding:8px 10px;font-size:11px"
                   onclick="IntuitionGame.setBattleOpponent('${key}')">
-                  ${ai.icon} ${ai.name.replace('Юпик-', '')}
+                  ${ai.icon} ${aiNameShort(key)}
                 </button>
               `).join('')}
             </div>
             <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:6px;font-style:italic">
-              ${AI_OPPONENTS[battleOpponent].desc}
+              ${aiDesc(battleOpponent)}
             </div>
           </div>
         </div>
@@ -209,7 +244,7 @@ const IntuitionGame = (function() {
             <button class="btn ${currentLevel === key ? 'btn-secondary' : 'btn-ghost'}"
               style="width:auto;margin:0;padding:8px 14px;font-size:12px"
               onclick="IntuitionGame.setLevel('${key}')">
-              ${lvl.label}
+              ${levelLabel(currentMode, key)}
             </button>
           `).join('')}
         </div>
@@ -219,12 +254,12 @@ const IntuitionGame = (function() {
       ${!MODES[currentMode].levels[currentLevel]?.sandbox ? `
         <div style="padding:0 16px 12px">
           <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:10px 12px">
-            <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:600;text-align:center">&#127942; Твоё соревнование</div>
+            <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:600;text-align:center">&#127942; ${((window.i18n && i18n.t && i18n.t('intuition.your_competition')) || 'Твоё соревнование')}</div>
             <div style="display:flex;gap:6px;justify-content:center">
               ${[
-                { key: 'daily', label: '🌅 День' },
-                { key: 'weekly', label: '🌙 Неделя' },
-                { key: 'monthly', label: '⭐ Месяц' }
+                { key: 'daily', label: '🌅 ' + ((window.i18n && i18n.t && i18n.t('intuition.period_day')) || 'День') },
+                { key: 'weekly', label: '🌙 ' + ((window.i18n && i18n.t && i18n.t('intuition.period_week')) || 'Неделя') },
+                { key: 'monthly', label: '⭐ ' + ((window.i18n && i18n.t && i18n.t('intuition.period_month')) || 'Месяц') }
               ].map(p => `
                 <button class="btn ${focusPeriod === p.key ? 'btn-secondary' : 'btn-ghost'}"
                   style="flex:1;max-width:110px;margin:0;padding:8px 6px;font-size:11px"
@@ -234,14 +269,14 @@ const IntuitionGame = (function() {
               `).join('')}
             </div>
             <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:8px;font-style:italic">
-              Очки идут во все рейтинги, но этот в фокусе
+              ${((window.i18n && i18n.t && i18n.t('intuition.points_all_ratings')) || 'Очки идут во все рейтинги, но этот в фокусе')}
             </div>
           </div>
         </div>
       ` : `
         <div style="padding:0 16px 12px">
           <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:10px 12px;text-align:center">
-            <div style="font-size:11px;color:#D4AF37;font-style:italic">&#128302; Песочница — тренировочный режим, очки не идут в рейтинг</div>
+            <div style="font-size:11px;color:#D4AF37;font-style:italic">&#128302; ${((window.i18n && i18n.t && i18n.t('intuition.sandbox_notice')) || 'Песочница — тренировочный режим, очки не идут в рейтинг')}</div>
           </div>
         </div>
       `}
@@ -251,11 +286,11 @@ const IntuitionGame = (function() {
       <div id="game-board" style="padding:0 16px"></div>
 
       <div style="text-align:center;padding:12px 16px">
-        <button class="btn btn-secondary" onclick="IntuitionGame.startGame()">&#128302; Начать раскладку</button>
+        <button class="btn btn-secondary" onclick="IntuitionGame.startGame()">&#128302; ${((window.i18n && i18n.t && i18n.t('intuition.start_layout')) || 'Начать раскладку')}</button>
       </div>
 
       <div style="text-align:center;padding:0 16px 16px">
-        <button class="btn btn-ghost" style="font-size:13px;padding:10px" onclick="IntuitionGame.openLeaderboard()">&#127942; Рейтинг магов</button>
+        <button class="btn btn-ghost" style="font-size:13px;padding:10px" onclick="IntuitionGame.openLeaderboard()">&#127942; ${((window.i18n && i18n.t && i18n.t('intuition.mages_leaderboard')) || 'Рейтинг магов')}</button>
       </div>
     `;
   }
@@ -324,9 +359,12 @@ const IntuitionGame = (function() {
     const days = Math.floor(diff / 86400000);
     const hours = Math.floor((diff % 86400000) / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
-    if (days > 0) return `${days} д ${hours} ч`;
-    if (hours > 0) return `${hours} ч ${minutes} мин`;
-    return `${minutes} мин`;
+    const uDay = ((window.i18n && i18n.t && i18n.t('intuition.unit_day')) || 'д');
+    const uHour = ((window.i18n && i18n.t && i18n.t('intuition.unit_hour')) || 'ч');
+    const uMin = ((window.i18n && i18n.t && i18n.t('intuition.unit_min')) || 'мин');
+    if (days > 0) return `${days} ${uDay} ${hours} ${uHour}`;
+    if (hours > 0) return `${hours} ${uHour} ${minutes} ${uMin}`;
+    return `${minutes} ${uMin}`;
   }
 
   function renderLeaderboard() {
@@ -335,14 +373,14 @@ const IntuitionGame = (function() {
     const data = leaderboardData || { leaders: [], me: null };
 
     const periodTitles = {
-      daily: '🌅 Маг Дня',
-      weekly: '🌙 Маг Недели',
-      monthly: '⭐ Маг Месяца'
+      daily: '🌅 ' + ((window.i18n && i18n.t && i18n.t('intuition.mage_of_day')) || 'Маг Дня'),
+      weekly: '🌙 ' + ((window.i18n && i18n.t && i18n.t('intuition.mage_of_week')) || 'Маг Недели'),
+      monthly: '⭐ ' + ((window.i18n && i18n.t && i18n.t('intuition.mage_of_month')) || 'Маг Месяца')
     };
 
     let html = `
       <div style="padding:16px">
-        <button class="btn-back" style="display:block;margin-bottom:12px" onclick="IntuitionGame.render()">&#8592; К игре</button>
+        <button class="btn-back" style="display:block;margin-bottom:12px" onclick="IntuitionGame.render()">&#8592; ${((window.i18n && i18n.t && i18n.t('intuition.back_to_game')) || 'К игре')}</button>
 
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:28px;margin-bottom:6px">&#127942;</div>
@@ -363,10 +401,10 @@ const IntuitionGame = (function() {
         ${leaderboardPeriod === 'daily' ? `
           <div style="display:flex;gap:4px;justify-content:center;margin-bottom:10px;flex-wrap:wrap">
             ${[
-              { key: 'all', label: 'Все' },
-              { key: 'medium', label: 'Средне' },
-              { key: 'hard', label: 'Сложно' },
-              { key: 'expert', label: 'Эксперт' }
+              { key: 'all', label: ((window.i18n && i18n.t && i18n.t('intuition.filter_all')) || 'Все') },
+              { key: 'medium', label: ((window.i18n && i18n.t && i18n.t('intuition.level_medium')) || 'Средне') },
+              { key: 'hard', label: ((window.i18n && i18n.t && i18n.t('intuition.level_hard')) || 'Сложно') },
+              { key: 'expert', label: ((window.i18n && i18n.t && i18n.t('intuition.level_expert')) || 'Эксперт') }
             ].map(d => `
               <button class="btn ${leaderboardDifficulty === d.key ? 'btn-secondary' : 'btn-ghost'}"
                 style="margin:0;padding:6px 10px;font-size:10px;width:auto"
@@ -378,7 +416,7 @@ const IntuitionGame = (function() {
         ` : ''}
 
         <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-bottom:14px">
-          До сброса: <span style="color:#D4AF37">${timeUntilPeriodReset(leaderboardPeriod)}</span>
+          ${((window.i18n && i18n.t && i18n.t('intuition.until_reset')) || 'До сброса:')} <span style="color:#D4AF37">${timeUntilPeriodReset(leaderboardPeriod)}</span>
         </div>
     `;
 
@@ -402,7 +440,7 @@ const IntuitionGame = (function() {
             <div style="width:28px;text-align:center;font-size:${i < 3 ? '20px' : '14px'};color:${isFirst ? '#D4AF37' : 'var(--text-dim)'}">${i < 3 ? medal : (i + 1)}</div>
             <div style="flex:1;min-width:0">
               <div style="font-size:14px;color:${isFirst ? '#D4AF37' : 'var(--text)'};font-weight:${isFirst ? 'bold' : 'normal'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeText(p.display_name)}</div>
-              <div style="font-size:10px;color:var(--text-muted)">Побед: ${p.games_won || 0}</div>
+              <div style="font-size:10px;color:var(--text-muted)">${((window.i18n && i18n.t && i18n.t('intuition.wins_prefix')) || 'Побед:')} ${p.games_won || 0}</div>
             </div>
             <div style="font-size:16px;color:${isFirst ? '#D4AF37' : '#D4AF37'};font-weight:bold">${p.score}</div>
           </div>
@@ -420,22 +458,22 @@ const IntuitionGame = (function() {
           </div>
         `;
       } else if (data.me && data.me.score > 0) {
-        html += `<div style="text-align:center;margin-top:12px;font-size:12px;color:#D4AF37">&#11088; Ты в топе!</div>`;
+        html += `<div style="text-align:center;margin-top:12px;font-size:12px;color:#D4AF37">&#11088; ${((window.i18n && i18n.t && i18n.t('intuition.you_in_top')) || 'Ты в топе!')}</div>`;
       } else if (data.me) {
-        html += `<div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted)">Сыграй на среднем+ уровне, чтобы попасть в рейтинг</div>`;
+        html += `<div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted)">${((window.i18n && i18n.t && i18n.t('intuition.play_medium_to_rank')) || 'Сыграй на среднем+ уровне, чтобы попасть в рейтинг')}</div>`;
       }
     }
 
     html += `
         <div style="margin-top:20px;padding:14px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:12px;font-size:11px;color:var(--text-dim);line-height:1.6">
-          <div style="color:#D4AF37;font-weight:bold;margin-bottom:6px">&#128161; Как зарабатывать очки</div>
-          &#10024; Средний уровень: +15 очков за победу<br>
-          &#10024; Сложный: +25 очков (×2 множитель)<br>
-          &#10024; Эксперт: +40 очков (×3 множитель)<br>
-          &#10024; Серия 3+: +20% к очкам<br>
-          &#10024; Серия 5+: +50%<br>
-          &#10024; Серия 10+: +100%<br>
-          <span style="color:var(--text-muted);font-style:italic">Песочница (3 карты) не учитывается в рейтинге</span>
+          <div style="color:#D4AF37;font-weight:bold;margin-bottom:6px">&#128161; ${((window.i18n && i18n.t && i18n.t('intuition.how_to_earn')) || 'Как зарабатывать очки')}</div>
+          &#10024; ${((window.i18n && i18n.t && i18n.t('intuition.earn_medium')) || 'Средний уровень: +15 очков за победу')}<br>
+          &#10024; ${((window.i18n && i18n.t && i18n.t('intuition.earn_hard')) || 'Сложный: +25 очков (×2 множитель)')}<br>
+          &#10024; ${((window.i18n && i18n.t && i18n.t('intuition.earn_expert')) || 'Эксперт: +40 очков (×3 множитель)')}<br>
+          &#10024; ${((window.i18n && i18n.t && i18n.t('intuition.earn_streak3')) || 'Серия 3+: +20% к очкам')}<br>
+          &#10024; ${((window.i18n && i18n.t && i18n.t('intuition.earn_streak5')) || 'Серия 5+: +50%')}<br>
+          &#10024; ${((window.i18n && i18n.t && i18n.t('intuition.earn_streak10')) || 'Серия 10+: +100%')}<br>
+          <span style="color:var(--text-muted);font-style:italic">${((window.i18n && i18n.t && i18n.t('intuition.sandbox_not_counted')) || 'Песочница (3 карты) не учитывается в рейтинге')}</span>
         </div>
       </div>
     `;
@@ -444,7 +482,7 @@ const IntuitionGame = (function() {
   }
 
   function escapeText(s) {
-    if (!s) return 'Странник';
+    if (!s) return ((window.i18n && i18n.t && i18n.t('intuition.wanderer')) || 'Странник');
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
@@ -453,9 +491,9 @@ const IntuitionGame = (function() {
     return `
       <div style="padding:0 16px 8px">
         <div style="background:rgba(212,175,55,0.1);border:1px solid var(--border);border-radius:12px;padding:10px;font-size:11px;color:var(--text-dim);line-height:1.5">
-          <div style="color:var(--text);margin-bottom:4px">&#127183; Правила:</div>
-          &#10024; Найди <strong>${lvl.targets}</strong> одинаковых дара<br>
-          &#128994; Можно выбрать <strong>${lvl.opens}</strong> карты<br>
+          <div style="color:var(--text);margin-bottom:4px">&#127183; ${((window.i18n && i18n.t && i18n.t('intuition.rules_title')) || 'Правила:')}</div>
+          &#10024; ${((window.i18n && i18n.t && i18n.t('intuition.rule_find_same', { n: '<strong>' + lvl.targets + '</strong>' })) || ('Найди <strong>' + lvl.targets + '</strong> одинаковых дара'))}<br>
+          &#128994; ${((window.i18n && i18n.t && i18n.t('intuition.rule_can_pick', { n: '<strong>' + lvl.opens + '</strong>' })) || ('Можно выбрать <strong>' + lvl.opens + '</strong> карты'))}<br>
           &#11088; <span style="color:#2ecc71">${((window.i18n && i18n.t && i18n.t('intuition.light_card')) || 'Карта Света')}</span> ${((window.i18n && i18n.t && i18n.t('intuition.light_card_desc')) || '— даст x2 к выигрышу')}<br>
           &#128165; <span style="color:#e74c3c">${((window.i18n && i18n.t && i18n.t('intuition.shadow_card')) || 'Карта Тени')}</span> ${((window.i18n && i18n.t && i18n.t('intuition.shadow_card_desc')) || '— обнулит результат')}<br>
           <em style="font-size:10px">${((window.i18n && i18n.t && i18n.t('intuition.cards_after_selection')) || 'Все карты откроются после всех выборов')}</em>
@@ -594,7 +632,7 @@ const IntuitionGame = (function() {
     if (currentMode === 'multi' && buffCard) {
       lightBlock =
         '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;min-width:92px">' +
-          '<div style="font-size:10px;color:#4ade80;letter-spacing:1px;font-weight:700;text-shadow:0 0 6px rgba(74,222,128,0.4)">⭐ СВЕТ ×2</div>' +
+          '<div style="font-size:10px;color:#4ade80;letter-spacing:1px;font-weight:700;text-shadow:0 0 6px rgba(74,222,128,0.4)">⭐ ' + ((window.i18n && i18n.t && i18n.t('intuition.light_badge')) || 'СВЕТ ×2') + '</div>' +
           '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:6px;border:1.5px solid rgba(74,222,128,0.6);border-radius:10px;background:rgba(74,222,128,0.1);box-sizing:border-box;box-shadow:0 0 14px rgba(74,222,128,0.25)">' +
             renderDarIconHtml(buffCard.name, 'gold') +
           '</div>' +
@@ -605,7 +643,7 @@ const IntuitionGame = (function() {
       // Максимальная контрастность тени: ярко-алый цвет + более крупное свечение
       shadowBlock =
         '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;min-width:92px">' +
-          '<div style="font-size:11px;color:#ff3838;letter-spacing:1.5px;font-weight:900;text-shadow:0 0 8px rgba(255,56,56,0.7), 0 0 2px rgba(255,255,255,0.2)">💥 ТЕНЬ</div>' +
+          '<div style="font-size:11px;color:#ff3838;letter-spacing:1.5px;font-weight:900;text-shadow:0 0 8px rgba(255,56,56,0.7), 0 0 2px rgba(255,255,255,0.2)">💥 ' + ((window.i18n && i18n.t && i18n.t('intuition.shadow_badge')) || 'ТЕНЬ') + '</div>' +
           // Фон карты Тени — тёмный (был полупрозрачный красный, на нём красный значок терялся — баг от тестера).
           '<div style="width:' + ICON_SIZE + 'px;height:' + ICON_SIZE + 'px;padding:6px;border:2px solid #ff3838;border-radius:10px;background:rgba(0,0,0,0.55);box-sizing:border-box;box-shadow:0 0 16px rgba(255,56,56,0.5), inset 0 0 8px rgba(255,56,56,0.15)">' +
             renderDarIconHtml(debuffCard.name, 'red') +
@@ -622,7 +660,7 @@ const IntuitionGame = (function() {
     let html = `
       <div style="margin-bottom:12px">
         <div style="font-size:13px;color:var(--text);text-align:center;margin-bottom:8px">
-          ${currentMode === 'multi' ? `&#127183; Найди ${lvl.targets} ${_plCard(lvl.targets)}:` : '&#128302; Найди дар:'}
+          ${currentMode === 'multi' ? `&#127183; ${((window.i18n && i18n.t && i18n.t('intuition.find_n_cards', { n: lvl.targets })) || ('Найди ' + lvl.targets + ' ' + _plCard(lvl.targets)))}:` : `&#128302; ${((window.i18n && i18n.t && i18n.t('intuition.find_dar')) || 'Найди дар')}:`}
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px">
           ${lightBlock || '<div style="min-width:70px"></div>'}
@@ -634,7 +672,7 @@ const IntuitionGame = (function() {
           ${shadowBlock || '<div style="min-width:70px"></div>'}
         </div>
         ${!allRevealed && currentMode === 'multi' ? `
-          <div id="card-counter" style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center">Выбрано: ${selected.length} / ${maxOpens}</div>
+          <div id="card-counter" style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center">${((window.i18n && i18n.t && i18n.t('intuition.selected_prefix')) || 'Выбрано:')} ${selected.length} / ${maxOpens}</div>
         ` : ''}
       </div>
       <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;max-width:420px;margin:0 auto">
@@ -649,13 +687,13 @@ const IntuitionGame = (function() {
 
         if (card.type === 'target') {
           bg = 'rgba(46,204,113,0.15)'; border = '#2ecc71';
-          badge = isSelected ? '<div style="font-size:10px;color:#2ecc71;margin-top:3px">&#10024; Найден!</div>' : '';
+          badge = isSelected ? '<div style="font-size:10px;color:#2ecc71;margin-top:3px">&#10024; ' + ((window.i18n && i18n.t && i18n.t('intuition.found')) || 'Найден!') + '</div>' : '';
         } else if (card.type === 'buff') {
           bg = isSelected ? 'rgba(46,204,113,0.25)' : 'rgba(46,204,113,0.08)'; border = '#2ecc71';
-          badge = '<div style="font-size:9px;color:#2ecc71;margin-top:3px">&#11088; Карта Света x2</div>';
+          badge = '<div style="font-size:9px;color:#2ecc71;margin-top:3px">&#11088; ' + ((window.i18n && i18n.t && i18n.t('intuition.light_card_badge')) || 'Карта Света x2') + '</div>';
         } else if (card.type === 'debuff') {
           bg = isSelected ? 'rgba(231,76,60,0.25)' : 'rgba(231,76,60,0.08)'; border = '#e74c3c';
-          badge = '<div style="font-size:9px;color:#e74c3c;margin-top:3px">&#128165; Карта Тени</div>';
+          badge = '<div style="font-size:9px;color:#e74c3c;margin-top:3px">&#128165; ' + ((window.i18n && i18n.t && i18n.t('intuition.shadow_card')) || 'Карта Тени') + '</div>';
         }
 
         if (isSelected && card.type === 'normal') {
@@ -715,7 +753,7 @@ const IntuitionGame = (function() {
       html += `
         <div id="reveal-btn-container" style="text-align:center;margin-top:16px;display:${showReveal ? 'block' : 'none'}">
           <button class="btn btn-secondary" style="width:auto;padding:12px 30px;margin:0" onclick="IntuitionGame.revealAll()">
-            &#128302; Открыть карты
+            &#128302; ${((window.i18n && i18n.t && i18n.t('intuition.open_cards')) || 'Открыть карты')}
           </button>
         </div>`;
     }
@@ -961,15 +999,15 @@ const IntuitionGame = (function() {
           <div style="font-size:32px;margin-bottom:6px">✨</div>
           <div style="font-size:16px;color:var(--text);margin-bottom:6px;font-weight:600">${((window.i18n && i18n.t && i18n.t('intuition.daily_limit_reached')) || 'Дневной лимит достигнут')}</div>
           <div style="font-size:13px;color:var(--text-dim);line-height:1.55">
-            Ты сыграл${(resp.rounds_today || 0)} раунд${(resp.rounds_today === 1) ? '' : ((resp.rounds_today || 0) < 5 ? 'а' : 'ов')} сегодня.<br>
-            Возвращайся завтра — лимит сбросится. Или купи дополнительную попытку прямо сейчас.
+            ${((window.i18n && i18n.t && i18n.t('intuition.played_rounds_today', { n: (resp.rounds_today || 0) })) || ('Ты сыграл' + (resp.rounds_today || 0) + ' раунд' + ((resp.rounds_today === 1) ? '' : ((resp.rounds_today || 0) < 5 ? 'а' : 'ов')) + ' сегодня.'))}<br>
+            ${((window.i18n && i18n.t && i18n.t('intuition.come_back_tomorrow_or_buy')) || 'Возвращайся завтра — лимит сбросится. Или купи дополнительную попытку прямо сейчас.')}
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <button id="ilim-buy" ${canBuy ? '' : 'disabled'} style="width:100%;padding:12px;border-radius:11px;border:none;background:${canBuy ? 'linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%)' : 'rgba(212,175,55,0.15)'};color:${canBuy ? '#080808' : '#999'};font-size:14px;cursor:${canBuy ? 'pointer' : 'not-allowed'};font-family:Manrope,sans-serif;font-weight:bold">
-            💎 Купить +1 попытку за ${cost} ⭐
+            💎 ${((window.i18n && i18n.t && i18n.t('intuition.buy_attempt', { n: cost })) || ('Купить +1 попытку за ' + cost + ' ⭐'))}
           </button>
-          <div style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5">У тебя сейчас: ${have} ⭐${canBuy ? '' : ` · нужно ещё ${cost - have} ⭐`}</div>
+          <div style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5">${((window.i18n && i18n.t && i18n.t('intuition.you_have_now', { n: have })) || ('У тебя сейчас: ' + have + ' ⭐'))}${canBuy ? '' : (((window.i18n && i18n.t && i18n.t('intuition.need_more', { n: (cost - have) })) || (` · нужно ещё ${cost - have} ⭐`)))}</div>
           <button id="ilim-tomorrow" style="width:100%;padding:11px;border-radius:11px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">${((window.i18n && i18n.t && i18n.t('intuition.come_tomorrow')) || 'Вернусь завтра')}</button>
         </div>
       </div>
@@ -996,9 +1034,9 @@ const IntuitionGame = (function() {
             }
             close();
           } else {
-            buyBtn.textContent = (result && result.error) || 'Не удалось купить';
+            buyBtn.textContent = (result && result.error) || ((window.i18n && i18n.t && i18n.t('intuition.buy_failed')) || 'Не удалось купить');
             setTimeout(() => {
-              buyBtn.textContent = `💎 Купить +1 попытку за ${cost} ⭐`;
+              buyBtn.textContent = '💎 ' + (((window.i18n && i18n.t && i18n.t('intuition.buy_attempt', { n: cost })) || ('Купить +1 попытку за ' + cost + ' ⭐')));
               buyBtn.disabled = false;
             }, 2000);
           }
@@ -1037,41 +1075,41 @@ const IntuitionGame = (function() {
 
       let battleResult, battleColor, battleEmoji;
       if (playerWon && !aiWon) {
-        battleResult = 'Ты победил(а)!';
+        battleResult = ((window.i18n && i18n.t && i18n.t('intuition.battle_you_won')) || 'Ты победил(а)!');
         battleColor = '#2ecc71';
         battleEmoji = '&#127942;';
       } else if (!playerWon && aiWon) {
-        battleResult = `${ai.name} победил!`;
+        battleResult = ((window.i18n && i18n.t && i18n.t('intuition.battle_ai_won', { n: aiName(battleOpponent) })) || (aiName(battleOpponent) + ' победил!'));
         battleColor = '#e74c3c';
         battleEmoji = '&#128148;';
       } else if (playerWon && aiWon) {
-        battleResult = 'Ничья — оба угадали!';
+        battleResult = ((window.i18n && i18n.t && i18n.t('intuition.battle_draw_both_won')) || 'Ничья — оба угадали!');
         battleColor = '#D4AF37';
         battleEmoji = '&#129309;';
       } else {
-        battleResult = 'Ничья — оба мимо!';
+        battleResult = ((window.i18n && i18n.t && i18n.t('intuition.battle_draw_both_missed')) || 'Ничья — оба мимо!');
         battleColor = '#888';
         battleEmoji = '&#128528;';
       }
 
       battleBlock = `
         <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;margin-top:14px">
-          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;text-align:center">&#9876; БАТЛ vs AI</div>
+          <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;text-align:center">&#9876; ${((window.i18n && i18n.t && i18n.t('intuition.battle_header')) || 'БАТЛ vs AI')}</div>
           <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:10px">
             <div style="text-align:center">
               <div style="font-size:22px">&#128100;</div>
               <div style="font-size:11px;color:var(--text)">${((window.i18n && i18n.t && i18n.t('intuition.you')) || 'Ты')}</div>
-              <div style="font-size:13px;color:${won ? '#2ecc71' : '#e74c3c'};font-weight:bold">${won ? 'Угадал' : 'Мимо'}</div>
+              <div style="font-size:13px;color:${won ? '#2ecc71' : '#e74c3c'};font-weight:bold">${won ? ((window.i18n && i18n.t && i18n.t('intuition.guessed')) || 'Угадал') : ((window.i18n && i18n.t && i18n.t('intuition.missed')) || 'Мимо')}</div>
             </div>
             <div style="font-size:22px;color:${battleColor}">${battleEmoji}</div>
             <div style="text-align:center">
               <div style="font-size:22px">${ai.icon}</div>
-              <div style="font-size:11px;color:var(--text)">${ai.name.replace('Юпик-','')}</div>
-              <div style="font-size:13px;color:${aiWon ? '#2ecc71' : '#e74c3c'};font-weight:bold">${aiWon ? 'Угадал' : 'Мимо'}</div>
+              <div style="font-size:11px;color:var(--text)">${aiNameShort(battleOpponent)}</div>
+              <div style="font-size:13px;color:${aiWon ? '#2ecc71' : '#e74c3c'};font-weight:bold">${aiWon ? ((window.i18n && i18n.t && i18n.t('intuition.guessed')) || 'Угадал') : ((window.i18n && i18n.t && i18n.t('intuition.missed')) || 'Мимо')}</div>
             </div>
           </div>
           <div style="text-align:center;font-size:16px;color:${battleColor};font-weight:bold">${battleResult}</div>
-          ${aiChoice !== null ? `<div style="text-align:center;font-size:10px;color:var(--text-muted);margin-top:4px">${ai.icon} выбрал карту ${aiChoice + 1}: ${aiCardName}</div>` : ''}
+          ${aiChoice !== null ? `<div style="text-align:center;font-size:10px;color:var(--text-muted);margin-top:4px">${ai.icon} ${((window.i18n && i18n.t && i18n.t('intuition.ai_picked_card', { i: aiChoice + 1, name: aiCardName })) || ('выбрал карту ' + (aiChoice + 1) + ': ' + aiCardName))}</div>` : ''}
         </div>
       `;
     }
@@ -1080,22 +1118,22 @@ const IntuitionGame = (function() {
       <div style="text-align:center;margin-top:20px">
         <div style="font-size:28px;margin-bottom:8px">${hitDebuff ? '&#128165;' : won ? '&#127881;' : '&#128148;'}</div>
         <div style="font-size:16px;color:${won ? '#2ecc71' : '#e74c3c'};margin-bottom:6px">
-          ${hitDebuff ? 'Карта Тени! Результат обнулён' : won ? (currentMode === 'multi' ? `Найдено ${targetsFound}/${totalTargets}!` : 'Интуиция работает!') : 'Не в этот раз...'}
+          ${hitDebuff ? ((window.i18n && i18n.t && i18n.t('intuition.result_shadow')) || 'Карта Тени! Результат обнулён') : won ? (currentMode === 'multi' ? (((window.i18n && i18n.t && i18n.t('intuition.result_found', { i: targetsFound, n: totalTargets })) || ('Найдено ' + targetsFound + '/' + totalTargets + '!'))) : ((window.i18n && i18n.t && i18n.t('intuition.result_intuition_works')) || 'Интуиция работает!')) : ((window.i18n && i18n.t && i18n.t('intuition.result_not_this_time')) || 'Не в этот раз...')}
         </div>
         ${won ? `
-          ${stats._lastWin > 0 ? `<div style="font-size:14px;color:#D4AF37;margin-bottom:4px">+${stats._lastWin} &#128142; ${hitBuff ? '(Карта Света x2!)' : ''}</div>` : ''}
-          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-bottom:4px">&#127942; +${stats._lastPoints} очков в рейтинг</div>` : ''}
-          ${stats.streak > 1 ? `<div style="font-size:13px;color:#D4AF37">&#128293; Серия: ${stats.streak}</div>` : ''}
+          ${stats._lastWin > 0 ? `<div style="font-size:14px;color:#D4AF37;margin-bottom:4px">+${stats._lastWin} &#128142; ${hitBuff ? ('(' + ((window.i18n && i18n.t && i18n.t('intuition.light_card_x2_note')) || 'Карта Света x2!') + ')') : ''}</div>` : ''}
+          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-bottom:4px">&#127942; ${((window.i18n && i18n.t && i18n.t('intuition.points_to_rating', { n: stats._lastPoints })) || ('+' + stats._lastPoints + ' очков в рейтинг'))}</div>` : ''}
+          ${stats.streak > 1 ? `<div style="font-size:13px;color:#D4AF37">&#128293; ${((window.i18n && i18n.t && i18n.t('intuition.streak_label', { n: stats.streak })) || ('Серия: ' + stats.streak))}</div>` : ''}
         ` : `
           <div style="font-size:12px;color:var(--text-dim)">
-            ${currentMode === 'classic' ? 'Правильный ответ: карта ' + (cards.findIndex(c => c.type === 'target') + 1) : 'Попробуй ещё!'}
+            ${currentMode === 'classic' ? (((window.i18n && i18n.t && i18n.t('intuition.correct_answer_card', { n: (cards.findIndex(c => c.type === 'target') + 1) })) || ('Правильный ответ: карта ' + (cards.findIndex(c => c.type === 'target') + 1)))) : ((window.i18n && i18n.t && i18n.t('intuition.try_again')) || 'Попробуй ещё!')}
           </div>
-          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-top:6px">&#127942; +${stats._lastPoints} очков за участие</div>` : ''}
+          ${stats._lastPoints > 0 ? `<div style="font-size:13px;color:#D4AF37;margin-top:6px">&#127942; ${((window.i18n && i18n.t && i18n.t('intuition.points_for_participation', { n: stats._lastPoints })) || ('+' + stats._lastPoints + ' очков за участие'))}</div>` : ''}
         `}
         ${battleBlock}
         <div style="display:flex;gap:8px;margin-top:16px;justify-content:center">
-          <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:0" onclick="IntuitionGame.startGame()">&#128260; Ещё раз</button>
-          <button class="btn btn-ghost" style="width:auto;padding:10px 20px;margin:0" onclick="IntuitionGame.render()">&#128200; Меню</button>
+          <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:0" onclick="IntuitionGame.startGame()">&#128260; ${((window.i18n && i18n.t && i18n.t('intuition.play_again')) || 'Ещё раз')}</button>
+          <button class="btn btn-ghost" style="width:auto;padding:10px 20px;margin:0" onclick="IntuitionGame.render()">&#128200; ${((window.i18n && i18n.t && i18n.t('intuition.menu')) || 'Меню')}</button>
         </div>
       </div>
     `;

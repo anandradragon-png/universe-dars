@@ -197,7 +197,7 @@ const BookReader = (function() {
         <div style="padding:24px 16px">
           <div style="text-align:center;margin-bottom:20px">
             <div style="font-size:32px;margin-bottom:10px;opacity:0.6">&#128214;</div>
-            <div style="font-size:13px;color:var(--text-dim)">Загружаем Книгу Даров...</div>
+            <div style="font-size:13px;color:var(--text-dim)">${((window.i18n && i18n.t && i18n.t('book.loading')) || 'Загружаем Книгу Даров...')}</div>
           </div>
           <div class="skeleton-card">
             <div class="skeleton skeleton-title"></div>
@@ -226,14 +226,14 @@ const BookReader = (function() {
       <div style="padding:16px 16px 0">
         <div style="text-align:center;margin-bottom:12px">
           <div style="font-size:26px;margin-bottom:6px">&#128214;</div>
-          <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">КНИГА ДАРОВ</div>
-          <div style="font-size:12px;color:var(--text-dim)">${bookData.version || ''} &bull; ${totalChapters} глав</div>
+          <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">${((window.i18n && i18n.t && i18n.t('book.title')) || 'КНИГА ДАРОВ')}</div>
+          <div style="font-size:12px;color:var(--text-dim)">${bookData.version || ''} &bull; ${((window.i18n && i18n.t && i18n.t('book.chapters_count', { n: totalChapters })) || (totalChapters + ' глав'))}</div>
         </div>
 
         <!-- Прогресс чтения -->
         <div id="book-progress-block" style="margin-bottom:12px">
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-dim);margin-bottom:4px">
-            <span>&#128218; Прочитано глав</span>
+            <span>&#128218; ${((window.i18n && i18n.t && i18n.t('book.read_chapters')) || 'Прочитано глав')}</span>
             <span id="book-progress-text"><b style="color:#D4AF37">${progress.count}</b> / ${progress.total}</span>
           </div>
           <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden">
@@ -243,21 +243,21 @@ const BookReader = (function() {
 
         ${!hasFullAccess() ? `
           <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:12px;margin-bottom:12px;text-align:center">
-            <div style="font-size:13px;color:#D4AF37;margin-bottom:4px">&#128142; Превью: первые ${freeChapters} глав бесплатно</div>
-            <div style="font-size:11px;color:var(--text-dim);line-height:1.4">Для полного доступа введите промо-код или оформите подписку</div>
+            <div style="font-size:13px;color:#D4AF37;margin-bottom:4px">&#128142; ${((window.i18n && i18n.t && i18n.t('book.preview_free', { n: freeChapters })) || ('Превью: первые ' + freeChapters + ' глав бесплатно'))}</div>
+            <div style="font-size:11px;color:var(--text-dim);line-height:1.4">${((window.i18n && i18n.t && i18n.t('book.preview_hint')) || 'Для полного доступа введите промо-код или оформите подписку')}</div>
           </div>
         ` : `
           <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:14px;padding:10px;margin-bottom:12px;text-align:center">
-            <div style="font-size:13px;color:#2ecc71">&#10003; Полный доступ</div>
+            <div style="font-size:13px;color:#2ecc71">&#10003; ${((window.i18n && i18n.t && i18n.t('book.full_access')) || 'Полный доступ')}</div>
           </div>
         `}
 
         <!-- Панель кнопок -->
         <div style="display:flex;gap:6px;margin-bottom:8px">
-          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleTOC()">&#128220; Главы</button>
-          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleSearch()">&#128269; Поиск</button>
-          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleBookmarks()">&#11088; Закладки</button>
-          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleSettings()">&#9881; Настройки</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleTOC()">&#128220; ${((window.i18n && i18n.t && i18n.t('book.btn_chapters')) || 'Главы')}</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleSearch()">&#128269; ${((window.i18n && i18n.t && i18n.t('book.btn_search')) || 'Поиск')}</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleBookmarks()">&#11088; ${((window.i18n && i18n.t && i18n.t('book.btn_bookmarks')) || 'Закладки')}</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;font-size:11px;padding:10px 4px" onclick="BookReader.toggleSettings()">&#9881; ${((window.i18n && i18n.t && i18n.t('book.btn_settings')) || 'Настройки')}</button>
         </div>
         <!-- Доп. панель: к странице / заметка / поделиться.
              Фикс наложения (тестер 25.05.2026): grid 4 колонки —
@@ -268,9 +268,9 @@ const BookReader = (function() {
             style="width:100%;padding:8px;background:rgba(255,255,255,0.06);border:1px solid var(--border,rgba(255,255,255,0.15));border-radius:8px;color:var(--text,#fff);font-size:12px;text-align:center;outline:none;font-family:Manrope,sans-serif;min-width:0"
             onkeydown="if(event.key==='Enter'){BookReader.gotoPage(this.value);this.value=''}">
           <button class="btn btn-ghost" style="margin:0;font-size:14px;padding:8px 10px;min-width:36px"
-            onclick="var v=document.getElementById('book-goto-input').value;BookReader.gotoPage(v);document.getElementById('book-goto-input').value=''" title="Перейти к главе">&#8594;</button>
-          <button class="btn btn-ghost" style="margin:0;font-size:14px;padding:8px 10px;min-width:36px" onclick="BookReader.toggleNote()" title="Заметка к главе">&#9999;&#65039;</button>
-          <button class="btn btn-ghost" style="margin:0;font-size:14px;padding:8px 10px;min-width:36px" onclick="BookReader.shareChapter()" title="Поделиться главой">&#128279;</button>
+            onclick="var v=document.getElementById('book-goto-input').value;BookReader.gotoPage(v);document.getElementById('book-goto-input').value=''" title="${((window.i18n && i18n.t && i18n.t('book.goto_chapter')) || 'Перейти к главе')}">&#8594;</button>
+          <button class="btn btn-ghost" style="margin:0;font-size:14px;padding:8px 10px;min-width:36px" onclick="BookReader.toggleNote()" title="${((window.i18n && i18n.t && i18n.t('book.note_chapter')) || 'Заметка к главе')}">&#9999;&#65039;</button>
+          <button class="btn btn-ghost" style="margin:0;font-size:14px;padding:8px 10px;min-width:36px" onclick="BookReader.shareChapter()" title="${((window.i18n && i18n.t && i18n.t('book.share_chapter')) || 'Поделиться главой')}">&#128279;</button>
         </div>
       </div>
 
@@ -300,30 +300,30 @@ const BookReader = (function() {
 
       <!-- Навигация. На последней главе кнопка "Вперёд" превращается в "В начало" -->
       <div id="book-nav" style="display:flex;gap:10px;padding:8px 16px 20px;align-items:center;justify-content:center">
-        <button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.prevChapter()">&#8592; Назад</button>
+        <button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.prevChapter()">&#8592; ${((window.i18n && i18n.t && i18n.t('book.nav_back')) || 'Назад')}</button>
         <div id="book-pos" style="text-align:center;min-width:100px;font-size:12px;color:var(--text-muted)"></div>
         ${(function(){
           const currG = globalIndex(currentPartIdx, currentChapterIdx);
           const isLast = currG >= totalChapters - 1;
           return isLast
-            ? '<button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.goTo(0,0)">&uarr; В начало</button>'
-            : '<button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.nextChapter()">Вперёд &#8594;</button>';
+            ? '<button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.goTo(0,0)">&uarr; ' + ((window.i18n && i18n.t && i18n.t('book.nav_to_start')) || 'В начало') + '</button>'
+            : '<button class="btn btn-ghost" style="width:auto;padding:10px 14px;margin:0" onclick="BookReader.nextChapter()">' + ((window.i18n && i18n.t && i18n.t('book.nav_forward')) || 'Вперёд') + ' &#8594;</button>';
         })()}
       </div>
 
       ${!hasFullAccess() ? `
         <div style="padding:0 16px 20px">
           <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;text-align:center">
-            <div style="font-size:14px;color:var(--text);margin-bottom:6px">&#128273; Читать дальше — Открыть полный доступ</div>
-            <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px">94 главы Книги Даров + дизайнерская PDF. Разовая покупка, навсегда.</div>
-            <button onclick="if(typeof openTariffsPage==='function')openTariffsPage()" style="width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#b8860b);color:#080808;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.25);margin-bottom:8px">&#128142; Открыть все тарифы</button>
-            <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:8px">&#11088; Купить Книгу — 990 ₽ / 500 ⭐</button>
-            <button onclick="if(typeof buyWithDarai==='function')buyWithDarai()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(46,204,113,0.5);background:rgba(46,204,113,0.1);color:#2ecc71;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:10px">&#128293; Оплатить в DarAI (44M)</button>
-            <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Или оформи подписку «Мастер» / «Хранитель» для полного доступа ко всем функциям</div>
+            <div style="font-size:14px;color:var(--text);margin-bottom:6px">&#128273; ${((window.i18n && i18n.t && i18n.t('book.unlock_title')) || 'Читать дальше — Открыть полный доступ')}</div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px">${((window.i18n && i18n.t && i18n.t('book.unlock_desc')) || '94 главы Книги Даров + дизайнерская PDF. Разовая покупка, навсегда.')}</div>
+            <button onclick="if(typeof openTariffsPage==='function')openTariffsPage()" style="width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#b8860b);color:#080808;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.25);margin-bottom:8px">&#128142; ${((window.i18n && i18n.t && i18n.t('book.open_all_tariffs')) || 'Открыть все тарифы')}</button>
+            <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:8px">&#11088; ${((window.i18n && i18n.t && i18n.t('book.buy_book')) || 'Купить Книгу — 990 ₽ / 500 ⭐')}</button>
+            <button onclick="if(typeof buyWithDarai==='function')buyWithDarai()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(46,204,113,0.5);background:rgba(46,204,113,0.1);color:#2ecc71;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:10px">&#128293; ${((window.i18n && i18n.t && i18n.t('book.pay_darai')) || 'Оплатить в DarAI (44M)')}</button>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">${((window.i18n && i18n.t && i18n.t('book.subscribe_hint')) || 'Или оформи подписку «Мастер» / «Хранитель» для полного доступа ко всем функциям')}</div>
             <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px">
-              <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Есть промо-код?</div>
+              <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">${((window.i18n && i18n.t && i18n.t('book.have_promo')) || 'Есть промо-код?')}</div>
               <div style="display:flex;gap:6px;justify-content:center">
-                <input id="book-promo-input" type="text" placeholder="Промо-код"
+                <input id="book-promo-input" type="text" placeholder="${((window.i18n && i18n.t && i18n.t('book.promo_placeholder')) || 'Промо-код')}"
                   style="width:140px;padding:8px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;text-align:center;text-transform:uppercase;outline:none;font-family:Manrope,sans-serif"/>
                 <button style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif" onclick="BookReader.submitPromo()">OK</button>
               </div>
@@ -367,10 +367,10 @@ const BookReader = (function() {
       wrap.innerHTML = `
         <div style="text-align:center;padding:30px 10px">
           <div style="font-size:42px;margin-bottom:12px">&#128274;</div>
-          <div style="font-size:17px;margin-bottom:8px">Эта глава доступна в полной версии</div>
+          <div style="font-size:17px;margin-bottom:8px">${((window.i18n && i18n.t && i18n.t('book.locked_chapter_title')) || 'Эта глава доступна в полной версии')}</div>
           <div style="font-size:13px;opacity:0.7;line-height:1.6">
-            Ты прочитал${readEnd} ${freeChapters} ${glavPlural(freeChapters)} бесплатно.<br>
-            Введи промо-код, чтобы открыть ещё ${remaining} ${glavPlural(remaining)}.
+            ${((window.i18n && i18n.t && i18n.t('book.locked_read_free', { n: freeChapters })) || ('Ты прочитал' + readEnd + ' ' + freeChapters + ' ' + glavPlural(freeChapters) + ' бесплатно.'))}<br>
+            ${((window.i18n && i18n.t && i18n.t('book.locked_unlock_more', { n: remaining })) || ('Введи промо-код, чтобы открыть ещё ' + remaining + ' ' + glavPlural(remaining) + '.'))}
           </div>
         </div>
       `;
@@ -403,13 +403,13 @@ const BookReader = (function() {
       return '<span class="copyable-card-number" data-number="' + bare + '" ' +
         'onclick="BookReader.copyCardNumber(this)" ' +
         'style="display:inline-block;cursor:pointer;padding:2px 8px;border-radius:6px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.35);color:#D4AF37;font-weight:600;letter-spacing:1px;user-select:all" ' +
-        'title="Нажми чтобы скопировать">' + shown + '</span>';
+        'title="' + ((window.i18n && i18n.t && i18n.t('book.tap_to_copy')) || 'Нажми чтобы скопировать') + '">' + shown + '</span>';
     });
 
     // Звёздочка закладки
     const bookmarked = isBookmarked(currentPartIdx, currentChapterIdx);
     const starIcon = bookmarked ? '&#11088;' : '&#9734;'; // ⭐ / ☆
-    const starTitle = bookmarked ? 'Убрать из закладок' : 'Добавить в закладки';
+    const starTitle = bookmarked ? ((window.i18n && i18n.t && i18n.t('book.remove_bookmark')) || 'Убрать из закладок') : ((window.i18n && i18n.t && i18n.t('book.add_bookmark')) || 'Добавить в закладки');
     const starBtn = `
       <button onclick="BookReader.toggleBookmark()" title="${starTitle}"
         style="background:none;border:none;cursor:pointer;font-size:22px;padding:4px 8px;color:${bookmarked ? '#D4AF37' : 'inherit'};opacity:${bookmarked ? '1' : '0.5'}">
@@ -441,7 +441,7 @@ const BookReader = (function() {
       headerHtml = `
         <div style="text-align:center;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid rgba(212,175,55,0.25);position:relative">
           <div style="position:absolute;top:-4px;right:-6px">${starBtn}</div>
-          <div style="font-size:12px;opacity:0.6;letter-spacing:2px;margin-bottom:4px">ДАР &bull; ${ch.dar_code}</div>
+          <div style="font-size:12px;opacity:0.6;letter-spacing:2px;margin-bottom:4px">${((window.i18n && i18n.t && i18n.t('book.dar_label')) || 'ДАР')} &bull; ${ch.dar_code}</div>
           <div style="font-size:26px;letter-spacing:3px;color:#D4AF37">${ch.dar_name}</div>
           ${archetypeHtml}
         </div>
@@ -485,8 +485,8 @@ const BookReader = (function() {
     if (ch.kind !== 'dar') return '';
     return `
       <a href="${YUPSOUL_URL}" target="_blank" rel="noopener" style="text-decoration:none;display:block;margin:24px 0 0;padding:14px;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.15));border:1px solid rgba(212,175,55,0.35);border-radius:14px;text-align:center;color:inherit">
-        <div style="font-size:15px;color:#D4AF37;margin-bottom:4px">&#127925; Узнай, как звучит твоя Душа</div>
-        <div style="font-size:12px;opacity:0.75">Персональная музыка по дате рождения &bull; YupSoul</div>
+        <div style="font-size:15px;color:#D4AF37;margin-bottom:4px">&#127925; ${((window.i18n && i18n.t && i18n.t('book.yupsoul_title')) || 'Узнай, как звучит твоя Душа')}</div>
+        <div style="font-size:12px;opacity:0.75">${((window.i18n && i18n.t && i18n.t('book.yupsoul_desc')) || 'Персональная музыка по дате рождения')} &bull; YupSoul</div>
       </a>
     `;
   }
@@ -497,12 +497,12 @@ const BookReader = (function() {
     return `
       <div style="margin:24px 0 0;padding:16px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:14px;text-align:center">
         <div style="font-size:13px;color:#D4AF37;margin-bottom:10px;line-height:1.5">
-          Хочешь не только прочитать, но и пройти алхимию этого дара?
+          ${((window.i18n && i18n.t && i18n.t('book.treasury_prompt')) || 'Хочешь не только прочитать, но и пройти алхимию этого дара?')}
         </div>
         <button onclick="BookReader.openInTreasury('${ch.dar_code}')"
           style="padding:12px 18px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(212,175,55,0.15));color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;display:inline-flex;align-items:center;gap:8px">
           <span style="font-size:16px">&#128302;</span>
-          <span>Открыть квесты в Сокровищнице</span>
+          <span>${((window.i18n && i18n.t && i18n.t('book.treasury_open_quests')) || 'Открыть квесты в Сокровищнице')}</span>
         </button>
       </div>
     `;
@@ -540,10 +540,10 @@ const BookReader = (function() {
         const isLast = currG >= totalChapters - 1;
         if (isLast) {
           nextBtn.setAttribute('onclick', 'BookReader.goTo(0,0)');
-          nextBtn.innerHTML = '&uarr; В начало';
+          nextBtn.innerHTML = '&uarr; ' + ((window.i18n && i18n.t && i18n.t('book.nav_to_start')) || 'В начало');
         } else {
           nextBtn.setAttribute('onclick', 'BookReader.nextChapter()');
-          nextBtn.innerHTML = 'Вперёд &#8594;';
+          nextBtn.innerHTML = ((window.i18n && i18n.t && i18n.t('book.nav_forward')) || 'Вперёд') + ' &#8594;';
         }
       }
     }
@@ -637,7 +637,7 @@ const BookReader = (function() {
         const read = isChapterRead(pIdx, cIdx);
         const isDar = ch.kind === 'dar';
         const darLabel = isDar ? `<span style="color:#D4AF37;font-size:11px;margin-right:6px">&#10022;</span>` : '';
-        const readMark = read && !locked ? '<span style="color:#2ecc71;font-size:12px;margin-left:4px" title="Прочитано">&#10003;</span>' : '';
+        const readMark = read && !locked ? '<span style="color:#2ecc71;font-size:12px;margin-left:4px" title="' + ((window.i18n && i18n.t && i18n.t('book.read_mark')) || 'Прочитано') + '">&#10003;</span>' : '';
         const titleShort = ch.title.length > 70 ? ch.title.slice(0, 70) + '...' : ch.title;
         html += `
           <div onclick="${locked ? 'BookReader.showLocked()' : `BookReader.goTo(${pIdx},${cIdx})`}"
@@ -769,7 +769,7 @@ const BookReader = (function() {
     panel.innerHTML = `
       <div style="background:var(--card,rgba(255,255,255,0.04));border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:14px;padding:12px">
         <div style="display:flex;gap:6px;margin-bottom:10px">
-          <input id="book-search-input" type="text" placeholder="Слово или фраза..." value="${escapeHtml(q)}"
+          <input id="book-search-input" type="text" placeholder="${((window.i18n && i18n.t && i18n.t('book.search_placeholder')) || 'Слово или фраза...')}" value="${escapeHtml(q)}"
             oninput="BookReader.runSearch(this.value)"
             style="flex:1;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;outline:none">
         </div>
@@ -787,15 +787,16 @@ const BookReader = (function() {
       if (!container) return;
       const q = (query || '').trim();
       if (q.length < 2) {
-        container.innerHTML = '<div style="text-align:center;padding:14px;font-size:12px;color:var(--text-dim);font-style:italic">Введи хотя бы 2 символа</div>';
+        container.innerHTML = '<div style="text-align:center;padding:14px;font-size:12px;color:var(--text-dim);font-style:italic">' + ((window.i18n && i18n.t && i18n.t('book.search_min_chars')) || 'Введи хотя бы 2 символа') + '</div>';
         return;
       }
       const results = searchBook(q);
       if (results.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:14px;font-size:12px;color:var(--text-dim);font-style:italic">Ничего не найдено по запросу «${escapeHtml(q)}»</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:14px;font-size:12px;color:var(--text-dim);font-style:italic">${((window.i18n && i18n.t && i18n.t('book.search_nothing', { q: escapeHtml(q) })) || ('Ничего не найдено по запросу «' + escapeHtml(q) + '»'))}</div>`;
         return;
       }
-      let html = `<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;text-align:center">Найдено: <b style="color:#D4AF37">${results.length}</b>${results.length === 50 ? ' (показаны первые 50)' : ''}</div>`;
+      const foundCount = `<b style="color:#D4AF37">${results.length}</b>`;
+      let html = `<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;text-align:center">${((window.i18n && i18n.t && i18n.t('book.search_found', { n: foundCount })) || ('Найдено: ' + foundCount))}${results.length === 50 ? ((window.i18n && i18n.t && i18n.t('book.search_first50')) || ' (показаны первые 50)') : ''}</div>`;
       html += '<div style="max-height:50vh;overflow-y:auto">';
       for (const r of results) {
         const isDar = r.kind === 'dar';
@@ -846,9 +847,9 @@ const BookReader = (function() {
       panel.innerHTML = `
         <div style="background:var(--card,rgba(255,255,255,0.04));border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:14px;padding:24px 16px;text-align:center">
           <div style="font-size:32px;margin-bottom:8px;opacity:0.5">&#11088;</div>
-          <div style="font-size:14px;color:var(--text);margin-bottom:6px">Пока нет закладок</div>
+          <div style="font-size:14px;color:var(--text);margin-bottom:6px">${((window.i18n && i18n.t && i18n.t('book.bookmarks_empty')) || 'Пока нет закладок')}</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5">
-            Нажми на звёздочку возле заголовка главы, чтобы сохранить её сюда
+            ${((window.i18n && i18n.t && i18n.t('book.bookmarks_empty_hint')) || 'Нажми на звёздочку возле заголовка главы, чтобы сохранить её сюда')}
           </div>
         </div>
       `;
@@ -858,14 +859,14 @@ const BookReader = (function() {
     let html = `
       <div style="background:var(--card,rgba(255,255,255,0.04));border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:14px;padding:12px;max-height:60vh;overflow-y:auto">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px 10px;border-bottom:1px solid rgba(212,175,55,0.2);margin-bottom:8px">
-          <div style="font-size:13px;letter-spacing:1px;color:#D4AF37">&#11088; МОИ ЗАКЛАДКИ (${list.length})</div>
-          <button onclick="BookReader.clearBookmarks()" style="background:none;border:none;font-size:11px;color:var(--text-dim);cursor:pointer">Очистить все</button>
+          <div style="font-size:13px;letter-spacing:1px;color:#D4AF37">&#11088; ${((window.i18n && i18n.t && i18n.t('book.bookmarks_my', { n: list.length })) || ('МОИ ЗАКЛАДКИ (' + list.length + ')'))}</div>
+          <button onclick="BookReader.clearBookmarks()" style="background:none;border:none;font-size:11px;color:var(--text-dim);cursor:pointer">${((window.i18n && i18n.t && i18n.t('book.bookmarks_clear_all')) || 'Очистить все')}</button>
         </div>
     `;
 
     list.forEach(b => {
       const titleShort = b.title.length > 70 ? b.title.slice(0, 70) + '...' : b.title;
-      const subtitle = b.dar_name ? `Дар ${b.dar_name} &bull; ${b.dar_code}` : (b.partTitle || '');
+      const subtitle = b.dar_name ? `${((window.i18n && i18n.t && i18n.t('book.dar_word')) || 'Дар')} ${b.dar_name} &bull; ${b.dar_code}` : (b.partTitle || '');
       html += `
         <div style="display:flex;align-items:center;gap:8px;padding:10px 6px;border-radius:8px;border-bottom:1px solid rgba(255,255,255,0.04)">
           <div style="flex:1;cursor:pointer" onclick="BookReader.goTo(${b.partIdx},${b.chapterIdx})">
@@ -873,7 +874,7 @@ const BookReader = (function() {
             <div style="font-size:11px;color:var(--text-dim)">${subtitle}</div>
           </div>
           <button onclick="event.stopPropagation();BookReader.removeBookmark(${b.partIdx},${b.chapterIdx})"
-            title="Убрать" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:4px 8px">&#10005;</button>
+            title="${((window.i18n && i18n.t && i18n.t('book.remove')) || 'Убрать')}" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:4px 8px">&#10005;</button>
         </div>
       `;
     });
@@ -905,18 +906,18 @@ const BookReader = (function() {
 
     panel.innerHTML = `
       <div style="background:var(--card,rgba(255,255,255,0.04));border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:14px;padding:14px">
-        <div style="font-size:12px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px">РАЗМЕР ШРИФТА</div>
+        <div style="font-size:12px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px">${((window.i18n && i18n.t && i18n.t('book.font_size')) || 'РАЗМЕР ШРИФТА')}</div>
         <div style="display:flex;gap:6px;margin-bottom:16px">
           <button class="btn btn-ghost" style="flex:1;margin:0;padding:8px;font-size:12px" onclick="BookReader.setFontSize(14)">A-</button>
           <button class="btn btn-ghost" style="flex:1;margin:0;padding:8px;font-size:14px" onclick="BookReader.setFontSize(16)">A</button>
           <button class="btn btn-ghost" style="flex:1;margin:0;padding:8px;font-size:16px" onclick="BookReader.setFontSize(18)">A+</button>
           <button class="btn btn-ghost" style="flex:1;margin:0;padding:8px;font-size:18px" onclick="BookReader.setFontSize(20)">A++</button>
         </div>
-        <div style="font-size:12px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px">ТЕМА</div>
+        <div style="font-size:12px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px">${((window.i18n && i18n.t && i18n.t('book.theme')) || 'ТЕМА')}</div>
         <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost" style="flex:1;margin:0;padding:10px;font-size:12px" onclick="BookReader.setTheme('dark')">&#127769; Тёмная</button>
-          <button class="btn btn-ghost" style="flex:1;margin:0;padding:10px;font-size:12px;background:#f4ecd8;color:#3a2f1a" onclick="BookReader.setTheme('sepia')">&#128196; Сепия</button>
-          <button class="btn btn-ghost" style="flex:1;margin:0;padding:10px;font-size:12px;background:#fff;color:#1a1a1a" onclick="BookReader.setTheme('light')">&#9728; Светлая</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;padding:10px;font-size:12px" onclick="BookReader.setTheme('dark')">&#127769; ${((window.i18n && i18n.t && i18n.t('book.theme_dark')) || 'Тёмная')}</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;padding:10px;font-size:12px;background:#f4ecd8;color:#3a2f1a" onclick="BookReader.setTheme('sepia')">&#128196; ${((window.i18n && i18n.t && i18n.t('book.theme_sepia')) || 'Сепия')}</button>
+          <button class="btn btn-ghost" style="flex:1;margin:0;padding:10px;font-size:12px;background:#fff;color:#1a1a1a" onclick="BookReader.setTheme('light')">&#9728; ${((window.i18n && i18n.t && i18n.t('book.theme_light')) || 'Светлая')}</button>
         </div>
       </div>
     `;
@@ -966,7 +967,7 @@ const BookReader = (function() {
     } catch(e) {
       const failMsg = e.message || (((window.i18n && i18n.t && i18n.t('book.promo_activation_failed')) || 'Не удалось активировать промо-код'));
       if (typeof showToast === 'function') showToast(failMsg, 'error');
-      else alert(e.message || 'Не удалось активировать промо-код');
+      else alert(e.message || ((window.i18n && i18n.t && i18n.t('book.promo_activation_failed')) || 'Не удалось активировать промо-код'));
     }
   }
 
@@ -976,7 +977,7 @@ const BookReader = (function() {
     const tg = window.Telegram?.WebApp;
     const onCopied = () => {
       const prev = el.innerHTML;
-      el.innerHTML = '\u2713 Скопировано';
+      el.innerHTML = '\u2713 ' + ((window.i18n && i18n.t && i18n.t('book.copied')) || 'Скопировано');
       el.style.background = 'rgba(46,204,113,0.15)';
       setTimeout(() => {
         el.innerHTML = prev;
@@ -1039,7 +1040,7 @@ const BookReader = (function() {
     // диапазона. Доступно: 1-0» (тестер 25.05.2026: «не работает» — было
     // именно это сообщение из-за гонки fetch /book-chapters.json).
     if (!bookData || !totalChapters) {
-      const msg = 'Подожди секунду — книга ещё загружается...';
+      const msg = ((window.i18n && i18n.t && i18n.t('book.still_loading')) || 'Подожди секунду — книга ещё загружается...');
       if (typeof showToast === 'function') showToast(msg, 'info');
       else alert(msg);
       return;
@@ -1066,8 +1067,8 @@ const BookReader = (function() {
     const ch = part && part.chapters[currentChapterIdx];
     if (!ch) return;
     const gIdx = globalIndex(currentPartIdx, currentChapterIdx) + 1;
-    const title = ch.dar_name ? ('\u0414\u0430\u0440 ' + ch.dar_name) : ch.title;
-    const text = '\ud83d\udcd6 \u0427\u0438\u0442\u0430\u044e \u00ab\u041a\u043d\u0438\u0433\u0443 \u0414\u0430\u0440\u043e\u0432\u00bb \u2014 ' + title + ' (\u0433\u043b\u0430\u0432\u0430 ' + gIdx + '/' + totalChapters + ')';
+    const title = ch.dar_name ? (((window.i18n && i18n.t && i18n.t('book.dar_word')) || '\u0414\u0430\u0440') + ' ' + ch.dar_name) : ch.title;
+    const text = '\ud83d\udcd6 ' + ((window.i18n && i18n.t && i18n.t('book.share_text', { title: title, n: gIdx, total: totalChapters })) || ('\u0427\u0438\u0442\u0430\u044e \u00ab\u041a\u043d\u0438\u0433\u0443 \u0414\u0430\u0440\u043e\u0432\u00bb \u2014 ' + title + ' (\u0433\u043b\u0430\u0432\u0430 ' + gIdx + '/' + totalChapters + ')'));
     const url = 'https://t.me/YupDarBot?start=book_' + gIdx;
     const shareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text);
     const tg = window.Telegram && window.Telegram.WebApp;

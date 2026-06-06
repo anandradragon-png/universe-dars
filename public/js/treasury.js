@@ -223,27 +223,27 @@ const Treasury = (function() {
     const completedCount = Math.min(getUnlockedSections(code), totalQuests);
 
     let html = `
-      <button class="btn-back" style="display:block" onclick="Treasury.render()">&#8592; Сокровищница</button>
+      <button class="btn-back" style="display:block" onclick="Treasury.render()">&#8592; ${_t('treasury.back_to_treasury', 'Сокровищница')}</button>
       <div style="text-align:center;margin:16px 0 20px">
         <div style="font-size:22px;letter-spacing:2px;color:var(--text);margin-bottom:4px">${name}</div>
         ${arch ? `<div style="font-size:13px;color:#D4AF37;font-style:italic;margin-bottom:8px">${arch}</div>` : ''}
-        <div style="font-size:12px;color:#D4AF37;letter-spacing:1px">Раскрыто: ${completedCount} из ${totalQuests || '?'}</div>
+        <div style="font-size:12px;color:#D4AF37;letter-spacing:1px">${_t('treasury.revealed_count', `Раскрыто: ${completedCount} из ${totalQuests || '?'}`, { done: completedCount, total: totalQuests || '?' })}</div>
       </div>
 
       <!-- Кнопка "Подробнее в книге" -->
       <button onclick="Treasury.openInBook('${code}')" style="width:100%;padding:12px;border-radius:14px;border:1px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.12));color:var(--text);font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span style="font-size:18px">&#128214;</span>
-        <span>Подробнее в Книге Даров</span>
+        <span>${_t('treasury.read_more_in_book', 'Подробнее в Книге Даров')}</span>
       </button>
 
       <div style="background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(212,175,55,0.06));border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:14px;margin-bottom:16px">
-        <div style="font-size:12px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600">&#10024; Алхимия дара</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6">Начни с сути дара, пройди через каждую его грань, и заверши медитацией активации. Так сила дара раскроется в тебе полностью.</div>
+        <div style="font-size:12px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600">&#10024; ${_t('treasury.alchemy_title', 'Алхимия дара')}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6">${_t('treasury.alchemy_desc', 'Начни с сути дара, пройди через каждую его грань, и заверши медитацией активации. Так сила дара раскроется в тебе полностью.')}</div>
       </div>
     `;
 
     if (!totalQuests) {
-      html += `<div style="text-align:center;color:var(--text-muted);padding:30px 20px;font-size:13px">Алхимия этого дара пока не раскрыта.</div>`;
+      html += `<div style="text-align:center;color:var(--text-muted);padding:30px 20px;font-size:13px">${_t('treasury.alchemy_not_revealed', 'Алхимия этого дара пока не раскрыта.')}</div>`;
       container.innerHTML = html;
       return;
     }
@@ -260,19 +260,19 @@ const Treasury = (function() {
         html += `
           <div class="dar-section-item dar-section-unlocked" onclick="Treasury.openEssenceQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:4px;padding:14px;background:rgba(212,175,55,0.08);border-color:rgba(212,175,55,0.3)">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#127775; Суть дара</span>
+              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#127775; ${_t('treasury.essence_title', 'Суть дара')}</span>
               <span style="color:#2ecc71;font-size:16px">&#10003;</span>
             </div>
-            <div style="font-size:11px;color:var(--text-dim);font-style:italic">Суть узнана - перечитать</div>
+            <div style="font-size:11px;color:var(--text-dim);font-style:italic">${_t('treasury.essence_done_reread', 'Суть узнана - перечитать')}</div>
           </div>`;
       } else if (isEssNext) {
         html += `
           <div class="dar-section-item dar-section-next" onclick="Treasury.openEssenceQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:6px;padding:14px;background:rgba(212,175,55,0.06);border-color:rgba(212,175,55,0.3)">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#127775; Суть дара</span>
-              <span style="color:#D4AF37;font-size:12px">Узнать &rarr;</span>
+              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#127775; ${_t('treasury.essence_title', 'Суть дара')}</span>
+              <span style="color:#D4AF37;font-size:12px">${_t('treasury.learn_arrow', 'Узнать')} &rarr;</span>
             </div>
-            <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Священная энергия дара и её проявление в твоей жизни.</div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${_t('treasury.essence_next_desc', 'Священная энергия дара и её проявление в твоей жизни.')}</div>
           </div>`;
       }
       // essence первый, locked случай невозможен
@@ -291,14 +291,14 @@ const Treasury = (function() {
               <span style="font-size:14px;color:var(--text)">&#10024; ${shadow.title}</span>
               <span style="color:#2ecc71;font-size:16px">&#10003;</span>
             </div>
-            <div style="font-size:11px;color:var(--text-dim);font-style:italic">Грань раскрыта - перечитать</div>
+            <div style="font-size:11px;color:var(--text-dim);font-style:italic">${_t('treasury.facet_done_reread', 'Грань раскрыта - перечитать')}</div>
           </div>`;
       } else if (isNext) {
         html += `
           <div class="dar-section-item dar-section-next" onclick="Treasury.openShadowQuest('${code}', ${idx})" style="flex-direction:column;align-items:flex-start;gap:6px;padding:14px">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
               <span style="font-size:14px;color:var(--text);font-weight:bold">&#10024; ${shadow.title}</span>
-              <span style="color:#D4AF37;font-size:12px">Раскрыть &rarr;</span>
+              <span style="color:#D4AF37;font-size:12px">${_t('treasury.reveal_arrow', 'Раскрыть')} &rarr;</span>
             </div>
             <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${shadow.description.slice(0, 120)}${shadow.description.length > 120 ? '...' : ''}</div>
           </div>`;
@@ -306,10 +306,10 @@ const Treasury = (function() {
         html += `
           <div class="dar-section-item dar-section-locked" style="flex-direction:column;align-items:flex-start;gap:4px;padding:14px">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-              <span style="font-size:14px;color:var(--text-muted)">&#128274; Грань ${idx - (hasEssence ? 1 : 0)}</span>
+              <span style="font-size:14px;color:var(--text-muted)">&#128274; ${_t('treasury.facet_label', `Грань ${idx - (hasEssence ? 1 : 0)}`, { n: idx - (hasEssence ? 1 : 0) })}</span>
               <span style="color:var(--text-muted)">&#128274;</span>
             </div>
-            <div style="font-size:11px;color:var(--text-muted);font-style:italic">Откроется после раскрытия предыдущей</div>
+            <div style="font-size:11px;color:var(--text-muted);font-style:italic">${_t('treasury.facet_locked_prev', 'Откроется после раскрытия предыдущей')}</div>
           </div>`;
       }
     });
@@ -324,28 +324,28 @@ const Treasury = (function() {
         html += `
           <div class="dar-section-item dar-section-unlocked" onclick="Treasury.openMeditationQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:4px;padding:14px;background:rgba(212,175,55,0.1);border-color:rgba(212,175,55,0.4)">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#129496; Медитация активации</span>
+              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#129496; ${_t('treasury.meditation_title', 'Медитация активации')}</span>
               <span style="color:#2ecc71;font-size:16px">&#10003;</span>
             </div>
-            <div style="font-size:11px;color:var(--text-dim);font-style:italic">Дар активирован - перечитать</div>
+            <div style="font-size:11px;color:var(--text-dim);font-style:italic">${_t('treasury.dar_activated_reread', 'Дар активирован - перечитать')}</div>
           </div>`;
       } else if (isMedNext) {
         html += `
           <div class="dar-section-item dar-section-next" onclick="Treasury.openMeditationQuest('${code}')" style="flex-direction:column;align-items:flex-start;gap:6px;padding:14px;background:rgba(212,175,55,0.08);border-color:rgba(212,175,55,0.4)">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#129496; Медитация активации дара</span>
-              <span style="color:#D4AF37;font-size:12px">Пройти &rarr;</span>
+              <span style="font-size:14px;color:#D4AF37;font-weight:bold">&#129496; ${_t('treasury.meditation_title_full', 'Медитация активации дара')}</span>
+              <span style="color:#D4AF37;font-size:12px">${_t('treasury.pass_arrow', 'Пройти')} &rarr;</span>
             </div>
-            <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Завершающий квест: погружение в суть дара через медитацию и телесную практику активации.</div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${_t('treasury.meditation_next_desc', 'Завершающий квест: погружение в суть дара через медитацию и телесную практику активации.')}</div>
           </div>`;
       } else {
         html += `
           <div class="dar-section-item dar-section-locked" style="flex-direction:column;align-items:flex-start;gap:4px;padding:14px">
             <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
-              <span style="font-size:14px;color:var(--text-muted)">&#128274; Медитация активации</span>
+              <span style="font-size:14px;color:var(--text-muted)">&#128274; ${_t('treasury.meditation_title', 'Медитация активации')}</span>
               <span style="color:var(--text-muted)">&#128274;</span>
             </div>
-            <div style="font-size:11px;color:var(--text-muted);font-style:italic">Откроется после раскрытия всех граней</div>
+            <div style="font-size:11px;color:var(--text-muted);font-style:italic">${_t('treasury.meditation_locked_facets', 'Откроется после раскрытия всех граней')}</div>
           </div>`;
       }
     }
@@ -360,14 +360,15 @@ const Treasury = (function() {
         const prof = JSON.parse(localStorage.getItem('_user_profile') || '{}');
         gender = prof.gender || '';
       } catch (e) {}
-      const pass = gender === 'male' ? 'прошёл' : gender === 'female' ? 'прошла' : 'прошёл(а)';
-      const act  = gender === 'male' ? 'активировал' : gender === 'female' ? 'активировала' : 'активировал(а)';
-      const opened = gender === 'male' ? 'раскрылась в тебе' : gender === 'female' ? 'раскрылась в тебе' : 'раскрылась в тебе';
+      const gsfx = gender === 'male' ? '_m' : gender === 'female' ? '_f' : '_n';
+      const pass = _t('treasury.gw_pass' + gsfx, gender === 'male' ? 'прошёл' : gender === 'female' ? 'прошла' : 'прошёл(а)');
+      const act  = _t('treasury.gw_act' + gsfx, gender === 'male' ? 'активировал' : gender === 'female' ? 'активировала' : 'активировал(а)');
+      const opened = _t('treasury.gw_opened', 'раскрылась в тебе');
       html += `
         <div style="margin-top:18px;padding:18px;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(212,175,55,0.1));border:1px solid rgba(212,175,55,0.5);border-radius:14px;text-align:center">
           <div style="font-size:36px;margin-bottom:8px">&#11088;</div>
-          <div style="font-size:15px;color:#D4AF37;margin-bottom:6px;letter-spacing:1px">Дар раскрыт и активирован</div>
-          <div style="font-size:12px;color:var(--text-dim);line-height:1.6">Ты ${pass} через все грани этого дара и ${act} его через медитацию. Его светлая сила ${opened}.</div>
+          <div style="font-size:15px;color:#D4AF37;margin-bottom:6px;letter-spacing:1px">${_t('treasury.dar_revealed_activated', 'Дар раскрыт и активирован')}</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.6">${_t('treasury.dar_revealed_activated_desc', `Ты ${pass} через все грани этого дара и ${act} его через медитацию. Его светлая сила ${opened}.`, { pass: pass, act: act, opened: opened })}</div>
         </div>`;
     }
 
@@ -416,7 +417,7 @@ const Treasury = (function() {
 
   function renderCoachBubble(text) {
     return `<div style="text-align:left;margin-bottom:12px">
-      <div style="font-size:10px;color:#D4AF37;margin-bottom:4px;margin-left:2px">&#128302; Наставник</div>
+      <div style="font-size:10px;color:#D4AF37;margin-bottom:4px;margin-left:2px">&#128302; ${_t('treasury.mentor', 'Наставник')}</div>
       <div style="display:inline-block;max-width:85%;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:14px 14px 14px 4px;padding:10px 14px;text-align:left;font-size:13px;color:var(--text);line-height:1.6;word-wrap:break-word">${escapeHtmlSimple(text)}</div>
     </div>`;
   }
@@ -453,17 +454,19 @@ const Treasury = (function() {
 
     // Блок чата с наставником
     html += `<div id="coach-dialogue-block" style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.3);border-radius:14px;padding:16px;margin-bottom:14px">
-      <div style="font-size:11px;color:#2ecc71;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;font-weight:bold">&#128151; Диалог с наставником</div>
+      <div style="font-size:11px;color:#2ecc71;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;font-weight:bold">&#128151; ${_t('treasury.dialogue_with_mentor', 'Диалог с наставником')}</div>
       <div id="coach-messages" style="max-height:400px;overflow-y:auto;margin-bottom:12px">`;
 
     if (dialogue.messages.length === 0) {
       // Приветствие наставника (формы глаголов по полу)
-      const felt = genderText('почувствовал', 'почувствовала');
+      const gsfx2 = getUserGender() === 'male' ? '_m' : '_f';
+      const felt = _t('treasury.gw_felt_pf' + gsfx2, genderText('почувствовал', 'почувствовала'));
+      const feltImpf = _t('treasury.gw_felt_impf' + gsfx2, genderText('чувствовал', 'чувствовала'));
       const greeting = config.questType === 'essence'
-        ? `Я с тобой. Поделись тем, что уже открывается в тебе об этом даре. Вспомни моменты, когда ты ${genderText('чувствовал', 'чувствовала')} эту силу. Расскажи своими словами.`
+        ? _t('treasury.greeting_essence', `Я с тобой. Поделись тем, что уже открывается в тебе об этом даре. Вспомни моменты, когда ты ${genderText('чувствовал', 'чувствовала')} эту силу. Расскажи своими словами.`, { felt: feltImpf })
         : config.questType === 'meditation'
-        ? `Я здесь. Расскажи, как прошла для тебя эта практика. Что ты ${felt} в теле, какие образы пришли, какое состояние осталось.`
-        : 'Я рядом. Прочитай описание этой грани и поделись: что отзывается, что узнаёшь в себе. Не спеши, говори своими словами.';
+        ? _t('treasury.greeting_meditation', `Я здесь. Расскажи, как прошла для тебя эта практика. Что ты ${felt} в теле, какие образы пришли, какое состояние осталось.`, { felt: felt })
+        : _t('treasury.greeting_shadow', 'Я рядом. Прочитай описание этой грани и поделись: что отзывается, что узнаёшь в себе. Не спеши, говори своими словами.');
       html += renderCoachBubble(greeting);
     } else {
       for (const msg of dialogue.messages) {
@@ -477,21 +480,21 @@ const Treasury = (function() {
     // Блок ввода или кнопки выбора
     if (isAlreadyCompleted) {
       html += `<div style="text-align:center;padding:14px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:10px;font-size:13px;color:#D4AF37">
-        &#10003; Этот квест уже пройден. Ты можешь перечитать диалог или <button onclick="Treasury.resetCoachDialogue('${code}', '${config.questType}', ${config.questIdx || 0})" style="background:none;border:none;color:#D4AF37;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:13px">начать новый</button>.
+        &#10003; ${_t('treasury.quest_already_done', 'Этот квест уже пройден. Ты можешь перечитать диалог или')} <button onclick="Treasury.resetCoachDialogue('${code}', '${config.questType}', ${config.questIdx || 0})" style="background:none;border:none;color:#D4AF37;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:13px">${_t('treasury.start_new', 'начать новый')}</button>.
       </div>`;
     } else if (dialogue.state === 'offered_close') {
-      const readyWord = genderText('Готов', 'Готова');
+      const readyWord = _t('treasury.gw_ready' + (getUserGender() === 'male' ? '_m' : '_f'), genderText('Готов', 'Готова'));
       html += `<div style="text-align:center;margin-top:10px">
-        <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;font-style:italic">Что выбираешь?</div>
-        <button class="btn btn-secondary" style="width:auto;padding:10px 18px;margin:4px" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">&#10003; ${readyWord} двигаться дальше</button>
-        <button class="btn btn-ghost" style="width:auto;padding:10px 18px;margin:4px" onclick="Treasury.coachContinue('${code}', '${config.questType}', ${config.questIdx || 0})">Хочу ещё побыть</button>
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;font-style:italic">${_t('treasury.what_choose', 'Что выбираешь?')}</div>
+        <button class="btn btn-secondary" style="width:auto;padding:10px 18px;margin:4px" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">&#10003; ${_t('treasury.ready_move_on', `${readyWord} двигаться дальше`, { ready: readyWord })}</button>
+        <button class="btn btn-ghost" style="width:auto;padding:10px 18px;margin:4px" onclick="Treasury.coachContinue('${code}', '${config.questType}', ${config.questIdx || 0})">${_t('treasury.want_stay_more', 'Хочу ещё побыть')}</button>
       </div>`;
     } else {
       const isFirstMsg = dialogue.messages.length === 0;
       const minLen = isFirstMsg ? 30 : 5;
       const placeholder = isFirstMsg
-        ? 'Поделись своими мыслями, не торопясь...'
-        : 'Твой ответ...';
+        ? _t('treasury.placeholder_first', 'Поделись своими мыслями, не торопясь...')
+        : _t('treasury.placeholder_reply', 'Твой ответ...');
       // STICKY INPUT: поле ввода прилипает к нижнему краю контейнера,
       // чтобы при открытой клавиатуре оставаться на виду (жалобы тестеров
       // "клавиатура закрывает текст ответа").
@@ -499,12 +502,12 @@ const Treasury = (function() {
         <div class="coach-input-sticky" style="position:sticky;bottom:0;background:linear-gradient(180deg,rgba(46,204,113,0) 0%,rgba(15,15,15,0.96) 15%,rgba(15,15,15,1) 100%);padding:10px 0 4px;margin-top:8px;z-index:5">
           <textarea id="coach-input" rows="3" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;resize:none;line-height:1.6;box-sizing:border-box" placeholder="${placeholder}" onfocus="Treasury._onCoachFocus()"></textarea>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-            <span style="font-size:11px;color:var(--text-muted)">Мин. ${minLen} символов</span>
-            <span style="font-size:11px;color:#D4AF37">Раунд ${dialogue.roundCount + 1}${dialogue.roundCount >= 3 ? ' (скоро завершим)' : ''}</span>
+            <span style="font-size:11px;color:var(--text-muted)">${_t('treasury.min_chars_label', `Мин. ${minLen} символов`, { n: minLen })}</span>
+            <span style="font-size:11px;color:#D4AF37">${_t('treasury.round_label', `Раунд ${dialogue.roundCount + 1}`, { n: dialogue.roundCount + 1 })}${dialogue.roundCount >= 3 ? _t('treasury.soon_finish', ' (скоро завершим)') : ''}</span>
           </div>
-          <button class="btn btn-secondary" id="coach-send-btn" style="margin-top:8px;width:100%" onclick="Treasury.coachSend('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">Отправить</button>
+          <button class="btn btn-secondary" id="coach-send-btn" style="margin-top:8px;width:100%" onclick="Treasury.coachSend('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">${_t('treasury.send', 'Отправить')}</button>
           ${dialogue.roundCount >= 3 ? `
-            <button class="btn btn-ghost" style="margin-top:6px;font-size:12px;padding:8px;opacity:0.7;width:100%" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">Хочу завершить диалог</button>
+            <button class="btn btn-ghost" style="margin-top:6px;font-size:12px;padding:8px;opacity:0.7;width:100%" onclick="Treasury.coachFinish('${code}', '${config.questType}', ${config.questIdx || 0}, ${config.reward || 7})">${_t('treasury.want_finish_dialogue', 'Хочу завершить диалог')}</button>
           ` : ''}
         </div>
       `;
@@ -531,7 +534,7 @@ const Treasury = (function() {
     const minLen = isFirstMsg ? 30 : 5;
 
     if (answer.length < minLen) {
-      const msg = `Напиши чуть больше: минимум ${minLen} символов. Сейчас: ${answer.length}.`;
+      const msg = _t('treasury.write_more', `Напиши чуть больше: минимум ${minLen} символов. Сейчас: ${answer.length}.`, { min: minLen, cur: answer.length });
       if (typeof showToast === 'function') showToast(msg, 'error');
       else alert(msg);
       return;
@@ -539,7 +542,7 @@ const Treasury = (function() {
 
     // Блокируем кнопку и поле
     const btn = document.getElementById('coach-send-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Наставник размышляет...'; }
+    if (btn) { btn.disabled = true; btn.textContent = _t('treasury.mentor_thinking', 'Наставник размышляет...'); }
     input.disabled = true;
 
     // Добавляем user-сообщение
@@ -577,11 +580,11 @@ const Treasury = (function() {
       });
     } catch (e) {
       console.warn('Coach review failed:', e.message);
-      review = { action: 'continue', message: 'Я тебя слышу. Поделись чуть больше: что самое важное в этом опыте?' };
+      review = { action: 'continue', message: _t('treasury.coach_fallback_hear', 'Я тебя слышу. Поделись чуть больше: что самое важное в этом опыте?') };
     }
 
     // Добавляем ответ наставника
-    dialogue.messages.push({ role: 'coach', text: review.message || 'Побудь с этим вопросом.' });
+    dialogue.messages.push({ role: 'coach', text: review.message || _t('treasury.coach_fallback_stay', 'Побудь с этим вопросом.') });
 
     if (review.action === 'offer_close') {
       dialogue.state = 'offered_close';
@@ -623,7 +626,7 @@ const Treasury = (function() {
           dialogue.messages.push({ role: 'coach', text: review.message });
         }
       } catch (e) {
-        dialogue.messages.push({ role: 'coach', text: 'Благодарю тебя за эту работу. Пусть то, что открылось, останется с тобой.' });
+        dialogue.messages.push({ role: 'coach', text: _t('treasury.final_blessing', 'Благодарю тебя за эту работу. Пусть то, что открылось, останется с тобой.') });
       }
     }
 
@@ -660,8 +663,8 @@ const Treasury = (function() {
         if (d) d.unlocked_sections = Math.max(d.unlocked_sections || 0, questIdx);
 
         alert(earned > 0
-          ? 'Квест пройден. +' + earned + ' кристаллов мудрости'
-          : 'Квест пройден.');
+          ? _t('treasury.quest_done_crystals', 'Квест пройден. +' + earned + ' кристаллов мудрости', { n: earned })
+          : _t('treasury.quest_done', 'Квест пройден.'));
         openDar(code);
         return true;
       } catch (e) {
@@ -758,16 +761,16 @@ const Treasury = (function() {
       }
 
       // Показываем РЕАЛЬНУЮ ошибку, а не generic, чтобы понять причину
-      const realMsg = e.message || 'неизвестная ошибка';
-      const tryAgainMsg = 'Не удалось засчитать квест: ' + realMsg + '. Попробуй нажать кнопку ещё раз.';
+      const realMsg = e.message || _t('treasury.unknown_error', 'неизвестная ошибка');
+      const tryAgainMsg = _t('treasury.quest_count_failed_retry', 'Не удалось засчитать квест: ' + realMsg + '. Попробуй нажать кнопку ещё раз.', { msg: realMsg });
       if (typeof showToast === 'function') showToast(tryAgainMsg, 'error');
       else alert(tryAgainMsg);
       return;
     }
 
     alert(earned > 0
-      ? 'Квест пройден. +' + earned + ' кристаллов мудрости'
-      : 'Квест пройден.');
+      ? _t('treasury.quest_done_crystals', 'Квест пройден. +' + earned + ' кристаллов мудрости', { n: earned })
+      : _t('treasury.quest_done', 'Квест пройден.'));
     openDar(code);
   }
 
@@ -795,13 +798,13 @@ const Treasury = (function() {
     renderCoachingQuestScreen(code, {
       questType: 'meditation',
       questIdx: medIdx,
-      title: '\u129496 Медитация активации',
-      subtitle: 'Финальный квест',
+      title: '\u129496 ' + _t('treasury.meditation_title', 'Медитация активации'),
+      subtitle: _t('treasury.final_quest', 'Финальный квест'),
       subtitleColor: '#D4AF37',
       reward: 10,
       contextBlocks: [
         activation ? {
-          label: 'Практика активации',
+          label: _t('treasury.activation_practice', 'Практика активации'),
           icon: '\u127775',
           text: activation,
           bgColor: 'rgba(212,175,55,0.08)',
@@ -809,7 +812,7 @@ const Treasury = (function() {
           labelColor: '#D4AF37'
         } : null,
         meditation ? {
-          label: 'Медитация',
+          label: _t('treasury.meditation_label', 'Медитация'),
           icon: '\u129496',
           text: meditation,
           bgColor: 'rgba(212,175,55,0.1)',
@@ -851,7 +854,7 @@ const Treasury = (function() {
         gender: getUserGender()
       });
     } catch (e) {
-      review = { accepted: true, message: 'Твоя рефлексия принята.' };
+      review = { accepted: true, message: _t('treasury.reflection_accepted', 'Твоя рефлексия принята.') };
     }
 
     setSubmitButtonLoading(container, false);
@@ -882,7 +885,7 @@ const Treasury = (function() {
       return;
     }
 
-    alert((review.message || 'Дар активирован!') + (earned > 0 ? `\n\n+${earned} кристаллов мудрости` : ''));
+    alert((review.message || _t('treasury.dar_activated', 'Дар активирован!')) + (earned > 0 ? _t('treasury.crystals_wisdom_suffix', `\n\n+${earned} кристаллов мудрости`, { n: earned }) : ''));
     openDar(code);
   }
 
@@ -898,12 +901,12 @@ const Treasury = (function() {
       questType: 'essence',
       questIdx: 1,
       title: arch ? `${name} - ${arch}` : name,
-      subtitle: '\u127775 Суть дара',
+      subtitle: '\u127775 ' + _t('treasury.essence_title', 'Суть дара'),
       subtitleColor: '#D4AF37',
       reward: 5,
       contextBlocks: [
         essence ? {
-          label: 'Священная энергия',
+          label: _t('treasury.sacred_energy', 'Священная энергия'),
           icon: '\u9889',
           text: essence,
           bgColor: 'rgba(212,175,55,0.08)',
@@ -911,7 +914,7 @@ const Treasury = (function() {
           labelColor: '#D4AF37'
         } : null,
         lightPower ? {
-          label: 'Светлая сила',
+          label: _t('treasury.light_power', 'Светлая сила'),
           icon: '\u127775',
           text: lightPower,
           bgColor: 'rgba(212,175,55,0.1)',
@@ -951,7 +954,7 @@ const Treasury = (function() {
         gender: getUserGender()
       });
     } catch (e) {
-      review = { accepted: true, message: 'Твоё наблюдение принято.' };
+      review = { accepted: true, message: _t('treasury.observation_accepted', 'Твоё наблюдение принято.') };
     }
 
     setSubmitButtonLoading(container, false);
@@ -983,7 +986,7 @@ const Treasury = (function() {
       return;
     }
 
-    alert((review.message || 'Суть дара узнана!') + (earned > 0 ? `\n\n+${earned} кристаллов мудрости` : ''));
+    alert((review.message || _t('treasury.essence_learned', 'Суть дара узнана!')) + (earned > 0 ? _t('treasury.crystals_wisdom_suffix', `\n\n+${earned} кристаллов мудрости`, { n: earned }) : ''));
     openDar(code);
   }
 
@@ -1007,13 +1010,13 @@ const Treasury = (function() {
       questType: 'shadow',
       questIdx: questIdx,
       title: shadow.title,
-      subtitle: `Грань ${displayIdx} из ${shadows.length}`,
+      subtitle: _t('treasury.facet_of', `Грань ${displayIdx} из ${shadows.length}`, { idx: displayIdx, total: shadows.length }),
       subtitleColor: '#D4AF37',
       reward: 7,
       shadow: shadow,
       contextBlocks: [
         {
-          label: 'Узнай',
+          label: _t('treasury.recognize', 'Узнай'),
           icon: '\u128302',
           text: shadow.description || '',
           bgColor: 'rgba(212,175,55,0.08)',
@@ -1021,7 +1024,7 @@ const Treasury = (function() {
           labelColor: '#D4AF37'
         },
         shadow.correction ? {
-          label: 'Проживи',
+          label: _t('treasury.live_through', 'Проживи'),
           icon: '\u127775',
           text: shadow.correction,
           bgColor: 'rgba(212,175,55,0.1)',
@@ -1056,7 +1059,7 @@ const Treasury = (function() {
       b.style.opacity = loading ? '0.6' : '1';
       if (loading && !b.dataset.origText) {
         b.dataset.origText = b.textContent;
-        b.textContent = 'Наставник размышляет...';
+        b.textContent = _t('treasury.mentor_thinking', 'Наставник размышляет...');
       } else if (!loading && b.dataset.origText) {
         b.textContent = b.dataset.origText;
         delete b.dataset.origText;
@@ -1079,10 +1082,10 @@ const Treasury = (function() {
         '</ul>';
     }
     block.innerHTML = `
-      <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#128172; Послание наставника</div>
+      <div style="font-size:11px;color:#D4AF37;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:bold">&#128172; ${_t('treasury.mentor_message', 'Послание наставника')}</div>
       <div style="font-size:13px;color:var(--text);line-height:1.7">${escapeHtmlSimple(message)}</div>
       ${qHtml}
-      <div style="font-size:11px;color:var(--text-muted);margin-top:10px;font-style:italic">Подумай над вопросами и дополни свою рефлексию выше, затем отправь снова.</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:10px;font-style:italic">${_t('treasury.coaching_footer', 'Подумай над вопросами и дополни свою рефлексию выше, затем отправь снова.')}</div>
     `;
     container.appendChild(block);
   }
@@ -1128,7 +1131,7 @@ const Treasury = (function() {
       });
     } catch (e) {
       // Fallback: принимаем если API упал
-      review = { accepted: true, message: 'Твоя рефлексия принята.' };
+      review = { accepted: true, message: _t('treasury.reflection_accepted', 'Твоя рефлексия принята.') };
     }
 
     setSubmitButtonLoading(container, false);
@@ -1163,7 +1166,7 @@ const Treasury = (function() {
     }
 
     // Показать сообщение одобрения + переход
-    alert((review.message || 'Грань раскрыта!') + (earned > 0 ? `\n\n+${earned} кристаллов мудрости` : ''));
+    alert((review.message || _t('treasury.facet_revealed', 'Грань раскрыта!')) + (earned > 0 ? _t('treasury.crystals_wisdom_suffix', `\n\n+${earned} кристаллов мудрости`, { n: earned }) : ''));
     openDar(code);
   }
 

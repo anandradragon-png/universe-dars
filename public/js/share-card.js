@@ -243,7 +243,9 @@ const ShareCard = (function() {
     ctx.font = "32px 'Manrope', sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    const headerText = isInvite ? 'Т В О Й   Д А Р' : 'М О Й   Д А Р';
+    const headerText = isInvite
+      ? ((window.i18n && i18n.t && i18n.t('share.header_your_dar')) || 'Т В О Й   Д А Р')
+      : ((window.i18n && i18n.t && i18n.t('share.header_my_dar')) || 'М О Й   Д А Р');
     ctx.fillText(headerText, w / 2, isVertical ? 200 : 140);
     ctx.restore();
 
@@ -348,7 +350,7 @@ const ShareCard = (function() {
       ctx.textBaseline = 'bottom';
       ctx.shadowColor = 'rgba(212, 175, 55, 0.5)';
       ctx.shadowBlur = 16;
-      ctx.fillText('Узнай свой Дар', w / 2, qrY - 50);
+      ctx.fillText(((window.i18n && i18n.t && i18n.t('share.cta_discover_dar')) || 'Узнай свой Дар'), w / 2, qrY - 50);
       ctx.restore();
 
       ctx.save();
@@ -356,7 +358,7 @@ const ShareCard = (function() {
       ctx.font = `${isVertical ? 26 : 22}px 'Manrope', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
-      ctx.fillText('по дате рождения · 30 секунд', w / 2, qrY - 18);
+      ctx.fillText(((window.i18n && i18n.t && i18n.t('share.cta_by_birthdate')) || 'по дате рождения · 30 секунд'), w / 2, qrY - 18);
       ctx.restore();
 
       // QR-код с реф-ссылкой Алины
@@ -388,7 +390,7 @@ const ShareCard = (function() {
       ctx.font = `${isVertical ? 26 : 22}px 'Manrope', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillText('Наведи камеру', w / 2, qrY + qrSize + 18);
+      ctx.fillText(((window.i18n && i18n.t && i18n.t('share.point_camera')) || 'Наведи камеру'), w / 2, qrY + qrSize + 18);
       ctx.restore();
 
       ctx.save();
@@ -439,7 +441,7 @@ const ShareCard = (function() {
           try {
             const file = new File([blob], filename, { type: 'image/png' });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-              await navigator.share({ files: [file], title: 'YupDar — Мой Дар' });
+              await navigator.share({ files: [file], title: 'YupDar — ' + ((window.i18n && i18n.t && i18n.t('share.share_title_my_dar')) || 'Мой Дар') });
               resolve();
               return;
             }
@@ -497,11 +499,11 @@ const ShareCard = (function() {
     overlay.innerHTML =
       '<div style="position:relative;width:100%;max-width:560px;text-align:center">' +
         '<button id="ssave-close" style="position:absolute;top:0;right:6px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.5);background:rgba(0,0,0,0.7);color:#D4AF37;font-size:18px;cursor:pointer;z-index:1">&#10005;</button>' +
-        '<div style="font-size:13px;color:#D4AF37;letter-spacing:1.5px;margin-bottom:14px;padding-top:10px">📥 СОХРАНИТЬ КАРТОЧКУ</div>' +
+        '<div style="font-size:13px;color:#D4AF37;letter-spacing:1.5px;margin-bottom:14px;padding-top:10px">📥 ' + ((window.i18n && i18n.t && i18n.t('share.save_card_title')) || 'СОХРАНИТЬ КАРТОЧКУ') + '</div>' +
         '<img src="' + blobUrl + '" alt="' + filename + '" style="max-width:100%;max-height:70vh;border-radius:14px;border:1px solid rgba(212,175,55,0.3);user-select:auto;-webkit-user-select:auto;-webkit-touch-callout:default" />' +
         '<div style="margin-top:18px;padding:14px 16px;background:rgba(212,175,55,0.08);border:1px dashed rgba(212,175,55,0.4);border-radius:12px;font-size:13px;color:var(--text);line-height:1.6;text-align:left">' +
-          '<div style="color:#D4AF37;font-weight:600;margin-bottom:6px">Чтобы сохранить:</div>' +
-          'Нажми и удержи картинку выше → выбери <b>«Сохранить картинку»</b> или <b>«Поделиться»</b>.' +
+          '<div style="color:#D4AF37;font-weight:600;margin-bottom:6px">' + ((window.i18n && i18n.t && i18n.t('share.to_save_label')) || 'Чтобы сохранить:') + '</div>' +
+          ((window.i18n && i18n.t && i18n.t('share.long_press_hint')) || 'Нажми и удержи картинку выше → выбери <b>«Сохранить картинку»</b> или <b>«Поделиться»</b>.') +
         '</div>' +
       '</div>';
     document.body.appendChild(overlay);
@@ -545,7 +547,7 @@ const ShareCard = (function() {
         <button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
         <div style="text-align:center;padding:30px 10px">
           <div style="font-size:36px;margin-bottom:14px;animation:pulse 1.5s ease-in-out infinite">&#127912;</div>
-          <div style="font-size:14px;color:#D4AF37">Создаём твою карточку...</div>
+          <div style="font-size:14px;color:#D4AF37">${((window.i18n && i18n.t && i18n.t('share.creating_card')) || 'Создаём твою карточку...')}</div>
         </div>
       </div>
     `;
@@ -561,8 +563,8 @@ const ShareCard = (function() {
       console.error('[ShareCard] generation failed:', e);
       modal.querySelector('div div').innerHTML = `
         <div style="font-size:36px;margin-bottom:14px">&#9888;&#65039;</div>
-        <div style="font-size:14px;color:#f87171">Не удалось создать карточку</div>
-        <div style="font-size:11px;color:var(--text-dim);margin-top:8px">${e.message || 'неизвестная ошибка'}</div>
+        <div style="font-size:14px;color:#f87171">${((window.i18n && i18n.t && i18n.t('share.create_failed')) || 'Не удалось создать карточку')}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:8px">${e.message || ((window.i18n && i18n.t && i18n.t('share.unknown_error')) || 'неизвестная ошибка')}</div>
       `;
       return;
     }
@@ -577,22 +579,22 @@ const ShareCard = (function() {
       <div style="position:relative;background:linear-gradient(135deg,#080808,#0d0d0d);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 22px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto">
         <button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
         <div style="text-align:center;margin-bottom:14px">
-          <div style="font-size:13px;color:#D4AF37;letter-spacing:1.5px">&#127912; КАРТОЧКА ДЛЯ ШЕЙРИНГА</div>
+          <div style="font-size:13px;color:#D4AF37;letter-spacing:1.5px">&#127912; ${((window.i18n && i18n.t && i18n.t('share.card_for_sharing')) || 'КАРТОЧКА ДЛЯ ШЕЙРИНГА')}</div>
         </div>
         <div id="share-tabs" style="display:flex;gap:6px;margin-bottom:14px">
-          <button id="share-tab-sq" onclick="ShareCard.switchTab('square')" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(212,175,55,0.6);background:rgba(212,175,55,0.18);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#11036; Квадрат</button>
-          <button id="share-tab-vt" onclick="ShareCard.switchTab('vertical')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#128247; Вертикаль</button>
+          <button id="share-tab-sq" onclick="ShareCard.switchTab('square')" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(212,175,55,0.6);background:rgba(212,175,55,0.18);color:#D4AF37;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#11036; ${((window.i18n && i18n.t && i18n.t('share.tab_square')) || 'Квадрат')}</button>
+          <button id="share-tab-vt" onclick="ShareCard.switchTab('vertical')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#128247; ${((window.i18n && i18n.t && i18n.t('share.tab_vertical')) || 'Вертикаль')}</button>
         </div>
         <div id="share-preview" style="text-align:center;margin-bottom:14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:10px">
           <img id="share-img" src="${squareData}" style="max-width:100%;max-height:50vh;border-radius:8px;display:block;margin:0 auto">
         </div>
         <div style="display:flex;gap:6px;margin-bottom:8px">
-          <button onclick="ShareCard.download('square')" style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11015; Квадрат</button>
-          <button onclick="ShareCard.download('vertical')" style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11015; Вертикаль</button>
+          <button onclick="ShareCard.download('square')" style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11015; ${((window.i18n && i18n.t && i18n.t('share.tab_square')) || 'Квадрат')}</button>
+          <button onclick="ShareCard.download('vertical')" style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11015; ${((window.i18n && i18n.t && i18n.t('share.tab_vertical')) || 'Вертикаль')}</button>
         </div>
         <div style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.5;margin-top:10px">
-          Скачай и поделись в Telegram, Instagram или ВКонтакте.<br>
-          Друзьям интересно — пусть тоже узнают свой Дар!
+          ${((window.i18n && i18n.t && i18n.t('share.download_and_share')) || 'Скачай и поделись в Telegram, Instagram или ВКонтакте.')}<br>
+          ${((window.i18n && i18n.t && i18n.t('share.friends_curious')) || 'Друзьям интересно — пусть тоже узнают свой Дар!')}
         </div>
       </div>
     `;
@@ -720,7 +722,7 @@ const ShareCard = (function() {
     ctx.font = "30px 'Manrope', sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText('П О Д Р О Б Н А Я   К А Р Т О Ч К А   Д А Р А', w / 2, 60);
+    ctx.fillText(((window.i18n && i18n.t && i18n.t('share.info_card_header')) || 'П О Д Р О Б Н А Я   К А Р Т О Ч К А   Д А Р А'), w / 2, 60);
 
     // Иконка
     const imgPath = getDarImagePath(darCode);
@@ -767,9 +769,9 @@ const ShareCard = (function() {
     // Секции из dar-content.json
     const content = (window.DAR_CONTENT && window.DAR_CONTENT[darCode]) || {};
     const sections = [
-      { title: 'СУТЬ ДАРА', body: content.essence },
-      { title: 'СИЛА В СВЕТЕ', body: content.light_power },
-      { title: 'АКТИВАЦИЯ', body: content.activation }
+      { title: ((window.i18n && i18n.t && i18n.t('share.section_essence')) || 'СУТЬ ДАРА'), body: content.essence },
+      { title: ((window.i18n && i18n.t && i18n.t('share.section_light_power')) || 'СИЛА В СВЕТЕ'), body: content.light_power },
+      { title: ((window.i18n && i18n.t && i18n.t('share.section_activation')) || 'АКТИВАЦИЯ'), body: content.activation }
     ];
 
     ctx.textAlign = 'left';
@@ -813,10 +815,10 @@ const ShareCard = (function() {
     modal.innerHTML = '<div style="position:relative;background:linear-gradient(135deg,#080808,#0d0d0d);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:44px 24px 24px;max-width:440px;width:100%;text-align:center">' +
       '<button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer">&#10005;</button>' +
       '<div style="font-size:40px;margin-bottom:10px">📄</div>' +
-      '<div style="font-size:18px;color:#D4AF37;margin-bottom:10px;font-weight:700">Подробная карточка дара</div>' +
-      '<div style="font-size:13px;color:var(--text-dim);line-height:1.55;margin-bottom:18px">Большое изображение A4 со всей ключевой информацией о твоём даре — можно распечатать, поставить на рабочий стол или подарить близкому в его день рождения.</div>' +
-      '<div style="font-size:12px;color:#D4AF37;margin-bottom:16px;font-style:italic">Доступно на уровне Хранитель и выше</div>' +
-      '<button id="sc-paywall-buy" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3)">&#11088; Открыть за 500 ⭐ (~$10)</button>' +
+      '<div style="font-size:18px;color:#D4AF37;margin-bottom:10px;font-weight:700">' + ((window.i18n && i18n.t && i18n.t('share.info_card_title')) || 'Подробная карточка дара') + '</div>' +
+      '<div style="font-size:13px;color:var(--text-dim);line-height:1.55;margin-bottom:18px">' + ((window.i18n && i18n.t && i18n.t('share.info_card_desc')) || 'Большое изображение A4 со всей ключевой информацией о твоём даре — можно распечатать, поставить на рабочий стол или подарить близкому в его день рождения.') + '</div>' +
+      '<div style="font-size:12px;color:#D4AF37;margin-bottom:16px;font-style:italic">' + ((window.i18n && i18n.t && i18n.t('share.available_keeper')) || 'Доступно на уровне Хранитель и выше') + '</div>' +
+      '<button id="sc-paywall-buy" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3)">&#11088; ' + ((window.i18n && i18n.t && i18n.t('share.unlock_for_stars')) || 'Открыть за 500 ⭐ (~$10)') + '</button>' +
       '</div>';
     const buyBtn = document.getElementById('sc-paywall-buy');
     if (buyBtn) buyBtn.addEventListener('click', () => {
@@ -840,14 +842,14 @@ const ShareCard = (function() {
     modal.style.display = 'flex';
     modal.innerHTML = '<div style="position:relative;background:linear-gradient(135deg,#080808,#0d0d0d);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 22px 22px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto">' +
       '<button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer">&#10005;</button>' +
-      '<div style="text-align:center;padding:30px 10px"><div style="font-size:36px;margin-bottom:14px;animation:pulse 1.5s ease-in-out infinite">📄</div><div style="font-size:14px;color:#D4AF37">Собираю подробную карточку...</div></div></div>';
+      '<div style="text-align:center;padding:30px 10px"><div style="font-size:36px;margin-bottom:14px;animation:pulse 1.5s ease-in-out infinite">📄</div><div style="font-size:14px;color:#D4AF37">' + ((window.i18n && i18n.t && i18n.t('share.building_info_card')) || 'Собираю подробную карточку...') + '</div></div></div>';
 
     let canvas;
     try {
       canvas = await generateInfoCard(darCode);
     } catch (e) {
       console.error('[ShareCard] info card failed:', e);
-      modal.querySelector('div div').innerHTML = '<div style="font-size:36px;margin-bottom:14px">&#9888;&#65039;</div><div style="font-size:14px;color:#f87171">Не удалось создать карточку</div>';
+      modal.querySelector('div div').innerHTML = '<div style="font-size:36px;margin-bottom:14px">&#9888;&#65039;</div><div style="font-size:14px;color:#f87171">' + ((window.i18n && i18n.t && i18n.t('share.create_failed')) || 'Не удалось создать карточку') + '</div>';
       return;
     }
 
@@ -857,12 +859,12 @@ const ShareCard = (function() {
 
     modal.innerHTML = '<div style="position:relative;background:linear-gradient(135deg,#080808,#0d0d0d);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:48px 18px 22px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto">' +
       '<button onclick="ShareCard.closeModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer">&#10005;</button>' +
-      '<div style="text-align:center;margin-bottom:14px"><div style="font-size:13px;color:#D4AF37;letter-spacing:1.5px">📄 ПОДРОБНАЯ КАРТОЧКА ДАРА</div></div>' +
+      '<div style="text-align:center;margin-bottom:14px"><div style="font-size:13px;color:#D4AF37;letter-spacing:1.5px">📄 ' + ((window.i18n && i18n.t && i18n.t('share.info_card_header_short')) || 'ПОДРОБНАЯ КАРТОЧКА ДАРА') + '</div></div>' +
       '<div style="text-align:center;margin-bottom:14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:10px">' +
         '<img src="' + dataUrl + '" style="max-width:100%;max-height:60vh;border-radius:8px;display:block;margin:0 auto"/>' +
       '</div>' +
-      '<button id="sc-info-download" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11015; Скачать PNG (A4)</button>' +
-      '<div style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.5;margin-top:10px">Можно распечатать, поставить на рабочий стол или подарить близкому на день рождения.</div>' +
+      '<button id="sc-info-download" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">&#11015; ' + ((window.i18n && i18n.t && i18n.t('share.download_png_a4')) || 'Скачать PNG (A4)') + '</button>' +
+      '<div style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.5;margin-top:10px">' + ((window.i18n && i18n.t && i18n.t('share.print_gift_hint')) || 'Можно распечатать, поставить на рабочий стол или подарить близкому на день рождения.') + '</div>' +
       '</div>';
 
     const btn = document.getElementById('sc-info-download');

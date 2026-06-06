@@ -162,7 +162,7 @@ const DailyDar = (function() {
     // Пророчество
     if (data.prophecy) {
       html += `<div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#128302; Послание Оракула:</div>
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#128302; ${((window.i18n && i18n.t && i18n.t('daily.oracle_message_label')) || 'Послание Оракула:')}</div>
         <div style="font-size:14px;color:#e0e0e0;line-height:1.8;font-style:italic">${data.prophecy}</div>
       </div>`;
     }
@@ -170,7 +170,7 @@ const DailyDar = (function() {
     // Энергии
     if (data.energies && data.energies.length > 0) {
       html += `<div style="margin-bottom:16px">
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;letter-spacing:1px">ЭНЕРГИИ ДНЯ:</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;letter-spacing:1px">${((window.i18n && i18n.t && i18n.t('daily.energies_of_day')) || 'ЭНЕРГИИ ДНЯ:')}</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px">`;
       data.energies.forEach(e => {
         html += `<span style="font-size:12px;padding:4px 10px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:8px;color:#D4AF37">${e}</span>`;
@@ -181,7 +181,7 @@ const DailyDar = (function() {
     // Практика дня
     if (data.practice) {
       html += `<div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#127793; Практика дня:</div>
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#127793; ${((window.i18n && i18n.t && i18n.t('daily.practice_of_day')) || 'Практика дня:')}</div>
         <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${data.practice}</div>
       </div>`;
     }
@@ -193,10 +193,10 @@ const DailyDar = (function() {
       const safeDesc = String(mv.description || '').replace(/</g,'&lt;');
       const safeUrl = String(mv.url || '').replace(/"/g,'&quot;');
       html += `<div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(212,175,55,0.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:8px">&#127911; ЕСЛИ ЗАХОЧЕШЬ УСИЛИТЬ ЭНЕРГИЮ ДНЯ</div>
+        <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:8px">&#127911; ${((window.i18n && i18n.t && i18n.t('daily.amplify_energy_label')) || 'ЕСЛИ ЗАХОЧЕШЬ УСИЛИТЬ ЭНЕРГИЮ ДНЯ')}</div>
         <div style="font-size:13px;color:#e0e0e0;line-height:1.6;margin-bottom:6px">${safeTitle}</div>
         ${safeDesc ? `<div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">${safeDesc}</div>` : ''}
-        <a href="${safeUrl}" target="_blank" rel="noopener" style="display:inline-block;font-size:12px;color:#D4AF37;text-decoration:none;border-bottom:1px solid rgba(212,175,55,0.35);padding-bottom:1px">Открыть медитацию &rarr;</a>
+        <a href="${safeUrl}" target="_blank" rel="noopener" style="display:inline-block;font-size:12px;color:#D4AF37;text-decoration:none;border-bottom:1px solid rgba(212,175,55,0.35);padding-bottom:1px">${((window.i18n && i18n.t && i18n.t('daily.open_meditation')) || 'Открыть медитацию')} &rarr;</a>
       </div>`;
     }
 
@@ -228,7 +228,7 @@ const DailyDar = (function() {
       const sentences = dar.essence.replace(/\*\*/g,'').split(/\.\s+/);
       const text = sentences.slice(0, 3).join('. ') + '.';
       html += `<div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">${contextTitle || '&#10024; Энергии дня:'}</div>
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">${contextTitle || ('&#10024; ' + ((window.i18n && i18n.t && i18n.t('daily.energies_day_title')) || 'Энергии дня:'))}</div>
         <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${text}</div>
       </div>`;
     }
@@ -240,7 +240,7 @@ const DailyDar = (function() {
       if (matches) matches.slice(0, 5).forEach(m => qualities.push(m.replace(/\*\*/g,'').replace(/^[-—\s]+/,'')));
       if (qualities.length > 0) {
         html += `<div style="margin-bottom:16px">
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;letter-spacing:1px">ЭНЕРГИИ ДНЯ:</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;letter-spacing:1px">${((window.i18n && i18n.t && i18n.t('daily.energies_of_day')) || 'ЭНЕРГИИ ДНЯ:')}</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px">`;
         qualities.forEach(q => {
           html += `<span style="font-size:12px;padding:4px 10px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:8px;color:#D4AF37">${q}</span>`;
@@ -254,7 +254,7 @@ const DailyDar = (function() {
       const practiceText = dar.meditation || dar.activation;
       const firstParagraph = practiceText.replace(/\*\*/g,'').split('\n\n')[0];
       html += `<div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
-        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#127793; Практика дня:</div>
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#127793; ${((window.i18n && i18n.t && i18n.t('daily.practice_of_day')) || 'Практика дня:')}</div>
         <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${firstParagraph}</div>
       </div>`;
     }
@@ -295,9 +295,9 @@ const DailyDar = (function() {
         // Fallback на данные энциклопедии (не считаем за использование лимита)
         loadDarContent().then(content => {
           if (el) {
-            const title = mode === 'card' ? '&#10024; Энергии, которые помогут тебе сегодня:'
-              : mode === 'personal' ? '&#128302; Твои персональные энергии сегодня:'
-              : '&#127775; Энергии этого дня для всех:';
+            const title = mode === 'card' ? ('&#10024; ' + ((window.i18n && i18n.t && i18n.t('daily.fb_title_card')) || 'Энергии, которые помогут тебе сегодня:'))
+              : mode === 'personal' ? ('&#128302; ' + ((window.i18n && i18n.t && i18n.t('daily.fb_title_personal')) || 'Твои персональные энергии сегодня:'))
+              : ('&#127775; ' + ((window.i18n && i18n.t && i18n.t('daily.fb_title_general')) || 'Энергии этого дня для всех:'));
             el.innerHTML = renderFallbackBlock(darCode, content, title);
           }
         });
@@ -312,39 +312,45 @@ const DailyDar = (function() {
       const prof = JSON.parse(localStorage.getItem('_darProfile') || '{}');
       if (prof.gender === 'male' || prof.gender === 'female') gender = prof.gender;
     } catch (e) {}
-    const gotWord = gender === 'female' ? 'получила' : gender === 'male' ? 'получил' : 'получил(а)';
+    const gotWord = gender === 'female'
+      ? ((window.i18n && i18n.t && i18n.t('daily.got_female')) || 'получила')
+      : gender === 'male'
+      ? ((window.i18n && i18n.t && i18n.t('daily.got_male')) || 'получил')
+      : ((window.i18n && i18n.t && i18n.t('daily.got_neutral')) || 'получил(а)');
 
     const level = getAccessLevel();
     const currentLimit = getDailyLimit(mode);
 
-    const title = mode === 'card' ? `Ты уже ${gotWord} своё послание сегодня`
-      : mode === 'personal' ? `Ты уже ${gotWord} своё личное послание сегодня`
-      : `Ты уже ${gotWord} Дар дня сегодня`;
+    const title = mode === 'card' ? ((window.i18n && i18n.t && i18n.t('daily.limit_title_card', { got: gotWord })) || `Ты уже ${gotWord} своё послание сегодня`)
+      : mode === 'personal' ? ((window.i18n && i18n.t && i18n.t('daily.limit_title_personal', { got: gotWord })) || `Ты уже ${gotWord} своё личное послание сегодня`)
+      : ((window.i18n && i18n.t && i18n.t('daily.limit_title_general', { got: gotWord })) || `Ты уже ${gotWord} Дар дня сегодня`);
 
     // Для card-режима и не-premium - показываем upsell
     let upsellBlock = '';
     if (mode === 'card' && level !== 'premium') {
       const nextLevel = level === 'basic' ? 'extended' : 'premium';
       const nextLimit = LIMITS_BY_LEVEL[nextLevel].card;
-      const nextName = nextLevel === 'extended' ? 'Хранитель' : 'Мастер';
+      const nextName = nextLevel === 'extended'
+        ? ((window.i18n && i18n.t && i18n.t('daily.tier_keeper')) || 'Хранитель')
+        : ((window.i18n && i18n.t && i18n.t('daily.tier_master')) || 'Мастер');
       const nextIcon = nextLevel === 'extended' ? '&#127769;' : '&#127775;';
       const nextDesc = nextLevel === 'extended'
-        ? `<div>&#8226; Оракул: <b>${nextLimit}</b> обращений в день</div>
-           <div>&#8226; Доступ к дарам друзей</div>
-           <div>&#8226; Полная энциклопедия даров</div>
-           <div>&#8226; Бонусные кристаллы &#215;2</div>`
-        : `<div>&#8226; Оракул: <b>${nextLimit}</b> обращений в день</div>
-           <div>&#8226; Всё из уровня Хранителя</div>
-           <div>&#8226; Приоритетный доступ к новым функциям</div>
-           <div>&#8226; Ранний доступ к глубоким расшифровкам</div>`;
+        ? `<div>&#8226; ${((window.i18n && i18n.t && i18n.t('daily.upsell_oracle_calls', { n: nextLimit })) || ('Оракул: <b>' + nextLimit + '</b> обращений в день'))}</div>
+           <div>&#8226; ${((window.i18n && i18n.t && i18n.t('daily.upsell_friends_dars')) || 'Доступ к дарам друзей')}</div>
+           <div>&#8226; ${((window.i18n && i18n.t && i18n.t('daily.upsell_full_encyclopedia')) || 'Полная энциклопедия даров')}</div>
+           <div>&#8226; ${((window.i18n && i18n.t && i18n.t('daily.upsell_bonus_crystals')) || 'Бонусные кристаллы &#215;2')}</div>`
+        : `<div>&#8226; ${((window.i18n && i18n.t && i18n.t('daily.upsell_oracle_calls', { n: nextLimit })) || ('Оракул: <b>' + nextLimit + '</b> обращений в день'))}</div>
+           <div>&#8226; ${((window.i18n && i18n.t && i18n.t('daily.upsell_all_keeper')) || 'Всё из уровня Хранителя')}</div>
+           <div>&#8226; ${((window.i18n && i18n.t && i18n.t('daily.upsell_priority_features')) || 'Приоритетный доступ к новым функциям')}</div>
+           <div>&#8226; ${((window.i18n && i18n.t && i18n.t('daily.upsell_early_access')) || 'Ранний доступ к глубоким расшифровкам')}</div>`;
 
       upsellBlock = `
         <div style="margin-top:20px;padding-top:20px;border-top:1px dashed rgba(212,175,55,0.3)">
-          <div style="font-size:13px;color:var(--text);margin-bottom:10px;line-height:1.5">Хочешь больше обращений к Оракулу? Открой уровень ${nextIcon} <b style="color:#D4AF37">${nextName}</b>:</div>
+          <div style="font-size:13px;color:var(--text);margin-bottom:10px;line-height:1.5">${((window.i18n && i18n.t && i18n.t('daily.upsell_intro', { icon: nextIcon, name: nextName })) || ('Хочешь больше обращений к Оракулу? Открой уровень ' + nextIcon + ' <b style="color:#D4AF37">' + nextName + '</b>:'))}</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.9;text-align:left;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:12px;margin-bottom:14px">
             ${nextDesc}
           </div>
-          <button onclick="DailyDar.showUpgradeMessage()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;font-weight:bold;box-shadow:0 2px 12px rgba(212,175,55,0.25)">&#9733; Повысить уровень</button>
+          <button onclick="DailyDar.showUpgradeMessage()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;font-weight:bold;box-shadow:0 2px 12px rgba(212,175,55,0.25)">&#9733; ${((window.i18n && i18n.t && i18n.t('daily.upgrade_btn')) || 'Повысить уровень')}</button>
         </div>`;
     }
 
@@ -368,9 +374,9 @@ const DailyDar = (function() {
     modal.innerHTML = `
       <div style="max-width:380px;width:100%;background:linear-gradient(180deg,#0d0d0d,#080808);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:28px 22px;text-align:center;box-shadow:0 10px 40px rgba(212,175,55,0.15)">
         <div style="font-size:44px;margin-bottom:14px">&#11088;</div>
-        <div style="font-size:17px;color:#D4AF37;margin-bottom:12px;letter-spacing:1px;line-height:1.4">Полный доступ к YupDar</div>
-        <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">Безлимитный Оракул, полная Книга Даров (94 главы), 3 слота для близких, 50 кристаллов мудрости + дизайнерская PDF</div>
-        <button onclick="document.getElementById('upgrade-msg-modal').remove();if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3);margin-bottom:10px">&#11088; Купить за 500 ⭐ (~$10)</button>
+        <div style="font-size:17px;color:#D4AF37;margin-bottom:12px;letter-spacing:1px;line-height:1.4">${((window.i18n && i18n.t && i18n.t('daily.upgrade_modal_title')) || 'Полный доступ к YupDar')}</div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.7;margin-bottom:16px">${((window.i18n && i18n.t && i18n.t('daily.upgrade_modal_desc')) || 'Безлимитный Оракул, полная Книга Даров (94 главы), 3 слота для близких, 50 кристаллов мудрости + дизайнерская PDF')}</div>
+        <button onclick="document.getElementById('upgrade-msg-modal').remove();if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3);margin-bottom:10px">&#11088; ${((window.i18n && i18n.t && i18n.t('daily.upgrade_modal_buy')) || 'Купить за 500 ⭐ (~$10)')}</button>
         <button onclick="document.getElementById('upgrade-msg-modal').remove()" style="width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">${((window.i18n && i18n.t && i18n.t('common.not_now')) || 'Не сейчас')}</button>
       </div>`;
     document.body.appendChild(modal);
@@ -532,9 +538,9 @@ const DailyDar = (function() {
     if (!container) return;
 
     const tabs = [
-      { id: 'card', icon: '&#127183;', label: 'Оракул' },
-      { id: 'general', icon: '&#127775;', label: 'Дар дня' },
-      { id: 'personal', icon: '&#128302;', label: 'Личное послание' }
+      { id: 'card', icon: '&#127183;', label: ((window.i18n && i18n.t && i18n.t('daily.tab_oracle')) || 'Оракул') },
+      { id: 'general', icon: '&#127775;', label: ((window.i18n && i18n.t && i18n.t('daily.tab_dar_of_day')) || 'Дар дня') },
+      { id: 'personal', icon: '&#128302;', label: ((window.i18n && i18n.t && i18n.t('daily.tab_personal')) || 'Личное послание') }
     ];
 
     let html = `<div style="display:flex;gap:6px;margin-bottom:16px;justify-content:center">`;
@@ -563,7 +569,8 @@ const DailyDar = (function() {
   // === ВКЛАДКА 1: Оракул (карта-подсказка) ===
   function renderCardTab(container) {
     const remaining = getRemainingLimit('card');
-    const limitInfo = `<div style="text-align:center;margin-bottom:10px;font-size:11px;color:var(--text-muted)">Осталось обращений сегодня: <span style="color:#D4AF37;font-weight:bold">${remaining}</span> из ${getDailyLimit('card')}</div>`;
+    const _cardLimit = getDailyLimit('card');
+    const limitInfo = `<div style="text-align:center;margin-bottom:10px;font-size:11px;color:var(--text-muted)">${((window.i18n && i18n.t && i18n.t('daily.calls_left', { remaining: '<span style="color:#D4AF37;font-weight:bold">' + remaining + '</span>', total: _cardLimit })) || ('Осталось обращений сегодня: <span style="color:#D4AF37;font-weight:bold">' + remaining + '</span> из ' + _cardLimit))}</div>`;
 
     if (!_cardRevealed) {
       if (remaining === 0) {
@@ -625,12 +632,12 @@ const DailyDar = (function() {
     } else {
       // Показать результат
       let html = limitInfo;
-      html += renderDarCard(_pulledCard, 'ТВОЯ КАРТА-ПОДСКАЗКА', null, false);
+      html += renderDarCard(_pulledCard, ((window.i18n && i18n.t && i18n.t('daily.your_hint_card')) || 'ТВОЯ КАРТА-ПОДСКАЗКА'), null, false);
       html += `<div id="oracle-card-result"></div>`;
       // Кнопка "Вытянуть ещё раз" - только если после этого раза ещё остались попытки
       if (remaining > 0) {
         html += `<div style="text-align:center;margin-top:12px">
-          <button onclick="DailyDar.resetCard()" style="padding:10px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">&#128260; Вытянуть ещё раз</button>
+          <button onclick="DailyDar.resetCard()" style="padding:10px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">&#128260; ${((window.i18n && i18n.t && i18n.t('daily.pull_again')) || 'Вытянуть ещё раз')}</button>
         </div>`;
       }
       container.innerHTML = html;
@@ -721,7 +728,7 @@ const DailyDar = (function() {
     const dateStr = formatDate(today);
 
     let html = `<div style="text-align:center;font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:14px">${dateStr}</div>`;
-    html += renderDarCard(dar.code, 'ОБЩИЙ ДАР ДНЯ', null, true);
+    html += renderDarCard(dar.code, ((window.i18n && i18n.t && i18n.t('daily.general_dar_of_day')) || 'ОБЩИЙ ДАР ДНЯ'), null, true);
     html += `<div id="oracle-general-result"></div>`;
     container.innerHTML = html;
     loadProphecy('oracle-general-result', dar.code, 'general');
@@ -753,7 +760,7 @@ const DailyDar = (function() {
     const dateStr = formatDate(today);
 
     let html = `<div style="text-align:center;font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:14px">${dateStr}</div>`;
-    html += renderDarCard(personalDar.code, 'ТВОЙ ДАР ДНЯ', null, true);
+    html += renderDarCard(personalDar.code, ((window.i18n && i18n.t && i18n.t('daily.your_dar_of_day')) || 'ТВОЙ ДАР ДНЯ'), null, true);
     html += `<div id="oracle-personal-result"></div>`;
 
     container.innerHTML = html;

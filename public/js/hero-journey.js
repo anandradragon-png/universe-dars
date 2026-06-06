@@ -14,26 +14,26 @@ const HeroJourney = (function() {
   // Названия шагов + форма "пройден/пройдена/пройдено" с корректным родом.
   // (Жалобы тестеров: "Пробуждение пройден" — неправильно, должно быть "пройдено")
   const STEPS = [
-    { num: 1, name: 'Пробуждение',       emoji: '🌅', unlocked: true, passed: 'пройдено' },
-    { num: 2, name: 'Встреча с Тенью',   emoji: '⚔️', unlocked: true, passed: 'пройдена' },
-    { num: 3, name: 'Загадка Зеркала',   emoji: '🔮', unlocked: true, passed: 'пройдена' },
-    { num: 4, name: 'Испытание Огнём',   emoji: '💪', unlocked: true, passed: 'пройдено' },
-    { num: 5, name: 'Погружение',        emoji: '🌊', unlocked: true, passed: 'пройдено' },
-    { num: 6, name: 'Трансформация',     emoji: '⚡', unlocked: true, passed: 'пройдена' },
-    { num: 7, name: 'Коронация',         emoji: '👑', unlocked: true, passed: 'пройдена' }
+    { num: 1, get name(){ return ((window.i18n && i18n.t && i18n.t('hero.step1_name')) || 'Пробуждение'); },       emoji: '🌅', unlocked: true, get passed(){ return ((window.i18n && i18n.t && i18n.t('hero.passed_n')) || 'пройдено'); } },
+    { num: 2, get name(){ return ((window.i18n && i18n.t && i18n.t('hero.step2_name')) || 'Встреча с Тенью'); },   emoji: '⚔️', unlocked: true, get passed(){ return ((window.i18n && i18n.t && i18n.t('hero.passed_f')) || 'пройдена'); } },
+    { num: 3, get name(){ return ((window.i18n && i18n.t && i18n.t('hero.step3_name')) || 'Загадка Зеркала'); },   emoji: '🔮', unlocked: true, get passed(){ return ((window.i18n && i18n.t && i18n.t('hero.passed_f')) || 'пройдена'); } },
+    { num: 4, get name(){ return ((window.i18n && i18n.t && i18n.t('hero.step4_name')) || 'Испытание Огнём'); },   emoji: '💪', unlocked: true, get passed(){ return ((window.i18n && i18n.t && i18n.t('hero.passed_n')) || 'пройдено'); } },
+    { num: 5, get name(){ return ((window.i18n && i18n.t && i18n.t('hero.step5_name')) || 'Погружение'); },        emoji: '🌊', unlocked: true, get passed(){ return ((window.i18n && i18n.t && i18n.t('hero.passed_n')) || 'пройдено'); } },
+    { num: 6, get name(){ return ((window.i18n && i18n.t && i18n.t('hero.step6_name')) || 'Трансформация'); },     emoji: '⚡', unlocked: true, get passed(){ return ((window.i18n && i18n.t && i18n.t('hero.passed_f')) || 'пройдена'); } },
+    { num: 7, get name(){ return ((window.i18n && i18n.t && i18n.t('hero.step7_name')) || 'Коронация'); },         emoji: '👑', unlocked: true, get passed(){ return ((window.i18n && i18n.t && i18n.t('hero.passed_f')) || 'пройдена'); } }
   ];
 
   // Названия механик для UI
   const MECHANIC_NAMES = {
-    strategy: 'RPG-стратегия',
-    story: 'Ветвящийся сюжет',
-    feelings: 'Диалог с душой',
-    challenge: 'Огненный челлендж',
-    riddle: 'Загадка-зеркало',
-    ritual: 'Ритуал времени',
-    message: 'Послание миров',
-    constructor: 'Конструктор смысла',
-    kaleidoscope: 'Калейдоскоп'
+    get strategy(){ return ((window.i18n && i18n.t && i18n.t('hero.mech_strategy')) || 'RPG-стратегия'); },
+    get story(){ return ((window.i18n && i18n.t && i18n.t('hero.mech_story')) || 'Ветвящийся сюжет'); },
+    get feelings(){ return ((window.i18n && i18n.t && i18n.t('hero.mech_feelings')) || 'Диалог с душой'); },
+    get challenge(){ return ((window.i18n && i18n.t && i18n.t('hero.mech_challenge')) || 'Огненный челлендж'); },
+    get riddle(){ return ((window.i18n && i18n.t && i18n.t('hero.mech_riddle')) || 'Загадка-зеркало'); },
+    get ritual(){ return ((window.i18n && i18n.t && i18n.t('hero.mech_ritual')) || 'Ритуал времени'); },
+    get message(){ return ((window.i18n && i18n.t && i18n.t('hero.mech_message')) || 'Послание миров'); },
+    get constructor(){ return ((window.i18n && i18n.t && i18n.t('hero.mech_constructor')) || 'Конструктор смысла'); },
+    get kaleidoscope(){ return ((window.i18n && i18n.t && i18n.t('hero.mech_kaleidoscope')) || 'Калейдоскоп'); }
   };
 
   function getContainer() {
@@ -84,14 +84,14 @@ const HeroJourney = (function() {
       if (data.result === 'step_complete' || data.result === 'journey_complete') {
         const nextStep = data.next_step;
         const nextInfo = nextStep ? STEPS.find(s => s.num === nextStep) : null;
-        const btnText = nextInfo ? `${nextInfo.emoji} К шагу: ${nextInfo.name}` : 'Далее';
+        const btnText = nextInfo ? ((window.i18n && i18n.t && i18n.t('hero.to_step', { emoji: nextInfo.emoji, name: nextInfo.name })) || `${nextInfo.emoji} К шагу: ${nextInfo.name}`) : ((window.i18n && i18n.t && i18n.t('hero.next')) || 'Далее');
         showVictory(data.victory_text, data.reward, () => {
           if (nextStep === 2 || nextStep === 6) { renderBattle(); }
           else { HeroJourney.render(currentDarCode); }
         }, btnText);
       }
     }).catch(err => {
-      if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
+      if (typeof showToast === 'function') showToast((err.message || ((window.i18n && i18n.t && i18n.t('common.error')) || 'Ошибка')), 'error');
     });
   }
 
@@ -112,11 +112,11 @@ const HeroJourney = (function() {
 
     // Анимированные фразы ожидания
     const loadingPhrases = [
-      'Открываю врата путешествия...',
-      'Настраиваю энергию дара...',
-      'Призываю силы поля...',
-      'Формирую твой путь...',
-      'Почти готово...'
+      ((window.i18n && i18n.t && i18n.t('hero.opening_gates')) || 'Открываю врата путешествия...'),
+      ((window.i18n && i18n.t && i18n.t('hero.tuning_energy')) || 'Настраиваю энергию дара...'),
+      ((window.i18n && i18n.t && i18n.t('hero.summoning_field')) || 'Призываю силы поля...'),
+      ((window.i18n && i18n.t && i18n.t('hero.forming_path')) || 'Формирую твой путь...'),
+      ((window.i18n && i18n.t && i18n.t('hero.almost_ready')) || 'Почти готово...')
     ];
     let phraseIdx = 0;
     const phraseTimer = setInterval(() => {
@@ -160,7 +160,7 @@ const HeroJourney = (function() {
       }
     }).catch(err => {
       clearPhrases();
-      container.innerHTML = `<p style="text-align:center;padding:40px;color:#ff6b6b">${err.message || 'Ошибка загрузки'}</p>
+      container.innerHTML = `<p style="text-align:center;padding:40px;color:#ff6b6b">${err.message || ((window.i18n && i18n.t && i18n.t('hero.load_error')) || 'Ошибка загрузки')}</p>
         <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.render('${darCode}')">${((window.i18n && i18n.t && i18n.t('common.try_again')) || 'Попробовать снова')}</button>`;
     });
   }
@@ -183,8 +183,8 @@ const HeroJourney = (function() {
     </div>
     <div class="hero-step-name">${STEPS[currentStep - 1]?.emoji || ''} ${STEPS[currentStep - 1]?.name || ''}</div>
     ${doneSteps.length > 0 ? `
-      <div class="hero-done-toggle" onclick="this.nextElementSibling.classList.toggle('hero-done-open');this.textContent=this.nextElementSibling.classList.contains('hero-done-open')?'Скрыть пройденные ▲':'Пройдено: ${doneSteps.length} из 7 ▼'">
-        Пройдено: ${doneSteps.length} из 7 ▼
+      <div class="hero-done-toggle" onclick="this.nextElementSibling.classList.toggle('hero-done-open');this.textContent=this.nextElementSibling.classList.contains('hero-done-open')?'${((window.i18n && i18n.t && i18n.t('hero.hide_done')) || 'Скрыть пройденные ▲')}':'${((window.i18n && i18n.t && i18n.t('hero.done_count', { n: doneSteps.length })) || `Пройдено: ${doneSteps.length} из 7 ▼`)}'">
+        ${((window.i18n && i18n.t && i18n.t('hero.done_count', { n: doneSteps.length })) || `Пройдено: ${doneSteps.length} из 7 ▼`)}
       </div>
       <div class="hero-done-list">
         ${doneSteps.map(s => `<div class="hero-done-item">✓ ${s.emoji} ${s.name}</div>`).join('')}
@@ -228,7 +228,7 @@ const HeroJourney = (function() {
           ${sceneIdx === 0 && state.intro ? `<p class="hero-intro-text">${state.intro}</p>` : ''}
           ${state.instruction ? `<p style="text-align:center;color:#FFA500;font-size:13px;margin-bottom:12px;font-weight:bold">${state.instruction}</p>` : ''}
           <div class="hero-scene-text">${scene?.text || ''}</div>
-          ${!isFireTrial ? `<div class="hero-scene-counter">Сцена ${sceneIdx + 1} из ${state.scenes.length}</div>` : ''}
+          ${!isFireTrial ? `<div class="hero-scene-counter">${((window.i18n && i18n.t && i18n.t('hero.scene_of', { cur: sceneIdx + 1, total: state.scenes.length })) || `Сцена ${sceneIdx + 1} из ${state.scenes.length}`)}</div>` : ''}
 
           <div id="hero-choices-area"></div>
         </div>
@@ -238,12 +238,12 @@ const HeroJourney = (function() {
     const choicesArea = container.querySelector('#hero-choices-area');
     if (choicesArea) {
       if (timerActive) {
-        choicesArea.innerHTML = '<div class="hero-timer-block" id="hero-timer-block"><div style="text-align:center;padding:20px"><div style="font-size:14px;color:var(--text);margin-bottom:8px">🔥 Задание выполняется...</div><div id="hero-timer" style="font-size:32px;color:#FF4500;font-weight:bold;font-family:monospace"></div><p style="color:#888;font-size:12px;margin-top:8px">Вернись когда выполнишь задание</p></div></div>';
+        choicesArea.innerHTML = '<div class="hero-timer-block" id="hero-timer-block"><div style="text-align:center;padding:20px"><div style="font-size:14px;color:var(--text);margin-bottom:8px">🔥 ' + ((window.i18n && i18n.t && i18n.t('hero.task_in_progress')) || 'Задание выполняется...') + '</div><div id="hero-timer" style="font-size:32px;color:#FF4500;font-weight:bold;font-family:monospace"></div><p style="color:#888;font-size:12px;margin-top:8px">' + ((window.i18n && i18n.t && i18n.t('hero.come_back_when_done')) || 'Вернись когда выполнишь задание') + '</p></div></div>';
         startTimerCountdown(timerEnd);
       } else if (timerExpired) {
         // Таймер уже истёк, пользователь вернулся позже — сразу кнопка "Готово",
         // а не экран выбора испытания заново.
-        choicesArea.innerHTML = '<div class="hero-timer-block" id="hero-timer-block"><div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🔥</div><div style="font-size:14px;color:#4CAF50;margin-bottom:12px">Время вышло! Задание выполнено?</div><button class="hero-btn hero-btn-primary" onclick="HeroJourney.completeFireTrial()">✅ Да, выполнено!</button><button class="hero-btn hero-btn-secondary" onclick="HeroJourney.completeFireTrial()" style="margin-top:8px">Пропустить</button></div></div>';
+        choicesArea.innerHTML = '<div class="hero-timer-block" id="hero-timer-block"><div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">🔥</div><div style="font-size:14px;color:#4CAF50;margin-bottom:12px">' + ((window.i18n && i18n.t && i18n.t('hero.time_up_q')) || 'Время вышло! Задание выполнено?') + '</div><button class="hero-btn hero-btn-primary" onclick="HeroJourney.completeFireTrial()">' + ((window.i18n && i18n.t && i18n.t('hero.yes_done')) || '✅ Да, выполнено!') + '</button><button class="hero-btn hero-btn-secondary" onclick="HeroJourney.completeFireTrial()" style="margin-top:8px">' + ((window.i18n && i18n.t && i18n.t('hero.skip')) || 'Пропустить') + '</button></div></div>';
       } else {
         // Перемешивание карт — чтобы "карта силы" не всегда была под №1.
         // Раньше порядок был фиксирован: тестеры заметили что они подсознательно
@@ -260,7 +260,7 @@ const HeroJourney = (function() {
         displayOrder.forEach(function(origI, displayI) {
           const c = choices[origI];
           const timerMin = c.timer_minutes || 0;
-          const timerLabel = timerMin >= 1440 ? '1 день' : timerMin >= 60 ? Math.round(timerMin/60) + ' ч' : timerMin > 0 ? timerMin + ' мин' : '';
+          const timerLabel = timerMin >= 1440 ? ((window.i18n && i18n.t && i18n.t('hero.one_day')) || '1 день') : timerMin >= 60 ? Math.round(timerMin/60) + ' ' + ((window.i18n && i18n.t && i18n.t('hero.hours_short')) || 'ч') : timerMin > 0 ? timerMin + ' ' + ((window.i18n && i18n.t && i18n.t('hero.minutes_short')) || 'мин') : '';
           const crystalReward = timerMin >= 1440 ? 25 : timerMin >= 60 ? 15 : timerMin > 0 ? 5 : 0;
           const labelEsc = (c.label || '').replace(/"/g, '&quot;');
           // onclick передаёт displayI, а data-original-idx хранит реальный индекс для сервера
@@ -309,22 +309,22 @@ const HeroJourney = (function() {
       <div class="hero-journey-screen" style="--field-color: ${color}">
         <div class="hero-header">
           <button class="hero-back-btn" onclick="HeroJourney.close()">←</button>
-          <span class="hero-field-badge" style="background:${color}">⚔️ Битва с Тенью</span>
-          <span class="hero-mechanic-tag">Раунд ${round}/5</span>
+          <span class="hero-field-badge" style="background:${color}">⚔️ ${((window.i18n && i18n.t && i18n.t('hero.battle_with_shadow')) || 'Битва с Тенью')}</span>
+          <span class="hero-mechanic-tag">${((window.i18n && i18n.t && i18n.t('hero.round_of', { n: round })) || `Раунд ${round}/5`)}</span>
         </div>
         ${renderProgress(2, currentJourney?.completed_steps)}
 
         <div class="hero-battle-arena">
           <div class="hero-hp-bars">
             <div class="hero-hp-bar">
-              <span class="hero-hp-label">🛡️ Герой</span>
+              <span class="hero-hp-label">🛡️ ${((window.i18n && i18n.t && i18n.t('hero.hero')) || 'Герой')}</span>
               <div class="hero-hp-track">
                 <div class="hero-hp-fill hero-hp-hero" style="width:${heroHp}%"></div>
               </div>
               <span class="hero-hp-num">${heroHp}</span>
             </div>
             <div class="hero-hp-bar">
-              <span class="hero-hp-label">👤 Тень</span>
+              <span class="hero-hp-label">👤 ${((window.i18n && i18n.t && i18n.t('hero.shadow')) || 'Тень')}</span>
               <div class="hero-hp-track">
                 <div class="hero-hp-fill hero-hp-shadow" style="width:${shadowHp}%"></div>
               </div>
@@ -335,14 +335,14 @@ const HeroJourney = (function() {
           <div class="hero-battle-log">
             ${history.length === 0 && !battleOver ? `
               <div class="hero-battle-intro">
-                <p>Тень твоего дара встаёт перед тобой.</p>
-                <p>Чтобы победить её, отвечай честно и глубоко. Поверхностные ответы не причинят ей вреда.</p>
-                <p><em>Что ты знаешь о своей тёмной стороне? Расскажи.</em></p>
+                <p>${((window.i18n && i18n.t && i18n.t('hero.battle_intro_1')) || 'Тень твоего дара встаёт перед тобой.')}</p>
+                <p>${((window.i18n && i18n.t && i18n.t('hero.battle_intro_2')) || 'Чтобы победить её, отвечай честно и глубоко. Поверхностные ответы не причинят ей вреда.')}</p>
+                <p><em>${((window.i18n && i18n.t && i18n.t('hero.battle_intro_3')) || 'Что ты знаешь о своей тёмной стороне? Расскажи.')}</em></p>
               </div>
             ` : ''}
             ${history.map(h => `
               <div class="hero-battle-msg ${h.role === 'hero' ? 'hero-msg-hero' : 'hero-msg-shadow'}">
-                <span class="hero-msg-label">${h.role === 'hero' ? '🛡️ Ты' : '👤 Тень'}</span>
+                <span class="hero-msg-label">${h.role === 'hero' ? '🛡️ ' + ((window.i18n && i18n.t && i18n.t('hero.you')) || 'Ты') : '👤 ' + ((window.i18n && i18n.t && i18n.t('hero.shadow')) || 'Тень')}</span>
                 <p>${h.text}</p>
               </div>
             `).join('')}
@@ -350,9 +350,9 @@ const HeroJourney = (function() {
 
           ${battleOver ? renderBattleResult(state) : `
             <div class="hero-battle-input">
-              <textarea id="hero-battle-answer" placeholder="Твой ответ Тени..." rows="3" ${loading ? 'disabled' : ''}></textarea>
+              <textarea id="hero-battle-answer" placeholder="${((window.i18n && i18n.t && i18n.t('hero.your_answer_placeholder')) || 'Твой ответ Тени...')}" rows="3" ${loading ? 'disabled' : ''}></textarea>
               <button class="hero-btn hero-btn-attack" onclick="HeroJourney.attack()" ${loading ? 'disabled' : ''}>
-                ${loading ? '⏳ Тень думает...' : '⚔️ Ударить ответом'}
+                ${loading ? ((window.i18n && i18n.t && i18n.t('hero.shadow_thinking')) || '⏳ Тень думает...') : ((window.i18n && i18n.t && i18n.t('hero.strike_answer')) || '⚔️ Ударить ответом')}
               </button>
             </div>
           `}
@@ -372,19 +372,19 @@ const HeroJourney = (function() {
     return `
       <div class="hero-battle-result ${heroWon ? 'hero-won' : 'hero-lost'}">
         <div class="hero-result-emoji">${heroWon ? '🏆' : '💫'}</div>
-        <h3>${heroWon ? 'Тень побеждена!' : 'Тень оказалась сильнее...'}</h3>
+        <h3>${heroWon ? ((window.i18n && i18n.t && i18n.t('hero.shadow_defeated')) || 'Тень побеждена!') : ((window.i18n && i18n.t && i18n.t('hero.shadow_stronger')) || 'Тень оказалась сильнее...')}</h3>
         <p>${heroWon
-          ? 'Ты заглянул в свою тёмную сторону и не отвернулся. Тень стала частью твоей силы.'
-          : 'Не страшно. Тень всегда будет ждать. Ты можешь вернуться, когда будешь готов.'
+          ? ((window.i18n && i18n.t && i18n.t('hero.shadow_win_text')) || 'Ты заглянул в свою тёмную сторону и не отвернулся. Тень стала частью твоей силы.')
+          : ((window.i18n && i18n.t && i18n.t('hero.shadow_lose_text')) || 'Не страшно. Тень всегда будет ждать. Ты можешь вернуться, когда будешь готов.')
         }</p>
-        ${heroWon ? `<div class="hero-reward-badge">+${currentJourney?.crystals_earned || 0} кристаллов</div>` : ''}
+        ${heroWon ? `<div class="hero-reward-badge">+${currentJourney?.crystals_earned || 0} ${((window.i18n && i18n.t && i18n.t('hero.crystals')) || 'кристаллов')}</div>` : ''}
         ${heroWon && nextInfo ? `
           <button class="hero-btn hero-btn-primary" onclick="HeroJourney.render('${currentDarCode}')">
-            ${nextInfo.emoji} Далее: ${nextInfo.name}
+            ${nextInfo.emoji} ${((window.i18n && i18n.t && i18n.t('hero.next_named', { name: nextInfo.name })) || `Далее: ${nextInfo.name}`)}
           </button>
         ` : `
           <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">
-            ${heroWon ? 'Завершить' : 'Вернуться'}
+            ${heroWon ? ((window.i18n && i18n.t && i18n.t('hero.finish')) || 'Завершить') : ((window.i18n && i18n.t && i18n.t('hero.go_back')) || 'Вернуться')}
           </button>
         `}
         ${!heroWon ? `<button class="hero-btn hero-btn-secondary" onclick="HeroJourney.retryBattle()">${((window.i18n && i18n.t && i18n.t('common.try_again')) || 'Попробовать снова')}</button>` : ''}
@@ -412,7 +412,7 @@ const HeroJourney = (function() {
           <div style="text-align:center">
             <div style="font-size:48px;margin-bottom:12px">👑</div>
             <h3 style="color:var(--text);margin-bottom:8px">${((window.i18n && i18n.t && i18n.t('hero.journey_passed')) || 'Путешествие пройдено!')}</h3>
-            <div class="hero-reward-badge" style="margin-bottom:16px">💎 ${crystals} кристаллов заработано</div>
+            <div class="hero-reward-badge" style="margin-bottom:16px">💎 ${((window.i18n && i18n.t && i18n.t('hero.crystals_earned', { n: crystals })) || `${crystals} кристаллов заработано`)}</div>
           </div>
 
           <div id="hero-analysis-area">
@@ -426,7 +426,7 @@ const HeroJourney = (function() {
           <div id="hero-path-history" style="margin:16px 0;border:1px solid rgba(212,175,55,0.25);border-radius:12px;overflow:hidden">
             <button id="hero-path-history-toggle" onclick="HeroJourney.togglePathHistory()"
               style="width:100%;padding:14px;background:rgba(212,175,55,0.06);border:none;color:#D4AF37;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;display:flex;align-items:center;justify-content:space-between;text-align:left">
-              <span>📜 История пройденного пути</span>
+              <span>📜 ${((window.i18n && i18n.t && i18n.t('hero.path_history_title')) || 'История пройденного пути')}</span>
               <span id="hero-path-history-arrow" style="transition:transform 0.3s">▼</span>
             </button>
             <div id="hero-path-history-body" style="display:none;padding:14px;background:rgba(0,0,0,0.15);max-height:500px;overflow-y:auto">
@@ -443,7 +443,7 @@ const HeroJourney = (function() {
             `).join('')}
           </div>
 
-          <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.restart('${darCode}')" style="margin-bottom:8px">🔄 Пройти заново (другой путь)</button>
+          <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.restart('${darCode}')" style="margin-bottom:8px">🔄 ${((window.i18n && i18n.t && i18n.t('hero.restart_other_path')) || 'Пройти заново (другой путь)')}</button>
           <button class="hero-btn hero-btn-primary" onclick="HeroJourney.close()">${((window.i18n && i18n.t && i18n.t('hero.back_to_treasury')) || 'Вернуться в Сокровищницу')}</button>
         </div>
       </div>`;
@@ -458,7 +458,7 @@ const HeroJourney = (function() {
         ).join('');
         area.innerHTML = `
           <div class="hero-analysis animate-fade-in">
-            <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;text-align:center">🔮 Слепок твоего пути</div>
+            <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;text-align:center">🔮 ${((window.i18n && i18n.t && i18n.t('hero.path_imprint')) || 'Слепок твоего пути')}</div>
             <div style="font-size:14px;color:var(--text);line-height:1.7">${paragraphs}</div>
           </div>`;
       }
@@ -473,19 +473,19 @@ const HeroJourney = (function() {
             const stepInfo = STEPS.find(s => s.num === entry.step) || {};
             let bodyHtml = '';
             if (entry.choices && entry.choices.length) {
-              bodyHtml = '<div style="margin-top:8px"><div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Твои выборы:</div>' +
-                entry.choices.map((c, i) => '<div style="padding:6px 10px;background:rgba(212,175,55,0.08);border-left:3px solid #D4AF37;border-radius:6px;margin-bottom:4px;font-size:13px;color:var(--text)">Сцена ' + (i+1) + ': <em>' + escapeHtmlSimple(c) + '</em></div>').join('') +
+              bodyHtml = '<div style="margin-top:8px"><div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">' + ((window.i18n && i18n.t && i18n.t('hero.your_choices')) || 'Твои выборы:') + '</div>' +
+                entry.choices.map((c, i) => '<div style="padding:6px 10px;background:rgba(212,175,55,0.08);border-left:3px solid #D4AF37;border-radius:6px;margin-bottom:4px;font-size:13px;color:var(--text)">' + ((window.i18n && i18n.t && i18n.t('hero.scene_n', { n: i+1 })) || ('Сцена ' + (i+1))) + ': <em>' + escapeHtmlSimple(c) + '</em></div>').join('') +
                 '</div>';
             }
             if (entry.answers && entry.answers.length) {
-              bodyHtml = '<div style="margin-top:8px"><div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Твои ответы (раундов: ' + (entry.rounds || entry.answers.length) + ', результат: ' + (entry.result || '—') + '):</div>' +
+              bodyHtml = '<div style="margin-top:8px"><div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">' + ((window.i18n && i18n.t && i18n.t('hero.your_answers', { rounds: (entry.rounds || entry.answers.length), result: (entry.result || '—') })) || ('Твои ответы (раундов: ' + (entry.rounds || entry.answers.length) + ', результат: ' + (entry.result || '—') + '):')) + '</div>' +
                 entry.answers.map((a, i) => '<div style="padding:8px 10px;background:rgba(212,175,55,0.06);border-left:3px solid rgba(212,175,55,0.4);border-radius:6px;margin-bottom:4px;font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap">' + escapeHtmlSimple(a) + '</div>').join('') +
                 '</div>';
             }
             return '<div style="padding:14px 0;' + (idx > 0 ? 'border-top:1px solid rgba(212,175,55,0.15);' : '') + '">' +
               '<div style="font-size:14px;color:#D4AF37;font-weight:600;display:flex;align-items:center;gap:8px">' +
                 '<span>' + (stepInfo.emoji || '✨') + '</span>' +
-                '<span>' + (stepInfo.name || entry.name || ('Шаг ' + entry.step)) + '</span>' +
+                '<span>' + (stepInfo.name || entry.name || ((window.i18n && i18n.t && i18n.t('hero.step_n', { n: entry.step })) || ('Шаг ' + entry.step))) + '</span>' +
               '</div>' +
               bodyHtml +
             '</div>';
@@ -533,9 +533,9 @@ const HeroJourney = (function() {
     const pathMsg = document.createElement('div');
     pathMsg.className = 'hero-path-msg animate-fade-in';
     pathMsg.style.cssText = 'margin-top:14px;padding:14px;border:1px solid rgba(212,175,55,0.35);border-radius:12px;background:rgba(212,175,55,0.06);text-align:center';
-    pathMsg.innerHTML = '<div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:6px">&#10022; ТВОЯ ТОЧКА СБОРКИ</div>' +
+    pathMsg.innerHTML = '<div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:6px">&#10022; ' + ((window.i18n && i18n.t && i18n.t('hero.your_assembly_point')) || 'ТВОЯ ТОЧКА СБОРКИ') + '</div>' +
       '<div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:6px">' + label + '</div>' +
-      '<div style="font-size:12px;color:#999;line-height:1.5">Можешь выбрать другую карту пока не нажал "Дальше"</div>';
+      '<div style="font-size:12px;color:#999;line-height:1.5">' + ((window.i18n && i18n.t && i18n.t('hero.can_change_card')) || 'Можешь выбрать другую карту пока не нажал "Дальше"') + '</div>';
     selectedBtn.parentElement.after(pathMsg);
 
     // Для Испытания Огнём — таймер: здесь выбор окончательный (нельзя отменить после старта таймера)
@@ -557,7 +557,7 @@ const HeroJourney = (function() {
   function _addContinueButtonFire(pathMsg, originalIdx, timerMinutes, buttons) {
     const wrap = document.createElement('div');
     wrap.style.cssText = 'text-align:center;margin-top:14px';
-    wrap.innerHTML = '<button id="hero-continue-btn" class="hero-btn hero-btn-primary" style="min-width:180px">Дальше &rarr; (старт таймера)</button>';
+    wrap.innerHTML = '<button id="hero-continue-btn" class="hero-btn hero-btn-primary" style="min-width:180px">' + ((window.i18n && i18n.t && i18n.t('hero.next_start_timer')) || 'Дальше &rarr; (старт таймера)') + '</button>';
     pathMsg.after(wrap);
     document.getElementById('hero-continue-btn').addEventListener('click', () => {
       if (_choiceConfirmed) return;
@@ -575,7 +575,7 @@ const HeroJourney = (function() {
         loading = false;
         _choiceConfirmed = false;
         buttons.forEach(b => b.disabled = false);
-        if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
+        if (typeof showToast === 'function') showToast((err.message || ((window.i18n && i18n.t && i18n.t('common.error')) || 'Ошибка')), 'error');
       });
     });
   }
@@ -584,7 +584,7 @@ const HeroJourney = (function() {
   function _addContinueButton(pathMsg, originalIdx, buttons) {
     const wrap = document.createElement('div');
     wrap.style.cssText = 'text-align:center;margin-top:14px';
-    wrap.innerHTML = '<button id="hero-continue-btn" class="hero-btn hero-btn-primary" style="min-width:180px">Дальше &rarr;</button>';
+    wrap.innerHTML = '<button id="hero-continue-btn" class="hero-btn hero-btn-primary" style="min-width:180px">' + ((window.i18n && i18n.t && i18n.t('hero.next_arrow')) || 'Дальше &rarr;') + '</button>';
     pathMsg.after(wrap);
     const btn = document.getElementById('hero-continue-btn');
     btn.addEventListener('click', () => {
@@ -593,7 +593,7 @@ const HeroJourney = (function() {
       loading = true;
       buttons.forEach(b => b.disabled = true);
       btn.disabled = true;
-      btn.textContent = 'Загрузка...';
+      btn.textContent = ((window.i18n && i18n.t && i18n.t('common.loading')) || 'Загрузка...');
       _sendChoiceAndTransition(originalIdx, buttons, btn);
     });
   }
@@ -611,10 +611,10 @@ const HeroJourney = (function() {
         const nextStep = data.next_step;
         const nextStepInfo = nextStep ? STEPS.find(s => s.num === nextStep) : null;
         const btnText = data.result === 'journey_complete'
-          ? '👑 Путешествие завершено!'
+          ? ((window.i18n && i18n.t && i18n.t('hero.journey_completed_btn')) || '👑 Путешествие завершено!')
           : nextStepInfo
-            ? `${nextStepInfo.emoji} К шагу: ${nextStepInfo.name}`
-            : 'Далее';
+            ? ((window.i18n && i18n.t && i18n.t('hero.to_step', { emoji: nextStepInfo.emoji, name: nextStepInfo.name })) || `${nextStepInfo.emoji} К шагу: ${nextStepInfo.name}`)
+            : ((window.i18n && i18n.t && i18n.t('hero.next')) || 'Далее');
 
         // Убираем "нижнюю" кнопку "Дальше →" от addContinueButton, чтобы пользователь
         // видел только одну кнопку перехода — внутри overlay победы.
@@ -649,8 +649,8 @@ const HeroJourney = (function() {
     }).catch(err => {
       loading = false;
       _choiceConfirmed = false;
-      serverError = err.message || 'Ошибка';
-      if (btn) { btn.textContent = 'Попробовать снова'; btn.disabled = false; }
+      serverError = err.message || ((window.i18n && i18n.t && i18n.t('common.error')) || 'Ошибка');
+      if (btn) { btn.textContent = ((window.i18n && i18n.t && i18n.t('common.try_again')) || 'Попробовать снова'); btn.disabled = false; }
       buttons.forEach(b => b.disabled = false);
       if (typeof showToast === 'function') showToast(serverError, 'error');
     });
@@ -667,7 +667,7 @@ const HeroJourney = (function() {
 
     loading = true;
     const btn = document.querySelector('.hero-btn-attack');
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Тень думает...'; }
+    if (btn) { btn.disabled = true; btn.textContent = ((window.i18n && i18n.t && i18n.t('hero.shadow_thinking')) || '⏳ Тень думает...'); }
     textarea.disabled = true;
 
     DarAPI.journeyAction(currentDarCode, { answer }).then(data => {
@@ -689,9 +689,9 @@ const HeroJourney = (function() {
       }
     }).catch(err => {
       loading = false;
-      if (btn) { btn.disabled = false; btn.textContent = '⚔️ Ударить ответом'; }
+      if (btn) { btn.disabled = false; btn.textContent = ((window.i18n && i18n.t && i18n.t('hero.strike_answer')) || '⚔️ Ударить ответом'); }
       if (textarea) textarea.disabled = false;
-      if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
+      if (typeof showToast === 'function') showToast((err.message || ((window.i18n && i18n.t && i18n.t('common.error')) || 'Ошибка')), 'error');
     });
   }
 
@@ -716,10 +716,10 @@ const HeroJourney = (function() {
     overlay.innerHTML = `
       <div class="hero-victory-card">
         <div class="hero-victory-emoji">${stepInfo.emoji || '✨'}</div>
-        <h3>${stepInfo.name || 'Шаг'} ${stepInfo.passed || 'пройден'}!</h3>
+        <h3>${stepInfo.name || ((window.i18n && i18n.t && i18n.t('hero.step')) || 'Шаг')} ${stepInfo.passed || ((window.i18n && i18n.t && i18n.t('hero.passed_default')) || 'пройден')}!</h3>
         <p>${text || ''}</p>
         ${reward ? `<div class="hero-reward-badge">+${reward} 💎</div>` : ''}
-        <button class="hero-btn hero-btn-primary hero-victory-continue-btn">${btnText || 'Далее'}</button>
+        <button class="hero-btn hero-btn-primary hero-victory-continue-btn">${btnText || ((window.i18n && i18n.t && i18n.t('hero.next')) || 'Далее')}</button>
       </div>`;
     container.appendChild(overlay);
 
@@ -784,7 +784,7 @@ const HeroJourney = (function() {
       currentContent = null;
       HeroJourney.render(darCode || currentDarCode);
     }).catch(err => {
-      if (typeof showToast === 'function') showToast(err.message || 'Ошибка', 'error');
+      if (typeof showToast === 'function') showToast((err.message || ((window.i18n && i18n.t && i18n.t('common.error')) || 'Ошибка')), 'error');
     });
   }
 

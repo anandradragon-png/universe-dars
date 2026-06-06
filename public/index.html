@@ -36,9 +36,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260606d">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260606e">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260606d"></script>
+  <script src="js/maintenance.js?v=20260606e"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1512,9 +1512,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260606d"></script>
+  <script src="js/i18n.js?v=20260606e"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260606d"></script>
+  <script src="js/dars-i18n.js?v=20260606e"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1526,18 +1526,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260606d"></script>
-  <script src="js/upgrade-modal.js?v=20260606d"></script>
-  <script src="js/crystals.js?v=20260606d"></script>
-  <script src="js/treasury.js?v=20260606d"></script>
-  <script src="js/referral.js?v=20260606d"></script>
-  <script src="js/book-reader.js?v=20260606d"></script>
-  <script src="js/intuition-game.js?v=20260606d"></script>
-  <script src="js/atlantis-game.js?v=20260606d"></script>
-  <script src="js/hero-journey.js?v=20260606d"></script>
-  <script src="js/share-card.js?v=20260606d"></script>
-  <script src="js/humor-card.js?v=20260606d"></script>
-  <script src="js/daily-dar.js?v=20260606d"></script>
+  <script src="js/api-client.js?v=20260606e"></script>
+  <script src="js/upgrade-modal.js?v=20260606e"></script>
+  <script src="js/crystals.js?v=20260606e"></script>
+  <script src="js/treasury.js?v=20260606e"></script>
+  <script src="js/referral.js?v=20260606e"></script>
+  <script src="js/book-reader.js?v=20260606e"></script>
+  <script src="js/intuition-game.js?v=20260606e"></script>
+  <script src="js/atlantis-game.js?v=20260606e"></script>
+  <script src="js/hero-journey.js?v=20260606e"></script>
+  <script src="js/share-card.js?v=20260606e"></script>
+  <script src="js/humor-card.js?v=20260606e"></script>
+  <script src="js/daily-dar.js?v=20260606e"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2402,7 +2402,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260606d" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260606e" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';
@@ -2646,29 +2646,64 @@
       }
       // BUG 7: на части устройств под кнопкой всплывал «голый» текстовый узел
       // с именем Дара (без обёртки и стилей — мелкий белый текст у левого края).
-      // Источник — рассинхрон рендера на конкретном webview. Чистим прицельно:
-      // удаляем любые bare-текстовые узлы прямо в контейнерах результата.
-      // Легитимный контент ВСЕГДА завёрнут в элемент, поэтому это безопасно.
+      // Источник — рассинхрон рендера на конкретном webview. Чистим прицельно
+      // и ставим наблюдатель, который вычистит дубль даже при поздней вставке.
       cleanStrayResultText();
       setTimeout(cleanStrayResultText, 300);
+      setTimeout(cleanStrayResultText, 1000);
+      startStrayWatcher();
     }
 
-    // Удаляет «голые» текстовые узлы (не обёрнутые в тег) — прямые дети
-    // #screen-result и .result-card. Фикс дубля имени Дара (BUG 7).
+    // Удаляет дубль имени Дара под кнопкой (BUG 7) в области результата.
+    // Ловит ОБА случая: «голый» текстовый узел (не обёрнутый в тег) И
+    // элемент-сироту, чей текст в точности равен имени Дара (напр. «Z-MAN»),
+    // но это НЕ официальный #darName. Имя Дара уникально, поэтому удаление
+    // по точному совпадению безопасно и не заденет легитимный UI.
     function cleanStrayResultText() {
       try {
-        const hosts = [];
         const sr = document.getElementById('screen-result');
-        if (sr) hosts.push(sr);
-        const card = sr && sr.querySelector('.result-card');
-        if (card) hosts.push(card);
-        hosts.forEach(host => {
+        if (!sr) return;
+        const nameEl = document.getElementById('darName');
+        const darName = nameEl ? nameEl.textContent.trim() : '';
+
+        // 1) Голые текстовые узлы — прямые дети screen-result и result-card.
+        const card = sr.querySelector('.result-card');
+        [sr, card].forEach(host => {
+          if (!host) return;
           Array.from(host.childNodes).forEach(node => {
-            if (node.nodeType === 3 && node.textContent.trim()) {
-              node.remove();
-            }
+            if (node.nodeType === 3 && node.textContent.trim()) node.remove();
           });
         });
+
+        // 2) Элемент-сирота с текстом, равным имени Дара (но не сам #darName).
+        if (darName) {
+          sr.querySelectorAll('*').forEach(el => {
+            if (el.id === 'darName') return;             // официальное имя — не трогаем
+            if (el.querySelector('*')) return;           // только листовые элементы
+            if (el.textContent.trim() === darName) el.remove();
+          });
+        }
+      } catch (e) {}
+    }
+    window.cleanStrayResultText = cleanStrayResultText;
+
+    // Наблюдатель: если что-то асинхронно вставит дубль имени Дара после
+    // первичной отрисовки — сразу вычищаем. Ставится один раз.
+    let _strayWatcher = null;
+    function startStrayWatcher() {
+      try {
+        if (_strayWatcher) return;
+        const sr = document.getElementById('screen-result');
+        if (!sr || typeof MutationObserver === 'undefined') return;
+        let scheduled = false;
+        _strayWatcher = new MutationObserver(() => {
+          if (scheduled) return;
+          scheduled = true;
+          // Откладываем через setTimeout (тикает всегда, в т.ч. в фоне —
+          // в отличие от requestAnimationFrame), чтобы не зациклиться на remove().
+          setTimeout(() => { scheduled = false; cleanStrayResultText(); }, 0);
+        });
+        _strayWatcher.observe(sr, { childList: true, subtree: true });
       } catch (e) {}
     }
     window.cleanStrayResultText = cleanStrayResultText;

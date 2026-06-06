@@ -36,9 +36,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260606b">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260606c">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260606b"></script>
+  <script src="js/maintenance.js?v=20260606c"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1512,9 +1512,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260606b"></script>
+  <script src="js/i18n.js?v=20260606c"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260606b"></script>
+  <script src="js/dars-i18n.js?v=20260606c"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1526,18 +1526,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260606b"></script>
-  <script src="js/upgrade-modal.js?v=20260606b"></script>
-  <script src="js/crystals.js?v=20260606b"></script>
-  <script src="js/treasury.js?v=20260606b"></script>
-  <script src="js/referral.js?v=20260606b"></script>
-  <script src="js/book-reader.js?v=20260606b"></script>
-  <script src="js/intuition-game.js?v=20260606b"></script>
-  <script src="js/atlantis-game.js?v=20260606b"></script>
-  <script src="js/hero-journey.js?v=20260606b"></script>
-  <script src="js/share-card.js?v=20260606b"></script>
-  <script src="js/humor-card.js?v=20260606b"></script>
-  <script src="js/daily-dar.js?v=20260606b"></script>
+  <script src="js/api-client.js?v=20260606c"></script>
+  <script src="js/upgrade-modal.js?v=20260606c"></script>
+  <script src="js/crystals.js?v=20260606c"></script>
+  <script src="js/treasury.js?v=20260606c"></script>
+  <script src="js/referral.js?v=20260606c"></script>
+  <script src="js/book-reader.js?v=20260606c"></script>
+  <script src="js/intuition-game.js?v=20260606c"></script>
+  <script src="js/atlantis-game.js?v=20260606c"></script>
+  <script src="js/hero-journey.js?v=20260606c"></script>
+  <script src="js/share-card.js?v=20260606c"></script>
+  <script src="js/humor-card.js?v=20260606c"></script>
+  <script src="js/daily-dar.js?v=20260606c"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2402,7 +2402,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260606b" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260606c" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';
@@ -6899,6 +6899,15 @@
       }
       // Напоминалка профиля для старых пользователей
       if (typeof checkProfileReminder === 'function') checkProfileReminder();
+
+      // Прямая ссылка на покупку Книги Даров из поста:
+      // https://t.me/YupDarBot?startapp=buybook → сразу открыть выбор оплаты Книги.
+      try {
+        const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param || '';
+        if (sp === 'buybook' && typeof window.buyBookChoice === 'function') {
+          setTimeout(() => { try { window.buyBookChoice(); } catch (e) {} }, 1200);
+        }
+      } catch (e) {}
     });
 
     // === Обратная связь ===

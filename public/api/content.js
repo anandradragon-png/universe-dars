@@ -145,27 +145,30 @@ function stripLeakedTerms(s, darName, darNamesAll) {
   return out.trim();
 }
 
-function sanitizeOracleOutput(parsed, darName, darNamesAll) {
+function sanitizeOracleOutput(parsed, darName, darNamesAll, lang) {
   if (!parsed || typeof parsed !== 'object') return parsed;
+  // Для EN/ES латиница — это и есть язык ответа, её вырезать НЕЛЬЗЯ.
+  // Чистка «утёкших терминов» и латиницы применяется только к русской версии.
+  const isRu = !lang || lang === 'ru';
   if (parsed.prophecy) {
-    if (hasLatin(parsed.prophecy)) {
+    if (isRu && hasLatin(parsed.prophecy)) {
       parsed.prophecy = parsed.prophecy.replace(/[a-zA-Z]+/g, '').replace(/\s+/g, ' ');
     }
-    parsed.prophecy = stripLeakedTerms(parsed.prophecy, darName, darNamesAll);
+    if (isRu) parsed.prophecy = stripLeakedTerms(parsed.prophecy, darName, darNamesAll);
     parsed.prophecy = oracleCleanText(parsed.prophecy);
   }
   if (parsed.practice) {
-    if (hasLatin(parsed.practice)) {
+    if (isRu && hasLatin(parsed.practice)) {
       parsed.practice = parsed.practice.replace(/[a-zA-Z]+/g, '').replace(/\s+/g, ' ');
     }
-    parsed.practice = stripLeakedTerms(parsed.practice, darName, darNamesAll);
+    if (isRu) parsed.practice = stripLeakedTerms(parsed.practice, darName, darNamesAll);
     parsed.practice = oracleCleanText(parsed.practice);
   }
   if (Array.isArray(parsed.energies)) {
     parsed.energies = parsed.energies.map(e => {
       if (typeof e !== 'string') return e;
-      const cleaned = hasLatin(e) ? e.replace(/[a-zA-Z]+/g, '').trim() : e;
-      const stripped = stripLeakedTerms(cleaned, darName, darNamesAll);
+      const cleaned = (isRu && hasLatin(e)) ? e.replace(/[a-zA-Z]+/g, '').trim() : e;
+      const stripped = isRu ? stripLeakedTerms(cleaned, darName, darNamesAll) : cleaned;
       return oracleCleanText(stripped);
     }).filter(e => e && e.length > 0);
   }
@@ -225,8 +228,11 @@ async function spellCheckText(text) {
   }
 }
 
-async function spellCheckOracleOutput(parsed) {
+async function spellCheckOracleOutput(parsed, lang) {
   if (!parsed || typeof parsed !== 'object') return parsed;
+  // Яндекс.Спеллер работает с lang=ru и «исправит» английские/испанские слова
+  // в русский мусор. Для EN/ES спелчек пропускаем целиком.
+  if (lang && lang !== 'ru') return parsed;
   const promises = [];
   if (parsed.prophecy) {
     promises.push(spellCheckText(parsed.prophecy).then(t => { parsed.prophecy = t; }));
@@ -275,7 +281,15 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-async function getOracleCache(userId, darCode, mode, relativeId) {
+// Ключ дня с учётом языка: для русского — чистая дата (обратная совместимость
+// со старыми записями), для EN/ES — дата с суффиксом языка, чтобы переводы
+// не перебивались русским кэшем за тот же день.
+function langDateKey(lang) {
+  const base = todayKey();
+  return (lang && lang !== 'ru') ? base + ':' + lang : base;
+}
+
+async function getOracleCache(userId, darCode, mode, relativeId, lang) {
   try {
     const db = getSupabase();
     const q = db
@@ -284,7 +298,7 @@ async function getOracleCache(userId, darCode, mode, relativeId) {
       .eq('user_id', userId)
       .eq('dar_code', darCode)
       .eq('mode', mode)
-      .eq('date_key', todayKey());
+      .eq('date_key', langDateKey(lang));
     if (relativeId) q.eq('relative_id', relativeId);
     else q.is('relative_id', null);
     const { data } = await q.single();
@@ -302,14 +316,14 @@ async function getOracleCache(userId, darCode, mode, relativeId) {
   return null;
 }
 
-async function saveOracleCache(userId, darCode, mode, parsed, relativeId, userQuery) {
+async function saveOracleCache(userId, darCode, mode, parsed, relativeId, userQuery, lang) {
   try {
     const db = getSupabase();
     await db.from('oracle_cache').upsert({
       user_id: userId,
       dar_code: darCode,
       mode,
-      date_key: todayKey(),
+      date_key: langDateKey(lang),
       prophecy: parsed.prophecy || '',
       practice: parsed.practice || '',
       energies: parsed.energies || [],
@@ -335,6 +349,10 @@ async function handleOracle(req, res) {
   const { dar_code, mode, user_query, gender, relative_name, relative_relationship, relative_id, personal_dar } = req.body;
   if (!dar_code) { res.status(400).json({ error: 'dar_code required' }); return; }
 
+  // Язык определяем сразу: он нужен и для ключа кэша (чтобы EN/ES не смешивались
+  // с русским ответом за тот же день), и для генерации промпта ниже.
+  const userLang = language.detectLang(req);
+
   let userId = null;
   let dbUser = null;
   try {
@@ -347,7 +365,7 @@ async function handleOracle(req, res) {
 
   // 1. Сначала — кэш (кэшированный ответ не съедает лимит)
   if (userId && mode !== 'card') {
-    const cached = await getOracleCache(userId, dar_code, mode, relative_id || null);
+    const cached = await getOracleCache(userId, dar_code, mode, relative_id || null, userLang);
     if (cached) return res.status(200).json(cached);
   }
 
@@ -638,7 +656,7 @@ ${genderBlock}
 
   // Локализация: для ru applyLanguage возвращает systemMsg как есть.
   // Для en/es префиксируется инструкция языка. Русский промпт не меняется.
-  const userLang = language.detectLang(req);
+  // userLang уже определён выше (для ключа кэша).
   const finalSystemMsg = language.applyLanguage(systemMsg, userLang);
 
   try {
@@ -688,15 +706,15 @@ ${genderBlock}
     try { parsed = JSON.parse(clean); }
     catch (parseErr) { throw new Error('Ошибка разбора JSON'); }
 
-    parsed = sanitizeOracleOutput(parsed, darName, Object.values(DARS_DB));
-    try { parsed = await spellCheckOracleOutput(parsed); }
+    parsed = sanitizeOracleOutput(parsed, darName, Object.values(DARS_DB), userLang);
+    try { parsed = await spellCheckOracleOutput(parsed, userLang); }
     catch (spellErr) { console.warn('Spellcheck stage failed:', spellErr.message); }
 
     const med = pickMeditationForDar(dar_code);
     if (med) parsed.meditation_video = med;
 
     if (userId && mode !== 'card') {
-      saveOracleCache(userId, dar_code, mode, parsed, relative_id || null, user_query || null);
+      saveOracleCache(userId, dar_code, mode, parsed, relative_id || null, user_query || null, userLang);
     }
 
     // Учёт лимита: только новая генерация (не кэш), только если юзер авторизован

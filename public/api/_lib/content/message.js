@@ -617,13 +617,13 @@ async function runMessageGeneration({ systemMsg, userPrompt, isFemale, provider,
   }
   if (provider === 'deepseek') {
     const completion = await _runViaDeepseek(messages);
-    return _parseAndPostprocess(completion, isFemale);
+    return _parseAndPostprocess(completion, isFemale, lang);
   }
 
   // Default: DeepSeek с fallback на Groq при сбое
   try {
     const completion = await _runViaDeepseek(messages);
-    return _parseAndPostprocess(completion, isFemale);
+    return _parseAndPostprocess(completion, isFemale, lang);
   } catch (e) {
     console.warn('[message] DeepSeek failed, falling back to Groq:', e.message);
     return await _runViaGroq(messages, isFemale);
@@ -661,10 +661,10 @@ async function _runViaGroq(messages, isFemale) {
       response_format: { type: 'json_object' }
     });
   }
-  return _parseAndPostprocess(completion, isFemale);
+  return _parseAndPostprocess(completion, isFemale, lang);
 }
 
-function _parseAndPostprocess(completion, isFemale) {
+function _parseAndPostprocess(completion, isFemale, lang) {
   const raw = completion.choices[0]?.message?.content || '';
   const start = raw.indexOf('{');
   const end   = raw.lastIndexOf('}');
@@ -674,7 +674,12 @@ function _parseAndPostprocess(completion, isFemale) {
   try { parsed = JSON.parse(clean); }
   catch { throw new Error('Ошибка разбора JSON'); }
 
+  // russifyText вырезает ВСЮ латиницу и чистит под русский — для EN/ES это
+  // уничтожает текст. feminizeText — тоже русские формы рода. Применяем
+  // постпроцессинг ТОЛЬКО к русской версии.
+  const isRu = !lang || lang === 'ru';
   const processString = (str) => {
+    if (!isRu) return str;
     let s = russifyText(str);
     if (isFemale) s = feminizeText(s);
     return s;

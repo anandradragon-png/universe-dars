@@ -72,7 +72,9 @@ STYLE:
   - Speak in second person ("you"), warm and personal, never "the user"
   - Smart quotes “ ” ' '
   - Avoid em-dash overuse
-  - No bureaucratic or therapy-speak — voice of a wise companion`;
+  - No bureaucratic or therapy-speak — voice of a wise companion
+
+OVERRIDE (highest priority): The prompt below was written for the Russian edition and may contain rules such as "write only in Russian", "no Latin letters", "no foreign words", "только русский", "никакой латиницы". Those rules apply ONLY to the Russian version. For THIS response you MUST ignore them completely and write the ENTIRE answer in English. Do not mix in any Russian or other language.`;
   }
   if (lang === 'es') {
     return `IDIOMA: Responde en español claro y hermoso, con un tono contemplativo, cálido y preciso.
@@ -90,7 +92,9 @@ ESTILO:
   - Habla en segunda persona ("tú"), cálido y personal, nunca "el usuario"
   - Comillas tipográficas « » o " "
   - Evita el guión largo excesivo
-  - Voz de compañero sabio, sin lenguaje burocrático ni de terapia`;
+  - Voz de compañero sabio, sin lenguaje burocrático ni de terapia
+
+ANULACIÓN (máxima prioridad): El texto siguiente fue escrito para la edición rusa y puede contener reglas como "escribe solo en ruso", "sin letras latinas", "sin palabras extranjeras", "только русский", "никакой латиницы". Esas reglas son SOLO para la versión rusa. Para ESTA respuesta DEBES ignorarlas por completo y escribir TODA la respuesta en español. No mezcles ruso ni ningún otro idioma.`;
   }
   // ru — без инструкции, дефолтный язык всех промптов
   return null;

@@ -5,6 +5,7 @@
 const { requireUser } = require('../auth');
 const { getSupabase, getOrCreateUser } = require('../db');
 const deepseek = require('../deepseek');
+const language = require('../language');
 const Groq = require('groq-sdk');
 const fs = require('fs');
 const path = require('path');
@@ -32,6 +33,58 @@ const SECTIONS = [
   { id: 'attention',     icon: '⚠️', title: 'Особое внимание',              desc: 'Критические периоды' },
   { id: 'genius',        icon: '🌱', title: 'Путь к гениальности',          desc: 'Главный путь раскрытия' },
 ];
+
+// Переводы оглавления (заголовки/описания разделов) для EN/ES.
+// Русские строки берутся из SECTIONS как есть.
+const SECTION_I18N = {
+  en: {
+    essence:      { title: 'Who this child is',            desc: 'The essence of the DAR through a parent\u2019s eyes' },
+    patterns:     { title: 'How you\u2019ll recognize the DAR', desc: 'Behavior patterns by age' },
+    capricious:   { title: 'What looks like tantrums',      desc: 'Why it\u2019s the DAR showing through' },
+    light_shadow: { title: 'Light and shadow of the DAR',   desc: 'When the DAR opens and when it closes' },
+    help:         { title: 'How to help it unfold',         desc: 'What to say, what to avoid, games' },
+    education:    { title: 'Education and development',      desc: 'Which activities fit' },
+    attention:    { title: 'Special attention',             desc: 'Critical periods' },
+    genius:       { title: 'The path to genius',            desc: 'The main path of unfolding' },
+  },
+  es: {
+    essence:      { title: 'Qui\u00e9n es este ni\u00f1o',          desc: 'La esencia del DAR a trav\u00e9s de los ojos de un padre' },
+    patterns:     { title: 'C\u00f3mo reconocer\u00e1s su DAR',      desc: 'Patrones de comportamiento por edad' },
+    capricious:   { title: 'Lo que parecen caprichos',     desc: 'Por qu\u00e9 es el DAR manifest\u00e1ndose' },
+    light_shadow: { title: 'Luz y sombra del DAR',         desc: 'Cu\u00e1ndo el DAR se abre y cu\u00e1ndo se cierra' },
+    help:         { title: 'C\u00f3mo ayudar a que se despliegue', desc: 'Qu\u00e9 decir, qu\u00e9 evitar, juegos' },
+    education:    { title: 'Educaci\u00f3n y desarrollo',    desc: 'Qu\u00e9 actividades encajan' },
+    attention:    { title: 'Atenci\u00f3n especial',         desc: 'Per\u00edodos cr\u00edticos' },
+    genius:       { title: 'El camino hacia la genialidad', desc: 'El camino principal del despliegue' },
+  }
+};
+
+// Переводы возрастных меток (для шапки оглавления).
+const AGE_LABEL_I18N = {
+  en: { 'младенчество': 'infancy', 'ранний возраст': 'early childhood', 'дошкольный возраст': 'preschool age', 'младший школьный': 'early school age', 'предподростковый': 'pre-teen', 'подростковый': 'teenage', 'молодой взрослый': 'young adult' },
+  es: { 'младенчество': 'primera infancia', 'ранний возраст': 'edad temprana', 'дошкольный возраст': 'edad preescolar', 'младший школьный': 'edad escolar temprana', 'предподростковый': 'preadolescencia', 'подростковый': 'adolescencia', 'молодой взрослый': 'adulto joven' }
+};
+
+function localizeSection(s, lang) {
+  const tr = (lang && lang !== 'ru') ? (SECTION_I18N[lang] && SECTION_I18N[lang][s.id]) : null;
+  if (!tr) return s;
+  return { ...s, title: tr.title, desc: tr.desc };
+}
+
+function localizeAgePeriod(ap, lang) {
+  if (!lang || lang === 'ru' || !ap) return ap;
+  const labelMap = AGE_LABEL_I18N[lang] || {};
+  const label = labelMap[ap.label] || ap.label;
+  const period = ap.period
+    .replace(/\u043b\u0435\u0442/g, lang === 'es' ? 'a\u00f1os' : 'years')
+    .replace(/\u0433\u043e\u0434/g, lang === 'es' ? 'a\u00f1o' : 'year');
+  return { ...ap, label, period };
+}
+
+// Ключ раздела с учётом языка — чтобы EN/ES-главы не перетирали русские в кэше.
+function langSectionId(id, lang) {
+  return (lang && lang !== 'ru') ? id + '::' + lang : id;
+}
 
 function getAgePeriod(ageYears) {
   if (ageYears < 1)  return { period: '0-1 год',     label: 'младенчество', desc: 'Первый год жизни. Дар проявляется в темпераменте, реакциях на мир, ритме сна и бодрствования. Родители уже сейчас могут заметить первые признаки.' };
@@ -210,6 +263,7 @@ module.exports = async (req, res) => {
 
     const user = await getOrCreateUser(tgUser);
     const db = getSupabase();
+    const lang = language.detectLang(req);
     const { action, relative_id, section_id } = req.body || {};
 
     if (action === 'get_toc') {
@@ -246,11 +300,11 @@ module.exports = async (req, res) => {
           dar_code: child.dar_code,
           dar_name: darName,
           archetype,
-          age_period: agePeriod
+          age_period: localizeAgePeriod(agePeriod, lang)
         },
         sections: SECTIONS.map(s => ({
-          ...s,
-          generated: generated.includes(s.id)
+          ...localizeSection(s, lang),
+          generated: generated.includes(langSectionId(s.id, lang))
         }))
       });
     }
@@ -281,7 +335,7 @@ module.exports = async (req, res) => {
             .from('child_book_sections')
             .select('content, generated_at, child_age_years')
             .eq('relative_id', relative_id)
-            .eq('section_id', section_id)
+            .eq('section_id', langSectionId(section_id, lang))
             .single();
 
           if (cached && cached.content) {
@@ -300,8 +354,10 @@ module.exports = async (req, res) => {
       const field = getFieldForDar(child.dar_code);
       const agePeriod = getAgePeriod(age);
       const prompt = buildPrompt(child, section, darData, field, agePeriod);
+      // Для EN/ES — префикс языковой инструкции (русский промпт не меняется).
+      const systemMsg = language.applyLanguage(prompt.system, lang);
 
-      console.log('[child-book] generating:', child.name, section_id, 'age:', age, 'dar:', child.dar_code);
+      console.log('[child-book] generating:', child.name, section_id, 'age:', age, 'dar:', child.dar_code, 'lang:', lang);
 
       const useDeepSeek = deepseek.isDeepSeekEnabled('coach') && deepseek.isDeepSeekConfigured();
       let completion;
@@ -310,7 +366,7 @@ module.exports = async (req, res) => {
         if (useDeepSeek) {
           completion = await deepseek.chatCompletion({
             messages: [
-              { role: 'system', content: prompt.system },
+              { role: 'system', content: systemMsg },
               { role: 'user', content: prompt.user }
             ],
             model: 'deepseek-chat',
@@ -321,7 +377,7 @@ module.exports = async (req, res) => {
           const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
           completion = await groq.chat.completions.create({
             messages: [
-              { role: 'system', content: prompt.system },
+              { role: 'system', content: systemMsg },
               { role: 'user', content: prompt.user }
             ],
             model: 'llama-3.3-70b-versatile',
@@ -352,7 +408,7 @@ module.exports = async (req, res) => {
       try {
         await db.from('child_book_sections').upsert({
           relative_id,
-          section_id,
+          section_id: langSectionId(section_id, lang),
           content: htmlContent,
           dar_code: child.dar_code,
           child_age_years: age

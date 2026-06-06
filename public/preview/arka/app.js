@@ -91,6 +91,11 @@ const ARKA_DYN_I18N = {
     'task.shadow': '🌑 теневая',
     'task.default_t1': 'Главная задача в окне силы',
     'task.placeholder': 'Опиши задачу…',
+    'water.remind_me': '⏰ Напомнить мне',
+    'water.reminders_on': '✓ Напоминания включены',
+    'water.permission_needed': 'Разреши уведомления в браузере, чтобы получать напоминания',
+    'water.notif_title': '💧 АРКА',
+    'water.notif_body': 'Напоминания о воде включены: в 12:00, 14:00, 16:00',
     'finance.actual': 'Факт ₽',
     'finance.target': 'Цель ₽',
     'finance.name_placeholder': 'Название канала',
@@ -157,6 +162,11 @@ const ARKA_DYN_I18N = {
     'task.shadow': '🌑 shadow',
     'task.default_t1': 'Main task in the power window',
     'task.placeholder': 'Describe the task…',
+    'water.remind_me': '⏰ Remind me',
+    'water.reminders_on': '✓ Reminders on',
+    'water.permission_needed': 'Allow notifications in your browser to receive reminders',
+    'water.notif_title': '💧 ARKA',
+    'water.notif_body': 'Water reminders on: at 12:00, 14:00, 16:00',
     'finance.actual': 'Actual $',
     'finance.target': 'Target $',
     'finance.name_placeholder': 'Channel name',
@@ -220,6 +230,11 @@ const ARKA_DYN_I18N = {
     'task.shadow': '🌑 de sombra',
     'task.default_t1': 'Tarea principal en la ventana de poder',
     'task.placeholder': 'Describe la tarea…',
+    'water.remind_me': '⏰ Recordarme',
+    'water.reminders_on': '✓ Recordatorios activados',
+    'water.permission_needed': 'Permite las notificaciones en tu navegador para recibir recordatorios',
+    'water.notif_title': '💧 ARKA',
+    'water.notif_body': 'Recordatorios de agua activados: a las 12:00, 14:00, 16:00',
     'finance.actual': 'Real $',
     'finance.target': 'Meta $',
     'finance.name_placeholder': 'Nombre del canal',
@@ -1300,28 +1315,28 @@ function initWaterReminder() {
   let reminderActive = localStorage.getItem('iram_water_reminder') === 'on';
   if (reminderActive) {
     btn.classList.add('active');
-    btn.textContent = '✓ Напоминания включены';
+    btn.textContent = dt('water.reminders_on');
   }
   btn.addEventListener('click', async () => {
     if (reminderActive) {
       reminderActive = false;
       localStorage.removeItem('iram_water_reminder');
       btn.classList.remove('active');
-      btn.textContent = '⏰ Напомнить мне';
+      btn.textContent = dt('water.remind_me');
       return;
     }
     if ('Notification' in window) {
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') {
-        alert('Разреши уведомления в браузере, чтобы получать напоминания');
+        alert(dt('water.permission_needed'));
         return;
       }
     }
     reminderActive = true;
     localStorage.setItem('iram_water_reminder', 'on');
     btn.classList.add('active');
-    btn.textContent = '✓ Напоминания включены';
-    new Notification('💧 АРКА', { body: 'Напоминания о воде включены: в 12:00, 14:00, 16:00' });
+    btn.textContent = dt('water.reminders_on');
+    new Notification(dt('water.notif_title'), { body: dt('water.notif_body') });
   });
 }
 

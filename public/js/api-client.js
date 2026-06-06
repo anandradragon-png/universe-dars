@@ -41,34 +41,38 @@ const DarAPI = (function() {
     } catch (e) {}
   }
 
+  // Локализация с фоллбэком на русский (api-client может вызваться до
+  // готовности словаря i18n — тогда отдаём fb).
+  function _t(k, fb) { return (window.i18n && i18n.t && i18n.t(k)) || fb; }
+
   // Дружелюбные сообщения для пользователя по техническим ошибкам
   function friendlyError(kind, info) {
     if (kind === 'network') {
-      return 'Нет связи с интернетом. Проверь соединение и попробуй ещё раз.';
+      return _t('errors.network', 'Нет связи с интернетом. Проверь соединение и попробуй ещё раз.');
     }
     if (kind === 'non-json') {
       const status = info && info.status;
       if (status === 502 || status === 503 || status === 504) {
-        return 'Сервер сейчас перегружен. Подожди минуту и попробуй ещё раз.';
+        return _t('errors.server_busy', 'Сервер сейчас перегружен. Подожди минуту и попробуй ещё раз.');
       }
-      return 'Сервер ненадолго недоступен. Попробуй позже.';
+      return _t('errors.server_down', 'Сервер ненадолго недоступен. Попробуй позже.');
     }
     if (kind === 'http') {
       const status = info && info.status;
-      if (status === 401) return 'Нужно перезайти в приложение.';
-      if (status === 403) return 'Эта функция доступна только в полной версии.';
-      if (status === 404) return 'Запрошенные данные не найдены.';
-      if (status === 429) return 'Слишком много запросов. Подожди немного.';
-      if (status >= 500) return 'На сервере что-то пошло не так. Мы уже знаем и чиним.';
+      if (status === 401) return _t('errors.relogin', 'Нужно перезайти в приложение.');
+      if (status === 403) return _t('errors.premium_only', 'Эта функция доступна только в полной версии.');
+      if (status === 404) return _t('errors.not_found', 'Запрошенные данные не найдены.');
+      if (status === 429) return _t('errors.too_many', 'Слишком много запросов. Подожди немного.');
+      if (status >= 500) return _t('errors.server_500', 'На сервере что-то пошло не так. Мы уже знаем и чиним.');
       // Если сервер вернул свой error - используем его, если он на русском
       if (info && info.body && info.body.error) {
         const msg = String(info.body.error);
         // Простая проверка: если есть кириллица - это уже дружелюбное сообщение
         if (/[а-яё]/i.test(msg)) return msg;
       }
-      return 'Что-то пошло не так. Попробуй ещё раз.';
+      return _t('errors.generic_http', 'Что-то пошло не так. Попробуй ещё раз.');
     }
-    return 'Не удалось выполнить запрос. Попробуй ещё раз.';
+    return _t('errors.generic', 'Не удалось выполнить запрос. Попробуй ещё раз.');
   }
 
   async function request(path, method = 'GET', body = null) {

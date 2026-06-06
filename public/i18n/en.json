@@ -380,7 +380,19 @@
       "7": "ASTRA",
       "8": "BITRA",
       "9": "OMA"
-    }
+    },
+    "quest_not_counted": "Not counted: {msg}. Tap the «Ready to move on» button again",
+    "reset_dialogue_confirm": "Start a new dialogue? The previous one will be hidden.",
+    "min_chars": "Write at least 30 characters. Currently: {n}.",
+    "min_chars_reflection": "Write at least 30 characters of reflection. Currently: {n}.",
+    "not_enough_crystals": "Not enough crystals! You need {cost}, you have {balance}",
+    "unlock_random_confirm": "Unlock a random DAR for {cost} crystals?",
+    "dar_unlocked_toast": "✨ You unlocked a new DAR: {name}!",
+    "dar_unlocked_alert": "You unlocked the DAR: {name}!",
+    "calc_first": "Calculate your DAR first",
+    "unknown_error": "unknown error",
+    "all_dars_open": "All DARs are already unlocked!",
+    "unlock_random_failed": "Could not unlock a random DAR. Please try again."
   },
   "oracle": {
     "forming": "Oracle is forming the message...",
@@ -404,7 +416,9 @@
     "preset_choice": "Which choice is in my flow right now?",
     "preset_family": "What is important for me in family and lineage right now?",
     "preset_path": "Where is life leading me?",
-    "preset_self": "What is important for me to understand about myself today?"
+    "preset_self": "What is important for me to understand about myself today?",
+    "message_failed_title": "Could not get the message",
+    "message_failed_later": "Could not get the message. Please try later."
   },
   "book": {
     "chapter_locked": "This chapter is available in the full version. Enter a promo code below to unlock the whole book.",
@@ -656,5 +670,39 @@
     "overlay_title": "Stand-up Mirror",
     "regen_btn": "🔄 Regenerate",
     "share_card_btn": "📤 Share"
+  },
+  "errors": {
+    "network": "No internet connection. Check your connection and try again.",
+    "server_busy": "The server is overloaded right now. Wait a minute and try again.",
+    "server_down": "The server is briefly unavailable. Please try later.",
+    "relogin": "Please re-open the app.",
+    "premium_only": "This feature is available only in the full version.",
+    "not_found": "The requested data was not found.",
+    "too_many": "Too many requests. Please wait a moment.",
+    "server_500": "Something went wrong on the server. We already know and are fixing it.",
+    "generic_http": "Something went wrong. Please try again.",
+    "generic": "Could not complete the request. Please try again."
+  },
+  "toast": {
+    "avatar_saved": "✨ Avatar saved",
+    "copied_for_friend": "Copied! You can paste it into a chat with a friend.",
+    "humor_resting": "The stand-up comedian is taking a break. Try again in a minute.",
+    "message_failed": "Could not get the message. Try again in a minute.",
+    "thanks_support": "✨ Thank you for your support! +{n} crystals",
+    "diary_crystal": "✨ +1 crystal for the diary",
+    "relative_added": "✨ {name} added to the family!",
+    "log_copied": "Log copied to clipboard. Paste it into the chat with the developer.",
+    "log_failed": "Could not collect the log: {msg}",
+    "streak_bonus": "✨ {streak}-{dayWord} streak! Bonus: +{bonus} crystals",
+    "daily_login": "✨ +{n} crystals for daily login",
+    "day_one": "day",
+    "day_few": "days",
+    "day_many": "days",
+    "card_saved": "✨ Card saved",
+    "detailed_card_saved": "✨ Detailed card downloaded",
+    "download_failed": "Could not download: {msg}",
+    "generate_humor_first": "Generate the stand-up first",
+    "write_two_sentences": "Write at least a couple of sentences",
+    "extra_attempt": "+1 attempt added! You can keep playing ✨"
   }
 }

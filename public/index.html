@@ -36,9 +36,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260605b">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260606">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260605b"></script>
+  <script src="js/maintenance.js?v=20260606"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1512,9 +1512,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260605b"></script>
+  <script src="js/i18n.js?v=20260606"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260605b"></script>
+  <script src="js/dars-i18n.js?v=20260606"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1526,18 +1526,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260605b"></script>
-  <script src="js/upgrade-modal.js?v=20260605b"></script>
-  <script src="js/crystals.js?v=20260605b"></script>
-  <script src="js/treasury.js?v=20260605b"></script>
-  <script src="js/referral.js?v=20260605b"></script>
-  <script src="js/book-reader.js?v=20260605b"></script>
-  <script src="js/intuition-game.js?v=20260605b"></script>
-  <script src="js/atlantis-game.js?v=20260605b"></script>
-  <script src="js/hero-journey.js?v=20260605b"></script>
-  <script src="js/share-card.js?v=20260605b"></script>
-  <script src="js/humor-card.js?v=20260605b"></script>
-  <script src="js/daily-dar.js?v=20260605b"></script>
+  <script src="js/api-client.js?v=20260606"></script>
+  <script src="js/upgrade-modal.js?v=20260606"></script>
+  <script src="js/crystals.js?v=20260606"></script>
+  <script src="js/treasury.js?v=20260606"></script>
+  <script src="js/referral.js?v=20260606"></script>
+  <script src="js/book-reader.js?v=20260606"></script>
+  <script src="js/intuition-game.js?v=20260606"></script>
+  <script src="js/atlantis-game.js?v=20260606"></script>
+  <script src="js/hero-journey.js?v=20260606"></script>
+  <script src="js/share-card.js?v=20260606"></script>
+  <script src="js/humor-card.js?v=20260606"></script>
+  <script src="js/daily-dar.js?v=20260606"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -1982,7 +1982,7 @@
           // Сохраняем на сервер (чтобы не слетал между сессиями)
           if (typeof DarAPI !== 'undefined' && DarAPI.saveAvatar) {
             DarAPI.saveAvatar(dataUrl).then(() => {
-              if (typeof showToast === 'function') showToast('\u2728 Аватарка сохранена', 'success');
+              if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('toast.avatar_saved')) || '\u2728 Аватарка сохранена'), 'success');
             }).catch(err => {
               console.warn('saveAvatar failed:', err.message);
               if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('avatar.local_only')) || 'Аватарка сохранена локально, но не на сервере. Попробуй позже.'), 'error');
@@ -2402,7 +2402,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260605b" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260606" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';
@@ -3187,7 +3187,7 @@
       } catch(e) {}
       try {
         navigator.clipboard.writeText(text).then(
-          () => { if (typeof showToast === 'function') showToast('Скопировано! Можешь вставить в чат другу.', 'success'); },
+          () => { if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('toast.copied_for_friend')) || 'Скопировано! Можешь вставить в чат другу.'), 'success'); },
           () => alert(text)
         );
       } catch(e) { alert(text); }
@@ -3331,7 +3331,7 @@
             btn.innerHTML = '<span data-i18n="dar.get_humor">' + (((window.i18n && i18n.t && i18n.t('dar.get_humor')) || '🎭 Читать свой стендап')) + '</span>';
           }
           if (typeof showToast === 'function') {
-            showToast('Стендап-комик отдыхает. Попробуй через минуту.', 'error');
+            showToast(((window.i18n && i18n.t && i18n.t('toast.humor_resting')) || 'Стендап-комик отдыхает. Попробуй через минуту.'), 'error');
           }
           return;
         }
@@ -3398,7 +3398,7 @@
         }
         // Покажем toast чтобы юзер сразу увидел проблему.
         if (typeof showToast === 'function') {
-          showToast('Не удалось получить послание. Попробуй ещё раз через минуту.', 'error');
+          showToast(((window.i18n && i18n.t && i18n.t('toast.message_failed')) || 'Не удалось получить послание. Попробуй ещё раз через минуту.'), 'error');
         }
       }
     }
@@ -4578,7 +4578,7 @@
         if (tg && typeof tg.openInvoice === 'function') {
           tg.openInvoice(result.invoice_url, function(status) {
             if (status === 'paid') {
-              if (typeof showToast === 'function') showToast('\u2728 Спасибо за поддержку! +' + result.bonus_crystals + ' кристаллов', 'success');
+              if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('toast.thanks_support', { n: result.bonus_crystals })) || ('\u2728 Спасибо за поддержку! +' + result.bonus_crystals + ' кристаллов')), 'success');
               if (typeof CrystalsUI !== 'undefined') CrystalsUI.animateEarn(result.bonus_crystals);
             } else if (status === 'failed') {
               if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('tariffs.payment_failed')) || 'Оплата не прошла'), 'error');
@@ -4992,7 +4992,7 @@
         if (result.crystals_earned && typeof CrystalsUI !== 'undefined') {
           CrystalsUI.animateEarn(result.crystals_earned);
         }
-        if (typeof showToast === 'function') showToast('\u2728 +1 кристалл за дневник', 'success');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('toast.diary_crystal')) || '\u2728 +1 кристалл за дневник'), 'success');
       } catch (e) {
         if (typeof showToast === 'function') showToast(e.message || 'Ошибка', 'error');
       }
@@ -5515,11 +5515,11 @@
           + (lastPsuError ? 'LAST PROFILE SAVE ERROR:\n' + JSON.stringify(lastPsuError, null, 2) + '\n\n' : '')
           + 'ALL API ERRORS:\n' + JSON.stringify(errors, null, 2);
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(body).then(() => alert('Лог скопирован в буфер. Вставь в чат разработчику Светлане.')).catch(() => prompt('Скопируй лог:', body));
+          navigator.clipboard.writeText(body).then(() => alert(((window.i18n && i18n.t && i18n.t('toast.log_copied')) || 'Лог скопирован в буфер. Вставь в чат разработчику Светлане.'))).catch(() => prompt('Скопируй лог:', body));
         } else {
           prompt('Скопируй лог:', body);
         }
-      } catch (e) { alert('Не удалось собрать лог: ' + e.message); }
+      } catch (e) { alert(((window.i18n && i18n.t && i18n.t('toast.log_failed', { msg: e.message })) || ('Не удалось собрать лог: ' + e.message))); }
     }
 
     // Закрыть предупреждение и продолжить поток (показать результат дара если был отложен)
@@ -5938,7 +5938,7 @@
           gender: _selectedRelGender || undefined
         });
         if (result && result.success) {
-          if (typeof showToast === 'function') showToast('\u2728 ' + name + ' добавлен(а) в семью!', 'success');
+          if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('toast.relative_added', { name: name })) || ('\u2728 ' + name + ' добавлен(а) в семью!')), 'success');
           closeAddRelative();
           loadRelatives();
         } else {
@@ -6007,10 +6007,10 @@
           try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch (e) {}
           renderRelativeOracleResult(relative, data);
         } else {
-          renderRelativeOracleError(relative, data?.error || 'Не удалось получить послание. Попробуй позже.');
+          renderRelativeOracleError(relative, data?.error || ((window.i18n && i18n.t && i18n.t('oracle.message_failed_later')) || 'Не удалось получить послание. Попробуй позже.'));
         }
       } catch (e) {
-        renderRelativeOracleError(relative, e.message || 'Не удалось получить послание');
+        renderRelativeOracleError(relative, e.message || ((window.i18n && i18n.t && i18n.t('oracle.message_failed_title')) || 'Не удалось получить послание'));
       }
     }
 
@@ -6098,14 +6098,15 @@
     function renderRelativeOracleError(relative, errMsg) {
       const content = document.getElementById('rel-oracle-content');
       if (!content) return;
+      const _t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
       content.innerHTML = `
         <button onclick="closeRelativeOracleModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
         <div style="text-align:center;padding:20px 10px">
           <div style="font-size:42px;margin-bottom:12px">&#9888;&#65039;</div>
-          <div style="font-size:14px;color:var(--text);margin-bottom:8px">Не удалось получить послание</div>
+          <div style="font-size:14px;color:var(--text);margin-bottom:8px">${_t('oracle.message_failed_title', 'Не удалось получить послание')}</div>
           <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:16px">${escapeRelText(errMsg)}</div>
-          <button onclick="openRelativeOracle(${JSON.stringify(relative).replace(/"/g, '&quot;')})" style="padding:10px 18px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-right:8px">Попробовать ещё раз</button>
-          <button onclick="closeRelativeOracleModal()" style="padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">Закрыть</button>
+          <button onclick="openRelativeOracle(${JSON.stringify(relative).replace(/"/g, '&quot;')})" style="padding:10px 18px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.08);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-right:8px">${_t('common.try_again', 'Попробовать ещё раз')}</button>
+          <button onclick="closeRelativeOracleModal()" style="padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">${_t('common.close', 'Закрыть')}</button>
         </div>
       `;
     }
@@ -7002,13 +7003,19 @@
           } else if (result.crystals_earned) {
             CrystalsUI.animateEarn(result.crystals_earned);
           }
-          const dayWord = pluralize(result.streak || 1, 'день', 'дня', 'дней');
+          const _ti = (k, fb, vars) => ((window.i18n && i18n.t && i18n.t(k, vars)) || fb);
+          const dayWord = pluralize(
+            result.streak || 1,
+            _ti('toast.day_one', 'день'),
+            _ti('toast.day_few', 'дня'),
+            _ti('toast.day_many', 'дней')
+          );
           // Откладываем тост - пусть юзер успеет напечатать дату
           setTimeout(() => {
             if (result.streak_bonus > 0) {
-              showToast(`\u2728 Серия ${result.streak} ${dayWord}! Бонус: +${result.streak_bonus} кристаллов`, 'success');
+              showToast(_ti('toast.streak_bonus', `\u2728 Серия ${result.streak} ${dayWord}! Бонус: +${result.streak_bonus} кристаллов`, { streak: result.streak, dayWord: dayWord, bonus: result.streak_bonus }), 'success');
             } else if (result.crystals_earned > 0) {
-              showToast(`\u2728 +${result.crystals_earned} кристалла за ежедневный вход`, 'success');
+              showToast(_ti('toast.daily_login', `\u2728 +${result.crystals_earned} кристалла за ежедневный вход`, { n: result.crystals_earned }), 'success');
             }
           }, 2500);
         }).catch(() => {});

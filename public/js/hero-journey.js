@@ -661,7 +661,7 @@ const HeroJourney = (function() {
     if (!textarea) return;
     const answer = textarea.value.trim();
     if (answer.length < 10) {
-      if (typeof showToast === 'function') showToast('Напиши хотя бы пару предложений', 'warning');
+      if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('toast.write_two_sentences')) || 'Напиши хотя бы пару предложений'), 'warning');
       return;
     }
 

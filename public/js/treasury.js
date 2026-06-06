@@ -683,11 +683,11 @@ const Treasury = (function() {
         }
 
         // Не сетевая или второй раз - показываем юзеру
-        const realMsg = e.message || 'неизвестная ошибка';
+        const realMsg = e.message || _t('treasury.unknown_error', 'неизвестная ошибка');
         if (typeof showToast === 'function') {
-          showToast('Не засчитано: ' + realMsg + '. Нажми ещё раз кнопку "Готова двигаться дальше"', 'error');
+          showToast(_t('treasury.quest_not_counted', 'Не засчитано: ' + realMsg + '. Нажми ещё раз кнопку «Готова двигаться дальше»', { msg: realMsg }), 'error');
         } else {
-          alert('Не засчитано: ' + realMsg + '\n\nНажми ещё раз кнопку "Готова двигаться дальше"');
+          alert(_t('treasury.quest_not_counted', 'Не засчитано: ' + realMsg + '. Нажми ещё раз кнопку «Готова двигаться дальше»', { msg: realMsg }));
         }
         return false;
       }
@@ -709,7 +709,7 @@ const Treasury = (function() {
   }
 
   function resetCoachDialogue(code, questType, questIdx) {
-    if (!confirm('Начать новый диалог? Предыдущий будет скрыт.')) return;
+    if (!confirm(_t('treasury.reset_dialogue_confirm', 'Начать новый диалог? Предыдущий будет скрыт.'))) return;
     localStorage.removeItem(getDialogueKey(code, questType, questIdx));
     reopenQuestScreen(code, questType, questIdx);
   }
@@ -824,7 +824,7 @@ const Treasury = (function() {
     const container = document.getElementById('treasury-content');
     const answer = document.getElementById('meditation-reflection')?.value?.trim();
     if (!answer || answer.length < 30) {
-      alert(`Запиши хотя бы 30 символов. Сейчас: ${answer?.length || 0}.`);
+      alert(_t('treasury.min_chars', `Запиши хотя бы 30 символов. Сейчас: ${answer?.length || 0}.`, { n: answer?.length || 0 }));
       return;
     }
 
@@ -927,7 +927,7 @@ const Treasury = (function() {
     const container = document.getElementById('treasury-content');
     const answer = document.getElementById('essence-reflection')?.value?.trim();
     if (!answer || answer.length < 30) {
-      alert(`Запиши хотя бы 30 символов. Сейчас: ${answer?.length || 0}.`);
+      alert(_t('treasury.min_chars', `Запиши хотя бы 30 символов. Сейчас: ${answer?.length || 0}.`, { n: answer?.length || 0 }));
       return;
     }
 
@@ -1096,7 +1096,7 @@ const Treasury = (function() {
     const container = document.getElementById('treasury-content');
     const answer = document.getElementById('shadow-reflection')?.value?.trim();
     if (!answer || answer.length < 30) {
-      alert(`Запиши хотя бы 30 символов рефлексии. Сейчас: ${answer?.length || 0}.`);
+      alert(_t('treasury.min_chars_reflection', `Запиши хотя бы 30 символов рефлексии. Сейчас: ${answer?.length || 0}.`, { n: answer?.length || 0 }));
       return;
     }
 
@@ -1191,11 +1191,11 @@ const Treasury = (function() {
     } catch(e) { /* offline - работаем с локальным балансом */ }
 
     if (CrystalsUI.getBalance() < cost) {
-      alert(`Недостаточно кристаллов! Нужно ${cost}, у тебя ${CrystalsUI.getBalance()}`);
+      alert(_t('treasury.not_enough_crystals', `Недостаточно кристаллов! Нужно ${cost}, у тебя ${CrystalsUI.getBalance()}`, { cost: cost, balance: CrystalsUI.getBalance() }));
       release();
       return;
     }
-    if (!confirm(`Открыть случайный дар за ${cost} кристаллов?`)) {
+    if (!confirm(_t('treasury.unlock_random_confirm', `Открыть случайный дар за ${cost} кристаллов?`, { cost: cost }))) {
       release();
       return;
     }
@@ -1211,16 +1211,16 @@ const Treasury = (function() {
         }
         const darName = getDarName(result.dar_code);
         userDars.push({ dar_code: result.dar_code, unlock_source: 'crystal_purchase', unlocked_sections: 1 });
-        if (typeof showToast === 'function') showToast(`\u2728 Ты открыл новый дар: ${darName}!`, 'success');
-        else alert(`Ты открыл дар: ${darName}!`);
+        if (typeof showToast === 'function') showToast(_t('treasury.dar_unlocked_toast', `\u2728 Ты открыл новый дар: ${darName}!`, { name: darName }), 'success');
+        else alert(_t('treasury.dar_unlocked_alert', `Ты открыл дар: ${darName}!`, { name: darName }));
         render();
       } else {
-        if (typeof showToast === 'function') showToast(result.message || 'Все дары уже открыты!', 'info');
-        else alert(result.message || 'Все дары уже открыты!');
+        if (typeof showToast === 'function') showToast(result.message || _t('treasury.all_dars_open', 'Все дары уже открыты!'), 'info');
+        else alert(result.message || _t('treasury.all_dars_open', 'Все дары уже открыты!'));
       }
     } catch (e) {
-      if (typeof showToast === 'function') showToast(e.message || 'Не удалось открыть случайный дар. Попробуй ещё раз.', 'error');
-      else alert(e.message || 'Не удалось открыть случайный дар. Попробуй ещё раз.');
+      if (typeof showToast === 'function') showToast(e.message || _t('treasury.unlock_random_failed', 'Не удалось открыть случайный дар. Попробуй ещё раз.'), 'error');
+      else alert(e.message || _t('treasury.unlock_random_failed', 'Не удалось открыть случайный дар. Попробуй ещё раз.'));
     } finally {
       release();
     }
@@ -1249,7 +1249,7 @@ const Treasury = (function() {
     if (userDarCode && typeof HeroJourney !== 'undefined') {
       HeroJourney.render(userDarCode);
     } else {
-      if (typeof showToast === 'function') showToast('Сначала рассчитай свой дар', 'warning');
+      if (typeof showToast === 'function') showToast(_t('treasury.calc_first', 'Сначала рассчитай свой дар'), 'warning');
     }
   }
 

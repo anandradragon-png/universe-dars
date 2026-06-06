@@ -992,7 +992,7 @@ const IntuitionGame = (function() {
               try { CrystalsUI.setBalance(result.total_crystals); } catch (e) {}
             }
             if (typeof showToast === 'function') {
-              showToast('+1 попытка добавлена! Можешь играть дальше ✨', 'success');
+              showToast(((window.i18n && i18n.t && i18n.t('toast.extra_attempt')) || '+1 попытка добавлена! Можешь играть дальше ✨'), 'success');
             }
             close();
           } else {

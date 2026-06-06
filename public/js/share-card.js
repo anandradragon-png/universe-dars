@@ -869,7 +869,7 @@ const ShareCard = (function() {
     if (btn) btn.addEventListener('click', async () => {
       try {
         await downloadCanvas(canvas, safeFileBase + '.png');
-        if (typeof showToast === 'function') showToast('\u2728 Подробная карточка скачана', 'success');
+        if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('toast.detailed_card_saved')) || '\u2728 Подробная карточка скачана'), 'success');
       } catch (e) {
         if (typeof showToast === 'function') showToast((((window.i18n && i18n.t && i18n.t('share.download_failed')) || 'Не удалось скачать:')) + ' ' + e.message, 'error');
       }

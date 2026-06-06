@@ -381,7 +381,19 @@
       "7": "ASTRA",
       "8": "BITRA",
       "9": "OMA"
-    }
+    },
+    "quest_not_counted": "No contado: {msg}. Pulsa de nuevo el botón «Lista para avanzar»",
+    "reset_dialogue_confirm": "¿Iniciar un nuevo diálogo? El anterior se ocultará.",
+    "min_chars": "Escribe al menos 30 caracteres. Ahora: {n}.",
+    "min_chars_reflection": "Escribe al menos 30 caracteres de reflexión. Ahora: {n}.",
+    "not_enough_crystals": "¡Cristales insuficientes! Necesitas {cost}, tienes {balance}",
+    "unlock_random_confirm": "¿Desbloquear un DAR aleatorio por {cost} cristales?",
+    "dar_unlocked_toast": "✨ ¡Desbloqueaste un nuevo DAR: {name}!",
+    "dar_unlocked_alert": "¡Desbloqueaste el DAR: {name}!",
+    "calc_first": "Primero calcula tu DAR",
+    "unknown_error": "error desconocido",
+    "all_dars_open": "¡Todos los DARs ya están desbloqueados!",
+    "unlock_random_failed": "No se pudo desbloquear un DAR aleatorio. Inténtalo de nuevo."
   },
   "oracle": {
     "forming": "El Oráculo está formando el mensaje...",
@@ -405,7 +417,9 @@
     "preset_choice": "¿Qué elección está en mi flujo ahora?",
     "preset_family": "¿Qué es importante para mí en la familia y el linaje ahora?",
     "preset_path": "¿A dónde me lleva la vida?",
-    "preset_self": "¿Qué es importante que comprenda sobre mí hoy?"
+    "preset_self": "¿Qué es importante que comprenda sobre mí hoy?",
+    "message_failed_title": "No se pudo obtener el mensaje",
+    "message_failed_later": "No se pudo obtener el mensaje. Inténtalo más tarde."
   },
   "book": {
     "chapter_locked": "Este capítulo está disponible en la versión completa. Ingresa un código promocional abajo para desbloquear el libro entero.",
@@ -657,5 +671,39 @@
     "overlay_title": "Espejo de Stand-up",
     "regen_btn": "🔄 Regenerar",
     "share_card_btn": "📤 Compartir"
+  },
+  "errors": {
+    "network": "Sin conexión a internet. Revisa tu conexión e inténtalo de nuevo.",
+    "server_busy": "El servidor está sobrecargado ahora mismo. Espera un minuto e inténtalo de nuevo.",
+    "server_down": "El servidor no está disponible por un momento. Inténtalo más tarde.",
+    "relogin": "Vuelve a abrir la aplicación.",
+    "premium_only": "Esta función solo está disponible en la versión completa.",
+    "not_found": "No se encontraron los datos solicitados.",
+    "too_many": "Demasiadas solicitudes. Espera un momento.",
+    "server_500": "Algo salió mal en el servidor. Ya lo sabemos y lo estamos arreglando.",
+    "generic_http": "Algo salió mal. Inténtalo de nuevo.",
+    "generic": "No se pudo completar la solicitud. Inténtalo de nuevo."
+  },
+  "toast": {
+    "avatar_saved": "✨ Avatar guardado",
+    "copied_for_friend": "¡Copiado! Puedes pegarlo en un chat con un amigo.",
+    "humor_resting": "El comediante está descansando. Inténtalo de nuevo en un minuto.",
+    "message_failed": "No se pudo obtener el mensaje. Inténtalo de nuevo en un minuto.",
+    "thanks_support": "✨ ¡Gracias por tu apoyo! +{n} cristales",
+    "diary_crystal": "✨ +1 cristal por el diario",
+    "relative_added": "✨ ¡{name} añadido a la familia!",
+    "log_copied": "Registro copiado al portapapeles. Pégalo en el chat con la desarrolladora.",
+    "log_failed": "No se pudo recopilar el registro: {msg}",
+    "streak_bonus": "✨ ¡Racha de {streak} {dayWord}! Bono: +{bonus} cristales",
+    "daily_login": "✨ +{n} cristales por entrada diaria",
+    "day_one": "día",
+    "day_few": "días",
+    "day_many": "días",
+    "card_saved": "✨ Tarjeta guardada",
+    "detailed_card_saved": "✨ Tarjeta detallada descargada",
+    "download_failed": "No se pudo descargar: {msg}",
+    "generate_humor_first": "Primero genera el monólogo",
+    "write_two_sentences": "Escribe al menos un par de frases",
+    "extra_attempt": "¡+1 intento añadido! Puedes seguir jugando ✨"
   }
 }

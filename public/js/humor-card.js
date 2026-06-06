@@ -414,9 +414,9 @@ const HumorCard = (function() {
     const data = getHumorData();
     if (!data) {
       if (typeof showToast === 'function') {
-        showToast('Сначала сгенерируй стендап', 'error');
+        showToast(((window.i18n && i18n.t && i18n.t('toast.generate_humor_first')) || 'Сначала сгенерируй стендап'), 'error');
       } else {
-        alert('Сначала сгенерируй стендап');
+        alert(((window.i18n && i18n.t && i18n.t('toast.generate_humor_first')) || 'Сначала сгенерируй стендап'));
       }
       return;
     }
@@ -533,13 +533,13 @@ const HumorCard = (function() {
       try {
         await downloadCanvas(c, `yupdar_humor_${code}_${currentFormat}_${ts}.png`);
         if (typeof showToast === 'function') {
-          showToast('✨ Карточка сохранена', 'success');
+          showToast(((window.i18n && i18n.t && i18n.t('toast.card_saved')) || '✨ Карточка сохранена'), 'success');
         }
       } catch (e) {
         if (typeof showToast === 'function') {
-          showToast('Не удалось скачать: ' + e.message, 'error');
+          showToast(((window.i18n && i18n.t && i18n.t('toast.download_failed', { msg: e.message })) || ('Не удалось скачать: ' + e.message)), 'error');
         } else {
-          alert('Не удалось скачать: ' + e.message);
+          alert(((window.i18n && i18n.t && i18n.t('toast.download_failed', { msg: e.message })) || ('Не удалось скачать: ' + e.message)));
         }
       }
     });

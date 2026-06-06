@@ -787,7 +787,8 @@
     "gw_felt_impf_m": "чувствовал",
     "gw_felt_impf_f": "чувствовала",
     "gw_ready_m": "Готов",
-    "gw_ready_f": "Готова"
+    "gw_ready_f": "Готова",
+    "facet_revealed": "Грань раскрыта!"
   },
   "oracle": {
     "forming": "Оракул формирует послание...",

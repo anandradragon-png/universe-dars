@@ -788,7 +788,8 @@
     "gw_felt_impf_m": "sentiste",
     "gw_felt_impf_f": "sentiste",
     "gw_ready_m": "Listo",
-    "gw_ready_f": "Listo"
+    "gw_ready_f": "Listo",
+    "facet_revealed": "¡Faceta revelada!"
   },
   "oracle": {
     "forming": "El Oráculo está formando el mensaje...",

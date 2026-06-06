@@ -787,7 +787,8 @@
     "gw_felt_impf_m": "felt",
     "gw_felt_impf_f": "felt",
     "gw_ready_m": "Ready",
-    "gw_ready_f": "Ready"
+    "gw_ready_f": "Ready",
+    "facet_revealed": "A facet revealed!"
   },
   "oracle": {
     "forming": "Oracle is forming the message...",

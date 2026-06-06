@@ -35,10 +35,44 @@
     } catch (e) { /* ignore — не ломаем загрузку Mini App из-за детектора */ }
   })();
   </script>
+  <!--
+    ============================================================
+    SELF-HEALING VERSION CHECK — лечит кэш Telegram WebView.
+    Telegram держит старый index.html в системном кэше, который не
+    сбрасывается «очисткой кэша». Из-за этого обновления «не доходили»
+    (см. BUGLOG: кэш Telegram). Решение: при запуске сверяем версию с
+    /version.txt (грузим в обход кэша). Если на сервере новее — один раз
+    форсим перезагрузку на URL с уникальным параметром, и Telegram
+    вынужден взять свежий HTML. После этого обновления приходят сами.
+    ВАЖНО: BUILD ниже = содержимому /version.txt. Бампить ОБА на деплое.
+    ============================================================
+  -->
+  <script>
+  (function() {
+    var BUILD = '20260606f'; // = public/version.txt; бампить вместе с токеном ?v=
+    try {
+      fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
+        .then(function(r) { return r.ok ? r.text() : null; })
+        .then(function(txt) {
+          if (!txt) return;
+          var server = txt.trim();
+          if (!server || server === BUILD) return;     // версия актуальна — ничего не делаем
+          // Анти-петля: если для этой серверной версии уже перезагружались —
+          // больше не пробуем (значит reload не помог, не зацикливаемся).
+          if (sessionStorage.getItem('_vreload') === server) return;
+          sessionStorage.setItem('_vreload', server);
+          // Уникальный параметр → новый URL → Telegram грузит свежий HTML.
+          var sep = location.search ? '&' : '?';
+          location.replace(location.pathname + location.search + sep + '_v=' + server + (location.hash || ''));
+        })
+        .catch(function() {});
+    } catch (e) {}
+  })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260606e">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260606f">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260606e"></script>
+  <script src="js/maintenance.js?v=20260606f"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1512,9 +1546,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260606e"></script>
+  <script src="js/i18n.js?v=20260606f"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260606e"></script>
+  <script src="js/dars-i18n.js?v=20260606f"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1526,18 +1560,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260606e"></script>
-  <script src="js/upgrade-modal.js?v=20260606e"></script>
-  <script src="js/crystals.js?v=20260606e"></script>
-  <script src="js/treasury.js?v=20260606e"></script>
-  <script src="js/referral.js?v=20260606e"></script>
-  <script src="js/book-reader.js?v=20260606e"></script>
-  <script src="js/intuition-game.js?v=20260606e"></script>
-  <script src="js/atlantis-game.js?v=20260606e"></script>
-  <script src="js/hero-journey.js?v=20260606e"></script>
-  <script src="js/share-card.js?v=20260606e"></script>
-  <script src="js/humor-card.js?v=20260606e"></script>
-  <script src="js/daily-dar.js?v=20260606e"></script>
+  <script src="js/api-client.js?v=20260606f"></script>
+  <script src="js/upgrade-modal.js?v=20260606f"></script>
+  <script src="js/crystals.js?v=20260606f"></script>
+  <script src="js/treasury.js?v=20260606f"></script>
+  <script src="js/referral.js?v=20260606f"></script>
+  <script src="js/book-reader.js?v=20260606f"></script>
+  <script src="js/intuition-game.js?v=20260606f"></script>
+  <script src="js/atlantis-game.js?v=20260606f"></script>
+  <script src="js/hero-journey.js?v=20260606f"></script>
+  <script src="js/share-card.js?v=20260606f"></script>
+  <script src="js/humor-card.js?v=20260606f"></script>
+  <script src="js/daily-dar.js?v=20260606f"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2402,7 +2436,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260606e" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260606f" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';

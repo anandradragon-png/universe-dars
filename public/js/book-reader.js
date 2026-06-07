@@ -157,7 +157,7 @@ const BookReader = (function() {
   function _bookUrl() {
     const lang = _bookLang();
     const file = (lang === 'en' || lang === 'es') ? `/book-chapters.${lang}.json` : '/book-chapters.json';
-    return file + '?v=20260607';
+    return file + '?v=20260607b';
   }
   let _loadedBookLang = null;
   async function init() {
@@ -337,7 +337,7 @@ const BookReader = (function() {
             <div style="font-size:14px;color:var(--text);margin-bottom:6px">&#128273; ${((window.i18n && i18n.t && i18n.t('book.unlock_title')) || 'Читать дальше — Открыть полный доступ')}</div>
             <div style="font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px">${((window.i18n && i18n.t && i18n.t('book.unlock_desc')) || '94 главы Книги Даров + дизайнерская PDF. Разовая покупка, навсегда.')}</div>
             <button onclick="if(typeof openTariffsPage==='function')openTariffsPage()" style="width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#b8860b);color:#080808;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.25);margin-bottom:8px">&#128142; ${((window.i18n && i18n.t && i18n.t('book.open_all_tariffs')) || 'Открыть все тарифы')}</button>
-            <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:8px">&#11088; ${((window.i18n && i18n.t && i18n.t('book.buy_book')) || 'Купить Книгу — 990 ₽ / 500 ⭐')}</button>
+            <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:8px">&#11088; ${((window.i18n && i18n.t && i18n.t('book.buy_book')) || 'Купить Книгу — 749 ₽ / 500 ⭐')}</button>
             <button onclick="if(typeof buyWithDarai==='function')buyWithDarai()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(46,204,113,0.5);background:rgba(46,204,113,0.1);color:#2ecc71;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:10px">&#128293; ${((window.i18n && i18n.t && i18n.t('book.pay_darai')) || 'Оплатить в DarAI (44M)')}</button>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">${((window.i18n && i18n.t && i18n.t('book.subscribe_hint')) || 'Или оформи подписку «Мастер» / «Хранитель» для полного доступа ко всем функциям')}</div>
             <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px">

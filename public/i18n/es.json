@@ -489,7 +489,7 @@
     "min_one_star": "Indica el monto (mínimo 1 Star)"
   },
   "book_pay": {
-    "creating_990": "Creando pago de 990 ₽...",
+    "creating_990": "Creando pago de 749 ₽...",
     "opened_page": "Página de pago abierta. Después de pagar, vuelve a la aplicación.",
     "creating_darai": "Creando pago en DarAI..."
   },
@@ -619,7 +619,7 @@
     "upgrade_hint": "Sube de nivel con un código promocional o invita amigos",
     "yours": "TUYO",
     "basic_short": "tu DAR, 1 mensaje del Oráculo al día, entrenador",
-    "book_price_short": "990 ₽ pago único",
+    "book_price_short": "749 ₽ pago único",
     "book_short": "Libro completo (94 capítulos) + PDF, acceso para siempre",
     "master_price": "1 490 ₽ / mes",
     "master_short": "todo del Libro + Oráculo sin límite + mentor IA + Diario del DAR + compatibilidad",
@@ -652,7 +652,7 @@
     "book_f2": "Lector interactivo con marcadores",
     "book_f3": "Versión PDF de diseño",
     "book_f4": "Búsqueda y temas",
-    "btn_buy_book": "Comprar (990 ₽)",
+    "btn_buy_book": "Comprar (749 ₽)",
     "master_desc": "Acceso ampliado a todas las funciones principales. Cancela cuando quieras.",
     "master_f1": "Todo del plan «Libro de los DARs»",
     "master_f2": "Oráculo sin límite",
@@ -852,7 +852,7 @@
     "unlock_title": "Sigue leyendo — Abre el acceso completo",
     "unlock_desc": "94 capítulos del Libro de los DARes + un PDF de diseño. Compra única, para siempre.",
     "open_all_tariffs": "Ver todos los planes",
-    "buy_book": "Comprar el Libro — 990 ₽ / 500 ⭐",
+    "buy_book": "Comprar el Libro — 749 ₽ / 500 ⭐",
     "pay_darai": "Pagar con DarAI (44M)",
     "subscribe_hint": "O suscríbete a Maestro / Guardián para tener acceso completo a todas las funciones",
     "have_promo": "¿Tienes un código promocional?",

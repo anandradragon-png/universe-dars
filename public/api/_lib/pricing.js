@@ -33,7 +33,7 @@ const PLANS = {
 
 // Разовый продукт — Книга (НЕ открывает тариф)
 const BOOK_PRODUCT = {
-  rub: 990,
+  rub: 749,
   stars: 499,
   usd: 9.99,
   darai: 40_000_000,

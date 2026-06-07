@@ -488,7 +488,7 @@
     "min_one_star": "Enter an amount (minimum 1 Star)"
   },
   "book_pay": {
-    "creating_990": "Creating a 990 ₽ payment...",
+    "creating_990": "Creating a 749 ₽ payment...",
     "opened_page": "Payment page opened. Come back to the app after paying.",
     "creating_darai": "Creating a DarAI payment..."
   },
@@ -618,7 +618,7 @@
     "upgrade_hint": "Raise your level with a promo code or invite friends",
     "yours": "YOURS",
     "basic_short": "your DAR, 1 Oracle message per day, trainer",
-    "book_price_short": "990 ₽ one-time",
+    "book_price_short": "749 ₽ one-time",
     "book_short": "full Book (94 chapters) + PDF, lifetime access",
     "master_price": "1 490 ₽ / month",
     "master_short": "everything from Book + unlimited Oracle + AI mentor + DAR Diary + compatibility",
@@ -651,7 +651,7 @@
     "book_f2": "Interactive reader with bookmarks",
     "book_f3": "Designer PDF version",
     "book_f4": "Search and themes",
-    "btn_buy_book": "Buy (990 ₽)",
+    "btn_buy_book": "Buy (749 ₽)",
     "master_desc": "Extended access to all main features. Cancel at any time.",
     "master_f1": "Everything from «Book of DARs»",
     "master_f2": "Unlimited Oracle",
@@ -851,7 +851,7 @@
     "unlock_title": "Read on — Unlock full access",
     "unlock_desc": "94 chapters of the Book of DARs + a designer PDF. One-time purchase, forever.",
     "open_all_tariffs": "Open all plans",
-    "buy_book": "Buy the Book — 990 ₽ / 500 ⭐",
+    "buy_book": "Buy the Book — 749 ₽ / 500 ⭐",
     "pay_darai": "Pay with DarAI (44M)",
     "subscribe_hint": "Or get the Master / Keeper subscription for full access to all features",
     "have_promo": "Have a promo code?",

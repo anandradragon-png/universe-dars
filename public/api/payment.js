@@ -292,7 +292,7 @@ module.exports = async (req, res) => {
         return res.status(503).json({ error: 'Оплата картой временно недоступна. Попробуй Stars или DarAI.' });
       }
 
-      const amountValue = '990.00';
+      const amountValue = '749.00';
       const description = 'Книга Даров — полный доступ + Хранитель';
 
       // Контакт от веб-юзера (вне Telegram Mini App): нужен либо TG-username, либо email.

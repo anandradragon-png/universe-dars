@@ -49,7 +49,7 @@
   -->
   <script>
   (function() {
-    var BUILD = '20260607'; // = public/version.txt; бампить вместе с токеном ?v=
+    var BUILD = '20260607b'; // = public/version.txt; бампить вместе с токеном ?v=
     try {
       fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
         .then(function(r) { return r.ok ? r.text() : null; })
@@ -70,9 +70,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260607">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260607b">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260607"></script>
+  <script src="js/maintenance.js?v=20260607b"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1546,9 +1546,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260607"></script>
+  <script src="js/i18n.js?v=20260607b"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260607"></script>
+  <script src="js/dars-i18n.js?v=20260607b"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1560,18 +1560,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260607"></script>
-  <script src="js/upgrade-modal.js?v=20260607"></script>
-  <script src="js/crystals.js?v=20260607"></script>
-  <script src="js/treasury.js?v=20260607"></script>
-  <script src="js/referral.js?v=20260607"></script>
-  <script src="js/book-reader.js?v=20260607"></script>
-  <script src="js/intuition-game.js?v=20260607"></script>
-  <script src="js/atlantis-game.js?v=20260607"></script>
-  <script src="js/hero-journey.js?v=20260607"></script>
-  <script src="js/share-card.js?v=20260607"></script>
-  <script src="js/humor-card.js?v=20260607"></script>
-  <script src="js/daily-dar.js?v=20260607"></script>
+  <script src="js/api-client.js?v=20260607b"></script>
+  <script src="js/upgrade-modal.js?v=20260607b"></script>
+  <script src="js/crystals.js?v=20260607b"></script>
+  <script src="js/treasury.js?v=20260607b"></script>
+  <script src="js/referral.js?v=20260607b"></script>
+  <script src="js/book-reader.js?v=20260607b"></script>
+  <script src="js/intuition-game.js?v=20260607b"></script>
+  <script src="js/atlantis-game.js?v=20260607b"></script>
+  <script src="js/hero-journey.js?v=20260607b"></script>
+  <script src="js/share-card.js?v=20260607b"></script>
+  <script src="js/humor-card.js?v=20260607b"></script>
+  <script src="js/daily-dar.js?v=20260607b"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -1833,7 +1833,7 @@
             </div>
 
             <div style="padding:8px 10px;background:rgba(212,175,55,0.05);border-radius:8px;font-size:12px;line-height:1.5;border:1px solid transparent">
-              <div style="color:#D4AF37;font-weight:600">📖 ${_pt('tariffs.book_name', 'Книга Даров')}: ${_pt('lk_price.book_price_short', '990 ₽ разово')}</div>
+              <div style="color:#D4AF37;font-weight:600">📖 ${_pt('tariffs.book_name', 'Книга Даров')}: ${_pt('lk_price.book_price_short', '749 ₽ разово')}</div>
               <div style="color:var(--text-dim);font-size:11px">${_pt('lk_price.book_short', 'полная Книга (94 главы) + PDF, доступ навсегда')}</div>
             </div>
 
@@ -2437,7 +2437,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260607" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260607b" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';
@@ -4359,7 +4359,7 @@
           id: 'book',
           emoji: '\u{1F4D6}',
           title: t('tariffs.book_name', 'Книга Даров'),
-          price: '990 ₽',
+          price: '749 ₽',
           priceDesc: t('tariffs_modal.book_pricedesc', 'разовая покупка, доступ навсегда'),
           desc: t('tariffs_modal.book_desc', 'Полная Книга Даров (94 главы) с интерактивным ридером и PDF-версией'),
           features: [
@@ -4369,7 +4369,7 @@
             t('tariffs_modal.book_f4', 'Поиск и темы оформления')
           ],
           payBtns: [
-            { icon: '\u{1F4B3}', text: t('tariffs_modal.btn_buy_book', 'Купить (990 ₽)'), action: 'buyBookChoice' }
+            { icon: '\u{1F4B3}', text: t('tariffs_modal.btn_buy_book', 'Купить (749 ₽)'), action: 'buyBookChoice' }
           ],
           isCurrent: false,
           isIncluded: currentLevel === 'premium' || currentLevel === 'extended'
@@ -4962,7 +4962,7 @@
       openPaymentChoiceModal({
         title: 'Книга Даров',
         subtitle: 'Полный доступ к 94 главам Книги + уровень Хранитель + 50 ⭐ кристаллов',
-        prices: { card: '990 ₽', stars: '500 ⭐', darai: '44M DarAI' },
+        prices: { card: '749 ₽', stars: '500 ⭐', darai: '44M DarAI' },
         onPay: (method) => {
           if (method === 'card') return buyBookWithCard();
           if (method === 'stars') return buyBookAccess();
@@ -4984,7 +4984,7 @@
         if (contact.cancelled) return;
 
         if (typeof showToast === 'function') {
-          showToast(((window.i18n && i18n.t && i18n.t('book_pay.creating_990')) || 'Создаём платёж 990 ₽...'), 'info');
+          showToast(((window.i18n && i18n.t && i18n.t('book_pay.creating_990')) || 'Создаём платёж 749 ₽...'), 'info');
         }
 
         const result = await DarAPI.createYookassaBook({

@@ -157,7 +157,7 @@ const BookReader = (function() {
   function _bookUrl() {
     const lang = _bookLang();
     const file = (lang === 'en' || lang === 'es') ? `/book-chapters.${lang}.json` : '/book-chapters.json';
-    return file + '?v=20260607c';
+    return file + '?v=20260607d';
   }
   let _loadedBookLang = null;
   async function init() {

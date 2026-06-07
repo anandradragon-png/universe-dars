@@ -281,7 +281,7 @@ module.exports = async (req, res) => {
 
     // ========== ПОКУПКА КНИГИ ЧЕРЕЗ ЮKASSA ==========
     if (action === 'create_yookassa_book') {
-      // Тестовый режим полностью удалён 27.04.2026 — все продажи боевые 990 ₽.
+      // Тестовый режим полностью удалён 27.04.2026 — все продажи боевые (749 ₽).
       if (user && (user.access_level === 'extended' || user.access_level === 'premium')) {
         return res.json({ already_purchased: true, message: 'У тебя уже есть полный доступ!' });
       }

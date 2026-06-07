@@ -2,7 +2,7 @@
  * API для создания Telegram Stars invoices
  *
  * POST /api/payment
- *   action: 'create_book_invoice' — создаёт invoice для покупки Книги ($10 = 500⭐)
+ *   action: 'create_book_invoice' — создаёт invoice для покупки Книги ($10 = 700⭐)
  *   action: 'create_donation'     — создаёт invoice для добровольного пожертвования
  *     body: { amount: number }    — сумма в Stars (мин 1)
  *
@@ -20,7 +20,7 @@ const YUPPAY_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 // Цены (в Stars)
 const PRICES = {
-  book_full_access: 500,  // ~$10 — полный доступ к Книге + Хранитель
+  book_full_access: 700,  // ~$10 (реальный курс Telegram Stars ≈ $0.0145/⭐) — полный доступ к Книге + Хранитель
 };
 
 // Вызов Telegram Bot API
@@ -89,7 +89,7 @@ module.exports = async (req, res) => {
 
     const { action, amount } = req.body || {};
 
-    // ========== ПОКУПКА КНИГИ ($10 = 500⭐) ==========
+    // ========== ПОКУПКА КНИГИ ($10 = 700⭐) ==========
     if (action === 'create_book_invoice') {
       // Проверяем что юзер ещё не купил
       if (user && (user.access_level === 'extended' || user.access_level === 'premium')) {

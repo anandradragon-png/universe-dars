@@ -818,7 +818,7 @@ const ShareCard = (function() {
       '<div style="font-size:18px;color:#D4AF37;margin-bottom:10px;font-weight:700">' + ((window.i18n && i18n.t && i18n.t('share.info_card_title')) || 'Подробная карточка дара') + '</div>' +
       '<div style="font-size:13px;color:var(--text-dim);line-height:1.55;margin-bottom:18px">' + ((window.i18n && i18n.t && i18n.t('share.info_card_desc')) || 'Большое изображение A4 со всей ключевой информацией о твоём даре — можно распечатать, поставить на рабочий стол или подарить близкому в его день рождения.') + '</div>' +
       '<div style="font-size:12px;color:#D4AF37;margin-bottom:16px;font-style:italic">' + ((window.i18n && i18n.t && i18n.t('share.available_keeper')) || 'Доступно на уровне Хранитель и выше') + '</div>' +
-      '<button id="sc-paywall-buy" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3)">&#11088; ' + ((window.i18n && i18n.t && i18n.t('share.unlock_for_stars')) || 'Открыть за 500 ⭐ (~$10)') + '</button>' +
+      '<button id="sc-paywall-buy" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#D4AF37);color:#fff;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.3)">&#11088; ' + ((window.i18n && i18n.t && i18n.t('share.unlock_for_stars')) || 'Открыть за 700 ⭐ (~$10)') + '</button>' +
       '</div>';
     const buyBtn = document.getElementById('sc-paywall-buy');
     if (buyBtn) buyBtn.addEventListener('click', () => {

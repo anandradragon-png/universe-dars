@@ -54,7 +54,7 @@
   -->
   <script>
   (function() {
-    var BUILD = '20260608e'; // = public/version.txt; бампить вместе с токеном ?v=
+    var BUILD = '20260608f'; // = public/version.txt; бампить вместе с токеном ?v=
     try {
       fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
         .then(function(r) { return r.ok ? r.text() : null; })
@@ -75,9 +75,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260608e">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260608f">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260608e"></script>
+  <script src="js/maintenance.js?v=20260608f"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1551,9 +1551,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260608e"></script>
+  <script src="js/i18n.js?v=20260608f"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260608e"></script>
+  <script src="js/dars-i18n.js?v=20260608f"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1565,18 +1565,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260608e"></script>
-  <script src="js/upgrade-modal.js?v=20260608e"></script>
-  <script src="js/crystals.js?v=20260608e"></script>
-  <script src="js/treasury.js?v=20260608e"></script>
-  <script src="js/referral.js?v=20260608e"></script>
-  <script src="js/book-reader.js?v=20260608e"></script>
-  <script src="js/intuition-game.js?v=20260608e"></script>
-  <script src="js/atlantis-game.js?v=20260608e"></script>
-  <script src="js/hero-journey.js?v=20260608e"></script>
-  <script src="js/share-card.js?v=20260608e"></script>
-  <script src="js/humor-card.js?v=20260608e"></script>
-  <script src="js/daily-dar.js?v=20260608e"></script>
+  <script src="js/api-client.js?v=20260608f"></script>
+  <script src="js/upgrade-modal.js?v=20260608f"></script>
+  <script src="js/crystals.js?v=20260608f"></script>
+  <script src="js/treasury.js?v=20260608f"></script>
+  <script src="js/referral.js?v=20260608f"></script>
+  <script src="js/book-reader.js?v=20260608f"></script>
+  <script src="js/intuition-game.js?v=20260608f"></script>
+  <script src="js/atlantis-game.js?v=20260608f"></script>
+  <script src="js/hero-journey.js?v=20260608f"></script>
+  <script src="js/share-card.js?v=20260608f"></script>
+  <script src="js/humor-card.js?v=20260608f"></script>
+  <script src="js/daily-dar.js?v=20260608f"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2442,7 +2442,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260608e" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260608f" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';
@@ -3070,6 +3070,35 @@
       return _currentMessageStyle || 'full';
     }
 
+    // Версия качества стендапа. Бампить при усилении промта/санитайзера, чтобы
+    // старые кэши (_humorData) со слабым текстом — повторы, грамматика, «нужно» —
+    // авто-перегенерировались начисто, а не показывались юзеру вечно.
+    const HUMOR_DATA_VERSION = '2026-06-08';
+
+    // Код текущего рассчитанного Дара (для проверки, что кэш стендапа — его).
+    function _currentGiftCode() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return null;
+        const { gift } = JSON.parse(saved);
+        return (gift && gift.code) || null;
+      } catch (e) { return null; }
+    }
+
+    // Кэш стендапа возвращается ТОЛЬКО если он свежей версии и для текущего Дара.
+    // Иначе устаревший кэш чистится и возвращается null → авто-перегенерация.
+    function _getValidHumorCache() {
+      let cached = null;
+      try { cached = JSON.parse(localStorage.getItem('_humorData') || 'null'); } catch (e) {}
+      if (!cached || !cached.data) return null;
+      const curCode = _currentGiftCode();
+      if (cached.v !== HUMOR_DATA_VERSION || (curCode && cached.darCode && cached.darCode !== curCode)) {
+        try { localStorage.removeItem('_humorData'); } catch (e) {}
+        return null;
+      }
+      return cached;
+    }
+
     function toggleMessageStyleDropdown() {
       const dd = document.getElementById('msg-style-dropdown');
       const arrow = document.getElementById('msg-style-arrow');
@@ -3111,7 +3140,11 @@
       if (!btn) return;
       const cacheKey = style === 'humor' ? '_humorData' : '_messageData';
       let hasCache = false;
-      try { hasCache = !!localStorage.getItem(cacheKey); } catch(e) {}
+      try {
+        hasCache = style === 'humor'
+          ? !!_getValidHumorCache()           // устаревший/чужой кэш не считается
+          : !!localStorage.getItem(cacheKey);
+      } catch(e) {}
       const _t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
       if (hasCache) {
         if (style === 'humor') {
@@ -3246,9 +3279,15 @@
     }
 
     function openHumorOverlay() {
-      let cached = null;
-      try { cached = JSON.parse(localStorage.getItem('_humorData') || 'null'); } catch(e) {}
-      const data = cached && cached.data;
+      const cached = _getValidHumorCache();
+      // Кэша нет или он устарел (старый промт / другой Дар) — генерируем заново,
+      // чтобы юзер не застрял на слабом старом тексте.
+      if (!cached) {
+        if (typeof selectMessageStyle === 'function') selectMessageStyle('humor');
+        if (typeof requestMessage === 'function') requestMessage();
+        return;
+      }
+      const data = cached.data;
       const content = document.getElementById('humor-overlay-content');
       if (content) content.innerHTML = renderHumorContent(data);
 
@@ -3273,8 +3312,7 @@
     }
 
     function shareHumorText() {
-      let cached = null;
-      try { cached = JSON.parse(localStorage.getItem('_humorData') || 'null'); } catch(e) {}
+      const cached = _getValidHumorCache();
       const d = cached && cached.data;
       if (!d) return;
       const arch = d.archetype && d.archetype.title ? d.archetype.title : '';
@@ -3411,6 +3449,7 @@
             localStorage.setItem('_humorData', JSON.stringify({
               data: result.data,
               darCode: gift.code,
+              v: HUMOR_DATA_VERSION,
               ts: Date.now()
             }));
           } catch(e) {}

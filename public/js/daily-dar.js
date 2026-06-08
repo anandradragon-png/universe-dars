@@ -14,6 +14,14 @@ const DailyDar = (function() {
   let _pulledCard = null;
   let _userQuery = '';
 
+  // --- Экранирование HTML (защита от XSS в AI/user-тексте перед innerHTML) ---
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   // --- Загрузка контента даров (fallback) ---
   function loadDarContent() {
     if (_darContent) return Promise.resolve(_darContent);
@@ -163,7 +171,7 @@ const DailyDar = (function() {
     if (data.prophecy) {
       html += `<div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
         <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#128302; ${((window.i18n && i18n.t && i18n.t('daily.oracle_message_label')) || 'Послание Оракула:')}</div>
-        <div style="font-size:14px;color:#e0e0e0;line-height:1.8;font-style:italic">${data.prophecy}</div>
+        <div style="font-size:14px;color:#e0e0e0;line-height:1.8;font-style:italic">${_esc(data.prophecy)}</div>
       </div>`;
     }
 
@@ -173,7 +181,7 @@ const DailyDar = (function() {
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;letter-spacing:1px">${((window.i18n && i18n.t && i18n.t('daily.energies_of_day')) || 'ЭНЕРГИИ ДНЯ:')}</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px">`;
       data.energies.forEach(e => {
-        html += `<span style="font-size:12px;padding:4px 10px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:8px;color:#D4AF37">${e}</span>`;
+        html += `<span style="font-size:12px;padding:4px 10px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:8px;color:#D4AF37">${_esc(e)}</span>`;
       });
       html += `</div></div>`;
     }
@@ -182,16 +190,16 @@ const DailyDar = (function() {
     if (data.practice) {
       html += `<div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
         <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#127793; ${((window.i18n && i18n.t && i18n.t('daily.practice_of_day')) || 'Практика дня:')}</div>
-        <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${data.practice}</div>
+        <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${_esc(data.practice)}</div>
       </div>`;
     }
 
     // Медитация-рекомендация (ненавязчивая, чтобы усилить энергию дня)
     if (data.meditation_video && data.meditation_video.url) {
       const mv = data.meditation_video;
-      const safeTitle = String(mv.title || '').replace(/</g,'&lt;');
-      const safeDesc = String(mv.description || '').replace(/</g,'&lt;');
-      const safeUrl = String(mv.url || '').replace(/"/g,'&quot;');
+      const safeTitle = _esc(mv.title);
+      const safeDesc = _esc(mv.description);
+      const safeUrl = String(mv.url || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
       html += `<div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(212,175,55,0.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:left">
         <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:8px">&#127911; ${((window.i18n && i18n.t && i18n.t('daily.amplify_energy_label')) || 'ЕСЛИ ЗАХОЧЕШЬ УСИЛИТЬ ЭНЕРГИЮ ДНЯ')}</div>
         <div style="font-size:13px;color:#e0e0e0;line-height:1.6;margin-bottom:6px">${safeTitle}</div>

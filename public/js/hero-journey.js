@@ -223,11 +223,11 @@ const HeroJourney = (function() {
           <span class="hero-mechanic-tag">${mechanic}</span>
         </div>
         ${renderProgress(step, currentJourney?.completed_steps)}
-        <div class="hero-world-intro">${state.world || ''}</div>
+        <div class="hero-world-intro">${escapeHtmlSimple(state.world || '')}</div>
         <div class="hero-content animate-fade-in">
-          ${sceneIdx === 0 && state.intro ? `<p class="hero-intro-text">${state.intro}</p>` : ''}
-          ${state.instruction ? `<p style="text-align:center;color:#FFA500;font-size:13px;margin-bottom:12px;font-weight:bold">${state.instruction}</p>` : ''}
-          <div class="hero-scene-text">${scene?.text || ''}</div>
+          ${sceneIdx === 0 && state.intro ? `<p class="hero-intro-text">${escapeHtmlSimple(state.intro)}</p>` : ''}
+          ${state.instruction ? `<p style="text-align:center;color:#FFA500;font-size:13px;margin-bottom:12px;font-weight:bold">${escapeHtmlSimple(state.instruction)}</p>` : ''}
+          <div class="hero-scene-text">${escapeHtmlSimple(scene?.text || '')}</div>
           ${!isFireTrial ? `<div class="hero-scene-counter">${((window.i18n && i18n.t && i18n.t('hero.scene_of', { cur: sceneIdx + 1, total: state.scenes.length })) || `Сцена ${sceneIdx + 1} из ${state.scenes.length}`)}</div>` : ''}
 
           <div id="hero-choices-area"></div>
@@ -262,11 +262,11 @@ const HeroJourney = (function() {
           const timerMin = c.timer_minutes || 0;
           const timerLabel = timerMin >= 1440 ? ((window.i18n && i18n.t && i18n.t('hero.one_day')) || '1 день') : timerMin >= 60 ? Math.round(timerMin/60) + ' ' + ((window.i18n && i18n.t && i18n.t('hero.hours_short')) || 'ч') : timerMin > 0 ? timerMin + ' ' + ((window.i18n && i18n.t && i18n.t('hero.minutes_short')) || 'мин') : '';
           const crystalReward = timerMin >= 1440 ? 25 : timerMin >= 60 ? 15 : timerMin > 0 ? 5 : 0;
-          const labelEsc = (c.label || '').replace(/"/g, '&quot;');
+          const labelEsc = escapeHtmlSimple(c.label || '');
           // onclick передаёт displayI, а data-original-idx хранит реальный индекс для сервера
           btns += '<button class="hero-choice-btn" onclick="HeroJourney.choose(' + displayI + ')" data-label="' + labelEsc + '" data-original-idx="' + origI + '" data-timer="' + timerMin + '" data-reward="' + crystalReward + '">';
-          btns += '<span class="hero-choice-label hero-choice-hidden">' + (c.label || c) + '</span>';
-          btns += '<span class="hero-choice-desc">' + (c.desc || c.label || '') + '</span>';
+          btns += '<span class="hero-choice-label hero-choice-hidden">' + escapeHtmlSimple(c.label || c) + '</span>';
+          btns += '<span class="hero-choice-desc">' + escapeHtmlSimple(c.desc || c.label || '') + '</span>';
           if (isFireTrial) {
             btns += '<div style="display:flex;gap:10px;margin-top:6px;justify-content:center">';
             if (timerLabel) btns += '<span class="hero-timer-badge">⏱ ' + timerLabel + '</span>';

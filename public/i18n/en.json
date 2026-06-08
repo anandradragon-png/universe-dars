@@ -987,7 +987,12 @@
     "err_city_pick": "Pick a city from the suggestions (for accurate coordinates)",
     "data_saved": "Data saved",
     "intro_new": "For your predictions to be truly personal and accurate, share a few details about yourself. It will take a minute.",
-    "intro_returning": "You've been with us for a while, thank you! For the Oracle messages to truly become yours — with the right tone and depth — please fill in these fields. It's important for accurate readings."
+    "intro_returning": "You've been with us for a while, thank you! For the Oracle messages to truly become yours — with the right tone and depth — please fill in these fields. It's important for accurate readings.",
+    "confirm_title": "Check your details before saving",
+    "confirm_body": "Once saved, your personal data becomes permanent. This protects against tampering. You won't be able to change your date, time, place of birth, name or gender later.",
+    "confirm_hint": "Your readings are built on exactly this data. The more accurate it is, the deeper the messages.",
+    "confirm_back": "Check again",
+    "confirm_ok": "All correct, save"
   },
   "admin_fb": {
     "title": "TESTER FEEDBACK",

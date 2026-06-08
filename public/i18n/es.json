@@ -988,7 +988,12 @@
     "err_city_pick": "Elige una ciudad de las sugerencias (para coordenadas precisas)",
     "data_saved": "Datos guardados",
     "intro_new": "Para que tus predicciones sean realmente personales y precisas, comparte algunos detalles sobre ti. Tomará un minuto.",
-    "intro_returning": "Llevas tiempo con nosotros, ¡gracias! Para que los mensajes del Oráculo sean realmente tuyos — con el tono y la profundidad correctos — por favor completa estos campos. Es importante para lecturas precisas."
+    "intro_returning": "Llevas tiempo con nosotros, ¡gracias! Para que los mensajes del Oráculo sean realmente tuyos — con el tono y la profundidad correctos — por favor completa estos campos. Es importante para lecturas precisas.",
+    "confirm_title": "Revisa tus datos antes de guardar",
+    "confirm_body": "Una vez guardados, tus datos personales serán permanentes. Es una protección contra la suplantación. Después no podrás cambiar la fecha, la hora, el lugar de nacimiento, el nombre ni el género.",
+    "confirm_hint": "Las lecturas se construyen justo sobre estos datos. Cuanto más precisos sean, más profundos serán los mensajes.",
+    "confirm_back": "Revisar otra vez",
+    "confirm_ok": "Todo correcto, guardar"
   },
   "admin_fb": {
     "title": "COMENTARIOS DE PROBADORES",

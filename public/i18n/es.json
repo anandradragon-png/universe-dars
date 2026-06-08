@@ -493,6 +493,22 @@
     "opened_page": "Página de pago abierta. Después de pagar, vuelve a la aplicación.",
     "creating_darai": "Creando pago en DarAI..."
   },
+  "pay_choice": {
+    "title": "Elige un método de pago",
+    "card": "Tarjeta bancaria · SBP",
+    "stars": "Telegram Stars",
+    "darai": "DarAI (NEAR)",
+    "footer": "Todos los métodos son seguros. El acceso se abre justo después del pago.",
+    "book_title": "El Libro de los Dones",
+    "book_subtitle": "Acceso completo a los 94 capítulos del Libro + nivel Guardián + 50 ⭐ cristales"
+  },
+  "donate": {
+    "title": "Apoya a YupDar",
+    "subtitle": "Una donación voluntaria para desarrollar el proyecto.<br>Como agradecimiento, te daremos cristales de sabiduría",
+    "custom_placeholder": "Cantidad personalizada en ⭐",
+    "send": "Enviar",
+    "footer": "1 Star ≈ $0.02 &bull; Mínimo: 1 ⭐ &bull; Todos los fondos se destinan al desarrollo del proyecto"
+  },
   "share": {
     "link_copied": "¡Enlace copiado!",
     "copy_link_prompt": "Copia el enlace:",

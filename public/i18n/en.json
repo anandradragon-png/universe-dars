@@ -492,6 +492,22 @@
     "opened_page": "Payment page opened. Come back to the app after paying.",
     "creating_darai": "Creating a DarAI payment..."
   },
+  "pay_choice": {
+    "title": "Choose a payment method",
+    "card": "Bank card · SBP",
+    "stars": "Telegram Stars",
+    "darai": "DarAI (NEAR)",
+    "footer": "All methods are secure. Access opens right after payment.",
+    "book_title": "The Book of Gifts",
+    "book_subtitle": "Full access to 94 chapters of the Book + Keeper level + 50 ⭐ crystals"
+  },
+  "donate": {
+    "title": "Support YupDar",
+    "subtitle": "A voluntary donation to help develop the project.<br>As a thank-you, we'll grant crystals of wisdom",
+    "custom_placeholder": "Custom amount in ⭐",
+    "send": "Send",
+    "footer": "1 Star ≈ $0.02 &bull; Minimum: 1 ⭐ &bull; All funds go to developing the project"
+  },
   "share": {
     "link_copied": "Link copied!",
     "copy_link_prompt": "Copy the link:",

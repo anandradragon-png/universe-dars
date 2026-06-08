@@ -49,7 +49,7 @@
   -->
   <script>
   (function() {
-    var BUILD = '20260608'; // = public/version.txt; бампить вместе с токеном ?v=
+    var BUILD = '20260608b'; // = public/version.txt; бампить вместе с токеном ?v=
     try {
       fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
         .then(function(r) { return r.ok ? r.text() : null; })
@@ -70,9 +70,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260608">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260608b">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260608"></script>
+  <script src="js/maintenance.js?v=20260608b"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1546,9 +1546,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260608"></script>
+  <script src="js/i18n.js?v=20260608b"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260608"></script>
+  <script src="js/dars-i18n.js?v=20260608b"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1560,18 +1560,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260608"></script>
-  <script src="js/upgrade-modal.js?v=20260608"></script>
-  <script src="js/crystals.js?v=20260608"></script>
-  <script src="js/treasury.js?v=20260608"></script>
-  <script src="js/referral.js?v=20260608"></script>
-  <script src="js/book-reader.js?v=20260608"></script>
-  <script src="js/intuition-game.js?v=20260608"></script>
-  <script src="js/atlantis-game.js?v=20260608"></script>
-  <script src="js/hero-journey.js?v=20260608"></script>
-  <script src="js/share-card.js?v=20260608"></script>
-  <script src="js/humor-card.js?v=20260608"></script>
-  <script src="js/daily-dar.js?v=20260608"></script>
+  <script src="js/api-client.js?v=20260608b"></script>
+  <script src="js/upgrade-modal.js?v=20260608b"></script>
+  <script src="js/crystals.js?v=20260608b"></script>
+  <script src="js/treasury.js?v=20260608b"></script>
+  <script src="js/referral.js?v=20260608b"></script>
+  <script src="js/book-reader.js?v=20260608b"></script>
+  <script src="js/intuition-game.js?v=20260608b"></script>
+  <script src="js/atlantis-game.js?v=20260608b"></script>
+  <script src="js/hero-journey.js?v=20260608b"></script>
+  <script src="js/share-card.js?v=20260608b"></script>
+  <script src="js/humor-card.js?v=20260608b"></script>
+  <script src="js/daily-dar.js?v=20260608b"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2437,7 +2437,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260608" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260608b" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';
@@ -4644,8 +4644,8 @@
           <button onclick="closeDonationModal()" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">&#10005;</button>
           <div style="text-align:center;margin-bottom:18px">
             <div style="font-size:36px;margin-bottom:6px">💜</div>
-            <div style="font-size:16px;color:var(--text);margin-bottom:4px">Поддержать YupDar</div>
-            <div style="font-size:12px;color:var(--text-dim);line-height:1.5">Добровольное пожертвование на развитие проекта.<br>В благодарность начислим кристаллы мудрости</div>
+            <div style="font-size:16px;color:var(--text);margin-bottom:4px">${((window.i18n && i18n.t && i18n.t('donate.title')) || 'Поддержать YupDar')}</div>
+            <div style="font-size:12px;color:var(--text-dim);line-height:1.5">${((window.i18n && i18n.t && i18n.t('donate.subtitle')) || 'Добровольное пожертвование на развитие проекта.<br>В благодарность начислим кристаллы мудрости')}</div>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;justify-content:center">
             <button onclick="submitDonation(50)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif">50 ⭐</button>
@@ -4654,10 +4654,10 @@
             <button onclick="submitDonation(500)" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.18);color:#D4AF37;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">500 ⭐</button>
           </div>
           <div style="display:flex;gap:6px;align-items:center;margin-bottom:14px">
-            <input id="donation-custom-amount" type="number" min="1" max="100000" placeholder="Своя сумма в ⭐" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;outline:none;text-align:center">
-            <button onclick="submitDonation(parseInt(document.getElementById('donation-custom-amount').value))" style="padding:12px 18px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">Отправить</button>
+            <input id="donation-custom-amount" type="number" min="1" max="100000" placeholder="${((window.i18n && i18n.t && i18n.t('donate.custom_placeholder')) || 'Своя сумма в ⭐')}" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;outline:none;text-align:center">
+            <button onclick="submitDonation(parseInt(document.getElementById('donation-custom-amount').value))" style="padding:12px 18px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">${((window.i18n && i18n.t && i18n.t('donate.send')) || 'Отправить')}</button>
           </div>
-          <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.5">1 звезда ≈ $0.02 &bull; Минимум: 1 ⭐ &bull; Все средства идут на развитие проекта</div>
+          <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.5">${((window.i18n && i18n.t && i18n.t('donate.footer')) || '1 звезда ≈ $0.02 &bull; Минимум: 1 ⭐ &bull; Все средства идут на развитие проекта')}</div>
         </div>
       `;
     }
@@ -4935,24 +4935,24 @@
           <button id="paych-close" style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:16px;cursor:pointer">&#10005;</button>
           <div style="text-align:center;margin-bottom:18px">
             <div style="font-size:30px;margin-bottom:6px">💳</div>
-            <div style="font-size:16px;color:var(--text);margin-bottom:6px;font-weight:600">${title || 'Выбери способ оплаты'}</div>
+            <div style="font-size:16px;color:var(--text);margin-bottom:6px;font-weight:600">${title || ((window.i18n && i18n.t && i18n.t('pay_choice.title')) || 'Выбери способ оплаты')}</div>
             ${subtitle ? `<div style="font-size:12.5px;color:var(--text-dim);line-height:1.55">${subtitle}</div>` : ''}
           </div>
           <div style="display:flex;flex-direction:column;gap:10px">
             <button id="paych-card" style="${btnStyle}">
-              <span><span style="margin-right:8px">💳</span>Банковская карта · СБП</span>
+              <span><span style="margin-right:8px">💳</span>${((window.i18n && i18n.t && i18n.t('pay_choice.card')) || 'Банковская карта · СБП')}</span>
               <span style="color:#fff;font-weight:700">${prices.card || ''}</span>
             </button>
             <button id="paych-stars" style="${btnStyle}">
-              <span><span style="margin-right:8px">⭐</span>Telegram Stars</span>
+              <span><span style="margin-right:8px">⭐</span>${((window.i18n && i18n.t && i18n.t('pay_choice.stars')) || 'Telegram Stars')}</span>
               <span style="color:#fff;font-weight:700">${prices.stars || ''}</span>
             </button>
             <button id="paych-darai" style="${btnStyle}">
-              <span><span style="margin-right:8px">🔥</span>DarAI (NEAR)</span>
+              <span><span style="margin-right:8px">🔥</span>${((window.i18n && i18n.t && i18n.t('pay_choice.darai')) || 'DarAI (NEAR)')}</span>
               <span style="color:#fff;font-weight:700">${prices.darai || ''}</span>
             </button>
           </div>
-          <div style="font-size:10.5px;color:var(--text-muted);text-align:center;line-height:1.5;margin-top:12px">Все способы безопасны. Доступ открывается сразу после оплаты.</div>
+          <div style="font-size:10.5px;color:var(--text-muted);text-align:center;line-height:1.5;margin-top:12px">${((window.i18n && i18n.t && i18n.t('pay_choice.footer')) || 'Все способы безопасны. Доступ открывается сразу после оплаты.')}</div>
         </div>
       `;
       document.body.appendChild(modal);
@@ -4968,8 +4968,8 @@
     // Покупка Книги Даров — открывает выбор способа оплаты, дальше делегирует.
     function buyBookChoice() {
       openPaymentChoiceModal({
-        title: 'Книга Даров',
-        subtitle: 'Полный доступ к 94 главам Книги + уровень Хранитель + 50 ⭐ кристаллов',
+        title: ((window.i18n && i18n.t && i18n.t('pay_choice.book_title')) || 'Книга Даров'),
+        subtitle: ((window.i18n && i18n.t && i18n.t('pay_choice.book_subtitle')) || 'Полный доступ к 94 главам Книги + уровень Хранитель + 50 ⭐ кристаллов'),
         prices: { card: '749 ₽', stars: '700 ⭐', darai: '44M DarAI' },
         onPay: (method) => {
           if (method === 'card') return buyBookWithCard();

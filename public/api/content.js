@@ -894,6 +894,9 @@ module.exports = async (req, res) => {
   if (type === 'arka-today' || url.includes('/arka-today')) {
     return require('./_lib/content/arka-today')(req, res);
   }
+  if (type === 'diary-dar' || url.includes('/diary-dar')) {
+    return require('./_lib/content/daily-dar')(req, res);
+  }
 
   return res.status(400).json({ error: 'Unknown content type. Expected: oracle, shadow-review, section, message, message-humor, compatibility, child-book' });
 };

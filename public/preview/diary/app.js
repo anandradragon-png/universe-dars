@@ -59,7 +59,8 @@ const DIARY_I18N = {
     'tip.high_people':  'Ты как магнит сейчас. Иди к людям — встреча сегодня будет важной.',
     'tip.high_alone':   'Энергии много, но хочется в одиночество — это творческое состояние. Включи проект, который только твой.',
 
-    'dar.tail': 'усиливает то, что ты сейчас замечаешь. Действуй из своего ритма, не из чужого.'
+    'dar.tail': 'усиливает то, что ты сейчас замечаешь. Действуй из своего ритма, не из чужого.',
+    'mirror.dar_loading': 'собираю подсказку дня…'
   },
 
   en: {
@@ -110,7 +111,8 @@ const DIARY_I18N = {
     'tip.high_people':  'You are a magnet right now. Go to people — a meeting today will matter.',
     'tip.high_alone':   'High energy with a pull to solitude — that is a creative state. Open the project that is only yours.',
 
-    'dar.tail': 'amplifies what you chose. Act from your own rhythm, not from someone else\'s.'
+    'dar.tail': 'amplifies what you chose. Act from your own rhythm, not from someone else\'s.',
+    'mirror.dar_loading': 'reading your day…'
   },
 
   es: {
@@ -161,7 +163,8 @@ const DIARY_I18N = {
     'tip.high_people':  'Eres un imán ahora. Ve hacia la gente — un encuentro hoy importará.',
     'tip.high_alone':   'Mucha energía y atracción a la soledad — es un estado creativo. Abre el proyecto que es solo tuyo.',
 
-    'dar.tail': 'amplifica lo que elegiste. Actúa desde tu ritmo, no desde el de otros.'
+    'dar.tail': 'amplifica lo que elegiste. Actúa desde tu ritmo, no desde el de otros.',
+    'mirror.dar_loading': 'leyendo tu día…'
   }
 };
 
@@ -528,7 +531,6 @@ function showMirror(entry, dar) {
   const stateLabel = t('mirror.intro_label');
   const darLead = t('mirror.dar_lead');
   const tipLead = t('mirror.tip_lead');
-  const darTail = t('dar.tail');
 
   let html = '';
   // Краткая сводка: Энергия N/5 · Настроение N/5 · Направление
@@ -539,11 +541,53 @@ function showMirror(entry, dar) {
   html += '</div>';
   // Подсказка от состояния
   if (tip) html += '<div class="dm-tip"><b>' + tipLead + '.</b> ' + tip + '</div>';
-  // Дар дня
-  if (darName) html += '<div class="dm-dar"><b>' + darLead + ': ' + darName + '</b> — ' + darTail + '</div>';
+  // Дар дня — живая подсказка Оракула, генерируется каждый раз заново и опирается
+  // строго на энергию этого Дара и его трёх полей (/api/diary-dar). Запасной общий
+  // текст (darTail) подставляется только если генерация недоступна.
+  if (darName) {
+    html += '<div class="dm-dar"><b>' + darLead + ': ' + darName + '</b> — ' +
+      '<span id="diaryDarHint" class="dm-dar-hint dm-dar-hint--loading">' +
+      t('mirror.dar_loading') + '</span></div>';
+  }
 
   const textEl = document.getElementById('diaryMirrorText');
   if (textEl) textEl.innerHTML = html;
+
+  // Подтягиваем свежую подсказку про Дар дня (асинхронно, не блокируя показ зеркала).
+  if (darName && dar && dar.code) loadDarHint(dar);
+}
+
+// Живая подсказка про Дар дня от Оракула. Каждый вызов — новый текст
+// (бэк не кэширует), опора строго на энергию полей Дара. Если генерация
+// недоступна — мягко падаем на общий запасной текст dar.tail.
+async function loadDarHint(dar) {
+  const fallback = t('dar.tail');
+  let gender = '';
+  try {
+    const p = getUserProfile();
+    if (p && (p.gender || p.sex)) gender = p.gender || p.sex;
+  } catch (e) {}
+  const setHint = (text) => {
+    const el = document.getElementById('diaryDarHint');
+    if (!el) return;
+    el.textContent = text || fallback;
+    el.classList.remove('dm-dar-hint--loading');
+  };
+  try {
+    const headers = getTelegramHeaders();
+    headers['x-yupdar-lang'] = getLang();
+    const resp = await fetch('/api/diary-dar', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ giftCode: dar.code, gender })
+    });
+    if (!resp.ok) { setHint(fallback); return; }
+    const json = await resp.json();
+    const hint = json && json.hint ? String(json.hint).trim() : '';
+    setHint(hint || fallback);
+  } catch (e) {
+    setHint(fallback);
+  }
 }
 
 // «Завтра приду снова» — закрываем Дневник.

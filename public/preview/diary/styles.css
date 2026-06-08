@@ -374,6 +374,8 @@ body {
   padding: 10px 0;
 }
 .dm-dar b { color: #D4AF37; }
+.dm-dar-hint--loading { opacity: 0.55; font-style: italic; animation: dmHintPulse 1.4s ease-in-out infinite; }
+@keyframes dmHintPulse { 0%,100% { opacity: 0.35; } 50% { opacity: 0.7; } }
 
 /* CTA на АРКА — главный конверсионный элемент */
 .diary-cta {

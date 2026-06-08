@@ -16,6 +16,7 @@
     { "source": "/api/compatibility", "destination": "/api/content?type=compatibility" },
     { "source": "/api/child-book", "destination": "/api/content?type=child-book" },
     { "source": "/api/arka-today", "destination": "/api/content?type=arka-today" },
+    { "source": "/api/diary-dar", "destination": "/api/content?type=diary-dar" },
     { "source": "/api/quest", "destination": "/api/game-actions?action=quest" },
     { "source": "/api/referral", "destination": "/api/game-actions?action=referral" },
     { "source": "/api/treasury", "destination": "/api/game-actions?action=treasury" },

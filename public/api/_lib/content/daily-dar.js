@@ -102,17 +102,26 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Unknown gift code' });
     }
 
-    const angle = ANGLES[Math.floor(Math.random() * ANGLES.length)];
-    const systemMsg = messageLib.fillTemplate(DIARY_DAR_SYSTEM, ctx);
-    const userPrompt = messageLib
-      .fillTemplate(DIARY_DAR_USER, ctx)
-      .replace(/\{\{ANGLE\}\}/g, angle);
-    const isFemale = gender === 'female';
-
     let lang = 'ru';
     try {
       lang = (req.headers['x-yupdar-lang'] || 'ru').toString().toLowerCase().slice(0, 5);
     } catch (e) {}
+
+    const angle = ANGLES[Math.floor(Math.random() * ANGLES.length)];
+    const systemMsg = messageLib.fillTemplate(DIARY_DAR_SYSTEM, ctx);
+    let userPrompt = messageLib
+      .fillTemplate(DIARY_DAR_USER, ctx)
+      .replace(/\{\{ANGLE\}\}/g, angle);
+    const isFemale = gender === 'female';
+
+    // Паспорт полей и весь промпт — на русском, поэтому модель тянет ответ в русский
+    // даже при верхней инструкции языка. Дублируем требование языка В КОНЦЕ промпта
+    // (там модель учитывает его сильнее) для en/es.
+    if (lang === 'en') {
+      userPrompt += '\n\nIMPORTANT: write the "hint" value ONLY in natural English, regardless of the language of the data above.';
+    } else if (lang === 'es') {
+      userPrompt += '\n\nIMPORTANTE: escribe el valor "hint" SOLO en español natural, sin importar el idioma de los datos anteriores.';
+    }
 
     const rawData = await messageLib.runMessageGeneration({
       systemMsg,

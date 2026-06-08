@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#080808">
   <title>YupDar (ЮпДар) — Вселенная Даров | Узнай свой Дар</title>
   <meta name="description" content="YupDar (ЮпДар) - интерактивный сервис самопознания через систему 64 Даров. Узнай свой дар по дате рождения, получай персональные послания Оракула, тренируй интуицию.">
-  <script src="/js/i18n.js"></script>
+  <script src="/js/i18n.js?v=20260608g"></script>
   <script>document.addEventListener('DOMContentLoaded',()=>{i18n.init().then(()=>i18n.applyToDOM())});</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -132,7 +132,7 @@
 
       <div class="price-card">
         <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#128214; <span data-i18n="landing.book_label">КНИГА ДАРОВ</span></div>
-        <div class="price-amount">749 ₽</div>
+        <div class="price-amount" data-i18n="landing.book_price">749 ₽</div>
         <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;" data-i18n-html="landing.book_alt_pay">разовая покупка, доступ навсегда<br>или 700 ⭐ Telegram Stars / 44M DarAI (ДарИИ)</div>
         <div class="price-desc" data-i18n="landing.book_desc">Только полная Книга Даров: без остальных функций</div>
         <ul class="price-features">
@@ -145,32 +145,34 @@
       </div>
 
       <div class="price-card" style="border-color: rgba(212,175,55,0.5); background: linear-gradient(135deg, rgba(212,175,55,0.18), rgba(184,134,11,0.08));">
-        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#127775; <span data-i18n="landing.master_label">МАСТЕР</span></div>
-        <div class="price-amount">1 490 ₽<span style="font-size: 18px; color: #aaa; font-weight: normal;"> <span data-i18n="tariffs.per_month">/ месяц</span></span></div>
-        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;" data-i18n-html="landing.master_alt_pay">ежемесячная подписка с автопродлением. Можно отменить в любой момент.<br>или 750 ⭐ Telegram Stars в месяц / 66M DarAI (ДарИИ) в месяц</div>
-        <div class="price-desc" data-i18n="landing.master_desc">Расширенный доступ ко всем основным функциям</div>
+        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#128273; <span data-i18n="landing.guardian_label">ХРАНИТЕЛЬ</span></div>
+        <div class="price-amount"><span data-i18n="landing.guardian_price">490 ₽</span><span style="font-size: 18px; color: #aaa; font-weight: normal;"> <span data-i18n="tariffs.per_month">/ месяц</span></span></div>
+        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;" data-i18n-html="landing.guardian_alt_pay">ежемесячная подписка с автопродлением. Можно отменить в любой момент.<br>или 245 ⭐ Telegram Stars в месяц / 20M DarAI (ДарИИ) в месяц</div>
+        <div class="price-desc" data-i18n="landing.guardian_desc">Полный доступ к Сокровищнице и Дневнику Дара</div>
         <ul class="price-features">
-          <li data-i18n="landing.master_f1">Всё из тарифа «Книга Даров»</li>
-          <li data-i18n="landing.master_f2">Безлимит Оракула</li>
-          <li data-i18n="landing.master_f3">Безлимит слотов для близких</li>
-          <li data-i18n="landing.master_f4">AI-наставник без ограничений</li>
-          <li data-i18n="landing.master_f5">Дневник Дара с AI-анализом</li>
-          <li data-i18n="landing.master_f6">Расчёт совместимости пары</li>
-          <li data-i18n="landing.master_f7">+50 кристаллов мудрости при подписке</li>
+          <li data-i18n="landing.guardian_f1">Всё из тарифа «Книга Даров»</li>
+          <li data-i18n="landing.guardian_f2">Полный доступ к Сокровищнице (все дары)</li>
+          <li data-i18n="landing.guardian_f3">До 3 близких в разделе «Семья»</li>
+          <li data-i18n="landing.guardian_f4">3 послания Оракула в день</li>
+          <li data-i18n="landing.guardian_f5">До 5 расчётов совместимости в месяц</li>
+          <li data-i18n="landing.guardian_f6">AI-инсайты в Дневнике Дара</li>
         </ul>
         <a href="https://t.me/YupDarBot" class="btn-main" style="display:inline-block;margin-top:16px;padding:12px 30px;font-size:15px" data-i18n="landing.subscribe">Оформить подписку</a>
       </div>
 
       <div class="price-card" style="border-color: rgba(212,175,55,0.6); background: linear-gradient(135deg, rgba(212,175,55,0.22), rgba(184,134,11,0.1));">
-        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#128273; <span data-i18n="landing.guardian_label">ХРАНИТЕЛЬ</span></div>
-        <div class="price-amount">1 990 ₽<span style="font-size: 18px; color: #aaa; font-weight: normal;"> <span data-i18n="tariffs.per_month">/ месяц</span></span></div>
-        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;" data-i18n-html="landing.guardian_alt_pay">ежемесячная подписка с автопродлением<br>или 1 000 ⭐ Telegram Stars в месяц / 88M DarAI (ДарИИ) в месяц</div>
-        <div class="price-desc" data-i18n="landing.guardian_desc">Расширенный тариф для Мастеров-практиков и ведущих</div>
+        <div style="font-size: 14px; color: #D4AF37; letter-spacing: 1px; margin-bottom: 8px;">&#127775; <span data-i18n="landing.master_label">МАСТЕР</span></div>
+        <div class="price-amount"><span data-i18n="landing.master_price">1 490 ₽</span><span style="font-size: 18px; color: #aaa; font-weight: normal;"> <span data-i18n="tariffs.per_month">/ месяц</span></span></div>
+        <div style="font-size: 13px; color: #aaa; margin-bottom: 8px;" data-i18n-html="landing.master_alt_pay">ежемесячная подписка с автопродлением. Можно отменить в любой момент.<br>или 749 ⭐ Telegram Stars в месяц / 60M DarAI (ДарИИ) в месяц</div>
+        <div class="price-desc" data-i18n="landing.master_desc">Высший тариф с безлимитным доступом ко всем функциям</div>
         <ul class="price-features">
-          <li data-i18n="landing.guardian_f1">Всё из тарифа «Мастер»</li>
-          <li data-i18n-html="landing.guardian_f2">&#128273; Библиотека Практик: эксклюзивные глубинные знания</li>
-          <li data-i18n="landing.guardian_f3">Углублённые материалы для работы с другими людьми</li>
-          <li data-i18n="landing.guardian_f4">Раздел для ведущих и наставников</li>
+          <li data-i18n="landing.master_f1">Всё из тарифа «Хранитель»</li>
+          <li data-i18n="landing.master_f2">Безлимит посланий Оракула</li>
+          <li data-i18n="landing.master_f3">Безлимит слотов для близких</li>
+          <li data-i18n="landing.master_f4">Безлимит расчётов совместимости</li>
+          <li data-i18n="landing.master_f5">AI-наставник без ограничений</li>
+          <li data-i18n="landing.master_f6">Путь Героя по всем дарам</li>
+          <li data-i18n="landing.master_f7">+50 кристаллов мудрости при подписке</li>
         </ul>
         <a href="https://t.me/YupDarBot" class="btn-main" style="display:inline-block;margin-top:16px;padding:12px 30px;font-size:15px" data-i18n="landing.subscribe">Оформить подписку</a>
       </div>

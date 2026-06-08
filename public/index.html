@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <!-- Приложение всегда тёмное. Объявляем это явно, чтобы Android WebView
+       Force Dark НЕ пытался доинвертировать уже тёмную страницу (раздел 1
+       каркаса качества: протечка/инверсия светлой темы на Android). -->
+  <meta name="color-scheme" content="dark"/>
+  <meta name="theme-color" content="#080808"/>
   <title>YupDar</title>
   <!--
     ============================================================
@@ -49,7 +54,7 @@
   -->
   <script>
   (function() {
-    var BUILD = '20260608b'; // = public/version.txt; бампить вместе с токеном ?v=
+    var BUILD = '20260608c'; // = public/version.txt; бампить вместе с токеном ?v=
     try {
       fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
         .then(function(r) { return r.ok ? r.text() : null; })
@@ -70,9 +75,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260608b">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260608c">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260608b"></script>
+  <script src="js/maintenance.js?v=20260608c"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -140,7 +145,7 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     input,textarea,select{background-color:#111111 !important;color:#f1f5f9 !important;-webkit-appearance:none;appearance:none;color-scheme:dark}
-    :root{--bg:#080808;--text:#f1f5f9;--text-dim:#a09080;--text-muted:#7a6f63;--border:rgba(212,175,55,0.15);--border-bright:rgba(212,175,55,0.3);--card:rgba(255,255,255,0.04);--accent-1:#D4AF37;--accent-2:#C5A028;--accent-3:#9A7B1A;--glow:rgba(212,175,55,0.2);--surface-glass:rgba(10,10,10,0.7)}
+    :root{color-scheme:dark;--bg:#080808;--text:#f1f5f9;--text-dim:#a09080;--text-muted:#7a6f63;--border:rgba(212,175,55,0.15);--border-bright:rgba(212,175,55,0.3);--card:rgba(255,255,255,0.04);--accent-1:#D4AF37;--accent-2:#C5A028;--accent-3:#9A7B1A;--glow:rgba(212,175,55,0.2);--surface-glass:rgba(10,10,10,0.7)}
     html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Manrope',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text)}
     body{display:flex;flex-direction:column}
     .stars{display:none}
@@ -1546,9 +1551,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260608b"></script>
+  <script src="js/i18n.js?v=20260608c"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260608b"></script>
+  <script src="js/dars-i18n.js?v=20260608c"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1560,18 +1565,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260608b"></script>
-  <script src="js/upgrade-modal.js?v=20260608b"></script>
-  <script src="js/crystals.js?v=20260608b"></script>
-  <script src="js/treasury.js?v=20260608b"></script>
-  <script src="js/referral.js?v=20260608b"></script>
-  <script src="js/book-reader.js?v=20260608b"></script>
-  <script src="js/intuition-game.js?v=20260608b"></script>
-  <script src="js/atlantis-game.js?v=20260608b"></script>
-  <script src="js/hero-journey.js?v=20260608b"></script>
-  <script src="js/share-card.js?v=20260608b"></script>
-  <script src="js/humor-card.js?v=20260608b"></script>
-  <script src="js/daily-dar.js?v=20260608b"></script>
+  <script src="js/api-client.js?v=20260608c"></script>
+  <script src="js/upgrade-modal.js?v=20260608c"></script>
+  <script src="js/crystals.js?v=20260608c"></script>
+  <script src="js/treasury.js?v=20260608c"></script>
+  <script src="js/referral.js?v=20260608c"></script>
+  <script src="js/book-reader.js?v=20260608c"></script>
+  <script src="js/intuition-game.js?v=20260608c"></script>
+  <script src="js/atlantis-game.js?v=20260608c"></script>
+  <script src="js/hero-journey.js?v=20260608c"></script>
+  <script src="js/share-card.js?v=20260608c"></script>
+  <script src="js/humor-card.js?v=20260608c"></script>
+  <script src="js/daily-dar.js?v=20260608c"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2437,7 +2442,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260608b" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260608c" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';

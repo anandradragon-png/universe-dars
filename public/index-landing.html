@@ -3,12 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Тёмная тема жёстко: предотвращаем Force Dark инверсию (раздел 1 каркаса). -->
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#080808">
   <title>YupDar (ЮпДар) — Вселенная Даров | Узнай свой Дар</title>
   <meta name="description" content="YupDar (ЮпДар) - интерактивный сервис самопознания через систему 64 Даров. Узнай свой дар по дате рождения, получай персональные послания Оракула, тренируй интуицию.">
   <script src="/js/i18n.js"></script>
   <script>document.addEventListener('DOMContentLoaded',()=>{i18n.init().then(()=>i18n.applyToDOM())});</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { color-scheme: dark; }
     body { background: #080808; color: #f1f5f9; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif; min-height: 100vh; }
     .container { max-width: 720px; margin: 0 auto; padding: 20px; }
 

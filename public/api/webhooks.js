@@ -43,6 +43,25 @@ async function handleBotWebhook(req, res) {
     return res.status(405).end();
   }
 
+  // Проверка подлинности запроса (каркас 12.3).
+  // Telegram при setWebhook с параметром secret_token присылает его обратно
+  // в заголовке X-Telegram-Bot-Api-Secret-Token. Без этой проверки кто угодно,
+  // зная URL вебхука, может прислать поддельный successful_payment и выдать
+  // себе доступ + кристаллы.
+  // Проверка включается ТОЛЬКО когда задан TELEGRAM_WEBHOOK_SECRET — иначе
+  // ведём себя как раньше (чтобы ничего не сломать до настройки секрета).
+  const webhookSecret = (process.env.TELEGRAM_WEBHOOK_SECRET || '').trim();
+  if (webhookSecret) {
+    const got = req.headers['x-telegram-bot-api-secret-token'] || '';
+    const gotBuf = Buffer.from(String(got), 'utf8');
+    const expBuf = Buffer.from(webhookSecret, 'utf8');
+    const valid = gotBuf.length === expBuf.length && crypto.timingSafeEqual(gotBuf, expBuf);
+    if (!valid) {
+      console.warn('[bot-webhook] Invalid secret token — ignoring request');
+      return res.status(200).end(); // 200, чтобы не провоцировать ретраи; запрос игнорируем
+    }
+  }
+
   try {
     const update = req.body;
     if (!update) return res.status(200).end(); // пустой update = ок
@@ -402,10 +421,15 @@ async function handleTbankWebhook(req, res) {
       PaymentId: body.PaymentId
     }));
 
-    // Проверка подписи
-    if (password) {
+    // Проверка подписи (каркас 12.3 — сравнение за постоянное время)
+    if (password && body.Token) {
       const expectedToken = generateTbankToken(body, password);
-      if (body.Token && body.Token !== expectedToken) {
+      const gotBuf = Buffer.from(String(body.Token), 'hex');
+      const expBuf = Buffer.from(expectedToken, 'hex');
+      const valid = gotBuf.length > 0
+        && gotBuf.length === expBuf.length
+        && crypto.timingSafeEqual(gotBuf, expBuf);
+      if (!valid) {
         console.error('[tbank-webhook] Invalid token signature');
         return res.status(200).send('OK'); // Тинькофф ждёт 200 всегда
       }

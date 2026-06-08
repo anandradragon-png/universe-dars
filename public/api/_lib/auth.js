@@ -1,6 +1,19 @@
 const crypto = require('crypto');
 
 /**
+ * Сравнение двух hex-строк за постоянное время (защита от timing-атак).
+ * Каркас качества 12.3: секреты/подписи нельзя сравнивать через ===.
+ * Разная длина → сразу false (без утечки по времени, т.к. длина не секретна).
+ */
+function safeEqualHex(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a, 'hex');
+  const bufB = Buffer.from(b, 'hex');
+  if (bufA.length === 0 || bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+/**
  * Валидация Telegram WebApp initData
  * https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
  *
@@ -26,7 +39,7 @@ function validateTelegramData(initData, botToken) {
   const secretKey = crypto.createHmac('sha256', 'WebAppData').update(cleanToken).digest();
   const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
 
-  if (computedHash !== hash) {
+  if (!safeEqualHex(computedHash, hash)) {
     // Диагностические данные без утечки токена: префикс sha256 от токена + его длина до и после trim
     const tokenSig = crypto.createHash('sha256').update(cleanToken).digest('hex').slice(0, 6);
     const botId = cleanToken.split(':')[0] || '';
@@ -99,11 +112,34 @@ function getUser(req) {
  *   const tgUser = requireUser(req, res);
  *   if (!tgUser) return; // ответ уже отправлен
  *   // ... используй tgUser.id
+ *
+ * Параметр strict (по умолчанию false):
+ *   false — золотая середина: если строгая HMAC-валидация не прошла,
+ *           разрешаем «мягкий» fallback (парсим telegram_id из initData без
+ *           проверки подписи). Подходит для чтения и обычных записей профиля,
+ *           где подделка чужого id даёт мало (можешь испортить только свой
+ *           собственный профиль) — зато не выкидываем юзеров с устаревшей
+ *           подписью (долгая сессия > 24ч и т.п.).
+ *   true  — fallback ЗАПРЕЩЁН: нужна действительная подпись Telegram.
+ *           Обязательно для повышения прав (админка) и любых операций,
+ *           выдающих деньги/доступ — иначе возможна подделка чужого id
+ *           (например, telegram_id админа — он публичный/угадываемый).
  */
-function requireUser(req, res) {
+function requireUser(req, res, strict = false) {
   // Сначала пробуем строгую валидацию
   const result = getUser(req);
   if (result && result.id) return result;
+
+  // strict: подпись не прошла — fallback запрещён, сразу 401.
+  if (strict) {
+    const reason = (result && result.error) || 'no_credentials';
+    console.warn('[auth] requireUser STRICT FAIL:', reason, 'path:', req.url);
+    res.status(401).json({
+      error: 'Не удалось подтвердить подпись. Закрой и открой приложение заново.',
+      reason
+    });
+    return null;
+  }
 
   // Если строгая не прошла (expired, bad_hash) — пробуем fallback:
   // парсим user из initData БЕЗ проверки hash.
@@ -157,7 +193,10 @@ function requireUser(req, res) {
  *   // ... admin.id — id админа в таблице users (для admin_actions_log)
  */
 async function requireAdmin(req, res) {
-  const tgUser = requireUser(req, res);
+  // strict=true: для админки обязательна действительная подпись Telegram.
+  // Иначе можно подделать initData с telegram_id админа (он публичный) и
+  // получить права через мягкий fallback. Каркас 3.1 — не доверять фронту.
+  const tgUser = requireUser(req, res, true);
   if (!tgUser) return null; // 401 уже отправлен
 
   // Подтянуть юзера из БД и проверить is_admin

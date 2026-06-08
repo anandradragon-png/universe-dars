@@ -1184,6 +1184,7 @@
     "network": "Sin conexión a internet. Revisa tu conexión e inténtalo de nuevo.",
     "server_busy": "El servidor está sobrecargado ahora mismo. Espera un minuto e inténtalo de nuevo.",
     "server_down": "El servidor no está disponible por un momento. Inténtalo más tarde.",
+    "timeout": "El servidor tarda demasiado en responder. Espera un momento e inténtalo de nuevo.",
     "relogin": "Vuelve a abrir la aplicación.",
     "premium_only": "Esta función solo está disponible en la versión completa.",
     "not_found": "No se encontraron los datos solicitados.",

@@ -1183,6 +1183,7 @@
     "network": "No internet connection. Check your connection and try again.",
     "server_busy": "The server is overloaded right now. Wait a minute and try again.",
     "server_down": "The server is briefly unavailable. Please try later.",
+    "timeout": "The server is taking too long to respond. Wait a moment and try again.",
     "relogin": "Please re-open the app.",
     "premium_only": "This feature is available only in the full version.",
     "not_found": "The requested data was not found.",

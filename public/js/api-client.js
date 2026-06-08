@@ -50,6 +50,9 @@ const DarAPI = (function() {
     if (kind === 'network') {
       return _t('errors.network', 'Нет связи с интернетом. Проверь соединение и попробуй ещё раз.');
     }
+    if (kind === 'timeout') {
+      return _t('errors.timeout', 'Сервер слишком долго отвечает. Подожди немного и попробуй ещё раз.');
+    }
     if (kind === 'non-json') {
       const status = info && info.status;
       if (status === 502 || status === 503 || status === 504) {
@@ -75,18 +78,33 @@ const DarAPI = (function() {
     return _t('errors.generic', 'Не удалось выполнить запрос. Попробуй ещё раз.');
   }
 
+  // Таймаут запроса. Щедрый (90с) — выше любой легитимной AI-генерации
+  // (Oracle/послание/разбор), но ловит зависшее соединение в мобильном
+  // Telegram WebView, чтобы юзер не сидел перед вечным спиннером.
+  const REQUEST_TIMEOUT_MS = 90000;
+
   async function request(path, method = 'GET', body = null) {
     const opts = { method, headers: getHeaders() };
     if (body && method !== 'GET') opts.body = JSON.stringify(body);
+    // AbortController прерывает запрос, если сервер/сеть зависли.
+    let controller, timer;
+    try {
+      controller = new AbortController();
+      opts.signal = controller.signal;
+      timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, REQUEST_TIMEOUT_MS);
+    } catch (e) { /* AbortController недоступен — работаем без таймаута */ }
     let resp;
     try {
       resp = await fetch(BASE_URL + path, opts);
     } catch (netErr) {
-      console.error('[DarAPI] network error', path, netErr.message);
-      logApiError('network', path, netErr.message);
-      const err = new Error(friendlyError('network'));
-      err.kind = 'network';
+      const isTimeout = netErr && (netErr.name === 'AbortError');
+      console.error('[DarAPI]', isTimeout ? 'timeout' : 'network error', path, netErr.message);
+      logApiError(isTimeout ? 'timeout' : 'network', path, netErr.message);
+      const err = new Error(friendlyError(isTimeout ? 'timeout' : 'network'));
+      err.kind = isTimeout ? 'timeout' : 'network';
       throw err;
+    } finally {
+      if (timer) clearTimeout(timer);
     }
     let data;
     try {

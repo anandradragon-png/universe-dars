@@ -41,8 +41,7 @@ const PLANS_I18N = {
         'Книга для Родителей: 1 ребёнок',
         '5 проверок совместимости в месяц',
         'Hero Journey по дарам близких',
-        'AI-инсайт в Дневнике раз в неделю',
-        '🗝 Библиотека Практик (в разработке)'
+        'AI-инсайт в Дневнике раз в неделю'
       ]
     },
     master: {
@@ -83,8 +82,7 @@ const PLANS_I18N = {
         'Book for Parents: 1 child',
         '5 compatibility checks per month',
         'Hero Journey for your family\u2019s DARs',
-        'Weekly AI insight in the Diary',
-        '🗝 Library of Practices (in development)'
+        'Weekly AI insight in the Diary'
       ]
     },
     master: {
@@ -125,8 +123,7 @@ const PLANS_I18N = {
         'Libro para Padres: 1 hijo',
         '5 verificaciones de compatibilidad al mes',
         'Hero Journey por los DARs de tu familia',
-        'Ideas de IA en el Diario una vez por semana',
-        '🗝 Biblioteca de Prácticas (en desarrollo)'
+        'Ideas de IA en el Diario una vez por semana'
       ]
     },
     master: {

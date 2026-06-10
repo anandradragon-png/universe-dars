@@ -54,7 +54,7 @@
   -->
   <script>
   (function() {
-    var BUILD = '20260610e'; // = public/version.txt; бампить вместе с токеном ?v=
+    var BUILD = '20260610f'; // = public/version.txt; бампить вместе с токеном ?v=
     try {
       fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
         .then(function(r) { return r.ok ? r.text() : null; })
@@ -75,9 +75,9 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260610e">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260610f">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260610e"></script>
+  <script src="js/maintenance.js?v=20260610f"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -813,7 +813,7 @@
           <!-- Селектор стиля послания (дизайн топ-маркетолога) -->
           <!-- По умолчанию выбрано "Полное послание", альтернатива - "Стендап-зеркало" -->
           <!-- Архитектура расширяемая: позже сюда добавим Оракул дня, Письмо из будущего и т.д. -->
-          <div id="message-style-selector" style="margin-bottom:14px;position:relative">
+          <div id="message-style-selector" style="margin-bottom:14px;position:relative;display:none">
             <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-weight:600">✦ <span data-i18n="msg_style.label">Стиль послания</span></div>
             <button id="msg-style-trigger" type="button" onclick="toggleMessageStyleDropdown()" style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(212,175,55,0.18);border-radius:14px;color:var(--text);font-family:Manrope,sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all 0.2s;text-align:left">
               <span id="msg-style-current">📩 <span data-i18n="msg_style.full">Полное послание</span></span>
@@ -1551,9 +1551,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260610e"></script>
+  <script src="js/i18n.js?v=20260610f"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260610e"></script>
+  <script src="js/dars-i18n.js?v=20260610f"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1565,18 +1565,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260610e"></script>
-  <script src="js/upgrade-modal.js?v=20260610e"></script>
-  <script src="js/crystals.js?v=20260610e"></script>
-  <script src="js/treasury.js?v=20260610e"></script>
-  <script src="js/referral.js?v=20260610e"></script>
-  <script src="js/book-reader.js?v=20260610e"></script>
-  <script src="js/intuition-game.js?v=20260610e"></script>
-  <script src="js/atlantis-game.js?v=20260610e"></script>
-  <script src="js/hero-journey.js?v=20260610e"></script>
-  <script src="js/share-card.js?v=20260610e"></script>
-  <script src="js/humor-card.js?v=20260610e"></script>
-  <script src="js/daily-dar.js?v=20260610e"></script>
+  <script src="js/api-client.js?v=20260610f"></script>
+  <script src="js/upgrade-modal.js?v=20260610f"></script>
+  <script src="js/crystals.js?v=20260610f"></script>
+  <script src="js/treasury.js?v=20260610f"></script>
+  <script src="js/referral.js?v=20260610f"></script>
+  <script src="js/book-reader.js?v=20260610f"></script>
+  <script src="js/intuition-game.js?v=20260610f"></script>
+  <script src="js/atlantis-game.js?v=20260610f"></script>
+  <script src="js/hero-journey.js?v=20260610f"></script>
+  <script src="js/share-card.js?v=20260610f"></script>
+  <script src="js/humor-card.js?v=20260610f"></script>
+  <script src="js/daily-dar.js?v=20260610f"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2327,6 +2327,9 @@
       btn.innerHTML = '<span data-i18n="dar.read_message">' + (((window.i18n && i18n.t && i18n.t('dar.read_message')) || '📖 Читать о своём Даре')) + '</span>';
       btn.onclick = openMessageOverlay;
       btn.style.display = '';
+      // Показываем выбор стиля — теперь человек знает что это такое
+      const styleSelector = document.getElementById('message-style-selector');
+      if (styleSelector) styleSelector.style.display = '';
       // Прячем шеринг-блоки и Книгу на главном — закон law_minimal_screen.
       ['book-cta', 'share-card-cta', 'share-info-cta', 'share-section'].forEach(id => {
         const el = document.getElementById(id);
@@ -2442,7 +2445,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260610e" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260610f" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';

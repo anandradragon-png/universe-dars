@@ -40,7 +40,9 @@
     "encyclopedia": "Encyclopedia",
     "me": "Me",
     "family": "Family",
+    "family_desc": "Family DARs",
     "arka": "ARKA",
+    "arka_desc": "Your path",
     "back_to_treasury": "← Treasury"
   },
   "home": {
@@ -832,6 +834,11 @@
     "data_error": "Data error",
     "query_placeholder": "Write your question...",
     "presets_toggle": "💡 Choose from ready questions",
+    "chip_self": "About me",
+    "chip_work": "In business",
+    "chip_love": "In love",
+    "chip_path": "My path",
+    "chip_more": "💡 More",
     "need_query_toast": "First ask the Oracle a question 🙏",
     "preset_relations": "What is important for me to see in my relationships right now?",
     "preset_work": "What is my next step in my work right now?",

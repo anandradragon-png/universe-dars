@@ -40,7 +40,9 @@
     "encyclopedia": "Энциклопедия",
     "me": "Я",
     "family": "Семья",
+    "family_desc": "Дары близких",
     "arka": "АРКА",
+    "arka_desc": "Твой путь",
     "back_to_treasury": "← Сокровищница"
   },
   "home": {
@@ -832,6 +834,11 @@
     "data_error": "Ошибка данных",
     "query_placeholder": "Напиши свой вопрос...",
     "presets_toggle": "💡 Выбрать из готовых вопросов",
+    "chip_self": "Про себя",
+    "chip_work": "В деле",
+    "chip_love": "В любви",
+    "chip_path": "Куда иду",
+    "chip_more": "💡 Ещё",
     "need_query_toast": "Сначала задай вопрос Оракулу 🙏",
     "preset_relations": "Что мне важно видеть в моих отношениях сейчас?",
     "preset_work": "Каков мой следующий шаг в деле сейчас?",

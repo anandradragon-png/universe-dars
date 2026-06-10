@@ -616,21 +616,39 @@ const DailyDar = (function() {
       // Сохраняем массив в window — нужен для pickPresetQuery
       window._oraclePresets = presets;
 
+      // Видимые чипы-подсказки (4 самых частых) — по образцу YupSoul Soul Chat
+      const _topChipDefs = [
+        { idx: 7, label: tt('oracle.chip_self', 'Про себя') },
+        { idx: 1, label: tt('oracle.chip_work', 'В деле') },
+        { idx: 0, label: tt('oracle.chip_love', 'В любви') },
+        { idx: 6, label: tt('oracle.chip_path', 'Куда иду') }
+      ];
+      let topChipsHtml = '';
+      _topChipDefs.forEach(c => {
+        const p = presets[c.idx];
+        topChipsHtml += '<button type="button" onclick="DailyDar.pickPresetQuery(' + c.idx + ')" ' +
+          'style="padding:7px 13px;border-radius:20px;border:1px solid rgba(212,175,55,0.25);' +
+          'background:rgba(212,175,55,0.06);color:var(--text);font-family:Manrope,sans-serif;' +
+          'font-size:12px;cursor:pointer;transition:all 0.15s;white-space:nowrap">' +
+          p.emoji + ' ' + c.label + '</button>';
+      });
+
       container.innerHTML = `
         ${limitInfo}
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:14px;color:var(--text);margin-bottom:8px">${((window.i18n && i18n.t && i18n.t('oracle.formulate_query')) || 'Сформулируй свой запрос')}</div>
-          <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">${((window.i18n && i18n.t && i18n.t('oracle.query_hint')) || 'Какой вопрос тебя волнует? Какие энергии помогут приблизиться к решению?')}</div>
-          <textarea id="daily-card-query" placeholder="${tt('oracle.query_placeholder', 'Напиши свой вопрос...')}" style="width:100%;min-height:70px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5;text-align:left;box-sizing:border-box"></textarea>
+          <textarea id="daily-card-query" placeholder="${tt('oracle.query_placeholder', 'Напиши свой вопрос...')}" style="width:100%;min-height:60px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5;text-align:left;box-sizing:border-box"></textarea>
 
-          <!-- Дропдаун «Выбрать из готовых» в стиле Стендап-зеркала -->
-          <div id="oracle-presets-wrap" style="margin-top:12px;position:relative">
-            <button id="oracle-presets-trigger" type="button" onclick="DailyDar.togglePresets()"
-              style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(212,175,55,0.18);border-radius:14px;color:var(--text);font-family:Manrope,sans-serif;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all 0.2s;text-align:left">
-              <span>${tt('oracle.presets_toggle', '💡 Выбрать из готовых вопросов')}</span>
-              <svg id="oracle-presets-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
-            <div id="oracle-presets-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:6px;background:#0d0d0d;border:1px solid rgba(212,175,55,0.25);border-radius:14px;overflow:hidden;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-height:60vh;overflow-y:auto">
+          <!-- Быстрые вопросы-чипы (YupSoul-стиль) -->
+          <div id="oracle-presets-wrap" style="margin-top:10px">
+            <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+              ${topChipsHtml}
+              <button type="button" id="oracle-presets-trigger" onclick="DailyDar.togglePresets()"
+                style="padding:7px 13px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-dim);font-family:Manrope,sans-serif;font-size:12px;cursor:pointer;transition:all 0.15s;white-space:nowrap">
+                ${tt('oracle.chip_more', '💡 Ещё')}
+              </button>
+            </div>
+            <div id="oracle-presets-list" style="display:none;margin-top:8px;background:#0d0d0d;border:1px solid rgba(212,175,55,0.25);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.5);max-height:50vh;overflow-y:auto">
               ${presetsHtml}
             </div>
           </div>
@@ -664,7 +682,7 @@ const DailyDar = (function() {
     if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
   }
 
-  // Юзер кликнул готовый вопрос — подставляем в textarea и закрываем дропдаун
+  // Юзер кликнул готовый вопрос — подставляем в textarea и закрываем дропдаун (если открыт)
   function pickPresetQuery(idx) {
     const presets = window._oraclePresets || [];
     const p = presets[idx];
@@ -674,7 +692,9 @@ const DailyDar = (function() {
       ta.value = p.text;
       ta.focus();
     }
-    togglePresets();
+    // Закрываем дропдаун только если он сейчас открыт (чипы вверху уже не открывают его)
+    const list = document.getElementById('oracle-presets-list');
+    if (list && list.style.display === 'block') togglePresets();
   }
 
   function pullCard() {

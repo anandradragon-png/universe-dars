@@ -63,7 +63,7 @@
    */
   async function loadDict(lang) {
     try {
-      const resp = await fetch(`/i18n/${lang}.json?v=20260609a`);
+      const resp = await fetch(`/i18n/${lang}.json?v=20260610a`);
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       const dict = await resp.json();
       state.dict = dict;

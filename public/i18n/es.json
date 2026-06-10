@@ -1154,7 +1154,7 @@
     "acc_connections_teaser": "Disponible en el plan Guardián",
     "acc_open_in_arka": "🛡 Abrir en ARKA",
     "diary_title": "Diario del DAR",
-    "diary_sub": "Una línea al día — y ARKA comenzará a notar tus patrones. Gratis.",
+    "diary_sub": "Una línea al día — y YupDar comenzará a notar tus patrones. Gratis.",
     "science_title": "Contribuye a la Ciencia de los DARs",
     "science_sub": "Completa las encuestas y sé parte de la primera investigación sobre los DARs"
   },
@@ -1230,6 +1230,7 @@
     "download_failed": "No se pudo descargar: {msg}",
     "generate_humor_first": "Primero genera el monólogo",
     "write_two_sentences": "Escribe al menos un par de frases",
-    "extra_attempt": "¡+1 intento añadido! Puedes seguir jugando ✨"
+    "extra_attempt": "¡+1 intento añadido! Puedes seguir jugando ✨",
+    "try_oracle": "🔮 Ahora intenta hacerle una pregunta al Oráculo"
   }
 }

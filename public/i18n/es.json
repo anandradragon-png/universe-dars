@@ -1115,6 +1115,7 @@
     "locked_keeper": "Guardián: hasta 3 seres queridos",
     "upgrade_btn": "Mejorar plan",
     "empty": "Agrega a tu primer ser querido — y descubre cómo se entrelazan sus DARs.",
+    "quick_compat_btn": "💞 Verificar compatibilidad",
     "dar_prefix": "DAR:",
     "btn_oracle": "Oráculo",
     "btn_compat": "Compat.",

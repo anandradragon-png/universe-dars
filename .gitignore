@@ -8,6 +8,11 @@ public/.env.local
 *.zip
 .vercel
 
+# Продакшн-секреты на сервере (не коммитить!)
+.env.production
+public/.env.local.prod
+
 # Claude Code internals
 .claude/
 .mcp.json
+.env*.local

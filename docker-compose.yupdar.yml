@@ -1,0 +1,18 @@
+services:
+  yupdar:
+    build: .
+    image: yupdar:latest
+    container_name: yupdar
+    restart: always
+    ports:
+      - "3001:3000"
+    env_file: .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/pricing"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

@@ -1,0 +1,24 @@
+name: Deploy YupDar
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            cd /opt/yupdar
+            git pull origin main
+            docker compose -f docker-compose.yupdar.yml build --no-cache
+            docker compose -f docker-compose.yupdar.yml up -d
+            docker image prune -f
+            echo "Deploy done: $(date)"

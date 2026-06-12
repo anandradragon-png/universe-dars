@@ -10,9 +10,16 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+    networks:
+      - default
+      - selfhost_internal
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/pricing"]
       interval: 60s
       timeout: 10s
       retries: 3
       start_period: 30s
+
+networks:
+  selfhost_internal:
+    external: true

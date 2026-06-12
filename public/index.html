@@ -7188,9 +7188,15 @@
           }
         }).catch(() => { /* Offline - используем localStorage */ });
 
-        // Ежедневный вход - используем неблокирующий тост (не прерывает ввод даты)
+        // Ежедневный вход — guard на клиенте: если уже логинились сегодня, не делаем запрос
+        const _todayKey = new Date().toISOString().slice(0, 10);
+        const _alreadyLoggedToday = localStorage.getItem('_daily_login_' + USER_ID) === _todayKey;
+        if (_alreadyLoggedToday) return;
         DarAPI.dailyLogin().then(result => {
-          if (!result || result.already_logged) return;
+          if (!result) return;
+          // Сохраняем флаг — сегодня уже залогинились
+          localStorage.setItem('_daily_login_' + USER_ID, _todayKey);
+          if (result.already_logged) return;
           // Сервер - источник правды для баланса
           if (typeof result.total_crystals === 'number') {
             CrystalsUI.setBalance(result.total_crystals);

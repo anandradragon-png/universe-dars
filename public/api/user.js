@@ -624,8 +624,13 @@ async function handlePromo(req, res) {
       });
     }
 
+    // Грант по промо = постоянный доступ. Ставим subscription_end в далёкое
+    // будущее, иначе старая дата подписки в прошлом откатит тариф до basic
+    // через getEffectiveTier (баг 13.06.2026: «вижу Мастер, но всё закрыто»).
+    const GRANT_END = '2099-12-31T23:59:59.000Z';
+
     if (premiumCodes.includes(inputCode)) {
-      await updateUser(user.id, { access_level: 'premium' });
+      await updateUser(user.id, { access_level: 'premium', subscription_end: GRANT_END, subscription_plan: 'promo_premium' });
       await addCrystals(user.id, 50, 'promo_premium', { code: inputCode });
       return res.json({ success: true, access_level: 'premium', crystals_bonus: 50 });
     }
@@ -636,7 +641,7 @@ async function handlePromo(req, res) {
         await addCrystals(user.id, 0, 'promo_extended', { code: inputCode });
         return res.json({ success: true, message: 'Already premium', access_level: 'premium', crystals_bonus: 0 });
       }
-      await updateUser(user.id, { access_level: 'extended' });
+      await updateUser(user.id, { access_level: 'extended', subscription_end: GRANT_END, subscription_plan: 'promo_extended' });
       await addCrystals(user.id, 20, 'promo_extended', { code: inputCode });
       return res.json({ success: true, access_level: 'extended', crystals_bonus: 20 });
     }

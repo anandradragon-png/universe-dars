@@ -114,6 +114,11 @@ const LIMITS = {
 function getEffectiveTier(user) {
   if (!user) return 'basic';
 
+  // Админы и разработчики всегда имеют высший доступ — их тариф НЕ откатывается
+  // по subscription_end. Иначе при выдаче себе доступа через админку старая
+  // дата подписки в прошлом блокировала бы все разделы (баг 13.06.2026).
+  if (user.is_admin) return user.access_level && user.access_level !== 'basic' ? user.access_level : 'premium';
+
   // Если есть поле subscription_end и оно в прошлом — подписка истекла
   if (user.subscription_end) {
     const endTime = new Date(user.subscription_end).getTime();

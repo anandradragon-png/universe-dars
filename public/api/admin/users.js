@@ -357,7 +357,20 @@ async function handleTierAction(req, res, db, admin) {
   }
 
   const { data: before } = await db.from('users').select('access_level').eq('id', userId).single();
-  await db.from('users').update({ access_level: tier }).eq('id', userId);
+  // Выдача тарифа из админки = бессрочный доступ. subscription_end = NULL означает
+  // «не истекает» (конвенция, см. pricing.js getEffectiveTier). Обязательно очищаем
+  // старую просроченную дату, иначе тариф откатится до basic, хотя профиль покажет
+  // Мастера (баг 13.06.2026: «вижу Мастер, но всё закрыто»).
+  const tierUpdate = { access_level: tier };
+  if (tier === 'extended' || tier === 'premium') {
+    tierUpdate.subscription_end = null;
+    tierUpdate.subscription_plan = 'admin_grant';
+  } else {
+    // Сброс до basic — снимаем и подписочную дату.
+    tierUpdate.subscription_end = null;
+    tierUpdate.subscription_plan = null;
+  }
+  await db.from('users').update(tierUpdate).eq('id', userId);
   await logAdminAction(admin.id, 'change_tier', userId, { from: before?.access_level, to: tier });
 
   return res.json({ ok: true, tier });

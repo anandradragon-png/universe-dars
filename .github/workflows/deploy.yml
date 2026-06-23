@@ -3,6 +3,7 @@ name: Deploy YupDar
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -13,12 +14,20 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          YOOKASSA_SECRET_KEY: ${{ secrets.YOOKASSA_SECRET_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          YUPPAY_API_KEY: ${{ secrets.YUPPAY_API_KEY }}
+          YUPPAY_WEBHOOK_SECRET: ${{ secrets.YUPPAY_WEBHOOK_SECRET }}
+          TBANK_PASSWORD: ${{ secrets.TBANK_PASSWORD }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          envs: BOT_TOKEN,TELEGRAM_WEBHOOK_SECRET
+          envs: BOT_TOKEN,TELEGRAM_WEBHOOK_SECRET,YOOKASSA_SECRET_KEY,SUPABASE_SERVICE_KEY,DEEPSEEK_API_KEY,GROQ_API_KEY,YUPPAY_API_KEY,YUPPAY_WEBHOOK_SECRET,TBANK_PASSWORD,CRON_SECRET
           script: |
             cd /opt/yupdar
             git pull origin main
@@ -34,6 +43,14 @@ jobs:
             }
             upsert_env BOT_TOKEN "$BOT_TOKEN"
             upsert_env TELEGRAM_WEBHOOK_SECRET "$TELEGRAM_WEBHOOK_SECRET"
+            upsert_env YOOKASSA_SECRET_KEY "$YOOKASSA_SECRET_KEY"
+            upsert_env SUPABASE_SERVICE_KEY "$SUPABASE_SERVICE_KEY"
+            upsert_env DEEPSEEK_API_KEY "$DEEPSEEK_API_KEY"
+            upsert_env GROQ_API_KEY "$GROQ_API_KEY"
+            upsert_env YUPPAY_API_KEY "$YUPPAY_API_KEY"
+            upsert_env YUPPAY_WEBHOOK_SECRET "$YUPPAY_WEBHOOK_SECRET"
+            upsert_env TBANK_PASSWORD "$TBANK_PASSWORD"
+            upsert_env CRON_SECRET "$CRON_SECRET"
             docker compose -f docker-compose.yupdar.yml build --no-cache
             docker compose -f docker-compose.yupdar.yml up -d
             docker image prune -f

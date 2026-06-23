@@ -10,14 +10,30 @@ jobs:
     steps:
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
+          envs: BOT_TOKEN,TELEGRAM_WEBHOOK_SECRET
           script: |
             cd /opt/yupdar
             git pull origin main
+            upsert_env() {
+              local key="$1" val="$2"
+              [ -z "$val" ] && return 0
+              touch .env.production
+              if grep -q "^${key}=" .env.production; then
+                sed -i "s|^${key}=.*|${key}=${val}|" .env.production
+              else
+                echo "${key}=${val}" >> .env.production
+              fi
+            }
+            upsert_env BOT_TOKEN "$BOT_TOKEN"
+            upsert_env TELEGRAM_WEBHOOK_SECRET "$TELEGRAM_WEBHOOK_SECRET"
             docker compose -f docker-compose.yupdar.yml build --no-cache
             docker compose -f docker-compose.yupdar.yml up -d
             docker image prune -f

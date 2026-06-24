@@ -32,6 +32,12 @@ async function handleProfile(req, res) {
       const user = await getOrCreateUser(tgUser);
       const dars = await getUserDars(user.id);
 
+      // Эффективный тариф (как в Семье): учитывает admin-доступ и
+      // subscription_end. Раньше тут отдавался сырой user.access_level —
+      // из-за этого у админа/Мастера в табе «Я» висели замки на АРКА-секциях,
+      // хотя реальный тариф premium (баг 24.06.2026).
+      const effectiveTier = pricing.getEffectiveTierWithSimulation(user, req);
+
       return res.json({
         user: {
           id: user.id,
@@ -40,7 +46,7 @@ async function handleProfile(req, res) {
           dar_code: user.dar_code,
           dar_name: user.dar_name,
           crystals: user.crystals,
-          access_level: user.access_level,
+          access_level: effectiveTier,
           streak_count: user.streak_count || 0,
           real_first_name: user.real_first_name || '',
           real_last_name: user.real_last_name || '',

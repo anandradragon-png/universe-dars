@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#07060a">
+  <title>YupDar — узнай свой Дар</title>
+  <meta name="description" content="Точная карта твоей личности по дате рождения — бесплатно. Кто ты, твоя сила, деньги, отношения и предназначение. И путь, чтобы жить в согласии со своей природой.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <script>document.documentElement.className='js'</script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{color-scheme:dark;--gold:#E8C66B;--gold2:#D4AF37;--vio:#a855f7}
+    html{scroll-behavior:smooth}
+    body{background:#07060a;color:#f4f1fa;font-family:'Manrope',-apple-system,sans-serif;line-height:1.5;overflow-x:hidden}
+    a{color:inherit;text-decoration:none}
+
+    .bg{position:fixed;inset:0;z-index:-2;background:
+      radial-gradient(60% 40% at 50% 0%,rgba(168,85,247,.22),transparent 70%),
+      radial-gradient(55% 45% at 15% 80%,rgba(232,198,107,.09),transparent 70%),#07060a}
+    .bg::after{content:"";position:absolute;inset:0;background-image:
+      radial-gradient(1.5px 1.5px at 20% 30%,rgba(255,255,255,.5),transparent),
+      radial-gradient(1.5px 1.5px at 78% 22%,rgba(255,255,255,.4),transparent),
+      radial-gradient(1px 1px at 40% 70%,rgba(255,255,255,.5),transparent),
+      radial-gradient(1.5px 1.5px at 88% 60%,rgba(255,255,255,.35),transparent);animation:tw 6s ease-in-out infinite}
+    @keyframes tw{0%,100%{opacity:.4}50%{opacity:.9}}
+
+    .wrap{max-width:680px;margin:0 auto;padding:18px}
+
+    .hero{text-align:center;padding:58px 12px 18px}
+    .kicker{font-size:12px;letter-spacing:3px;color:var(--vio);text-transform:uppercase;font-weight:700;opacity:0;animation:up .7s .1s forwards}
+    .orb{font-size:78px;display:inline-block;margin:14px 0 4px;position:relative;animation:float 5s ease-in-out infinite}
+    .orb::before{content:"";position:absolute;inset:-28px;border-radius:50%;background:radial-gradient(closest-side,rgba(168,85,247,.5),transparent);filter:blur(14px);z-index:-1;animation:pulse 4s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px)}}
+    @keyframes pulse{0%,100%{opacity:.6;transform:scale(.92)}50%{opacity:1;transform:scale(1.08)}}
+    h1{font-size:47px;font-weight:800;line-height:1.05;margin:6px 0 12px;
+      background:linear-gradient(110deg,#fff 12%,var(--gold) 45%,var(--vio) 85%);background-size:200% auto;
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:up .7s .15s forwards,shine 6s linear infinite;opacity:0}
+    @keyframes shine{to{background-position:200% center}}
+    .lead{font-size:17px;color:#d3cce4;max-width:470px;margin:0 auto 26px;opacity:0;animation:up .7s .3s forwards}
+    .lead b{color:#fff;font-weight:700}
+    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+    .cta{position:relative;display:inline-block;padding:17px 46px;border-radius:9999px;font-size:17px;font-weight:800;color:#1a1206;background:linear-gradient(135deg,#F4D98B,var(--gold2));overflow:hidden;box-shadow:0 10px 34px rgba(232,198,107,.35);animation:up .7s .45s forwards,glow 2.6s ease-in-out infinite;opacity:0}
+    .cta::after{content:"";position:absolute;top:0;left:-60%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);transform:skewX(-20deg);animation:sheen 3.4s ease-in-out infinite}
+    @keyframes sheen{0%{left:-60%}55%,100%{left:130%}}
+    @keyframes glow{0%,100%{box-shadow:0 10px 34px rgba(232,198,107,.30)}50%{box-shadow:0 14px 44px rgba(232,198,107,.55)}}
+    .cta:hover{transform:translateY(-2px)}
+    .sub{display:block;margin-top:13px;font-size:13px;color:#8b85a0;opacity:0;animation:up .7s .55s forwards}
+    .sub b{color:var(--gold)}
+    .tg{display:inline-block;margin-top:12px;font-size:13px;color:#9b94ad;border-bottom:1px solid rgba(168,85,247,.4);padding-bottom:1px;opacity:0;animation:up .7s .6s forwards}
+    .tg:hover{color:#fff}
+    .final .tg{display:block;margin-top:14px;animation:none;opacity:1}
+
+    .secTitle{text-align:center;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:#8b85a0;font-weight:700;margin:42px 0 16px}
+
+    .pillars{display:grid;gap:13px}
+    .pillar{display:flex;gap:16px;padding:20px;border-radius:18px;background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);transition:transform .25s,border-color .25s}
+    .pillar:hover{transform:translateY(-4px);border-color:rgba(168,85,247,.5)}
+    .pillar .pic{font-size:34px;flex:0 0 auto;line-height:1.1}
+    .pillar .step{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--vio)}
+    .pillar h3{font-size:19px;color:#fff;font-weight:800;margin:2px 0 6px}
+    .pillar .feat{font-size:13.5px;color:#aaa3b8;line-height:1.5}
+    .pillar .val{margin-top:10px;font-size:14px;color:var(--gold);font-weight:700}
+    .pillar .badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:middle}
+    .badge.free{color:#34d399;border:1px solid rgba(52,211,153,.45)}
+    .badge.prem{color:#0c0a12;background:linear-gradient(135deg,var(--gold),#F4D98B)}
+    .pillar.prem{background:linear-gradient(160deg,rgba(232,198,107,.1),rgba(168,85,247,.05));border-color:rgba(232,198,107,.4)}
+    .pillar.prem:hover{border-color:rgba(232,198,107,.65)}
+    .pillar.prem .step{color:var(--gold)}
+    .pillar.prem .val{color:var(--gold)}
+
+    .tiers{display:grid;gap:10px;margin-top:8px}
+    .tier{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:15px 18px;transition:transform .25s,border-color .25s}
+    .tier:hover{transform:translateX(4px);border-color:rgba(255,255,255,.2)}
+    .tier .nm b{font-size:16px;color:#fff}
+    .tier .nm small{display:block;font-size:12.5px;color:#9b94ad;margin-top:3px}
+    .tier .pr{font-size:18px;color:var(--gold);font-weight:800;white-space:nowrap;text-align:right}
+    .tier .pr small{display:block;font-size:11px;color:#8b85a0;font-weight:500}
+    .tier.hl{border-color:rgba(232,198,107,.55);background:linear-gradient(135deg,rgba(232,198,107,.15),rgba(168,85,247,.07))}
+
+    .final{text-align:center;padding:50px 0 14px}
+    .final h2{font-size:26px;font-weight:800;margin-bottom:6px;background:linear-gradient(110deg,#fff,var(--gold) 65%,var(--vio));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    .final p{font-size:14px;color:#9b94ad;margin-bottom:22px}
+
+    .pays{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;padding:16px 0}
+    .chip{padding:8px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;font-size:12px;color:#9b94ad}
+
+    .foot{text-align:center;padding:26px 0 26px;border-top:1px solid rgba(255,255,255,.07);margin-top:14px}
+    .foot a{color:#6b6580;font-size:12px;margin:0 8px}
+    .foot a:hover{color:var(--gold)}
+    .foot .co{font-size:11px;color:#4f4a5e;margin-top:12px;line-height:1.6}
+
+    html.js .reveal{opacity:0;transform:translateY(24px)}
+    html.js .reveal.in{opacity:1;transform:none;transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
+    @media (prefers-reduced-motion:reduce){
+      html.js .reveal{opacity:1!important;transform:none!important}
+      .kicker,h1,.lead,.cta,.sub{opacity:1!important}
+      .kicker,h1,.lead,.cta,.sub,.orb,.orb::before,.cta::after,.bg::after{animation:none!important}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="wrap">
+
+    <div class="hero">
+      <div class="kicker">64 архетипа &middot; твой &mdash; один</div>
+      <div class="orb">&#128302;</div>
+      <h1>Узнай<br>свой Дар</h1>
+      <p class="lead">Точная карта твоей личности <b>по дате рождения</b> &mdash; и путь, чтобы жить в согласии со своей природой.</p>
+      <a href="/index.html?app=1" class="cta">&#128302; Узнать свой Дар</a>
+      <span class="sub"><b>Бесплатно</b> &middot; 1 минута &middot; в браузере и в Telegram</span>
+      <a href="https://t.me/YupDarBot" class="tg">или открыть в Telegram &rarr;</a>
+    </div>
+
+    <div class="secTitle reveal">Что ты получаешь</div>
+    <div class="pillars">
+
+      <div class="pillar reveal">
+        <div class="pic">&#128302;</div>
+        <div>
+          <div class="step">ШАГ 1</div>
+          <h3>Узнай себя <span class="badge free">бесплатно</span></h3>
+          <div class="feat">Твой Дар по дате рождения и полное AI-послание: кто ты, твоя сила, деньги, отношения, тени и предназначение. Плюс Оракул, дневник, энциклопедия и Книга Даров.</div>
+          <div class="val">&rarr; Понять свою настоящую природу</div>
+        </div>
+      </div>
+
+      <div class="pillar reveal">
+        <div class="pic">&#128106;</div>
+        <div>
+          <div class="step">ШАГ 2</div>
+          <h3>Пойми близких</h3>
+          <div class="feat">Рассчитай Дары родных и друзей, проверь совместимость, получи персональную книгу о своём ребёнке.</div>
+          <div class="val">&rarr; Гармония и меньше конфликтов в отношениях</div>
+        </div>
+      </div>
+
+      <div class="pillar prem reveal">
+        <div class="pic">&#127963;&#65039;</div>
+        <div>
+          <div class="step">ШАГ 3</div>
+          <h3>Живи Даром <span class="badge prem">PREMIUM</span></h3>
+          <div class="feat">АРКА &mdash; планировщик в ритме твоего Дара: 3&ndash;5 целевых действий в день, окна силы, ритуалы и AI-наставник.</div>
+          <div class="val">&rarr; Знание превращается в ежедневную практику</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="secTitle reveal">Тарифы</div>
+    <div class="tiers">
+      <div class="tier reveal"><div class="nm"><b>Странник</b><small>Расчёт Дара, Оракул 1/день, Дневник</small></div><div class="pr">0 &#8381;</div></div>
+      <div class="tier reveal"><div class="nm"><b>Книга Даров</b><small>Полная книга (94 главы), ридер навсегда</small></div><div class="pr">749 &#8381;<small>разово</small></div></div>
+      <div class="tier hl reveal"><div class="nm"><b>Хранитель</b><small>Вся Сокровищница, Семья, 3 Оракула/день</small></div><div class="pr">490 &#8381;<small>/ мес</small></div></div>
+      <div class="tier hl reveal"><div class="nm"><b>Мастер</b><small>Безлимит + АРКА + AI-наставник</small></div><div class="pr">1 490 &#8381;<small>/ мес</small></div></div>
+    </div>
+
+    <div class="final reveal">
+      <h2>Твой Дар уже ждёт</h2>
+      <p>Узнать его &mdash; одна дата рождения и одна минута.</p>
+      <a href="/index.html?app=1" class="cta">&#128302; Узнать свой Дар бесплатно</a>
+      <a href="https://t.me/YupDarBot" class="tg">или открыть в Telegram &rarr;</a>
+    </div>
+
+    <div class="pays">
+      <div class="chip">&#11088; Telegram Stars</div>
+      <div class="chip">&#128179; Visa / MC / МИР</div>
+      <div class="chip">&#128293; DarAI (NEAR)</div>
+    </div>
+
+    <div class="foot">
+      <div><a href="/legal/terms">Соглашение</a><a href="/legal/privacy">Конфиденциальность</a><a href="/legal/offer">Оферта</a></div>
+      <div class="co">Нестерова Светлана Николаевна &middot; ИНН 507806967199 &middot; самозанятая<br>yupdar@yandex.ru &middot; @YupDarBot</div>
+    </div>
+
+  </div>
+
+  <script>
+    (function(){
+      var els=[].slice.call(document.querySelectorAll('.reveal'));
+      var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+      function reveal(el){el.classList.add('in');var p=el.parentElement;if(p&&(p.classList.contains('pillars')||p.classList.contains('tiers'))){el.style.transitionDelay=([].indexOf.call(p.children,el)*80)+'ms';}}
+      if(rm||!('IntersectionObserver'in window)){els.forEach(reveal);return;}
+      var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){reveal(e.target);io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+      els.forEach(function(el){io.observe(el)});
+      setTimeout(function(){els.forEach(function(el){if(!el.classList.contains('in')&&el.getBoundingClientRect().top<innerHeight)reveal(el);});},1200);
+    })();
+  </script>
+</body>
+</html>

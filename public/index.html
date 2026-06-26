@@ -21,6 +21,8 @@
   <script>
   (function() {
     try {
+      // DEV: на localhost никогда не уводим на лендинг — это локальная отладка Mini App.
+      if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
       var params = new URLSearchParams(location.search);
       if (params.get('app') === '1') return; // ?app=1 — оставаться в Mini App даже в браузере
       // Признаки Telegram WebApp:
@@ -34,7 +36,7 @@
         setTimeout(function() {
           if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) return;
           // Действительно не Telegram → редирект на лендинг
-          location.replace('/index-landing.html' + location.search);
+          location.replace('/landing-full.html' + location.search);
         }, 80);
       }
     } catch (e) { /* ignore — не ломаем загрузку Mini App из-за детектора */ }
@@ -54,7 +56,7 @@
   -->
   <script>
   (function() {
-    var BUILD = '20260622a'; // = public/version.txt; бампить вместе с токеном ?v=
+    var BUILD = '20260626a'; // = public/version.txt; бампить вместе с токеном ?v=
     try {
       fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
         .then(function(r) { return r.ok ? r.text() : null; })
@@ -79,9 +81,11 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260622a">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260626a">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="js/maintenance.js?v=20260622a"></script>
+  <!-- DEV-ONLY: эмуляция Telegram для локального запуска (активна только на localhost, в проде инертна) -->
+  <script src="js/dev-telegram-shim.js?v=dev1"></script>
+  <script src="js/maintenance.js?v=20260626a"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -561,6 +565,66 @@
     .date-input:focus{transform:scale(1.01)}
     @keyframes goldPulse{0%,100%{box-shadow:0 0 8px rgba(212,175,55,0.2)}50%{box-shadow:0 0 20px rgba(212,175,55,0.4)}}
     .treasury-own{animation:goldPulse 3s ease-in-out infinite}
+  </style>
+  <!-- ── VIVID THEME: визуал в стиле лендинга. Только оформление, структура/тексты не меняются. ── -->
+  <style id="yup-vivid-theme">
+    :root{--vio:#a855f7}
+    /* Фон — заметная пурпурная аура */
+    body::before{background:
+      radial-gradient(70% 46% at 50% -4%, rgba(168,85,247,0.30), transparent 70%),
+      radial-gradient(50% 40% at 88% 22%, rgba(212,175,55,0.10), transparent 70%),
+      radial-gradient(60% 50% at 8% 86%, rgba(168,85,247,0.14), transparent 72%) !important;}
+
+    /* Карточка Дара — светящаяся градиентная рамка золото→фиолет */
+    .result-card{
+      border:1.5px solid transparent !important;
+      background:linear-gradient(160deg,#141019,#0b0910) padding-box,
+                 linear-gradient(135deg, rgba(232,198,107,0.9), rgba(168,85,247,0.9)) border-box !important;
+      box-shadow:0 24px 70px -22px rgba(0,0,0,0.75), 0 0 60px -16px rgba(168,85,247,0.4) !important;}
+    .dar-image-wrap{position:relative}
+    .dar-image-wrap::before{content:"";position:absolute;inset:-16px;border-radius:50%;
+      background:radial-gradient(closest-side, rgba(168,85,247,0.55), transparent);filter:blur(12px);z-index:0;
+      animation:ysPulse 4s ease-in-out infinite}
+    .dar-image-wrap img{position:relative;z-index:1}
+    @keyframes ysPulse{0%,100%{opacity:.5;transform:scale(.92)}50%{opacity:1;transform:scale(1.06)}}
+    .dar-name,#darName{
+      background:linear-gradient(120deg,#ffffff 8%, #E8C66B 48%, #a855f7 92%) !important;
+      -webkit-background-clip:text !important;background-clip:text !important;
+      -webkit-text-fill-color:transparent !important;color:transparent !important;
+      text-shadow:none !important;filter:drop-shadow(0 0 14px rgba(168,85,247,0.35))}
+
+    /* Главная кнопка послания — из контурной в золотую CTA со свечением и бликом */
+    #btn-get-message{
+      background:linear-gradient(135deg,#F4D98B,#D4AF37,#b8860b) !important;color:#1a1206 !important;
+      border:none !important;font-weight:800 !important;
+      box-shadow:0 10px 30px rgba(212,175,55,0.42) !important;position:relative;overflow:hidden}
+    #btn-get-message::after{content:"";position:absolute;top:0;left:-60%;width:50%;height:100%;
+      background:linear-gradient(100deg,transparent,rgba(255,255,255,0.65),transparent);transform:skewX(-20deg);
+      animation:ysSheen 3.6s ease-in-out infinite;pointer-events:none}
+    @keyframes ysSheen{0%{left:-60%}55%,100%{left:130%}}
+
+    /* Карточки-крючки — ярче + лёгкое парение */
+    #daily-activities>div[onclick],.me-diary-card,.me-science-card{
+      transition:transform .25s, border-color .25s, box-shadow .25s !important}
+    #daily-activities>div[onclick]{
+      background:linear-gradient(135deg,rgba(212,175,55,0.18),rgba(168,85,247,0.10)) !important;
+      border-color:rgba(212,175,55,0.5) !important;box-shadow:0 10px 30px -10px rgba(212,175,55,0.22) !important}
+    .me-diary-card{background:linear-gradient(135deg,rgba(168,85,247,0.20),rgba(168,85,247,0.06)) !important;
+      border-color:rgba(168,85,247,0.5) !important}
+    .me-science-card{background:linear-gradient(135deg,rgba(74,134,232,0.18),rgba(74,134,232,0.05)) !important;
+      border-color:rgba(74,134,232,0.5) !important}
+    #daily-activities>div[onclick]:hover,.me-diary-card:hover,.me-science-card:hover{transform:translateY(-4px)}
+
+    /* Нижняя навигация — активная вкладка светится */
+    .nav-btn.active{
+      background:linear-gradient(135deg,rgba(212,175,55,0.22),rgba(168,85,247,0.16)) !important;
+      border-color:rgba(232,198,107,0.6) !important;box-shadow:0 0 18px rgba(168,85,247,0.25) !important}
+
+    /* Шапка — лёгкое сияние логотипа */
+    header h1{filter:drop-shadow(0 0 10px rgba(168,85,247,0.30))}
+
+    @media (prefers-reduced-motion:reduce){
+      .dar-image-wrap::before,#btn-get-message::after{animation:none !important}}
   </style>
 </head>
 <body>
@@ -1555,9 +1619,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260622a"></script>
+  <script src="js/i18n.js?v=20260626a"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260622a"></script>
+  <script src="js/dars-i18n.js?v=20260626a"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1569,18 +1633,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260622a"></script>
-  <script src="js/upgrade-modal.js?v=20260622a"></script>
-  <script src="js/crystals.js?v=20260622a"></script>
-  <script src="js/treasury.js?v=20260622a"></script>
-  <script src="js/referral.js?v=20260622a"></script>
-  <script src="js/book-reader.js?v=20260622a"></script>
-  <script src="js/intuition-game.js?v=20260622a"></script>
-  <script src="js/atlantis-game.js?v=20260622a"></script>
-  <script src="js/hero-journey.js?v=20260622a"></script>
-  <script src="js/share-card.js?v=20260622a"></script>
-  <script src="js/humor-card.js?v=20260622a"></script>
-  <script src="js/daily-dar.js?v=20260622a"></script>
+  <script src="js/api-client.js?v=20260626a"></script>
+  <script src="js/upgrade-modal.js?v=20260626a"></script>
+  <script src="js/crystals.js?v=20260626a"></script>
+  <script src="js/treasury.js?v=20260626a"></script>
+  <script src="js/referral.js?v=20260626a"></script>
+  <script src="js/book-reader.js?v=20260626a"></script>
+  <script src="js/intuition-game.js?v=20260626a"></script>
+  <script src="js/atlantis-game.js?v=20260626a"></script>
+  <script src="js/hero-journey.js?v=20260626a"></script>
+  <script src="js/share-card.js?v=20260626a"></script>
+  <script src="js/humor-card.js?v=20260626a"></script>
+  <script src="js/daily-dar.js?v=20260626a"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2458,7 +2522,7 @@
         // Если уже был встроен — не перезагружаем, чтобы не сбрасывать состояние.
         if (!container.querySelector('iframe[data-arka-iframe]')) {
           container.innerHTML =
-            '<iframe data-arka-iframe src="/preview/arka/?v=20260622a" ' +
+            '<iframe data-arka-iframe src="/preview/arka/?v=20260626a" ' +
             'style="border:0;width:100%;flex:1;min-height:calc(100vh - 90px);' +
             'background:#0a1929" ' +
             'title="АРКА — личный путь в ритме Дара"></iframe>';

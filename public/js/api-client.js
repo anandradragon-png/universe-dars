@@ -17,6 +17,18 @@ const DarAPI = (function() {
     if (devId && !tg?.initData) {
       headers['x-telegram-id'] = devId;
     }
+    // Гостевой веб-вход: если открыто в браузере БЕЗ Telegram и без dev-id —
+    // создаём стабильный анонимный аккаунт. Отрицательный id, чтобы никогда
+    // не пересечься с реальными Telegram-id (они положительные). Хранится
+    // в localStorage, так что гость возвращается в свой аккаунт.
+    if (!tg?.initData && !devId) {
+      let webId = localStorage.getItem('_web_uid');
+      if (!webId) {
+        webId = String(-(Math.floor(Math.random() * 900000000000) + 100000000000));
+        localStorage.setItem('_web_uid', webId);
+      }
+      headers['x-telegram-id'] = webId;
+    }
     // Язык приложения — для AI-генерации (Oracle, message, compatibility)
     // и для бэкенда чтобы знать какой язык вернуть в /api/pricing
     try {

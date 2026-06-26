@@ -443,8 +443,12 @@
       };
       // Передаём initData для авторизации
       if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
-      // Dev fallback: ?dev_id=12345 в URL — для локального теста без Telegram
-      const devId = new URLSearchParams(location.search).get('dev_id');
+      // Dev fallback: ?dev_id=12345 в URL — для локального теста без Telegram.
+      // На localhost дополнительно берём id из localStorage._dev_telegram_id,
+      // чтобы админка открывалась без параметра (в проде этот путь не активен).
+      const _isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      const devId = new URLSearchParams(location.search).get('dev_id')
+        || (_isLocal ? localStorage.getItem('_dev_telegram_id') : null);
       if (devId) headers['x-telegram-id'] = devId;
 
       const resp = await fetch(path, { ...opts, headers });

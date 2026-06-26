@@ -5649,8 +5649,11 @@
       btn.disabled = false;
       btn.textContent = ((window.i18n && i18n.t && i18n.t('psu.save_and_continue')) || 'Сохранить и продолжить');
 
-      if (serverOk) {
-        // Полный успех - показываем зелёное сообщение, закрываем через секунду
+      // Веб-вход без Telegram (errKind='no-telegram') — это нормальный сценарий
+      // браузерной версии, а не ошибка. Данные уже сохранены локально (saveLocalProfile),
+      // поэтому ведём пользователя дальше, как при успехе на сервере.
+      if (serverOk || errKind === 'no-telegram') {
+        // Успех - показываем зелёное сообщение, закрываем через секунду
         status.style.color = '#4ade80';
         status.innerHTML = '&#10003; ' + (((window.i18n && i18n.t && i18n.t('psu.data_saved')) || 'Данные сохранены'));
         setTimeout(() => {

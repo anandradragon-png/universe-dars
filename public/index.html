@@ -1446,11 +1446,11 @@
 
       <div style="margin-bottom:12px">
         <div class="psu-label" data-i18n="psu.label_firstname">Имя (настоящее)</div>
-        <input id="psu-first-name" type="text" placeholder="Например: Светлана" data-i18n="psu.firstname_placeholder" data-i18n-attr="placeholder" class="psu-input" maxlength="50" autocomplete="given-name">
+        <input id="psu-first-name" type="text" placeholder="Например: Светлана" data-i18n="psu.firstname_placeholder" data-i18n-attr="placeholder" class="psu-input" maxlength="50" autocomplete="off">
       </div>
       <div style="margin-bottom:12px">
         <div class="psu-label" data-i18n="psu.label_lastname">Фамилия (настоящая)</div>
-        <input id="psu-last-name" type="text" placeholder="Например: Иванова" data-i18n="psu.lastname_placeholder" data-i18n-attr="placeholder" class="psu-input" maxlength="50" autocomplete="family-name">
+        <input id="psu-last-name" type="text" placeholder="Например: Иванова" data-i18n="psu.lastname_placeholder" data-i18n-attr="placeholder" class="psu-input" maxlength="50" autocomplete="off">
       </div>
       <div style="margin-bottom:12px">
         <div class="psu-label" data-i18n="psu.label_gender">Пол</div>
@@ -5549,8 +5549,8 @@
 
       // Валидация
       const _t = (k, f) => ((window.i18n && i18n.t && i18n.t(k)) || f);
-      if (!firstName) { status.textContent = _t('psu.err_firstname', 'Укажи своё настоящее имя'); return; }
-      if (!lastName) { status.textContent = _t('psu.err_lastname', 'Укажи свою настоящую фамилию'); return; }
+      if (!firstName) { status.textContent = _t('psu.err_firstname', 'Укажи своё настоящее имя'); document.getElementById('psu-first-name').focus(); return; }
+      if (!lastName) { status.textContent = _t('psu.err_lastname', 'Укажи свою настоящую фамилию'); document.getElementById('psu-last-name').focus(); return; }
       if (_psuGender !== 'male' && _psuGender !== 'female') { status.textContent = _t('psu.err_gender', 'Укажи свой пол'); return; }
       if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(birthDate)) {
         status.textContent = _t('psu.err_date_format', 'Дата рождения в формате ДД.ММ.ГГГГ');

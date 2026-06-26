@@ -1432,11 +1432,15 @@ setTimeout(applyArkaI18n, 0);
   // через AI — можно показывать снова.
   function hideZmanOnlySections(darCode) {
     if (darCode === '1-6-7') return;  // З-МАН — оставляем как есть
-    // Селекторы конкретных секций которые скрываем
+    // Селекторы конкретных секций которые скрываем.
+    // Имена data-ritual в вёрстке: dawn / day / dusk / night.
+    // dawn/day/dusk заменяют динамические ритуалы из #dynamicRituals.
+    // night НЕ скрываем — там общий дневник благодарности (#gratitude),
+    // нужный всем, а контент ночи нейтральный (Lavender для сна).
     const selectors = [
       'section.ritual[data-ritual="dawn"]',
       'section.ritual[data-ritual="day"]',
-      'section.ritual[data-ritual="evening"]',
+      'section.ritual[data-ritual="dusk"]',
       '.task-legend',  // легенда с упоминанием З-МАН
     ];
     selectors.forEach(sel => {
@@ -1448,13 +1452,13 @@ setTimeout(applyArkaI18n, 0);
   // Подменяет тексты в «Окнах силы» и показывает блок «Послание дня».
   async function loadArkaToday(darCode, gender) {
     if (!darCode) return;
-    // Проверяем кеш (живёт сутки)
-    const CACHE_KEY = '_arka_today_' + darCode;
+    // Проверяем кеш (живёт сутки). v2 — схема с биоритмом (пик/поток/тишина).
+    const CACHE_KEY = '_arka_today_v2_' + darCode;
     const CACHE_TTL = 86400000;
     try {
       const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
       if (cached && cached.ts && (Date.now() - cached.ts < CACHE_TTL)) {
-        applyArkaToday(cached.data);
+        applyArkaToday(cached.data, darCode);
         return;
       }
     } catch (e) {}
@@ -1476,26 +1480,60 @@ setTimeout(applyArkaI18n, 0);
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ data: json.data, ts: Date.now() }));
       } catch (e) {}
-      applyArkaToday(json.data);
+      applyArkaToday(json.data, darCode);
     } catch (e) {
       console.warn('[arka-today] load failed', e.message);
     }
   }
 
-  function applyArkaToday(data) {
+  // Снимаем data-i18n, чтобы переключение языка не затёрло персональный текст.
+  function _setDynamic(el, text) {
+    if (!el || !text) return;
+    el.removeAttribute('data-i18n');
+    el.removeAttribute('data-i18n-html');
+    el.textContent = text;
+  }
+
+  function applyArkaToday(data, darCode) {
     if (!data) return;
-    // Окна силы: подменяем подпись и подсказку под Дар юзера.
-    // Послание дня здесь НЕ делаем — оно живёт в Оракуле, не дублируем.
+    // Биоритм — общий источник для верхней карточки «Сегодня» и
+    // секции «Окна силы» во вкладке «Дар».
+    const bio = data.biorhythm || null;
+    // Для З-МАН (1-6-7) вкладка «Дар» — выверенный пилот, не перезаписываем.
+    const isZman = (darCode === '1-6-7');
+
+    // 1. Верхняя карточка «Окна силы сегодня» (вкладка «Сегодня»).
     const pwTime = document.getElementById('powerWindowTime');
     const pwHint = document.getElementById('powerWindowHint');
-    if (data.power_windows) {
-      // Краткое описание трёх окон в строку (утро / день / вечер)
+    if (bio && bio.peak) {
+      // Пик — главное окно силы дня.
+      _setDynamic(pwTime, bio.peak.time || '');
+      _setDynamic(pwHint, bio.peak.desc || '');
+    } else if (data.power_windows) {
+      // Fallback: если AI не вернул биоритм — берём из текстовых окон.
       const morning = (data.power_windows.morning || '').split('.')[0];
       const evening = (data.power_windows.evening || '').split('.')[0];
-      if (pwTime && morning) pwTime.textContent = morning;
-      if (pwHint && evening) pwHint.textContent = evening;
+      _setDynamic(pwTime, morning);
+      _setDynamic(pwHint, evening);
     }
-    // Ритуалы: рендерим в контейнер #dynamicRituals.
+
+    // 2. Секция «Окна силы» во вкладке «Дар» (пик / поток / тишина).
+    if (bio && !isZman) {
+      if (bio.peak) {
+        _setDynamic(document.getElementById('pwPeakTime'), bio.peak.time);
+        _setDynamic(document.querySelector('#arka-power-windows [data-i18n="arka.windows_peak_desc"]'), bio.peak.desc);
+      }
+      if (bio.flow) {
+        _setDynamic(document.getElementById('pwFlowTime'), bio.flow.time);
+        _setDynamic(document.querySelector('#arka-power-windows [data-i18n="arka.windows_flow_desc"]'), bio.flow.desc);
+      }
+      if (bio.rest) {
+        _setDynamic(document.getElementById('pwRestTime'), bio.rest.time);
+        _setDynamic(document.querySelector('#arka-power-windows [data-i18n="arka.windows_rest_desc"]'), bio.rest.desc);
+      }
+    }
+
+    // 3. Ритуалы: рендерим в контейнер #dynamicRituals.
     // Для всех Даров — выдаёт 3 универсальных ритуала (утро/день/вечер).
     if (data.rituals) {
       renderRituals(data.rituals);

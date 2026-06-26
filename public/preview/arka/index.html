@@ -1452,8 +1452,8 @@ setTimeout(applyArkaI18n, 0);
   // Подменяет тексты в «Окнах силы» и показывает блок «Послание дня».
   async function loadArkaToday(darCode, gender) {
     if (!darCode) return;
-    // Проверяем кеш (живёт сутки). v2 — схема с биоритмом (пик/поток/тишина).
-    const CACHE_KEY = '_arka_today_v2_' + darCode;
+    // Проверяем кеш (живёт сутки). v3 — биоритм с часами под характер Дара.
+    const CACHE_KEY = '_arka_today_v3_' + darCode;
     const CACHE_TTL = 86400000;
     try {
       const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');

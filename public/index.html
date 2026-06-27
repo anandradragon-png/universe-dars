@@ -56,7 +56,7 @@
   -->
   <script>
   (function() {
-    var BUILD = '20260627a'; // = public/version.txt; бампить вместе с токеном ?v=
+    var BUILD = '20260627b'; // = public/version.txt; бампить вместе с токеном ?v=
     try {
       fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
         .then(function(r) { return r.ok ? r.text() : null; })
@@ -81,11 +81,11 @@
   })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="yupself-design-system.css?v=20260627a">
+  <link rel="stylesheet" href="yupself-design-system.css?v=20260627b">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- DEV-ONLY: эмуляция Telegram для локального запуска (активна только на localhost, в проде инертна) -->
   <script src="js/dev-telegram-shim.js?v=dev1"></script>
-  <script src="js/maintenance.js?v=20260627a"></script>
+  <script src="js/maintenance.js?v=20260627b"></script>
   <script>
     // Debug-режим: ?debug=1 / startapp=debug / тройной тап на header (ТОЛЬКО АДМИНЫ) / localStorage
     (function() {
@@ -1619,9 +1619,9 @@
   </script>
 
   <!-- Игровые модули -->
-  <script src="js/i18n.js?v=20260627a"></script>
+  <script src="js/i18n.js?v=20260627b"></script>
   <!-- Локализация имён даров и архетипов (EN/ES берётся из книг Даров) -->
-  <script src="js/dars-i18n.js?v=20260627a"></script>
+  <script src="js/dars-i18n.js?v=20260627b"></script>
   <script>
     // Инициализация i18n — загружает словарь языка и применяет к DOM.
     // Для русских юзеров — ru.json (то же что в HTML), визуально ничего не меняется.
@@ -1633,18 +1633,18 @@
       }).catch(e => console.warn('[i18n] init failed:', e.message));
     }
   </script>
-  <script src="js/api-client.js?v=20260627a"></script>
-  <script src="js/upgrade-modal.js?v=20260627a"></script>
-  <script src="js/crystals.js?v=20260627a"></script>
-  <script src="js/treasury.js?v=20260627a"></script>
-  <script src="js/referral.js?v=20260627a"></script>
-  <script src="js/book-reader.js?v=20260627a"></script>
-  <script src="js/intuition-game.js?v=20260627a"></script>
-  <script src="js/atlantis-game.js?v=20260627a"></script>
-  <script src="js/hero-journey.js?v=20260627a"></script>
-  <script src="js/share-card.js?v=20260627a"></script>
-  <script src="js/humor-card.js?v=20260627a"></script>
-  <script src="js/daily-dar.js?v=20260627a"></script>
+  <script src="js/api-client.js?v=20260627b"></script>
+  <script src="js/upgrade-modal.js?v=20260627b"></script>
+  <script src="js/crystals.js?v=20260627b"></script>
+  <script src="js/treasury.js?v=20260627b"></script>
+  <script src="js/referral.js?v=20260627b"></script>
+  <script src="js/book-reader.js?v=20260627b"></script>
+  <script src="js/intuition-game.js?v=20260627b"></script>
+  <script src="js/atlantis-game.js?v=20260627b"></script>
+  <script src="js/hero-journey.js?v=20260627b"></script>
+  <script src="js/share-card.js?v=20260627b"></script>
+  <script src="js/humor-card.js?v=20260627b"></script>
+  <script src="js/daily-dar.js?v=20260627b"></script>
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -2573,6 +2573,14 @@
         // Если уровень изменился (оплата прошла) — перерисуем Книгу и покажем тост.
         if (newLevel !== prevLevel) {
           if (typeof BookReader !== 'undefined') BookReader.render();
+          // Если открыта вкладка База Знаний с замком, а доступ появился — открываем.
+          try {
+            const lockEl = document.getElementById('base-screen-lock');
+            if (lockEl && lockEl.style.display !== 'none'
+                && (newLevel === 'extended' || newLevel === 'premium')) {
+              showEncyclopedia();
+            }
+          } catch(e) {}
           if (!silent && newLevel !== 'basic') {
             showToast((((window.i18n && i18n.t && i18n.t('access.updated')) || 'Доступ обновлён!')) + ' ' + (newLevel === 'premium' ? 'Мастер' : 'Хранитель'), 'success');
           }
@@ -3938,6 +3946,19 @@
 
     function checkBaseAccess(){
       try{
+        // Платный тариф (Хранитель/Мастер) и админ — доступ к Базе Знаний всегда открыт.
+        const lvl = (window.PROFILE && window.PROFILE.access_level)
+          || localStorage.getItem('_access_level') || 'basic';
+        if(lvl==='extended' || lvl==='premium') return true;
+        const tgId = window.Telegram && window.Telegram.WebApp
+          && window.Telegram.WebApp.initDataUnsafe
+          && window.Telegram.WebApp.initDataUnsafe.user
+          && window.Telegram.WebApp.initDataUnsafe.user.id;
+        const ADMIN_IDS = [269932434, 637640467];
+        if(tgId && ADMIN_IDS.includes(Number(tgId))) return true;
+        const devId = localStorage.getItem('_dev_telegram_id');
+        if(devId && ADMIN_IDS.includes(Number(devId))) return true;
+        // Старая разблокировка по промо-коду — оставляем для тех, кто уже открыл.
         const d = JSON.parse(localStorage.getItem(ENC_ACCESS_KEY)||'{}');
         return !!d.unlocked;
       }catch(e){return false;}

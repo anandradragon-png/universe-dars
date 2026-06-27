@@ -17,11 +17,24 @@ const DarAPI = (function() {
     if (devId && !tg?.initData) {
       headers['x-telegram-id'] = devId;
     }
-    // Гостевой веб-вход: если открыто в браузере БЕЗ Telegram и без dev-id —
-    // создаём стабильный анонимный аккаунт. Отрицательный id, чтобы никогда
-    // не пересечься с реальными Telegram-id (они положительные). Хранится
-    // в localStorage, так что гость возвращается в свой аккаунт.
-    if (!tg?.initData && !devId) {
+    // Telegram-юзер без подписанного initData. Некоторые способы открытия
+    // Mini App (повторный запуск из истории, отдельные типы ссылок/кнопок)
+    // дают заполненный initDataUnsafe.user, но ПУСТОЙ initData. Раньше такой
+    // юзер проваливался в гостевой режим ниже и получал случайный _web_uid —
+    // то есть отрывался от своего реального Telegram-аккаунта: дар и тариф
+    // «слетали», доступа не было, приходилось делать «старт заново». Опознаём
+    // его по настоящему telegram_id из initDataUnsafe (как это уже делает
+    // getUserId() в index.html), чтобы сервер вернул его собственный профиль.
+    const tgUid = tg?.initDataUnsafe?.user?.id;
+    if (!tg?.initData && !devId && tgUid) {
+      headers['x-telegram-id'] = String(tgUid);
+    }
+    // Гостевой веб-вход: ТОЛЬКО когда Telegram-контекста нет вообще (открыто
+    // в обычном браузере без Telegram и без dev-id). Создаём стабильный
+    // анонимный аккаунт. Отрицательный id, чтобы никогда не пересечься с
+    // реальными Telegram-id (они положительные). Хранится в localStorage,
+    // так что гость возвращается в свой аккаунт.
+    if (!tg?.initData && !devId && !tgUid) {
       let webId = localStorage.getItem('_web_uid');
       if (!webId) {
         webId = String(-(Math.floor(Math.random() * 900000000000) + 100000000000));

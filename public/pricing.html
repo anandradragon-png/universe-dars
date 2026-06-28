@@ -333,6 +333,7 @@
       try {
         const headers = { 'Content-Type': 'application/json' };
         if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
+        else if (tg?.initDataUnsafe?.user?.id) headers['x-telegram-id'] = String(tg.initDataUnsafe.user.id);
         // Передаём текущий язык клиента, чтобы сервер вернул описания на нужном языке
         const lang = (window.i18n && i18n.getLang) ? i18n.getLang() : 'ru';
         const r = await fetch('/api/pricing?lang=' + encodeURIComponent(lang), { headers });
@@ -595,6 +596,7 @@
       try {
         const headers = { 'Content-Type': 'application/json' };
         if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
+        else if (tg?.initDataUnsafe?.user?.id) headers['x-telegram-id'] = String(tg.initDataUnsafe.user.id);
 
         let body;
         if (kind === 'plan') {

@@ -11,7 +11,7 @@
 - **Симптом:** Диса («Я в тг боте, ориджинал») — при покупке тарифа в АРКА/на странице тарифов ошибка «Ошибка: Чтобы купить тариф или add-on, войди через Telegram».
 - **Причина:** та же, что у общего бага данных. `pricing.html` слал на `/api/payment` ТОЛЬКО заголовок `x-telegram-init-data` из `tg.initData`. При повторном открытии Mini App `initData` пустой → сервер (`payment.js`, требует `user` для create_subscription/create_addon) не опознавал юзера → HTTP 401 «войди через Telegram». Воспроизведено curl-ом: без авторизации — 401, с `x-telegram-id` — валидный invoice + промо -50%.
 - **Сделано:** в `pricing.html` (оба fetch — `fetchPricing` и покупка) добавлен фоллбэк `x-telegram-id` из `tg.initDataUnsafe.user.id`, как в api-client.js. `openTariffsPage()` теперь добавляет `?v=BUILD` к `/pricing.html` (cache-bust страницы). Cache-bust 20260628a → 20260628b.
-- **Статус:** ✅ Исправлено. Коммит `__PENDING__`.
+- **Статус:** ✅ Исправлено. Коммит `d84691a`.
 
 ### ЮKassa «Error in shopId or secret key» при покупке Книги
 - **Симптом:** скрин 17:20 — при покупке Книги Даров в АРКА ошибка ЮKassa «Error in shopId or secret key. Check their validity».

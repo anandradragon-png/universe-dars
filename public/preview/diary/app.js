@@ -229,7 +229,7 @@ function saveEntries(arr) {
 function getTelegramHeaders() {
   const headers = { 'Content-Type': 'application/json' };
   try {
-    // Сначала смотрим в своём окне
+    // Сначала смотрим в своём окне — подписанный initData
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
       headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
       return headers;
@@ -237,7 +237,22 @@ function getTelegramHeaders() {
     // Если открыт как iframe — пробуем родителя
     if (window.parent && window.parent.Telegram && window.parent.Telegram.WebApp && window.parent.Telegram.WebApp.initData) {
       headers['x-telegram-init-data'] = window.parent.Telegram.WebApp.initData;
+      return headers;
     }
+    // Фоллбэк: initData пустой, но Telegram-юзер опознан в initDataUnsafe.user
+    // (бывает при повторном открытии Mini App). Шлём настоящий telegram_id —
+    // сервер примет через requireUser (non-strict). Без этого дневник
+    // проваливался в гостевой режим и прогресс «слетал» (та же причина, что
+    // и общий баг данных, см. api-client.js).
+    let uid = null;
+    try {
+      uid = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe
+        && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id;
+    } catch (e) {}
+    if (!uid) {
+      try { uid = window.parent.Telegram.WebApp.initDataUnsafe.user.id; } catch (e) {}
+    }
+    if (uid) headers['x-telegram-id'] = String(uid);
   } catch (e) {}
   return headers;
 }

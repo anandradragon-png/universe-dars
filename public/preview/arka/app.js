@@ -1863,14 +1863,19 @@ window.returnToMirror = returnToMirror;
 
 // Возврат в главное меню YupDar (родительский iframe)
 function backToYupDar() {
+  const inIframe = (function(){ try { return window.parent && window.parent !== window; } catch (e) { return false; } })();
   try {
-    // Если открыто внутри iframe основного приложения — переключаем там вкладку на «Я»
-    if (window.parent && window.parent !== window && typeof window.parent.switchTab === 'function') {
-      window.parent.switchTab('me');
+    if (inIframe) {
+      const p = window.parent;
+      // Боевой YupDar использует switchNav, превью-приложение — switchTab.
+      if (typeof p.switchNav === 'function') { p.switchNav('me'); return; }
+      if (typeof p.switchTab === 'function') { p.switchTab('me'); return; }
+      // Внутри iframe, но у родителя нет нав-функции — НЕ грузим /preview/
+      // в окно АРКА (иначе полное превью-приложение откроется внутри iframe).
       return;
     }
   } catch (e) {}
-  // Фоллбэк — переход на главное превью
+  // Standalone (не в iframe) — переход на главное превью
   try { window.location.href = '/preview/'; } catch (e) {}
 }
 window.backToYupDar = backToYupDar;

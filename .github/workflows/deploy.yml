@@ -8,7 +8,39 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
+      # Автопростановка версии кэша на КАЖДОМ деплое. Раньше номер версии
+      # (BUILD + version.txt + все ?v= токены) правился руками в трёх местах —
+      # легко забыть одно, и тогда обновление «не доходит» до тестеров. Теперь
+      # уникальная версия (дата + хэш коммита) проставляется автоматически и
+      # коммитится ДО того, как сервер заберёт код через git pull.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump cache-busting version
+        run: |
+          NEW_VER="$(date -u +%Y%m%d)-${GITHUB_SHA::7}"
+          echo "Новая версия кэша: $NEW_VER"
+          # version.txt — источник правды для самолечения версии в браузере
+          echo "$NEW_VER" > public/version.txt
+          # Константа BUILD в index.html (с ней сверяется самолечение)
+          sed -i -E "s/var BUILD = '[^']*';/var BUILD = '${NEW_VER}';/" public/index.html
+          # Все токены ?v= у локальных ассетов (js/css) в index.html
+          sed -i -E "s/(href|src)=\"([^\"]+)\?v=[^\"]*\"/\1=\"\2?v=${NEW_VER}\"/g" public/index.html
+          git config user.name "yupdar-deploy-bot"
+          git config user.email "deploy@yupdar.com"
+          git add public/version.txt public/index.html
+          if git diff --cached --quiet; then
+            echo "Нечего бампить — версия уже актуальна."
+          else
+            git commit -m "chore(build): bump cache version to ${NEW_VER} [skip ci]"
+            git push origin HEAD:main
+          fi
+
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:

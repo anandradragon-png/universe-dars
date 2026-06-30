@@ -57,26 +57,47 @@
   <script>
   (function() {
     var BUILD = '20260628b'; // = public/version.txt; бампить вместе с токеном ?v=
+    // Сверка с сервером + автоперезагрузка на свежий HTML, если версия новее.
+    function checkVersion() {
+      try {
+        fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
+          .then(function(r) { return r.ok ? r.text() : null; })
+          .then(function(txt) {
+            if (!txt) return;
+            var server = txt.trim();
+            if (!server || server === BUILD) return;     // версия актуальна — ничего не делаем
+            // Анти-петля: не перезагружаемся чаще раза в 30 секунд для одной версии.
+            // Используем localStorage+TTL вместо sessionStorage — sessionStorage
+            // в Telegram WebView может сохраняться между запусками и навсегда
+            // блокировать следующие обновления.
+            var reloadKey = '_vreload_' + server;
+            var lastTime = parseInt(localStorage.getItem(reloadKey) || '0');
+            if (Date.now() - lastTime < 30000) return;
+            localStorage.setItem(reloadKey, String(Date.now()));
+            // Уникальный параметр → новый URL → Telegram грузит свежий HTML.
+            var sep = location.search ? '&' : '?';
+            location.replace(location.pathname + location.search + sep + '_v=' + server + (location.hash || ''));
+          })
+          .catch(function() {});
+      } catch (e) {}
+    }
+    // 1) Проверка при первой загрузке.
+    checkVersion();
+    // 2) Проверка при КАЖДОМ возврате приложения на передний план.
+    //    Telegram не закрывает Mini App, а держит страницу живой в памяти. При
+    //    повторном открытии из истории показывается старая страница со старым
+    //    кодом, и обновления «не доходят» (тестеру приходилось жать /start).
+    //    Эти слушатели заново сверяют версию, когда окно снова активно, и тихо
+    //    перезагружают на свежую сборку — без ручного перезапуска.
     try {
-      fetch('/version.txt?_=' + Date.now(), { cache: 'no-store' })
-        .then(function(r) { return r.ok ? r.text() : null; })
-        .then(function(txt) {
-          if (!txt) return;
-          var server = txt.trim();
-          if (!server || server === BUILD) return;     // версия актуальна — ничего не делаем
-          // Анти-петля: не перезагружаемся чаще раза в 30 секунд для одной версии.
-          // Используем localStorage+TTL вместо sessionStorage — sessionStorage
-          // в Telegram WebView может сохраняться между запусками и навсегда
-          // блокировать следующие обновления.
-          var reloadKey = '_vreload_' + server;
-          var lastTime = parseInt(localStorage.getItem(reloadKey) || '0');
-          if (Date.now() - lastTime < 30000) return;
-          localStorage.setItem(reloadKey, String(Date.now()));
-          // Уникальный параметр → новый URL → Telegram грузит свежий HTML.
-          var sep = location.search ? '&' : '?';
-          location.replace(location.pathname + location.search + sep + '_v=' + server + (location.hash || ''));
-        })
-        .catch(function() {});
+      // pageshow с persisted=true = страница восстановлена из bfcache (свёрнуто/развёрнуто).
+      window.addEventListener('pageshow', function(e) { if (e && e.persisted) checkVersion(); });
+      // Возврат вкладки/окна в видимое состояние.
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') checkVersion();
+      });
+      // Фокус окна — подстраховка для WebView, где visibilitychange ненадёжен.
+      window.addEventListener('focus', function() { checkVersion(); });
     } catch (e) {}
   })();
   </script>

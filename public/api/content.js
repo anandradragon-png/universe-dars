@@ -18,6 +18,7 @@ const deepseek = require('./_lib/deepseek');
 const { getSupabase, getOrCreateUser } = require('./_lib/db');
 const pricing = require('./_lib/pricing');
 const language = require('./_lib/language');
+const { logEvent } = require('./_lib/notify');
 const { getUser, requireUser } = require('./_lib/auth');
 
 // ===== Общие загрузки =====
@@ -897,6 +898,21 @@ async function handleSandboxMessage(req, res) {
 module.exports = async (req, res) => {
   const type = (req.query && req.query.type) || '';
   const url = req.url || '';
+
+  // Тип Б (аналитика): считаем Оракулы и расшифровки для ежедневной сводки.
+  // maintenance НЕ логируем — это фоновый опрос каждые 60с (был бы мусор).
+  try {
+    if (type === 'oracle' || url.includes('/oracle')) {
+      logEvent('oracle', {});
+    } else if (
+      type === 'message-humor' || url.includes('/message-humor') ||
+      type === 'message' || url.includes('/message') ||
+      type === 'section' || url.includes('/section') ||
+      type === 'shadow-review' || url.includes('/shadow-review')
+    ) {
+      logEvent('decryption', { kind: type });
+    }
+  } catch (e) {}
 
   if (type === 'maintenance' || url.includes('/maintenance')) {
     return handleMaintenance(req, res);

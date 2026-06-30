@@ -13,6 +13,22 @@
 const { requireUser } = require('./_lib/auth');
 const { getOrCreateUser } = require('./_lib/db');
 const pricing = require('./_lib/pricing');
+const { notifyAdmin, logEvent, escapeHtml } = require('./_lib/notify');
+
+// Тип А: попытка оплаты — счёт/ссылка на оплату успешно создан(а).
+// Fire-and-forget: не ждём и не роняем ответ юзеру.
+function notifyPayAttempt(provider, item, priceText, user, telegramId) {
+  const who = escapeHtml((user && (user.first_name || user.username)) || ('id' + (telegramId || '?')));
+  notifyAdmin(
+    '💳 <b>Попытка оплаты</b>\n\n' +
+    `Кто: ${who}\n` +
+    `Что: ${escapeHtml(item)}\n` +
+    `Сумма: ${escapeHtml(priceText)}\n` +
+    `Способ: ${escapeHtml(provider)}\n\n` +
+    `Время: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
+  );
+  logEvent('pay_attempt', { provider: provider, item: item, price: priceText, telegram_id: telegramId || null });
+}
 
 // YupPay (DarAI/NEAR) - Supabase Edge Function
 const YUPPAY_API_URL = 'https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api';
@@ -118,6 +134,7 @@ module.exports = async (req, res) => {
         prices: [{ label: 'Полный доступ к Книге Даров', amount: price }]
       });
 
+      notifyPayAttempt('Telegram Stars', 'Книга — полный доступ', `${price}⭐`, user, telegramId);
       return res.json({
         invoice_url: invoiceUrl,
         price,
@@ -153,6 +170,7 @@ module.exports = async (req, res) => {
         prices: [{ label: 'Пожертвование', amount: donationAmount }]
       });
 
+      notifyPayAttempt('Telegram Stars', 'Пожертвование', `${donationAmount}⭐`, user, telegramId);
       return res.json({
         invoice_url: invoiceUrl,
         amount: donationAmount,
@@ -214,6 +232,7 @@ module.exports = async (req, res) => {
           throw new Error(data.error || data.message || 'YupPay error');
         }
 
+        notifyPayAttempt('DarAI', 'Книга — полный доступ', '10 DarAI', user, telegramId);
         return res.json({
           invoice_url: data.pay_url,
           invoice_tg_url: data.pay_tg_url || (data.links && data.links.telegram_mini_app),
@@ -268,6 +287,7 @@ module.exports = async (req, res) => {
           throw new Error(data.error || data.message || 'YupPay error');
         }
 
+        notifyPayAttempt('DarAI', 'Пожертвование', String(donAmount) + ' DarAI', user, telegramId);
         return res.json({
           invoice_url: data.pay_url,
           invoice_tg_url: data.pay_tg_url || (data.links && data.links.telegram_mini_app),
@@ -372,6 +392,7 @@ module.exports = async (req, res) => {
           user_id: user ? user.id : null
         });
 
+        notifyPayAttempt('ЮKassa (карта)', 'Книга — полный доступ', `${amountValue}₽`, user, telegramId);
         return res.json({
           invoice_url: confirmUrl,
           payment_id: data.id,
@@ -442,6 +463,7 @@ module.exports = async (req, res) => {
           return res.status(502).json({ error: 'ЮKassa не вернула ссылку на оплату' });
         }
 
+        notifyPayAttempt('ЮKassa (карта)', 'Пожертвование', `${amountValue}₽`, user, telegramId);
         return res.json({
           invoice_url: confirmUrl,
           payment_id: data.id,
@@ -538,6 +560,7 @@ module.exports = async (req, res) => {
             currency: 'XTR',
             prices: [{ label: label.slice(0, 32), amount: priceStars }]
           });
+          notifyPayAttempt('Telegram Stars', label, `${priceStars}⭐`, user, telegramId);
           return res.json({
             invoice_url: invoiceUrl,
             price: priceStars,
@@ -602,6 +625,7 @@ module.exports = async (req, res) => {
           }
           const confirmUrl = data.confirmation && data.confirmation.confirmation_url;
           if (!confirmUrl) return res.status(502).json({ error: 'ЮKassa не вернула ссылку' });
+          notifyPayAttempt('ЮKassa (карта)', label, `${priceRub}₽`, user, telegramId);
           return res.json({
             invoice_url: confirmUrl,
             payment_id: data.id,
@@ -645,6 +669,7 @@ module.exports = async (req, res) => {
             console.error('[payment] darai subscription failed:', resp.status, respText);
             return res.status(500).json({ error: data.error || data.message || 'YupPay error' });
           }
+          notifyPayAttempt('DarAI', label, `${(priceDarai / 1_000_000).toFixed(0)}M DarAI`, user, telegramId);
           return res.json({
             invoice_url: data.pay_url,
             invoice_tg_url: data.pay_tg_url || (data.links && data.links.telegram_mini_app),

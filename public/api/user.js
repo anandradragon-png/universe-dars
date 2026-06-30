@@ -12,6 +12,7 @@ const { getUser, requireUser } = require('./_lib/auth');
 const { getOrCreateUser, updateUser, getUserDars, addCrystals, unlockDar, getSupabase } = require('./_lib/db');
 const pricing = require('./_lib/pricing');
 const { getReward, getStreakBonus } = require('./_lib/crystals');
+const { notifyAdmin, logEvent, escapeHtml } = require('./_lib/notify');
 
 // =====================================================================
 // ========== PROFILE (default) ========================================
@@ -88,6 +89,17 @@ async function handleProfile(req, res) {
         if (isFirstDar) {
           crystalsEarned = getReward('signup', user.access_level);
           await addCrystals(user.id, crystalsEarned, 'signup');
+
+          // Тип А: новый пользователь рассчитал свой Дар — уведомляем админа.
+          // Fire-and-forget: не ждём, не роняем ответ юзеру.
+          const who = escapeHtml(user.first_name || user.username || ('id' + user.telegram_id));
+          notifyAdmin(
+            '✨ <b>Новый пользователь рассчитал Дар</b>\n\n' +
+            `Кто: ${who}\n` +
+            `Дар: ${escapeHtml(dar_name || '')} (${escapeHtml(dar_code)})\n\n` +
+            `Время: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
+          );
+          logEvent('dar_calculated', { dar_code: dar_code, dar_name: dar_name || '', telegram_id: user.telegram_id });
         }
 
         return res.json({ success: true, crystals_earned: crystalsEarned });

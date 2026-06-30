@@ -84,6 +84,7 @@ app.all('/api/webhooks',     require('./public/api/webhooks'));
 
 app.all('/api/admin/analytics',    require('./public/api/admin/analytics'));
 app.all('/api/admin/clear-cache',  require('./public/api/admin/clear-cache'));
+app.all('/api/admin/daily-summary',require('./public/api/admin/daily-summary'));
 app.all('/api/admin/me',           require('./public/api/admin/me'));
 app.all('/api/admin/payments',     require('./public/api/admin/payments'));
 app.all('/api/admin/promo',        require('./public/api/admin/promo'));
@@ -123,6 +124,22 @@ cron.schedule('*/30 * * * *', async () => {
   };
   try { await healthHandler(fakeReq, fakeRes); }
   catch(e) { console.error('[cron] health-check error:', e.message); }
+});
+
+// ── Cron: ежедневная сводка админу в 09:00 МСК (06:00 UTC) ─────────────────
+const dailySummaryHandler = require('./public/api/admin/daily-summary');
+cron.schedule('0 6 * * *', async () => {
+  const fakeReq = {
+    headers: { authorization: `Bearer ${process.env.CRON_SECRET || ''}` },
+    query: {}, method: 'GET'
+  };
+  const fakeRes = {
+    status() { return this; },
+    json(d)  { console.log('[cron] daily-summary sent:', d?.ok); return this; },
+    end()    { return this; }
+  };
+  try { await dailySummaryHandler(fakeReq, fakeRes); }
+  catch(e) { console.error('[cron] daily-summary error:', e.message); }
 });
 
 // ── Старт ──────────────────────────────────────────────────────────────────

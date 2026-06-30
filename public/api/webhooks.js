@@ -12,6 +12,20 @@
 
 const crypto = require('crypto');
 const { getSupabase, addCrystals } = require('./_lib/db');
+const { notifyAdmin, logEvent, escapeHtml } = require('./_lib/notify');
+
+// Тип А: успешная оплата (деньги получены, доступ выдан). Fire-and-forget.
+function notifyPaySuccess(provider, item, amountText, telegramId, who) {
+  notifyAdmin(
+    '✅💰 <b>Успешная оплата</b>\n\n' +
+    `Кто: ${escapeHtml(who || ('id' + (telegramId || '?')))}\n` +
+    `Что: ${escapeHtml(item)}\n` +
+    `Сумма: ${escapeHtml(amountText)}\n` +
+    `Способ: ${escapeHtml(provider)}\n\n` +
+    `Время: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
+  );
+  logEvent('pay_success', { provider: provider, item: item, amount: amountText, telegram_id: telegramId || null });
+}
 
 // =====================================================================
 // ========== BOT (Telegram Stars) =====================================
@@ -163,6 +177,7 @@ async function handleBotWebhook(req, res) {
           });
 
           console.log('[bot-webhook] applied (new schema):', result);
+          notifyPaySuccess('Telegram Stars', `${result.kind === 'plan' ? 'Тариф' : 'Доп.'}: ${productKey}`, `${payment.total_amount}⭐`, telegramId, fromUser?.first_name);
 
           // Уведомление юзеру
           try {
@@ -224,6 +239,7 @@ async function handleBotWebhook(req, res) {
             new_level: newLevel,
             crystals_bonus: 50
           });
+          notifyPaySuccess('Telegram Stars', 'Книга — полный доступ', `${payment.total_amount}⭐`, telegramId, fromUser?.first_name);
 
           // Отправляем сообщение подтверждения в чат
           try {
@@ -270,6 +286,7 @@ async function handleBotWebhook(req, res) {
               amount: payment.total_amount,
               bonus_crystals: bonusCrystals
             });
+            notifyPaySuccess('Telegram Stars', 'Пожертвование', `${payment.total_amount}⭐`, telegramId, fromUser?.first_name);
           }
 
           // Благодарственное сообщение
@@ -499,6 +516,7 @@ async function handleTbankWebhook(req, res) {
       } catch (e) {}
 
       console.log('[tbank-webhook] User upgraded:', user.id, '->', newLevel);
+      notifyPaySuccess('T-Bank (карта)', 'Книга — полный доступ', `${(parseInt(body.Amount || '0', 10) / 100).toFixed(0)}₽`, telegramId);
 
       // Уведомление в Telegram
       try {
@@ -531,6 +549,7 @@ async function handleTbankWebhook(req, res) {
         Amount: body.Amount,
         OrderId: body.OrderId
       });
+      notifyPaySuccess('T-Bank (карта)', 'Пожертвование', `${(amountKopecks / 100).toFixed(0)}₽`, telegramId);
 
       try {
         const botToken = (process.env.BOT_TOKEN || '').trim();
@@ -698,6 +717,7 @@ async function handleYuppayWebhook(req, res) {
           }
         });
         console.log('[yuppay-webhook] applied (new schema):', result);
+        notifyPaySuccess('DarAI', `${result.kind === 'plan' ? 'Тариф' : 'Доп.'}: ${metadata.product_key}`, 'DarAI', telegramChatId);
 
         try {
           const botToken = (process.env.BOT_TOKEN || '').trim();
@@ -739,6 +759,7 @@ async function handleYuppayWebhook(req, res) {
       } catch (e) {}
 
       console.log('[yuppay-webhook] User upgraded:', user.id, '->', newLevel);
+      notifyPaySuccess('DarAI', 'Книга — полный доступ', 'DarAI', telegramChatId);
 
       // Сообщение в Telegram
       try {
@@ -770,6 +791,7 @@ async function handleYuppayWebhook(req, res) {
         payer: data.payer_near_account,
         settlement_tx: data.settlement_tx_hash
       });
+      notifyPaySuccess('DarAI', 'Пожертвование', 'DarAI', telegramChatId);
 
       try {
         const botToken = (process.env.BOT_TOKEN || '').trim();
@@ -941,6 +963,7 @@ async function handleYookassaWebhook(req, res) {
           providerMetadata: { yookassa_payment_id: obj.id, email: userEmail }
         });
         console.log('[yookassa-webhook] applied (new schema):', result);
+        notifyPaySuccess('ЮKassa (карта)', `${result.kind === 'plan' ? 'Тариф' : 'Доп.'}: ${metadata.product_key}`, `${amountValue}₽`, tgChatId, user.first_name);
 
         // Уведомление в Telegram
         if (tgChatId) {
@@ -978,6 +1001,7 @@ async function handleYookassaWebhook(req, res) {
       });
 
       console.log('[yookassa-webhook] User upgraded:', user.id, '->', newLevel);
+      notifyPaySuccess('ЮKassa (карта)', 'Книга — полный доступ', `${amountValue}₽`, tgChatId);
 
       // ============ РЕФЕРАЛЬНЫЙ БОНУС ============
       // Если этого юзера кто-то пригласил (есть запись в referrals или users.referred_by)
@@ -1070,6 +1094,7 @@ async function handleYookassaWebhook(req, res) {
         yookassa_tg_username: userTgUsername,
         amount: amountValue
       });
+      notifyPaySuccess('ЮKassa (карта)', 'Пожертвование', `${amountValue}₽`, tgChatId);
 
       if (tgChatId) {
         try {

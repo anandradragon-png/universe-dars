@@ -54,6 +54,8 @@ async function handleProfile(req, res) {
           dar_name: user.dar_name,
           crystals: user.crystals,
           access_level: effectiveTier,
+          // Книга НЕ входит в пробный доступ — отдельный флаг по реальному тарифу.
+          book_full_access: pricing.canReadFullBook(user),
           trial_active: trialActive,
           trial_days_left: trialActive ? trial.days_left : 0,
           trial_ends_at: trialActive ? trial.ends_at : null,

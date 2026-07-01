@@ -452,7 +452,12 @@ function canOpenForeignDar(user) {
 function canReadFullBook(user) {
   if (!user) return false;
   if (user.book_purchased === true) return true;
-  return getLimits(user).book_full_access;
+  if (user.is_admin) return true;
+  // Книга НЕ входит в 7-дневный пробный доступ — остаётся демо-версией
+  // (бесплатно до N глав, дальше оплата). Поэтому проверяем по РЕАЛЬНОМУ
+  // купленному тарифу, а не по эффективному (пробному).
+  const realTier = getRealTier(user);
+  return !!(LIMITS[realTier] && LIMITS[realTier].book_full_access);
 }
 
 /**

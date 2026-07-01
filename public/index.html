@@ -1999,6 +1999,7 @@
               crystals: data.user.crystals || 0,
               streak: data.user.streak_count || 0,
               access_level: data.user.access_level || 'basic',
+              book_full_access: !!data.user.book_full_access,
               dars: data.dars || []
             };
             // Экспорт профиля наружу — book-reader и другие модули читают window.PROFILE
@@ -2006,6 +2007,8 @@
             // Кэшируем access_level в localStorage чтобы BookReader мгновенно видел
             // правильный уровень при следующем запуске (без ожидания API)
             try { localStorage.setItem('_access_level', _profileData.access_level || 'basic'); } catch(e) {}
+            // Книга НЕ входит в пробный доступ — кэшируем отдельный флаг.
+            try { localStorage.setItem('_book_full_access', _profileData.book_full_access ? 'true' : 'false'); } catch(e) {}
 
             // Синк аватарки с сервера: если на сервере есть, обновляем localStorage и UI
             // Если на сервере нет, но в localStorage есть — отправляем на сервер (миграция)
@@ -2642,7 +2645,9 @@
         window.PROFILE = window.PROFILE || {};
         window.PROFILE.access_level = newLevel;
         window.PROFILE.crystals = data.user.crystals || 0;
+        window.PROFILE.book_full_access = !!data.user.book_full_access;
         try { localStorage.setItem('_access_level', newLevel); } catch(e) {}
+        try { localStorage.setItem('_book_full_access', data.user.book_full_access ? 'true' : 'false'); } catch(e) {}
         // Синк кристаллов (CrystalsUI — единый источник правды)
         if (typeof CrystalsUI !== 'undefined' && typeof data.user.crystals === 'number') {
           CrystalsUI.setBalance(data.user.crystals);

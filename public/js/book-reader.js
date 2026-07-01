@@ -12,6 +12,11 @@ const BookReader = (function() {
   let currentPartIdx = 0;
   let currentChapterIdx = 0;
   let accessLevel = 'basic';
+  // Полный доступ к КНИГЕ. ВАЖНО: книга НЕ входит в 7-дневный пробный период —
+  // остаётся демо (первые freeChapters глав бесплатно). Поэтому опираемся на
+  // отдельный флаг book_full_access с сервера (реальный тариф / покупка книги),
+  // а НЕ на access_level (который в пробный период раздут до premium).
+  let bookFullAccess = false;
   let freeChapters = 10;     // сколько глав бесплатно
   let totalChapters = 0;
   let tocOpen = false;
@@ -171,24 +176,22 @@ const BookReader = (function() {
     } catch(e) {
       console.error('[BookReader] load error:', e);
     }
-    // Уровень доступа: сначала из localStorage (мгновенно), потом обновится из PROFILE
+    // Доступ к книге: сначала из localStorage (мгновенно), потом обновится из PROFILE
     try {
-      const cachedLevel = localStorage.getItem('_access_level');
-      if (cachedLevel && cachedLevel !== 'basic') {
-        accessLevel = cachedLevel;
-      }
+      const cached = localStorage.getItem('_book_full_access');
+      if (cached === 'true') bookFullAccess = true;
     } catch(e) {}
     try {
-      if (window.PROFILE && window.PROFILE.access_level) {
-        accessLevel = window.PROFILE.access_level;
-        try { localStorage.setItem('_access_level', accessLevel); } catch(e) {}
+      if (window.PROFILE && typeof window.PROFILE.book_full_access === 'boolean') {
+        bookFullAccess = window.PROFILE.book_full_access;
+        try { localStorage.setItem('_book_full_access', bookFullAccess ? 'true' : 'false'); } catch(e) {}
       }
     } catch(e) {}
   }
 
   // -------- Доступ --------
   function hasFullAccess() {
-    return accessLevel && accessLevel !== 'basic';
+    return bookFullAccess === true;
   }
   function isChapterAccessible(globalIdx) {
     return hasFullAccess() || globalIdx < freeChapters;
@@ -204,11 +207,11 @@ const BookReader = (function() {
     const container = document.getElementById('book-content');
     if (!container) return;
 
-    // Обновляем уровень доступа на каждый рендер — профиль мог подгрузиться позже init
+    // Обновляем доступ к книге на каждый рендер — профиль мог подгрузиться позже init
     try {
-      if (window.PROFILE && window.PROFILE.access_level) {
-        accessLevel = window.PROFILE.access_level;
-        try { localStorage.setItem('_access_level', accessLevel); } catch(e) {}
+      if (window.PROFILE && typeof window.PROFILE.book_full_access === 'boolean') {
+        bookFullAccess = window.PROFILE.book_full_access;
+        try { localStorage.setItem('_book_full_access', bookFullAccess ? 'true' : 'false'); } catch(e) {}
       }
     } catch(e) {}
 
@@ -975,6 +978,10 @@ const BookReader = (function() {
         accessLevel = result.access_level || 'full';
         if (window.PROFILE) window.PROFILE.access_level = accessLevel;
         try { localStorage.setItem('_access_level', accessLevel); } catch(e) {}
+        // Промо-код открывает и полный доступ к книге.
+        bookFullAccess = true;
+        if (window.PROFILE) window.PROFILE.book_full_access = true;
+        try { localStorage.setItem('_book_full_access', 'true'); } catch(e) {}
         const okMsg = ((window.i18n && i18n.t && i18n.t('book.full_access_unlocked')) || 'Полный доступ к книге открыт!');
         if (typeof showToast === 'function') showToast('\u2728 ' + okMsg, 'success');
         else alert(okMsg);

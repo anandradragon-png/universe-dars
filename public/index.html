@@ -761,6 +761,10 @@
         <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px">
           <div style="font-size:11px;color:var(--text-dim);line-height:1.5;margin-bottom:8px" data-i18n="profile.referral_hint">Дар друга откроется в Сокровищнице или получишь кристаллы.</div>
           <div id="referral-link-preview" style="display:none;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:11px;color:var(--text-dim);word-break:break-all"></div>
+          <div id="referral-qr-wrap" style="display:none;text-align:center;margin-bottom:10px">
+            <img id="referral-qr-img" alt="QR" width="160" height="160" style="width:160px;height:160px;border-radius:12px;background:#080808;padding:8px;border:1px solid var(--border)"/>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:6px" data-i18n="profile.qr_hint">Наведи камеру, чтобы поделиться</div>
+          </div>
           <div style="display:flex;gap:6px">
             <button onclick="profileShareLink()" style="flex:1;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#9993; <span data-i18n="profile.send_to_friend">Отправить другу</span></button>
             <button onclick="profileCopyLink()" style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer" title="Скопировать" data-i18n="common.copy" data-i18n-attr="title">&#128203;</button>
@@ -2235,13 +2239,21 @@
     async function loadReferralStats() {
       // Всегда показываем саму партнёрскую ссылку в ЛК, чтобы человек мог
       // её найти и скопировать сам (а не только на миг после нажатия «копировать»).
+      const myLink = (typeof Referral !== 'undefined' && Referral.getMyLink)
+        ? Referral.getMyLink()
+        : `https://t.me/YupDarBot?startapp=ref_${(tg?.initDataUnsafe?.user?.id || USER_ID || '')}`;
       const preview = document.getElementById('referral-link-preview');
       if (preview) {
-        const myLink = (typeof Referral !== 'undefined' && Referral.getMyLink)
-          ? Referral.getMyLink()
-          : `https://t.me/YupDarBot?startapp=ref_${(tg?.initDataUnsafe?.user?.id || USER_ID || '')}`;
         preview.textContent = myLink;
         preview.style.display = 'block';
+      }
+      // QR-код с той же реферальной ссылкой — чтобы делиться офлайн (в книге,
+      // на встречах). Сканирование ведёт по ref-ссылке, переходы отслеживаются.
+      const qrWrap = document.getElementById('referral-qr-wrap');
+      const qrImg = document.getElementById('referral-qr-img');
+      if (qrWrap && qrImg) {
+        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&format=png&margin=0&color=D4AF37&bgcolor=080808&data=' + encodeURIComponent(myLink);
+        qrWrap.style.display = 'block';
       }
 
       const stats = document.getElementById('referral-stats');

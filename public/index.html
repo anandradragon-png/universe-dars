@@ -780,6 +780,18 @@
       </div>
     </div>
 
+    <!-- Путеводитель по приложению -->
+    <div class="profile-section" style="cursor:pointer" onclick="closeProfile();setTimeout(openOnboarding,300)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div>&#128218;</div>
+        <div>
+          <div style="font-size:13px;color:var(--text)" data-i18n="onboarding.reopen_title">Как пользоваться приложением</div>
+          <div style="font-size:10px;color:var(--text-dim)" data-i18n="onboarding.reopen_sub">Короткий путеводитель по разделам</div>
+        </div>
+        <div style="margin-left:auto;color:var(--text-muted)">&#10095;</div>
+      </div>
+    </div>
+
     <!-- 6. ОБРАТНАЯ СВЯЗЬ -->
     <div class="profile-section" style="cursor:pointer" onclick="closeProfile();setTimeout(openFeedback,300)">
       <div style="display:flex;align-items:center;gap:10px">
@@ -2758,6 +2770,129 @@
         if (b) { b.style.transform = 'translateY(-110%)'; setTimeout(() => b.remove(), 400); }
       }, 9000);
     }
+
+    // ── Обучалка-путеводитель по приложению ──────────────────────────────
+    // Пошаговые слайды для нового пользователя: что где находится и как этим
+    // пользоваться. Показывается один раз новым (флаг в localStorage), плюс
+    // всегда доступна повторно из Личного кабинета (openOnboarding()).
+    const ONBOARDING_VERSION = 'v1';
+    let _onbStep = 0;
+
+    function _onbT(key, fb) {
+      return (window.i18n && i18n.t && i18n.t('onboarding.' + key)) || fb;
+    }
+
+    function _onbSlides() {
+      return [
+        { icon: '✨', title: _onbT('s1_title', 'Добро пожаловать в YupDar'),
+          body: _onbT('s1_body', 'Здесь ты узнаешь свой Дар и научишься жить в его силе. Пройди короткий путеводитель — покажу, где что находится и как этим пользоваться.') },
+        { icon: '🎁', title: _onbT('s2_title', 'Узнай свой Дар'),
+          body: _onbT('s2_body', 'На главном экране «Я» введи свою дату рождения и нажми «Рассчитать мой дар». Ты увидишь свой родной Дар и его описание.') },
+        { icon: '👤', title: _onbT('s3_title', 'Личный кабинет'),
+          body: _onbT('s3_body', 'Золотая круглая кнопка сверху справа — твой личный кабинет. Там твои данные, тариф, кристаллы и реферальная ссылка, чтобы приглашать друзей.') },
+        { icon: '🔮', title: _onbT('s4_title', 'Оракул и Совместимость'),
+          body: _onbT('s4_body', 'На экране «Я» чуть ниже — Оракул: задай вопрос Вселенной и получи ответ через свой Дар. Рядом — Совместимость: сравни Дары двоих.') },
+        { icon: '👪', title: _onbT('s5_title', 'Семья'),
+          body: _onbT('s5_body', 'Во вкладке «Семья» добавь близких и узнай их Дары — так вы поймёте друг друга глубже.') },
+        { icon: '💎', title: _onbT('s6_title', 'Сокровищница'),
+          body: _onbT('s6_body', 'Вкладка «Сокровищница» — здесь Коллекция открытых Даров, Книги, Энциклопедия всех 64 Даров и Игры.') },
+        { icon: '🏛', title: _onbT('s7_title', 'АРКА'),
+          body: _onbT('s7_body', 'Вкладка «АРКА» — личный помощник, который выстраивает твой день в ритме твоего Дара.') },
+        { icon: '🚀', title: _onbT('s8_title', 'Готово!'),
+          body: _onbT('s8_body', 'Пробуй всё — первые 7 дней открыт полный доступ. Этот путеводитель всегда можно открыть заново в Личном кабинете.') }
+      ];
+    }
+
+    function openOnboarding() {
+      closeOnboarding();
+      _onbStep = 0;
+      const ov = document.createElement('div');
+      ov.id = 'onboarding-overlay';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(6,6,6,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Manrope,sans-serif';
+      ov.innerHTML =
+        '<div style="width:100%;max-width:380px;background:linear-gradient(160deg,#141007,#1e1608);border:1px solid rgba(212,175,55,0.4);border-radius:22px;padding:24px 22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.6);position:relative">' +
+          '<button onclick="skipOnboarding()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#8a7f60;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('skip', 'Пропустить') + '</button>' +
+          '<div style="text-align:center;font-size:10px;letter-spacing:1.5px;color:#8a7f60;text-transform:uppercase;margin-bottom:14px">' + _onbT('badge', 'Путеводитель') + '</div>' +
+          '<div id="onb-icon" style="text-align:center;font-size:52px;line-height:1;margin-bottom:16px"></div>' +
+          '<div id="onb-title" style="text-align:center;color:#D4AF37;font-size:19px;font-weight:700;margin-bottom:10px"></div>' +
+          '<div id="onb-body" style="text-align:center;color:#e8ddc4;font-size:14px;line-height:1.6;min-height:96px"></div>' +
+          '<div id="onb-dots" style="display:flex;justify-content:center;gap:6px;margin:16px 0 18px"></div>' +
+          '<div style="display:flex;gap:10px">' +
+            '<button id="onb-back" onclick="onbPrev()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:14px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('back', 'Назад') + '</button>' +
+            '<button id="onb-next" onclick="onbNext()" style="flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#E8C84A,#B8901F);color:#080808;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('next', 'Далее') + '</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(ov);
+      _onbRender();
+    }
+    window.openOnboarding = openOnboarding;
+
+    function _onbRender() {
+      const slides = _onbSlides();
+      const s = slides[_onbStep];
+      if (!s) return;
+      const iconEl = document.getElementById('onb-icon');
+      const titleEl = document.getElementById('onb-title');
+      const bodyEl = document.getElementById('onb-body');
+      const dotsEl = document.getElementById('onb-dots');
+      const backEl = document.getElementById('onb-back');
+      const nextEl = document.getElementById('onb-next');
+      if (iconEl) iconEl.textContent = s.icon;
+      if (titleEl) titleEl.textContent = s.title;
+      if (bodyEl) bodyEl.textContent = s.body;
+      if (dotsEl) {
+        dotsEl.innerHTML = slides.map((_, i) =>
+          '<span style="width:' + (i === _onbStep ? '18px' : '6px') + ';height:6px;border-radius:3px;background:' + (i === _onbStep ? '#D4AF37' : 'rgba(212,175,55,0.3)') + ';transition:all .3s"></span>'
+        ).join('');
+      }
+      if (backEl) backEl.style.visibility = _onbStep === 0 ? 'hidden' : 'visible';
+      if (nextEl) nextEl.textContent = _onbStep === slides.length - 1
+        ? _onbT('start', 'Начать')
+        : _onbT('next', 'Далее');
+    }
+
+    function onbNext() {
+      const slides = _onbSlides();
+      if (_onbStep >= slides.length - 1) { finishOnboarding(); return; }
+      _onbStep++;
+      _onbRender();
+    }
+    window.onbNext = onbNext;
+
+    function onbPrev() {
+      if (_onbStep > 0) { _onbStep--; _onbRender(); }
+    }
+    window.onbPrev = onbPrev;
+
+    function closeOnboarding() {
+      const ov = document.getElementById('onboarding-overlay');
+      if (ov) ov.remove();
+    }
+
+    function _markOnboardingSeen() {
+      try { localStorage.setItem('_onboarding_seen_' + ONBOARDING_VERSION, '1'); } catch(e) {}
+    }
+
+    function finishOnboarding() {
+      _markOnboardingSeen();
+      closeOnboarding();
+    }
+    window.finishOnboarding = finishOnboarding;
+
+    function skipOnboarding() {
+      _markOnboardingSeen();
+      closeOnboarding();
+    }
+    window.skipOnboarding = skipOnboarding;
+
+    // Показать обучалку новому пользователю один раз.
+    function maybeShowOnboarding() {
+      try {
+        if (localStorage.getItem('_onboarding_seen_' + ONBOARDING_VERSION)) return;
+        setTimeout(openOnboarding, 700);
+      } catch(e) {}
+    }
+    window.maybeShowOnboarding = maybeShowOnboarding;
 
     // Логика ввода даты реализована через inline oninput/onkeydown + _dfSync/_syncDateFieldsFromHidden
 
@@ -7274,6 +7409,9 @@
       }
       // Напоминалка профиля для старых пользователей
       if (typeof checkProfileReminder === 'function') checkProfileReminder();
+
+      // Обучалка-путеводитель для новых пользователей (один раз)
+      if (typeof maybeShowOnboarding === 'function') maybeShowOnboarding();
 
       // Прямые ссылки из поста (deep link через ?startapp=...):
       //   https://t.me/YupDarBot?startapp=buybook → сразу открыть выбор оплаты Книги.

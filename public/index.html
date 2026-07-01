@@ -753,22 +753,28 @@
       <div id="relatives-content"></div>
     </div>
 
-    <!-- 5. ДРУЗЬЯ (рефералы + приглашение) -->
+    <!-- 5. РЕФЕРАЛЬНАЯ ПРОГРАММА (реф-ссылка + QR + приглашение) -->
     <div class="profile-section lk-collapse">
-      <div class="profile-section-title lk-toggle" onclick="this.parentElement.classList.toggle('lk-open')">&#128101; <span data-i18n="profile.section_friends">Друзья</span> <span class="lk-arrow">&#9660;</span></div>
+      <div class="profile-section-title lk-toggle" onclick="this.parentElement.classList.toggle('lk-open')">&#128279; <span data-i18n="profile.section_referral">Реферальная программа</span> <span class="lk-arrow">&#9660;</span></div>
       <div class="lk-body">
         <div id="profile-friends-list"><div style="color:var(--text-muted);font-size:12px;text-align:center;padding:6px" data-i18n="profile.invite_friends">Пригласи друзей!</div></div>
         <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px">
           <div style="font-size:11px;color:var(--text-dim);line-height:1.5;margin-bottom:8px" data-i18n="profile.referral_hint">Дар друга откроется в Сокровищнице или получишь кристаллы.</div>
-          <div id="referral-link-preview" style="display:none;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:11px;color:var(--text-dim);word-break:break-all"></div>
-          <div id="referral-qr-wrap" style="display:none;text-align:center;margin-bottom:10px">
+
+          <!-- Реферальная ссылка + кнопка «Скопировать ссылку» -->
+          <div id="referral-link-preview" style="display:none;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:11px;color:var(--text-dim);word-break:break-all"></div>
+          <button onclick="profileCopyLink()" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.10);color:#D4AF37;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:12px">&#128203; <span data-i18n="profile.copy_link">Скопировать ссылку</span></button>
+
+          <!-- QR-код + кнопка «Сохранить QR» -->
+          <div id="referral-qr-wrap" style="display:none;text-align:center;margin-bottom:6px">
             <img id="referral-qr-img" alt="QR" width="160" height="160" style="width:160px;height:160px;border-radius:12px;background:#080808;padding:8px;border:1px solid var(--border)"/>
             <div style="font-size:10px;color:var(--text-muted);margin-top:6px" data-i18n="profile.qr_hint">Наведи камеру, чтобы поделиться</div>
           </div>
-          <div style="display:flex;gap:6px">
-            <button onclick="profileShareLink()" style="flex:1;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">&#9993; <span data-i18n="profile.send_to_friend">Отправить другу</span></button>
-            <button onclick="profileCopyLink()" style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;cursor:pointer" title="Скопировать" data-i18n="common.copy" data-i18n-attr="title">&#128203;</button>
-          </div>
+          <button onclick="profileDownloadQR()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:12px">&#128190; <span data-i18n="profile.save_qr">Сохранить QR-код</span></button>
+
+          <!-- Отправить другу через Telegram -->
+          <button onclick="profileShareLink()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#229ED9,#1a7ab5);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif">&#9993; <span data-i18n="profile.send_to_friend">Отправить другу</span></button>
+
           <div id="referral-stats" style="margin-top:8px;font-size:11px;color:var(--text-muted);text-align:center;display:none"></div>
         </div>
       </div>
@@ -2232,6 +2238,19 @@
             setTimeout(() => { preview.style.color = 'var(--text-dim)'; }, 1500);
           }
         }
+      }
+    }
+
+    // Открыть/сохранить QR-код реферальной ссылки в полном размере
+    function profileDownloadQR() {
+      const myLink = (typeof Referral !== 'undefined' && Referral.getMyLink)
+        ? Referral.getMyLink()
+        : `https://t.me/YupDarBot?startapp=ref_${(tg?.initDataUnsafe?.user?.id || USER_ID || '')}`;
+      const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=800x800&format=png&margin=16&color=D4AF37&bgcolor=080808&data=' + encodeURIComponent(myLink);
+      if (tg && tg.openLink) {
+        tg.openLink(qrUrl);
+      } else {
+        window.open(qrUrl, '_blank');
       }
     }
 

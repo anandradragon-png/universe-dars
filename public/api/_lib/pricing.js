@@ -120,9 +120,12 @@ const TRIAL_LAUNCH_MS = Date.parse('2026-07-01T00:00:00Z');
  * Возвращает { active, ends_at (ISO|null), days_left, ms_left }.
  */
 function getTrialInfo(user) {
-  if (!user || !user.created_at) return { active: false, ends_at: null, days_left: 0, ms_left: 0 };
-  const created = new Date(user.created_at).getTime();
-  if (isNaN(created)) return { active: false, ends_at: null, days_left: 0, ms_left: 0 };
+  if (!user) return { active: false, ends_at: null, days_left: 0, ms_left: 0 };
+  // created_at может быть NULL у старых юзеров (колонка добавлена позже,
+  // DEFAULT NOW() применяется только к новым строкам). В этом случае
+  // отсчитываем пробный период от даты запуска — чтобы доступ открылся ВСЕМ.
+  let created = user.created_at ? new Date(user.created_at).getTime() : NaN;
+  if (isNaN(created)) created = TRIAL_LAUNCH_MS;
   const start = Math.max(created, TRIAL_LAUNCH_MS);
   const end = start + TRIAL_MS;
   const now = Date.now();

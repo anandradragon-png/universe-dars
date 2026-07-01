@@ -115,6 +115,14 @@
     "beta_chat": "Chat beta",
     "language_hint": "El mensaje de IA se generará en el idioma seleccionado."
   },
+  "trial": {
+    "title": "Tienes acceso completo",
+    "body": "Durante 7 días todas las funciones de la app están disponibles — prueba todo. Después, el acceso se mantiene según tu plan.",
+    "left": "Quedan",
+    "day_one": "día",
+    "day_few": "días",
+    "day_many": "días"
+  },
   "daily": {
     "section_title": "ACTIVIDADES DIARIAS",
     "oracle_title": "Oráculo",

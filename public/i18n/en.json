@@ -116,6 +116,14 @@
     "beta_chat": "Beta chat",
     "language_hint": "AI message will be generated in the selected language."
   },
+  "trial": {
+    "title": "Full access is open for you",
+    "body": "For 7 days all features of the app are available — try everything. After that, access stays according to your plan.",
+    "left": "Left",
+    "day_one": "day",
+    "day_few": "days",
+    "day_many": "days"
+  },
   "daily": {
     "section_title": "DAILY ACTIVITIES",
     "oracle_title": "Oracle",

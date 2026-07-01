@@ -39,6 +39,12 @@ async function handleProfile(req, res) {
       // хотя реальный тариф premium (баг 24.06.2026).
       const effectiveTier = pricing.getEffectiveTierWithSimulation(user, req);
 
+      // 7-дневный пробный доступ: показываем баннер только тем, кому пробный
+      // период реально даёт больше, чем их купленный тариф (не Мастер).
+      const trial = pricing.getTrialInfo(user);
+      const realTier = pricing.getRealTier(user);
+      const trialActive = !user.is_admin && trial.active && realTier !== 'premium';
+
       return res.json({
         user: {
           id: user.id,
@@ -48,6 +54,9 @@ async function handleProfile(req, res) {
           dar_name: user.dar_name,
           crystals: user.crystals,
           access_level: effectiveTier,
+          trial_active: trialActive,
+          trial_days_left: trialActive ? trial.days_left : 0,
+          trial_ends_at: trialActive ? trial.ends_at : null,
           streak_count: user.streak_count || 0,
           real_first_name: user.real_first_name || '',
           real_last_name: user.real_last_name || '',

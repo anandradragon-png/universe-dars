@@ -381,9 +381,16 @@ module.exports = async function handler(req, res) {
     if (tgUser && tgUser.id) {
       const dbUser = await getOrCreateUser(tgUser);
       const effectiveTier = pricing.getEffectiveTier(dbUser);
+      const trial = pricing.getTrialInfo(dbUser);
+      const realTier = pricing.getRealTier(dbUser);
+      const trialActive = !dbUser.is_admin && trial.active && realTier !== 'premium';
       userStatus = {
         access_level: dbUser.access_level || 'basic',
         effective_tier: effectiveTier,
+        real_tier: realTier,
+        trial_active: trialActive,
+        trial_days_left: trialActive ? trial.days_left : 0,
+        trial_ends_at: trialActive ? trial.ends_at : null,
         subscription_plan: dbUser.subscription_plan || null,
         subscription_end: dbUser.subscription_end || null,
         book_purchased: !!dbUser.book_purchased,

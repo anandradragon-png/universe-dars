@@ -98,8 +98,62 @@ const LIMITS = {
 };
 
 // =====================================================================
+// 7-ДНЕВНЫЙ ПРОБНЫЙ ДОСТУП (полный функционал для знакомства)
+// =====================================================================
+// Каждый пользователь при первом входе получает 7 дней полного доступа
+// (уровень Мастер), чтобы попробовать всё приложение. По истечении 7 дней
+// доступ откатывается к его реальному тарифу (или basic).
+//
+// Старт пробного окна:
+//   trialStart = max(created_at, TRIAL_LAUNCH)
+// Так новые пользователи получают 7 дней с момента регистрации, а уже
+// существующие (кто был до запуска фичи) — 7 дней с даты запуска.
+// Не требует миграции БД: опирается на created_at, который уже есть.
+
+const TRIAL_DAYS = 7;
+const TRIAL_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+// Дата запуска пробного периода (для уже существующих пользователей).
+const TRIAL_LAUNCH_MS = Date.parse('2026-07-01T00:00:00Z');
+
+/**
+ * Информация о пробном периоде пользователя.
+ * Возвращает { active, ends_at (ISO|null), days_left, ms_left }.
+ */
+function getTrialInfo(user) {
+  if (!user || !user.created_at) return { active: false, ends_at: null, days_left: 0, ms_left: 0 };
+  const created = new Date(user.created_at).getTime();
+  if (isNaN(created)) return { active: false, ends_at: null, days_left: 0, ms_left: 0 };
+  const start = Math.max(created, TRIAL_LAUNCH_MS);
+  const end = start + TRIAL_MS;
+  const now = Date.now();
+  const msLeft = end - now;
+  return {
+    active: msLeft > 0,
+    ends_at: new Date(end).toISOString(),
+    days_left: msLeft > 0 ? Math.ceil(msLeft / (24 * 60 * 60 * 1000)) : 0,
+    ms_left: Math.max(0, msLeft)
+  };
+}
+
+// =====================================================================
 // ВНУТРЕННИЕ HELPERS
 // =====================================================================
+
+/**
+ * РЕАЛЬНЫЙ (купленный) тариф пользователя без учёта пробного периода.
+ * Учитывает access_level и subscription_end (истёкшая → basic).
+ */
+function getRealTier(user) {
+  if (!user) return 'basic';
+  if (user.subscription_end) {
+    const endTime = new Date(user.subscription_end).getTime();
+    if (endTime < Date.now()) {
+      // Подписка истекла — но book_purchased сохраняется. Возвращаем basic.
+      return 'basic';
+    }
+  }
+  return user.access_level || 'basic';
+}
 
 /**
  * Эффективный тариф пользователя СЕЙЧАС.
@@ -107,6 +161,8 @@ const LIMITS = {
  *  - access_level в БД (как сейчас)
  *  - subscription_end (если истекла — откатить до basic)
  *  - book_purchased сохраняется отдельно
+ *  - 7-дневный пробный доступ (полный Мастер) для тех, кто ещё НЕ на
+ *    максимальном тарифе — на время знакомства с приложением.
  *
  * Если новых полей в БД нет (миграция ещё не применена) — возвращает
  * текущий access_level как есть.
@@ -119,17 +175,16 @@ function getEffectiveTier(user) {
   // дата подписки в прошлом блокировала бы все разделы (баг 13.06.2026).
   if (user.is_admin) return user.access_level && user.access_level !== 'basic' ? user.access_level : 'premium';
 
-  // Если есть поле subscription_end и оно в прошлом — подписка истекла
-  if (user.subscription_end) {
-    const endTime = new Date(user.subscription_end).getTime();
-    if (endTime < Date.now()) {
-      // Подписка истекла — но book_purchased сохраняется. Возвращаем basic.
-      return 'basic';
-    }
+  const realTier = getRealTier(user);
+
+  // Пробный период: тем, кто ещё НЕ на максимальном тарифе (Мастер), на 7 дней
+  // открываем полный доступ. Кто уже Мастер — не трогаем. Хранителю и Страннику
+  // на время пробного окна выдаём premium, после — откат к их реальному тарифу.
+  if (realTier !== 'premium' && getTrialInfo(user).active) {
+    return 'premium';
   }
 
-  // Нет subscription_end или она в будущем — используем access_level
-  return user.access_level || 'basic';
+  return realTier;
 }
 
 /**
@@ -525,6 +580,8 @@ module.exports = {
   LIMITS,
   HERO_JOURNEY_CRYSTAL_PRICES,
   getEffectiveTier,
+  getRealTier,
+  getTrialInfo,
   getEffectiveTierWithSimulation,
   getLimits,
   getActiveAddon,

@@ -2623,6 +2623,8 @@
         if (typeof DarAPI === 'undefined') return;
         const data = await DarAPI.getProfile();
         if (!data || !data.user) return;
+        // Пробный период: показать баннер при входе (раз в день).
+        maybeShowTrialBanner(data.user);
         const newLevel = data.user.access_level || 'basic';
         const prevLevel = (window.PROFILE && window.PROFILE.access_level) || 'basic';
         window.PROFILE = window.PROFILE || {};
@@ -2707,6 +2709,55 @@
       } catch(e) { console.warn('showToast failed:', e); }
     }
     window.showToast = showToast;
+
+    // ── Баннер про 7-дневный пробный доступ ──────────────────────────────
+    // Показывается при входе тем, у кого сейчас активен пробный период
+    // (полный доступ ко всему приложению). Раз в день, чтобы не надоедать.
+    function maybeShowTrialBanner(user) {
+      try {
+        if (!user || !user.trial_active) return;
+        const daysLeft = Math.max(1, parseInt(user.trial_days_left || 0, 10));
+        const today = new Date().toISOString().slice(0, 10);
+        const key = '_trial_banner_' + today;
+        if (localStorage.getItem(key)) return; // уже показывали сегодня
+        localStorage.setItem(key, '1');
+        showTrialBanner(daysLeft);
+      } catch(e) { console.warn('trial banner failed:', e); }
+    }
+    window.maybeShowTrialBanner = maybeShowTrialBanner;
+
+    function showTrialBanner(daysLeft) {
+      if (document.getElementById('trial-banner')) return;
+      const dayWord = pluralize(daysLeft,
+        ((window.i18n && i18n.t && i18n.t('trial.day_one'))  || 'день'),
+        ((window.i18n && i18n.t && i18n.t('trial.day_few'))  || 'дня'),
+        ((window.i18n && i18n.t && i18n.t('trial.day_many')) || 'дней'));
+      const title = (window.i18n && i18n.t && i18n.t('trial.title')) || 'Тебе открыт полный доступ';
+      const body  = (window.i18n && i18n.t && i18n.t('trial.body'))
+        || 'На 7 дней доступны все возможности приложения — попробуй всё. Дальше доступ останется по твоему тарифу.';
+      const leftLbl = (window.i18n && i18n.t && i18n.t('trial.left')) || 'Осталось';
+      const wrap = document.createElement('div');
+      wrap.id = 'trial-banner';
+      wrap.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;padding:12px 14px;background:linear-gradient(135deg,#1a1206,#3a2a08);border-bottom:1px solid rgba(212,175,55,0.5);box-shadow:0 6px 20px rgba(0,0,0,0.45);transform:translateY(-110%);transition:transform 0.4s ease;font-family:Manrope,sans-serif';
+      wrap.innerHTML =
+        '<div style="max-width:520px;margin:0 auto;display:flex;align-items:flex-start;gap:12px">' +
+          '<div style="font-size:24px;line-height:1.1">&#127873;</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="color:#D4AF37;font-size:14px;font-weight:700;margin-bottom:3px">' + title + '</div>' +
+            '<div style="color:#e8ddc4;font-size:12px;line-height:1.5">' + body + '</div>' +
+            '<div style="color:#D4AF37;font-size:12px;font-weight:600;margin-top:6px">' + leftLbl + ': ' + daysLeft + ' ' + dayWord + '</div>' +
+          '</div>' +
+          '<button onclick="(function(){var b=document.getElementById(\'trial-banner\');if(b){b.style.transform=\'translateY(-110%)\';setTimeout(function(){b.remove()},400);}})()" ' +
+            'style="background:none;border:none;color:#c9b98a;font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0">&times;</button>' +
+        '</div>';
+      document.body.appendChild(wrap);
+      requestAnimationFrame(() => { wrap.style.transform = 'translateY(0)'; });
+      // Автоскрытие через 9 секунд
+      setTimeout(() => {
+        const b = document.getElementById('trial-banner');
+        if (b) { b.style.transform = 'translateY(-110%)'; setTimeout(() => b.remove(), 400); }
+      }, 9000);
+    }
 
     // Логика ввода даты реализована через inline oninput/onkeydown + _dfSync/_syncDateFieldsFromHidden
 
@@ -3031,6 +3082,7 @@
         const restoreInputUI = () => { if (screenInput) { screenInput.innerHTML = inputBackup; screenInput.style.display='block'; } };
 
         DarAPI.getProfile().then(profileData => {
+          if (profileData?.user) maybeShowTrialBanner(profileData.user);
           if (profileData?.user?.dar_code) {
             const code = profileData.user.dar_code;
             const birthDate = profileData.user.birth_date || '';

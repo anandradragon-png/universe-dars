@@ -2233,6 +2233,17 @@
 
     // Загрузка счётчика приглашённых друзей
     async function loadReferralStats() {
+      // Всегда показываем саму партнёрскую ссылку в ЛК, чтобы человек мог
+      // её найти и скопировать сам (а не только на миг после нажатия «копировать»).
+      const preview = document.getElementById('referral-link-preview');
+      if (preview) {
+        const myLink = (typeof Referral !== 'undefined' && Referral.getMyLink)
+          ? Referral.getMyLink()
+          : `https://t.me/YupDarBot?startapp=ref_${(tg?.initDataUnsafe?.user?.id || USER_ID || '')}`;
+        preview.textContent = myLink;
+        preview.style.display = 'block';
+      }
+
       const stats = document.getElementById('referral-stats');
       if (!stats) return;
       try {

@@ -4251,10 +4251,21 @@
     switchNav = function(name){
       _origSwitchNav(name);
       if(name==='base'){
-        if(checkBaseAccess()) showEncyclopedia();
-        else {
-          document.getElementById('base-screen-lock').style.display='block';
-          document.getElementById('base-screen-main').style.display='none';
+        if(checkBaseAccess()){ showEncyclopedia(); return; }
+        // Показываем замок, НО подстраховываемся: пробный доступ/оплата могли
+        // открыть Базу, а window.PROFILE ещё не подгрузился (гонка при старте).
+        // Тянем свежий профиль с сервера и, если доступ есть, открываем.
+        document.getElementById('base-screen-lock').style.display='block';
+        document.getElementById('base-screen-main').style.display='none';
+        if(typeof DarAPI !== 'undefined'){
+          DarAPI.getProfile().then(data=>{
+            if(data && data.user && data.user.access_level){
+              window.PROFILE = window.PROFILE || {};
+              window.PROFILE.access_level = data.user.access_level;
+              try{ localStorage.setItem('_access_level', data.user.access_level); }catch(e){}
+              if(checkBaseAccess()) showEncyclopedia();
+            }
+          }).catch(()=>{});
         }
       }
     };

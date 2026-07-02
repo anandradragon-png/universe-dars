@@ -30,7 +30,13 @@ async function handleProfile(req, res) {
 
     if (req.method === 'GET') {
       // Получить или создать профиль
-      const user = await getOrCreateUser(tgUser);
+      let user = await getOrCreateUser(tgUser);
+      // Пробный доступ = реальная подписка в БД:
+      //  1) снять истёкший триал (вернуть к basic),
+      //  2) выдать 7-дневный Мастер тем, кому он ещё ни разу не выдавался.
+      // Покрывает и новых, и существующих — при первом же входе.
+      user = await pricing.cleanupExpiredTrial(user);
+      user = await pricing.ensureTrialAccess(user);
       const dars = await getUserDars(user.id);
 
       // Эффективный тариф (как в Семье): учитывает admin-доступ и
@@ -39,11 +45,10 @@ async function handleProfile(req, res) {
       // хотя реальный тариф premium (баг 24.06.2026).
       const effectiveTier = pricing.getEffectiveTierWithSimulation(user, req);
 
-      // 7-дневный пробный доступ: показываем баннер только тем, кому пробный
-      // период реально даёт больше, чем их купленный тариф (не Мастер).
+      // 7-дневный пробный доступ: баннер показываем, пока активна реальная
+      // триал-подписка (план 'trial_7d' и срок не истёк).
       const trial = pricing.getTrialInfo(user);
-      const realTier = pricing.getRealTier(user);
-      const trialActive = !user.is_admin && trial.active && realTier !== 'premium';
+      const trialActive = !user.is_admin && trial.active;
 
       return res.json({
         user: {

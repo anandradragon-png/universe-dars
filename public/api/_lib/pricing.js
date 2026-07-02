@@ -98,44 +98,127 @@ const LIMITS = {
 };
 
 // =====================================================================
-// 7-ДНЕВНЫЙ ПРОБНЫЙ ДОСТУП (полный функционал для знакомства)
+// 7-ДНЕВНЫЙ ПРОБНЫЙ ДОСТУП (РЕАЛЬНАЯ запись подписки в БД)
 // =====================================================================
-// Каждый пользователь при первом входе получает 7 дней полного доступа
-// (уровень Мастер), чтобы попробовать всё приложение. По истечении 7 дней
-// доступ откатывается к его реальному тарифу (или basic).
-//
-// Старт пробного окна:
-//   trialStart = max(created_at, TRIAL_LAUNCH)
-// Так новые пользователи получают 7 дней с момента регистрации, а уже
-// существующие (кто был до запуска фичи) — 7 дней с даты запуска.
-// Не требует миграции БД: опирается на created_at, который уже есть.
+// Триал — это НАСТОЯЩАЯ подписка в базе, а не вычисление «на лету».
+// Выдаётся РОВНО ОДИН РАЗ каждому юзеру через ensureTrialAccess() при входе:
+//   - у кого НЕТ активной платной подписки → access_level='premium',
+//     subscription_plan='trial_7d', subscription_end = сейчас + 7 дней.
+//     (в базе честно видно: тариф Мастер + дата окончания)
+//   - у кого ЕСТЬ активная платная подписка → её срок продлевается на 7 дней
+//     как БОНУС; тариф и план не трогаем, оплаченные дни не сгорают.
+// Факт выдачи фиксируется в subscription_log (event_type 'trial'/'trial_bonus')
+// — это защита от повторной выдачи даже после того, как триал истёк и снят.
+// Деактивация — по subscription_end как у обычной подписки (см. getRealTier),
+// плюс ленивая очистка cleanupExpiredTrial() при входе (сносит уровень до basic).
 
 const TRIAL_DAYS = 7;
 const TRIAL_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000;
-// Дата запуска пробного периода (для уже существующих пользователей).
-const TRIAL_LAUNCH_MS = Date.parse('2026-07-02T00:00:00Z');
 
 /**
- * Информация о пробном периоде пользователя.
- * Возвращает { active, ends_at (ISO|null), days_left, ms_left }.
+ * Информация о пробном периоде пользователя (для баннера).
+ * Активен ТОЛЬКО если в базе реально стоит план 'trial_7d' и он не истёк.
  */
 function getTrialInfo(user) {
-  if (!user) return { active: false, ends_at: null, days_left: 0, ms_left: 0 };
-  // created_at может быть NULL у старых юзеров (колонка добавлена позже,
-  // DEFAULT NOW() применяется только к новым строкам). В этом случае
-  // отсчитываем пробный период от даты запуска — чтобы доступ открылся ВСЕМ.
-  let created = user.created_at ? new Date(user.created_at).getTime() : NaN;
-  if (isNaN(created)) created = TRIAL_LAUNCH_MS;
-  const start = Math.max(created, TRIAL_LAUNCH_MS);
-  const end = start + TRIAL_MS;
-  const now = Date.now();
-  const msLeft = end - now;
+  const off = { active: false, ends_at: null, days_left: 0, ms_left: 0 };
+  if (!user || user.subscription_plan !== 'trial_7d' || !user.subscription_end) return off;
+  const end = new Date(user.subscription_end).getTime();
+  if (isNaN(end)) return off;
+  const msLeft = end - Date.now();
   return {
     active: msLeft > 0,
     ends_at: new Date(end).toISOString(),
     days_left: msLeft > 0 ? Math.ceil(msLeft / (24 * 60 * 60 * 1000)) : 0,
     ms_left: Math.max(0, msLeft)
   };
+}
+
+/**
+ * Выдать 7-дневный пробный Мастер, если он ЕЩЁ НИ РАЗУ не выдавался.
+ * Вызывается при входе (/api/user) — покрывает и новых, и существующих.
+ * Возвращает обновлённый объект user (поля синхронизированы с БД).
+ */
+async function ensureTrialAccess(user) {
+  if (!user || !user.id) return user;
+  if (user.is_admin || user.is_blocked) return user; // им триал не нужен
+  const db = getSupabase();
+
+  // Гард: выдаём ровно один раз за всё время — смотрим журнал подписок.
+  try {
+    const { data: prior } = await db
+      .from('subscription_log')
+      .select('id')
+      .eq('user_id', user.id)
+      .in('event_type', ['trial', 'trial_bonus'])
+      .limit(1);
+    if (prior && prior.length) return user; // уже выдавали — больше никогда
+  } catch (e) {
+    console.warn('[trial] guard check failed:', e.message);
+    return user; // при ошибке не рискуем повторной выдачей
+  }
+
+  const now = Date.now();
+  const nowISO = new Date(now).toISOString();
+  const paidEnd = user.subscription_end ? new Date(user.subscription_end).getTime() : 0;
+  const hasActivePaid = paidEnd > now
+    && user.subscription_plan && user.subscription_plan !== 'trial_7d'
+    && user.access_level && user.access_level !== 'basic';
+
+  try {
+    if (hasActivePaid) {
+      // БОНУС: продлеваем срок платной подписки на 7 дней. Тариф не меняем.
+      const bonusEndISO = new Date(paidEnd + TRIAL_MS).toISOString();
+      await db.from('users').update({ subscription_end: bonusEndISO }).eq('id', user.id);
+      await db.from('subscription_log').insert({
+        user_id: user.id, event_type: 'trial_bonus', plan: user.subscription_plan,
+        provider: 'system', amount_paid: 0, currency: 'FREE', period_days: TRIAL_DAYS
+      });
+      user.subscription_end = bonusEndISO;
+    } else {
+      // Свежий триал Мастера — реальная строка подписки в БД.
+      const endISO = new Date(now + TRIAL_MS).toISOString();
+      await db.from('users').update({
+        access_level: 'premium',
+        subscription_plan: 'trial_7d',
+        subscription_start: nowISO,
+        subscription_end: endISO
+      }).eq('id', user.id);
+      await db.from('subscription_log').insert({
+        user_id: user.id, event_type: 'trial', plan: 'trial_7d',
+        provider: 'system', amount_paid: 0, currency: 'FREE', period_days: TRIAL_DAYS
+      });
+      user.access_level = 'premium';
+      user.subscription_plan = 'trial_7d';
+      user.subscription_start = nowISO;
+      user.subscription_end = endISO;
+    }
+  } catch (e) {
+    console.warn('[trial] grant failed:', e.message);
+  }
+  return user;
+}
+
+/**
+ * Ленивая очистка истёкшего триала при входе.
+ * Если стоит план 'trial_7d' и срок прошёл — возвращаем уровень к basic и чистим
+ * план (в базе честно видно, что доступ снят). Платные подписки НЕ трогаем.
+ * Возвращает обновлённый объект user.
+ */
+async function cleanupExpiredTrial(user) {
+  if (!user || user.subscription_plan !== 'trial_7d' || !user.subscription_end) return user;
+  if (new Date(user.subscription_end).getTime() >= Date.now()) return user; // ещё активен
+  try {
+    const db = getSupabase();
+    await db.from('users').update({ access_level: 'basic', subscription_plan: null }).eq('id', user.id);
+    db.from('subscription_log').insert({
+      user_id: user.id, event_type: 'expire', plan: 'trial_7d', provider: 'system', period_days: 0
+    }).then(() => {}).catch(() => {});
+    user.access_level = 'basic';
+    user.subscription_plan = null;
+  } catch (e) {
+    console.warn('[trial] cleanup failed:', e.message);
+  }
+  return user;
 }
 
 // =====================================================================
@@ -453,9 +536,10 @@ function canReadFullBook(user) {
   if (!user) return false;
   if (user.book_purchased === true) return true;
   if (user.is_admin) return true;
-  // Книга НЕ входит в 7-дневный пробный доступ — остаётся демо-версией
-  // (бесплатно до N глав, дальше оплата). Поэтому проверяем по РЕАЛЬНОМУ
-  // купленному тарифу, а не по эффективному (пробному).
+  // Книга НЕ входит в 7-дневный пробный доступ. У триальщика реальный тариф
+  // записан как premium, поэтому явно исключаем план 'trial_7d' — иначе книга
+  // ошибочно откроется. Всё остальное в триале открыто, только не книга.
+  if (user.subscription_plan === 'trial_7d') return false;
   const realTier = getRealTier(user);
   return !!(LIMITS[realTier] && LIMITS[realTier].book_full_access);
 }
@@ -590,6 +674,8 @@ module.exports = {
   getEffectiveTier,
   getRealTier,
   getTrialInfo,
+  ensureTrialAccess,
+  cleanupExpiredTrial,
   getEffectiveTierWithSimulation,
   getLimits,
   getActiveAddon,

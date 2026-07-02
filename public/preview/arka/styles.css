@@ -154,7 +154,7 @@ body::after {
   position: relative; overflow: hidden;
 }
 .power-window::before {
-  content: '🐉'; position: absolute; right: -8px; bottom: -12px;
+  content: ''; position: absolute; right: -8px; bottom: -12px;
   font-size: 80px; opacity: 0.08;
 }
 .pw-icon { font-size: 28px; color: var(--gold); flex-shrink: 0; }
@@ -531,7 +531,7 @@ body::after {
   position: relative; overflow: hidden;
 }
 .dar-hero::before {
-  content: '🐉'; position: absolute; right: -10px; top: -10px;
+  content: ''; position: absolute; right: -10px; top: -10px;
   font-size: 100px; opacity: 0.1;
 }
 .dar-hero-code {
@@ -695,7 +695,7 @@ body::after {
   color: white; position: relative; overflow: hidden;
 }
 .mentor-brief::before {
-  content: '🐉'; position: absolute; right: -10px; top: -15px;
+  content: ''; position: absolute; right: -10px; top: -15px;
   font-size: 110px; opacity: 0.1;
 }
 .mentor-badge {

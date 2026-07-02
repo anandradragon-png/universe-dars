@@ -113,7 +113,7 @@ const LIMITS = {
 const TRIAL_DAYS = 7;
 const TRIAL_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000;
 // Дата запуска пробного периода (для уже существующих пользователей).
-const TRIAL_LAUNCH_MS = Date.parse('2026-07-01T00:00:00Z');
+const TRIAL_LAUNCH_MS = Date.parse('2026-07-02T00:00:00Z');
 
 /**
  * Информация о пробном периоде пользователя.

@@ -2824,7 +2824,7 @@
           body: _onbT('s1_body', 'Здесь ты узнаешь свой Дар и научишься жить в его силе. Пройди короткий путеводитель — покажу прямо на экране, где что находится и как этим пользоваться.') },
         { icon: '🎁', title: _onbT('s2_title', 'Узнай свой Дар'),
           body: _onbT('s2_body', 'На главном экране «Я» введи свою дату рождения и нажми «Рассчитать мой дар». Ты увидишь свой родной Дар и его описание.'),
-          nav: 'me', target: '#dateMasked' },
+          nav: 'me', target: '#nav-me' },
         { icon: '👤', title: _onbT('s3_title', 'Личный кабинет'),
           body: _onbT('s3_body', 'Золотая круглая кнопка сверху справа — твой личный кабинет. Там твои данные, тариф, кристаллы и реферальная ссылка, чтобы приглашать друзей.'),
           target: '#btn-profile' },
@@ -2918,16 +2918,30 @@
     function _onbPlace(target) {
       const spot = document.getElementById('onb-spotlight');
       const card = document.getElementById('onb-card');
+      const backdrop = document.getElementById('onboarding-overlay');
       if (!spot || !card) return;
       const vw = window.innerWidth, vh = window.innerHeight;
       if (!_onbVisible(target)) {
         // Нет цели — прячем спотлайт, карточку по центру, клювик убираем.
+        // Подложка снова тёмная (спотлайт не затемняет — его нет).
         spot.style.display = 'none';
+        if (backdrop) {
+          backdrop.style.background = 'rgba(6,6,6,0.86)';
+          backdrop.style.backdropFilter = 'blur(2px)';
+          backdrop.style.webkitBackdropFilter = 'blur(2px)';
+        }
         card.classList.remove('beak-up', 'beak-down');
         card.style.top = '50%';
         card.style.bottom = 'auto';
         card.style.transform = 'translate(-50%,-50%)';
         return;
+      }
+      // Есть цель — подложку делаем прозрачной, затемнение даёт тень спотлайта
+      // (box-shadow 9999px), а сам подсвеченный элемент виден в «окошке».
+      if (backdrop) {
+        backdrop.style.background = 'transparent';
+        backdrop.style.backdropFilter = 'none';
+        backdrop.style.webkitBackdropFilter = 'none';
       }
       const r = target.getBoundingClientRect();
       const pad = 8;
@@ -3035,6 +3049,8 @@
     function finishOnboarding() {
       _markOnboardingSeen();
       closeOnboarding();
+      // После прохождения открываем главный экран «Я» — там человек рассчитает свой Дар.
+      try { if (typeof switchNav === 'function') switchNav('me'); } catch (e) {}
     }
     window.finishOnboarding = finishOnboarding;
 

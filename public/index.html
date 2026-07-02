@@ -983,7 +983,7 @@
         <!-- Оракул дня — крупная карточка во всю ширину.
              Совместимость переехала во вкладку «Семья» (этап 8 слияния).
              Дневник и Наука переехали в me-result-extra ниже (этап 7). -->
-        <div onclick="DailyDar.open()" style="padding:18px 12px;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(156,39,176,0.08));border:1px solid rgba(212,175,55,0.4);border-radius:16px;text-align:center;cursor:pointer;box-shadow:0 2px 12px rgba(212,175,55,0.08);margin-bottom:14px">
+        <div id="oracle-card" onclick="DailyDar.open()" style="padding:18px 12px;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(156,39,176,0.08));border:1px solid rgba(212,175,55,0.4);border-radius:16px;text-align:center;cursor:pointer;box-shadow:0 2px 12px rgba(212,175,55,0.08);margin-bottom:14px">
           <div style="font-size:30px;margin-bottom:4px">🔮</div>
           <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:1px;margin-bottom:2px" data-i18n="daily.oracle_title">Оракул</div>
           <div style="font-size:10px;color:var(--text-dim);line-height:1.3" data-i18n="daily.oracle_sub">Послание дня</div>
@@ -1569,7 +1569,7 @@
 
   <!-- Модалка подтверждения сохранения личных данных (тёплый тон, золото).
        Открывается из psuSave() ПЕРЕД отправкой на сервер. -->
-  <div id="psu-confirm-overlay" style="display:none;position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
+  <div id="psu-confirm-overlay" style="display:none;position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
     <div style="max-width:380px;width:100%;background:linear-gradient(160deg,#181818 0%,#0d0d0d 100%);border:1px solid rgba(212,175,55,0.4);border-radius:18px;padding:24px 22px;box-shadow:0 8px 40px rgba(212,175,55,0.15)">
       <div style="text-align:center;font-size:42px;margin-bottom:12px">🗝</div>
       <div style="text-align:center;font-size:18px;color:#D4AF37;font-weight:700;letter-spacing:0.3px;margin-bottom:10px" data-i18n="psu.confirm_title">Проверь данные перед сохранением</div>
@@ -2817,49 +2817,132 @@
     }
 
     function _onbSlides() {
+      // nav    — на какой экран переключиться перед показом слайда (switchNav)
+      // target — CSS-селектор реального элемента, который подсветить «зумом»
       return [
         { icon: '✨', title: _onbT('s1_title', 'Добро пожаловать в YupDar'),
-          body: _onbT('s1_body', 'Здесь ты узнаешь свой Дар и научишься жить в его силе. Пройди короткий путеводитель — покажу, где что находится и как этим пользоваться.') },
+          body: _onbT('s1_body', 'Здесь ты узнаешь свой Дар и научишься жить в его силе. Пройди короткий путеводитель — покажу прямо на экране, где что находится и как этим пользоваться.') },
         { icon: '🎁', title: _onbT('s2_title', 'Узнай свой Дар'),
-          body: _onbT('s2_body', 'На главном экране «Я» введи свою дату рождения и нажми «Рассчитать мой дар». Ты увидишь свой родной Дар и его описание.') },
+          body: _onbT('s2_body', 'На главном экране «Я» введи свою дату рождения и нажми «Рассчитать мой дар». Ты увидишь свой родной Дар и его описание.'),
+          nav: 'me', target: '#dateMasked' },
         { icon: '👤', title: _onbT('s3_title', 'Личный кабинет'),
-          body: _onbT('s3_body', 'Золотая круглая кнопка сверху справа — твой личный кабинет. Там твои данные, тариф, кристаллы и реферальная ссылка, чтобы приглашать друзей.') },
-        { icon: '🔮', title: _onbT('s4_title', 'Оракул и Совместимость'),
-          body: _onbT('s4_body', 'На экране «Я» чуть ниже — Оракул: задай вопрос Вселенной и получи ответ через свой Дар. Рядом — Совместимость: сравни Дары двоих.') },
-        { icon: '👪', title: _onbT('s5_title', 'Семья'),
-          body: _onbT('s5_body', 'Во вкладке «Семья» добавь близких и узнай их Дары — так вы поймёте друг друга глубже.') },
+          body: _onbT('s3_body', 'Золотая круглая кнопка сверху справа — твой личный кабинет. Там твои данные, тариф, кристаллы и реферальная ссылка, чтобы приглашать друзей.'),
+          target: '#btn-profile' },
+        { icon: '🔮', title: _onbT('s4_title', 'Оракул'),
+          body: _onbT('s4_body', 'На экране «Я», ниже твоего Дара — Оракул. Задай вопрос Вселенной и получи ответ через свой Дар.'),
+          nav: 'me', target: '#oracle-card' },
+        { icon: '👪', title: _onbT('s5_title', 'Семья и дети'),
+          body: _onbT('s5_body', 'Во вкладке «Семья» добавь близких и узнай их Дары. Про ребёнка откроется детальный разбор — какой он и как с ним общаться, растить его силу (как в Книге Даров для родителей). А ещё здесь Совместимость: сравни Дары двоих и увидь, как вы дополняете друг друга.'),
+          nav: 'family', target: '#nav-family' },
         { icon: '💎', title: _onbT('s6_title', 'Сокровищница'),
-          body: _onbT('s6_body', 'Вкладка «Сокровищница» — здесь Коллекция открытых Даров, Книги, Энциклопедия всех 64 Даров и Игры.') },
+          body: _onbT('s6_body', 'Вкладка «Сокровищница» — здесь Коллекция открытых Даров, Книги, Энциклопедия всех 64 Даров и Игры.'),
+          nav: 'treasury', target: '#nav-treasury' },
         { icon: '🏛', title: _onbT('s7_title', 'АРКА'),
-          body: _onbT('s7_body', 'Вкладка «АРКА» — личный помощник, который выстраивает твой день в ритме твоего Дара.') },
+          body: _onbT('s7_body', 'Вкладка «АРКА» — личный помощник, который выстраивает твой день в ритме твоего Дара.'),
+          target: '#nav-arka' },
         { icon: '🚀', title: _onbT('s8_title', 'Готово!'),
           body: _onbT('s8_body', 'Пробуй всё — первые 7 дней открыт полный доступ. Этот путеводитель всегда можно открыть заново в Личном кабинете.') }
       ];
     }
 
+    // Стили спотлайта путеводителя (пульс/зум подсветки) — инжектим один раз.
+    function _onbInjectStyles() {
+      if (document.getElementById('onb-styles')) return;
+      const st = document.createElement('style');
+      st.id = 'onb-styles';
+      st.textContent =
+        '@keyframes onbPulse{0%,100%{box-shadow:0 0 0 3px rgba(212,175,55,.9),0 0 0 9999px rgba(6,6,6,.86),0 0 26px 6px rgba(212,175,55,.45)}50%{box-shadow:0 0 0 5px rgba(212,175,55,1),0 0 0 9999px rgba(6,6,6,.86),0 0 40px 12px rgba(212,175,55,.7)}}' +
+        '@keyframes onbCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}' +
+        '#onb-spotlight{position:fixed;border-radius:16px;pointer-events:none;z-index:100001;transition:top .45s cubic-bezier(.4,0,.2,1),left .45s cubic-bezier(.4,0,.2,1),width .45s cubic-bezier(.4,0,.2,1),height .45s cubic-bezier(.4,0,.2,1);animation:onbPulse 1.8s ease-in-out infinite}' +
+        '#onb-card{animation:onbCardIn .35s ease both}';
+      document.head.appendChild(st);
+    }
+
     function openOnboarding() {
       closeOnboarding();
+      _onbInjectStyles();
       _onbStep = 0;
-      const ov = document.createElement('div');
-      ov.id = 'onboarding-overlay';
-      ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(6,6,6,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Manrope,sans-serif';
-      ov.innerHTML =
-        '<div style="width:100%;max-width:380px;background:linear-gradient(160deg,#141007,#1e1608);border:1px solid rgba(212,175,55,0.4);border-radius:22px;padding:24px 22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.6);position:relative">' +
-          '<button onclick="skipOnboarding()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#8a7f60;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('skip', 'Пропустить') + '</button>' +
-          '<div style="text-align:center;font-size:10px;letter-spacing:1.5px;color:#8a7f60;text-transform:uppercase;margin-bottom:14px">' + _onbT('badge', 'Путеводитель') + '</div>' +
-          '<div id="onb-icon" style="text-align:center;font-size:52px;line-height:1;margin-bottom:16px"></div>' +
-          '<div id="onb-title" style="text-align:center;color:#D4AF37;font-size:19px;font-weight:700;margin-bottom:10px"></div>' +
-          '<div id="onb-body" style="text-align:center;color:#e8ddc4;font-size:14px;line-height:1.6;min-height:96px"></div>' +
-          '<div id="onb-dots" style="display:flex;justify-content:center;gap:6px;margin:16px 0 18px"></div>' +
-          '<div style="display:flex;gap:10px">' +
-            '<button id="onb-back" onclick="onbPrev()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:14px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('back', 'Назад') + '</button>' +
-            '<button id="onb-next" onclick="onbNext()" style="flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#E8C84A,#B8901F);color:#080808;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('next', 'Далее') + '</button>' +
-          '</div>' +
+      // Полупрозрачная подложка-ловушка кликов (без спотлайта видна как затемнение).
+      const backdrop = document.createElement('div');
+      backdrop.id = 'onboarding-overlay';
+      backdrop.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(6,6,6,0.86);backdrop-filter:blur(2px);font-family:Manrope,sans-serif';
+      // Спотлайт (дырка-подсветка над реальным элементом).
+      const spot = document.createElement('div');
+      spot.id = 'onb-spotlight';
+      spot.style.display = 'none';
+      // Карточка с текстом (плавает рядом с подсвеченным элементом).
+      const card = document.createElement('div');
+      card.id = 'onb-card';
+      card.style.cssText = 'position:fixed;z-index:100002;width:calc(100% - 40px);max-width:360px;left:50%;top:50%;transform:translate(-50%,-50%);background:linear-gradient(160deg,#141007,#1e1608);border:1px solid rgba(212,175,55,0.4);border-radius:22px;padding:22px 20px 18px;box-shadow:0 20px 60px rgba(0,0,0,0.6);font-family:Manrope,sans-serif';
+      card.innerHTML =
+        '<button onclick="skipOnboarding()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#8a7f60;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('skip', 'Пропустить') + '</button>' +
+        '<div style="font-size:10px;letter-spacing:1.5px;color:#8a7f60;text-transform:uppercase;margin-bottom:10px">' + _onbT('badge', 'Путеводитель') + '</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+          '<div id="onb-icon" style="font-size:32px;line-height:1"></div>' +
+          '<div id="onb-title" style="color:#D4AF37;font-size:18px;font-weight:700"></div>' +
+        '</div>' +
+        '<div id="onb-body" style="color:#e8ddc4;font-size:14px;line-height:1.6"></div>' +
+        '<div id="onb-dots" style="display:flex;gap:6px;margin:14px 0 14px"></div>' +
+        '<div style="display:flex;gap:10px">' +
+          '<button id="onb-back" onclick="onbPrev()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:14px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('back', 'Назад') + '</button>' +
+          '<button id="onb-next" onclick="onbNext()" style="flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#E8C84A,#B8901F);color:#080808;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('next', 'Далее') + '</button>' +
         '</div>';
-      document.body.appendChild(ov);
+      document.body.appendChild(backdrop);
+      document.body.appendChild(spot);
+      document.body.appendChild(card);
       _onbRender();
     }
     window.openOnboarding = openOnboarding;
+
+    // Виден ли элемент на экране (для спотлайта). Скрытый → показываем текст по центру.
+    // ВАЖНО: не используем offsetParent — у position:fixed элементов (кнопка ЛК,
+    // нижняя навигация) offsetParent всегда null, хотя они на экране.
+    function _onbVisible(el) {
+      if (!el) return false;
+      const s = getComputedStyle(el);
+      if (s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) === 0) return false;
+      const r = el.getBoundingClientRect();
+      return r.width > 4 && r.height > 4;
+    }
+
+    // Разместить спотлайт над элементом и карточку рядом (сверху или снизу).
+    function _onbPlace(target) {
+      const spot = document.getElementById('onb-spotlight');
+      const card = document.getElementById('onb-card');
+      if (!spot || !card) return;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      if (!_onbVisible(target)) {
+        // Нет цели — прячем спотлайт, карточку по центру.
+        spot.style.display = 'none';
+        card.style.top = '50%';
+        card.style.bottom = 'auto';
+        card.style.transform = 'translate(-50%,-50%)';
+        return;
+      }
+      const r = target.getBoundingClientRect();
+      const pad = 8;
+      spot.style.display = 'block';
+      spot.style.top = Math.max(4, r.top - pad) + 'px';
+      spot.style.left = Math.max(4, r.left - pad) + 'px';
+      spot.style.width = Math.min(vw - 8, r.width + pad * 2) + 'px';
+      spot.style.height = (r.height + pad * 2) + 'px';
+      // Карточку ставим со свободной стороны от подсвеченного элемента.
+      const targetCenterY = r.top + r.height / 2;
+      card.style.transform = 'none';
+      card.style.left = '50%';
+      card.style.marginLeft = '0';
+      // центрируем по горизонтали через left+translateX
+      card.style.transform = 'translateX(-50%)';
+      if (targetCenterY < vh * 0.5) {
+        // цель в верхней половине → карточка снизу от неё
+        card.style.top = Math.min(vh - 20, r.bottom + 16) + 'px';
+        card.style.bottom = 'auto';
+      } else {
+        // цель в нижней половине → карточка сверху от неё
+        card.style.bottom = (vh - r.top + 16) + 'px';
+        card.style.top = 'auto';
+      }
+    }
 
     function _onbRender() {
       const slides = _onbSlides();
@@ -2883,6 +2966,23 @@
       if (nextEl) nextEl.textContent = _onbStep === slides.length - 1
         ? _onbT('start', 'Начать')
         : _onbT('next', 'Далее');
+
+      // Интерактив: открыть нужный экран, подвести спотлайт к реальному элементу.
+      const doPlace = () => {
+        const target = s.target ? document.querySelector(s.target) : null;
+        if (target && _onbVisible(target)) {
+          try { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+          setTimeout(() => _onbPlace(target), 380);
+        } else {
+          _onbPlace(null);
+        }
+      };
+      if (s.nav && typeof switchNav === 'function') {
+        try { switchNav(s.nav); } catch (e) {}
+        setTimeout(doPlace, 260); // ждём отрисовку экрана
+      } else {
+        doPlace();
+      }
     }
 
     function onbNext() {
@@ -2899,8 +2999,10 @@
     window.onbPrev = onbPrev;
 
     function closeOnboarding() {
-      const ov = document.getElementById('onboarding-overlay');
-      if (ov) ov.remove();
+      ['onboarding-overlay', 'onb-spotlight', 'onb-card'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      });
     }
 
     function _markOnboardingSeen() {

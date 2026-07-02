@@ -5821,11 +5821,16 @@
       document.getElementById('psu-birth-time').value = p.birth_time || '';
       document.getElementById('psu-birth-place').value = p.birth_place || '';
       _psuGender = p.gender || '';
-      _psuCityLat = p.birth_lat || null;
-      _psuCityLon = p.birth_lon || null;
+      // birth_lat/lon могут прийти строкой из БД → приводим к числу и проверяем Number.isFinite.
+      const _rLat = parseFloat(p.birth_lat);
+      const _rLon = parseFloat(p.birth_lon);
+      _psuCityLat = Number.isFinite(_rLat) ? _rLat : null;
+      _psuCityLon = Number.isFinite(_rLon) ? _rLon : null;
+      // Текст восстановленного города считаем «выбранным» — координаты к нему уже привязаны.
+      _psuSelectedCityText = (p.birth_place || '').trim();
       const coordsBox = document.getElementById('psu-city-coords');
       if (coordsBox) {
-        if (_psuCityLat && _psuCityLon) {
+        if (Number.isFinite(_psuCityLat) && Number.isFinite(_psuCityLon)) {
           coordsBox.textContent = `${_psuCityLat.toFixed(4)}°, ${_psuCityLon.toFixed(4)}°`;
         } else {
           coordsBox.textContent = '';
@@ -5868,18 +5873,35 @@
     let _psuCityTimer = null;
     let _psuCityLat = null;
     let _psuCityLon = null;
+    // Текст города, соответствующий выбранным координатам. Нужен чтобы отличить
+    // настоящее ручное редактирование от программного/повторного input-события
+    // (Android/Telegram WebView повторно триггерит input после .value=... и
+    // сбрасывал только что подтверждённые координаты → баг «выбери город»).
+    let _psuSelectedCityText = '';
 
     function psuSearchCity(query) {
-      _psuCityLat = null;
-      _psuCityLon = null;
-      document.getElementById('psu-city-coords').textContent = '';
+      const q = (query || '').trim();
+      // Сбрасываем координаты ТОЛЬКО если текст реально изменился относительно
+      // выбранного города. Программный/повторный input с тем же текстом координаты сохраняет.
+      if (q !== _psuSelectedCityText) {
+        _psuCityLat = null;
+        _psuCityLon = null;
+        _psuSelectedCityText = '';
+        document.getElementById('psu-city-coords').textContent = '';
+      }
       const suggest = document.getElementById('psu-city-suggest');
-      if (!query || query.trim().length < 2) {
+      if (!q || q.length < 2) {
+        suggest.style.display = 'none';
+        return;
+      }
+      // Если текст совпадает с уже выбранным городом (координаты валидны) —
+      // не открываем подсказки заново, ничего искать не нужно.
+      if (q === _psuSelectedCityText && Number.isFinite(_psuCityLat) && Number.isFinite(_psuCityLon)) {
         suggest.style.display = 'none';
         return;
       }
       clearTimeout(_psuCityTimer);
-      _psuCityTimer = setTimeout(() => fetchCitySuggestions(query.trim()), 400);
+      _psuCityTimer = setTimeout(() => fetchCitySuggestions(q), 400);
     }
 
     async function fetchCitySuggestions(query) {
@@ -5936,9 +5958,13 @@
       const lat = parseFloat(el.dataset.lat);
       const lon = parseFloat(el.dataset.lon);
       document.getElementById('psu-birth-place').value = short;
-      _psuCityLat = isFinite(lat) ? lat : null;
-      _psuCityLon = isFinite(lon) ? lon : null;
-      document.getElementById('psu-city-coords').textContent = `${lat.toFixed(4)}°, ${lon.toFixed(4)}° — ${full}`;
+      // Запоминаем выбранный текст, чтобы повторный/программный input не сбросил координаты.
+      _psuSelectedCityText = (short || '').trim();
+      _psuCityLat = Number.isFinite(lat) ? lat : null;
+      _psuCityLon = Number.isFinite(lon) ? lon : null;
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        document.getElementById('psu-city-coords').textContent = `${lat.toFixed(4)}°, ${lon.toFixed(4)}° — ${full}`;
+      }
       document.getElementById('psu-city-suggest').style.display = 'none';
     }
 
@@ -5984,10 +6010,31 @@
       const [h, m] = birthTime.split(':').map(Number);
       if (h > 23 || m > 59) { status.textContent = _t('psu.err_time_range', 'Проверь время: часы 00-23, минуты 00-59'); return; }
       if (!birthPlace) { status.textContent = _t('psu.err_place', 'Укажи место рождения'); return; }
-      if (_psuCityLat === null || _psuCityLon === null) {
+      // Источник истины — реальные координаты, а не хрупкий флаг. Принимаем, если
+      // они валидны в переменных, либо восстанавливаются из сохранённого профиля
+      // при непустом тексте города (защита от мусора: без валидных координат — ошибка).
+      let _lat = parseFloat(_psuCityLat);
+      let _lon = parseFloat(_psuCityLon);
+      if (!(Number.isFinite(_lat) && Number.isFinite(_lon))) {
+        try {
+          const sp = (typeof getLocalProfile === 'function') ? getLocalProfile() : null;
+          if (sp) {
+            const pLat = parseFloat(sp.birth_lat);
+            const pLon = parseFloat(sp.birth_lon);
+            if (Number.isFinite(pLat) && Number.isFinite(pLon) &&
+                (sp.birth_place || '').trim() === birthPlace) {
+              _lat = pLat; _lon = pLon;
+            }
+          }
+        } catch (e) {}
+      }
+      if (!(Number.isFinite(_lat) && Number.isFinite(_lon))) {
         status.textContent = _t('psu.err_city_pick', 'Выбери город из списка подсказок (для точных координат)');
         return;
       }
+      // Синхронизируем переменные — их использует _psuActuallySave().
+      _psuCityLat = _lat;
+      _psuCityLon = _lon;
 
       // Все валидации прошли — показываем модалку подтверждения.
       const overlay = document.getElementById('psu-confirm-overlay');

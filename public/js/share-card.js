@@ -522,13 +522,14 @@ const ShareCard = (function() {
   async function openModal(darCode, opts) {
     if (!darCode) return;
     opts = opts || {};
-    // КРИТИЧНО: ВСЕГДА сбрасываем виральный режим в обычном openModal.
-    // Тестер Алина 03.06.2026: «в дарах у всех моё имя» — флаги виральной
-    // карточки оставались выставленными после openInviteCard, потому что юзер
-    // мог закрыть модалку не через closeModal (свайп, ESC, тап вне модалки).
-    window._shareCardInviteMode = false;
-    window._shareCardInviteLink = null;
-    // Имя/дата — override применяется только если передан явно в opts
+    // Режим/имя/дата берём ТОЛЬКО из opts — так они переживают этот сброс.
+    // Раньше здесь безусловно ставилось inviteMode=false и name=null, из-за чего
+    // openInviteCard (звал openModal без opts) терял и виральный режим, и имя
+    // родственника → карточка близкого показывала «МОЙ ДАР» + имя владельца.
+    // Тестер Алина 03.06.2026: «в дарах у всех моё имя». Света 02.07.2026: то же
+    // самое во вкладке «Семья». Теперь openInviteCard передаёт всё через opts.
+    window._shareCardInviteMode = !!opts.inviteMode;
+    window._shareCardInviteLink = opts.inviteLink || null;
     window._shareCardOverrideName = opts.displayName || null;
     window._shareCardOverrideDate = opts.birthDate || null;
     let modal = document.getElementById('share-card-modal');
@@ -659,11 +660,13 @@ const ShareCard = (function() {
   // Алина получает кристаллы за приглашённого друга.
   async function openInviteCard(darCode, friendName, referralLink) {
     if (!darCode) return;
-    window._shareCardOverrideName = friendName || null;
-    window._shareCardOverrideDate = null;
-    window._shareCardInviteMode = true;
-    window._shareCardInviteLink = referralLink || ('https://t.me/' + (window.BOT_USERNAME || 'YupDarBot'));
-    return openModal(darCode);
+    // Всё передаём через opts — иначе openModal их обнулит (см. коммент в openModal).
+    return openModal(darCode, {
+      inviteMode: true,
+      displayName: friendName || null,
+      birthDate: null,
+      inviteLink: referralLink || ('https://t.me/' + (window.BOT_USERNAME || 'YupDarBot'))
+    });
   }
 
   // === ПОДРОБНАЯ КАРТОЧКА ДАРА (A4, только для платных) ===

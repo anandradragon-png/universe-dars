@@ -2852,7 +2852,7 @@
       st.id = 'onb-styles';
       st.textContent =
         '@keyframes onbPulse{0%,100%{box-shadow:0 0 0 3px rgba(212,175,55,.9),0 0 0 9999px rgba(6,6,6,.86),0 0 26px 6px rgba(212,175,55,.45)}50%{box-shadow:0 0 0 5px rgba(212,175,55,1),0 0 0 9999px rgba(6,6,6,.86),0 0 40px 12px rgba(212,175,55,.7)}}' +
-        '@keyframes onbCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}' +
+        '@keyframes onbCardIn{from{opacity:0}to{opacity:1}}' +
         '#onb-spotlight{position:fixed;border-radius:16px;pointer-events:none;z-index:100001;transition:top .45s cubic-bezier(.4,0,.2,1),left .45s cubic-bezier(.4,0,.2,1),width .45s cubic-bezier(.4,0,.2,1),height .45s cubic-bezier(.4,0,.2,1);animation:onbPulse 1.8s ease-in-out infinite}' +
         '#onb-card{animation:onbCardIn .35s ease both}';
       document.head.appendChild(st);
@@ -5703,7 +5703,9 @@
         const refLink = (typeof Referral !== 'undefined' && Referral.getMyLink)
           ? Referral.getMyLink()
           : ('https://t.me/' + (window.BOT_USERNAME || 'YupDarBot'));
-        ShareCard.openInviteCard(darCode, friendName, refLink);
+        // На карточке — только имя (без фамилии). Света 02.07.2026.
+        const firstName = String(friendName || '').trim().split(/\s+/)[0] || '';
+        ShareCard.openInviteCard(darCode, firstName, refLink);
       } catch (e) {
         console.error('shareRelativeCard error:', e);
       }

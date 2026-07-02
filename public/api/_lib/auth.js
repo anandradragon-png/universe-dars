@@ -20,7 +20,7 @@ function safeEqualHex(a, b) {
  * Возвращает либо объект user, либо { error: '...' } для диагностики причины отказа.
  * Старые вызовы, проверявшие result === null, теперь должны проверять result?.id.
  */
-function validateTelegramData(initData, botToken) {
+function validateTelegramData(initData, botToken, opts = {}) {
   if (!initData) return { error: 'no_init_data' };
   if (!botToken) return { error: 'no_bot_token' };
 
@@ -53,10 +53,12 @@ function validateTelegramData(initData, botToken) {
     };
   }
 
-  // Проверить что данные не старше 24 часов (раньше был 1 час - слишком жёстко для долгих сессий)
+  // Проверить что данные не старше 24 часов (раньше был 1 час - слишком жёстко для долгих сессий).
+  // opts.skipAgeCheck=true — для «мягкого» пути: подпись HMAC ВСЁ РАВНО проверена выше
+  // (identity подлинная), но допускаем устаревший auth_date (долгая сессия >24ч).
   const authDate = parseInt(params.get('auth_date') || '0');
   const ageSec = Date.now() / 1000 - authDate;
-  if (ageSec > 86400) return { error: 'expired', age_sec: Math.round(ageSec) };
+  if (!opts.skipAgeCheck && ageSec > 86400) return { error: 'expired', age_sec: Math.round(ageSec) };
 
   try {
     const user = JSON.parse(params.get('user') || '{}');
@@ -74,33 +76,89 @@ function validateTelegramData(initData, botToken) {
 }
 
 /**
- * Middleware для Vercel API — извлекает пользователя из запроса
- * В dev-режиме принимает x-telegram-id хедер
+ * Разрешён ли «сырой» x-telegram-id как identity для положительного id.
+ * true ТОЛЬКО в dev-окружении (localhost) — там фронт шлёт _dev_telegram_id.
+ * В проде положительный x-telegram-id — это вектор подмены (можно выдать себя
+ * за любого юзера/админа: их telegram_id публичны). Поэтому в проде положительный
+ * id из хедера игнорируется, пока явно не выставлен ALLOW_DEV_HEADER_AUTH.
+ */
+function devHeaderAuthAllowed() {
+  return process.env.NODE_ENV !== 'production'
+    || process.env.ALLOW_DEV_HEADER_AUTH === '1'
+    || process.env.ALLOW_DEV_HEADER_AUTH === 'true';
+}
+
+/**
+ * Middleware для Vercel API — извлекает пользователя из запроса.
+ *
+ * Границы доверия (каркас 3.1 — не доверять фронту):
+ *   • x-telegram-init-data — подписанный HMAC от Telegram: доверенный путь
+ *     для настоящих юзеров. Валидируем подпись.
+ *   • x-telegram-id (или body.telegram_id) — НЕподписанный. Принимаем как
+ *     identity ТОЛЬКО когда id ОТРИЦАТЕЛЬНЫЙ (гостевой _web_uid — анонимный
+ *     само-владеемый аккаунт, подделать чужого нельзя, id генерится клиентом
+ *     как отрицательное число). ПОЛОЖИТЕЛЬНЫЙ id из хедера — потенциальная
+ *     подмена реального Telegram-id, принимаем его лишь в dev-режиме.
  *
  * Возвращает: { id, ... } при успехе, либо { error: '...' } при отказе, либо null если ничего не было.
+ *
+ * opts.softInitData=true — для не-строгого пути: если строгая проверка initData
+ *   упала на 'expired' (подпись валидна, но auth_date >24ч), всё равно вернуть
+ *   HMAC-подтверждённого юзера. Подпись при этом ОБЯЗАТЕЛЬНО проверяется —
+ *   мы НЕ доверяем не-подписанному user из initData.
  */
-function getUser(req) {
-  // Production: валидация initData
+function getUser(req, opts = {}) {
+  // Доверенный путь: подписанный initData
   const initData = req.headers['x-telegram-init-data'];
   const botToken = process.env.BOT_TOKEN;
 
   if (initData) {
     const result = validateTelegramData(initData, botToken);
     if (result && result.id) return result;
+    // Мягкий путь: подпись валидна, но данные устарели (>24ч). Повторяем
+    // валидацию БЕЗ проверки возраста — HMAC всё равно проверяется, значит
+    // identity подлинная. Не доверяем не-подписанному user (в отличие от
+    // старого кода, который парсил user из initData без проверки hash).
+    if (opts.softInitData && result && result.error === 'expired') {
+      const soft = validateTelegramData(initData, botToken, { skipAgeCheck: true });
+      if (soft && soft.id) return soft;
+    }
     if (result && result.error) return { error: result.error, age_sec: result.age_sec };
     return { error: 'unknown_validation_failure' };
   }
 
-  // Dev/fallback: telegram_id из хедера или body
-  const devId = req.headers['x-telegram-id'] || (req.body && req.body.telegram_id);
-  if (devId) {
-    return {
-      id: parseInt(devId),
-      first_name: 'Dev',
-      last_name: 'User',
-      username: 'dev',
-      auth_date: Math.floor(Date.now() / 1000)
-    };
+  // Неподписанный x-telegram-id / body.telegram_id
+  const rawId = req.headers['x-telegram-id'] || (req.body && req.body.telegram_id);
+  if (rawId !== undefined && rawId !== null && rawId !== '') {
+    const id = parseInt(rawId, 10);
+    if (!Number.isFinite(id) || id === 0) return null;
+
+    // Гостевой веб-вход: отрицательный синтетический id. Безопасен —
+    // само-владеемый анонимный аккаунт, не может выдать себя за чужого.
+    if (id < 0) {
+      return {
+        id,
+        first_name: 'Guest',
+        last_name: '',
+        username: '',
+        auth_date: Math.floor(Date.now() / 1000)
+      };
+    }
+
+    // Положительный id из НЕподписанного хедера — только в dev-режиме.
+    if (devHeaderAuthAllowed()) {
+      return {
+        id,
+        first_name: 'Dev',
+        last_name: 'User',
+        username: 'dev',
+        auth_date: Math.floor(Date.now() / 1000)
+      };
+    }
+
+    // Прод: положительный id без подписи — вектор подмены. Отказ.
+    console.warn('[auth] Rejected unsigned positive x-telegram-id in production');
+    return { error: 'unsigned_id_rejected' };
   }
 
   return null;
@@ -114,67 +172,42 @@ function getUser(req) {
  *   // ... используй tgUser.id
  *
  * Параметр strict (по умолчанию false):
- *   false — золотая середина: если строгая HMAC-валидация не прошла,
- *           разрешаем «мягкий» fallback (парсим telegram_id из initData без
- *           проверки подписи). Подходит для чтения и обычных записей профиля,
- *           где подделка чужого id даёт мало (можешь испортить только свой
- *           собственный профиль) — зато не выкидываем юзеров с устаревшей
- *           подписью (долгая сессия > 24ч и т.п.).
- *   true  — fallback ЗАПРЕЩЁН: нужна действительная подпись Telegram.
+ *   false — золотая середина: если подпись валидна, но auth_date устарел
+ *           (долгая сессия > 24ч), всё равно пускаем (softInitData). Подпись
+ *           HMAC при этом ОБЯЗАТЕЛЬНО проверена — identity подлинная. Также
+ *           пускаем гостевой веб-вход (отрицательный _web_uid). НЕ доверяем
+ *           не-подписанному user из initData и положительному x-telegram-id
+ *           в проде (это векторы подмены чужого id).
+ *   true  — softInitData ЗАПРЕЩЁН: нужна свежая действительная подпись Telegram.
  *           Обязательно для повышения прав (админка) и любых операций,
  *           выдающих деньги/доступ — иначе возможна подделка чужого id
  *           (например, telegram_id админа — он публичный/угадываемый).
  */
 function requireUser(req, res, strict = false) {
-  // Сначала пробуем строгую валидацию
-  const result = getUser(req);
-  if (result && result.id) return result;
-
-  // strict: подпись не прошла — fallback запрещён, сразу 401.
-  if (strict) {
-    const reason = (result && result.error) || 'no_credentials';
-    console.warn('[auth] requireUser STRICT FAIL:', reason, 'path:', req.url);
-    res.status(401).json({
-      error: 'Не удалось подтвердить подпись. Закрой и открой приложение заново.',
-      reason
-    });
-    return null;
-  }
-
-  // Если строгая не прошла (expired, bad_hash) — пробуем fallback:
-  // парсим user из initData БЕЗ проверки hash.
-  // Это безопасно для большинства операций (чтение профиля, промо-коды,
-  // сохранение данных) — потому что initData всё равно содержит реальный
-  // telegram_id юзера, просто подпись устарела.
-  const initData = req.headers['x-telegram-init-data'] || '';
-  if (initData) {
-    try {
-      const params = new URLSearchParams(initData);
-      const userJson = params.get('user');
-      if (userJson) {
-        const parsed = JSON.parse(userJson);
-        if (parsed.id) {
-          console.log('[auth] requireUser: using unvalidated fallback for', parsed.id,
-            '(reason:', (result && result.error) || 'unknown', ')');
-          return {
-            id: parsed.id,
-            first_name: parsed.first_name || '',
-            last_name: parsed.last_name || '',
-            username: parsed.username || '',
-            auth_date: Math.floor(Date.now() / 1000)
-          };
-        }
-      }
-    } catch (e) {
-      console.warn('[auth] fallback parse failed:', e.message);
+  // strict — только свежая подпись; non-strict — допускаем HMAC-валидную,
+  // но устаревшую подпись (softInitData) и гостевой отрицательный id.
+  const result = getUser(req, { softInitData: !strict });
+  if (result && result.id) {
+    // strict-гейт: гостевой веб-вход (отрицательный id) НЕ является Telegram-
+    // подписью, поэтому в строгом режиме (админка/деньги) его не пускаем.
+    if (strict && result.id < 0) {
+      console.warn('[auth] requireUser STRICT: rejecting guest negative id', result.id, 'path:', req.url);
+      res.status(401).json({
+        error: 'Нужна подпись Telegram. Открой приложение внутри Telegram.',
+        reason: 'guest_not_allowed'
+      });
+      return null;
     }
+    return result;
   }
 
-  // Совсем ничего не получилось — 401
+  // Ничего валидного — 401 с причиной.
   const reason = (result && result.error) || 'no_credentials';
-  console.warn('[auth] requireUser TOTAL FAIL:', reason, 'path:', req.url);
+  console.warn('[auth] requireUser FAIL:', reason, 'strict:', strict, 'path:', req.url);
   res.status(401).json({
-    error: 'Не удалось авторизоваться. Закрой и открой приложение заново.',
+    error: strict
+      ? 'Не удалось подтвердить подпись. Закрой и открой приложение заново.'
+      : 'Не удалось авторизоваться. Закрой и открой приложение заново.',
     reason
   });
   return null;
@@ -242,4 +275,4 @@ async function logAdminAction(adminUserId, action, targetUserId = null, payload 
   }
 }
 
-module.exports = { validateTelegramData, getUser, requireUser, requireAdmin, logAdminAction };
+module.exports = { validateTelegramData, getUser, requireUser, requireAdmin, logAdminAction, devHeaderAuthAllowed };

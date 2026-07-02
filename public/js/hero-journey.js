@@ -81,6 +81,10 @@ const HeroJourney = (function() {
     // Завершаем шаг Огня - отправляем как обычный выбор
     DarAPI.journeyAction(currentDarCode, { choice_index: 0, force_complete: true }).then(data => {
       currentJourney = data.journey;
+      if (data.result === 'preview_complete_paywall') {
+        renderPreviewPaywall(data);
+        return;
+      }
       if (data.result === 'step_complete' || data.result === 'journey_complete') {
         const nextStep = data.next_step;
         const nextInfo = nextStep ? STEPS.find(s => s.num === nextStep) : null;
@@ -91,6 +95,8 @@ const HeroJourney = (function() {
         }, btnText);
       }
     }).catch(err => {
+      // Превью-гейт на шаге 2-7 (или после шага 1) приходит как 403 — рендерим paywall.
+      if (maybeRenderPreviewPaywall(err)) return;
       if (typeof showToast === 'function') showToast((err.message || ((window.i18n && i18n.t && i18n.t('common.error')) || 'Ошибка')), 'error');
     });
   }
@@ -160,6 +166,9 @@ const HeroJourney = (function() {
       }
     }).catch(err => {
       clearPhrases();
+      // Превью-гейт: юзер вернулся на шаг 2-7 без апгрейда — start отдаёт 403.
+      // Рендерим paywall (модалку апгрейда), а не тупиковую ошибку.
+      if (maybeRenderPreviewPaywall(err)) return;
       container.innerHTML = `<p style="text-align:center;padding:40px;color:#ff6b6b">${err.message || ((window.i18n && i18n.t && i18n.t('hero.load_error')) || 'Ошибка загрузки')}</p>
         <button class="hero-btn hero-btn-secondary" onclick="HeroJourney.render('${darCode}')">${((window.i18n && i18n.t && i18n.t('common.try_again')) || 'Попробовать снова')}</button>`;
     });
@@ -606,6 +615,13 @@ const HeroJourney = (function() {
     const applyTransition = () => {
       if (!serverData) return;
       const data = serverData;
+      // Превью-доступ: шаг 1 пройден, дальше платно — показываем paywall (не dead-end).
+      if (data.result === 'preview_complete_paywall') {
+        const oldBtn = document.getElementById('hero-continue-btn');
+        if (oldBtn && oldBtn.parentElement) oldBtn.parentElement.remove();
+        renderPreviewPaywall(data);
+        return;
+      }
       if (data.result === 'step_complete' || data.result === 'journey_complete') {
         currentJourney = data.journey;
         const nextStep = data.next_step;
@@ -649,6 +665,12 @@ const HeroJourney = (function() {
     }).catch(err => {
       loading = false;
       _choiceConfirmed = false;
+      // Превью-гейт (403) — рендерим paywall вместо кнопки "Попробовать снова" (dead-end).
+      if (maybeRenderPreviewPaywall(err)) {
+        const oldBtn = document.getElementById('hero-continue-btn');
+        if (oldBtn && oldBtn.parentElement) oldBtn.parentElement.remove();
+        return;
+      }
       serverError = err.message || ((window.i18n && i18n.t && i18n.t('common.error')) || 'Ошибка');
       if (btn) { btn.textContent = ((window.i18n && i18n.t && i18n.t('common.try_again')) || 'Попробовать снова'); btn.disabled = false; }
       buttons.forEach(b => b.disabled = false);
@@ -689,6 +711,8 @@ const HeroJourney = (function() {
       }
     }).catch(err => {
       loading = false;
+      // Превью-гейт на битве (шаг 2/6) приходит как 403 — рендерим paywall, не toast.
+      if (maybeRenderPreviewPaywall(err)) return;
       if (btn) { btn.disabled = false; btn.textContent = ((window.i18n && i18n.t && i18n.t('hero.strike_answer')) || '⚔️ Ударить ответом'); }
       if (textarea) textarea.disabled = false;
       if (typeof showToast === 'function') showToast((err.message || ((window.i18n && i18n.t && i18n.t('common.error')) || 'Ошибка')), 'error');
@@ -707,6 +731,49 @@ const HeroJourney = (function() {
   }
 
   // ---- АНИМАЦИИ ----
+
+  // Превью-гейт приходит с сервера как 403 (DarAPI.journeyAction/startJourney
+  // реджектится, тело — в err.body). Проверяем и рендерим paywall вместо toast,
+  // чтобы не было dead-end. Возвращает true если paywall отрисован.
+  // Также ловим успешный 200-ответ (result==='preview_complete_paywall' — шаг 1
+  // с victory_text), передавая объект напрямую.
+  function maybeRenderPreviewPaywall(payload) {
+    const data = (payload && payload.body) ? payload.body : payload;
+    if (data && data.result === 'preview_complete_paywall') {
+      renderPreviewPaywall(data);
+      return true;
+    }
+    return false;
+  }
+
+  // Превью-доступ: шаг 1 пройден, дальше — paywall. Показываем victory за шаг 1,
+  // затем модалку апгрейда (кнопка ведёт в оплату/тарифы) — без dead-end.
+  function renderPreviewPaywall(data) {
+    if (data && data.journey) currentJourney = data.journey;
+    const pw = (data && data.paywall) || {};
+    const opts = pw.options || {};
+    const openUpgrade = () => {
+      if (window.UpgradeModal && UpgradeModal.show) {
+        UpgradeModal.show({
+          icon: '🗺',
+          title: ((window.i18n && i18n.t && i18n.t('limits.hero_journey_preview_title')) || 'Это превью Пути Героя'),
+          message: pw.message || ((window.i18n && i18n.t && i18n.t('limits.hero_journey_preview_msg')) || 'Первый шаг пройден! Открой полный Путь (ещё 6 шагов) со скидкой — или подожди, пока друг сделает любую покупку: тебе откроется автоматом.'),
+          addonKey: opts.upgrade_addon_key || 'hero_journey_upgrade_preview',
+          addonLabel: ((window.i18n && i18n.t && i18n.t('limits.hero_journey_preview_addon_label')) || 'Открыть полный Путь Героя')
+        });
+      } else if (typeof showToast === 'function') {
+        showToast(pw.message || 'Открой полный Путь в тарифах', 'info');
+      }
+    };
+    // Если шаг 1 реально завершён (пришёл victory_text) — сперва отпразднуем его,
+    // затем по кнопке открываем paywall. Иначе (гейт на шагах 2-7) — сразу модалка.
+    if (data && data.victory_text) {
+      const btnText = ((window.i18n && i18n.t && i18n.t('hero.open_full_path')) || '🔓 Открыть полный Путь');
+      showVictory(data.victory_text, data.reward, openUpgrade, btnText);
+    } else {
+      openUpgrade();
+    }
+  }
 
   function showVictory(text, reward, onContinue, btnText) {
     const container = getContainer();

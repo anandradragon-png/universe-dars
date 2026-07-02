@@ -11,6 +11,7 @@
 
 const { requireUser } = require('./_lib/auth');
 const { getSupabase, getOrCreateUser } = require('./_lib/db');
+const pricing = require('./_lib/pricing');
 const deepseek = require('./_lib/deepseek');
 const Groq = require('groq-sdk');
 const fs = require('fs');
@@ -106,6 +107,23 @@ module.exports = async (req, res) => {
 
     // ========== AI-ИНСАЙТ ==========
     if (action === 'get_insight') {
+      // --- ТАРИФНЫЙ ГЕЙТ (C2) ---
+      // Инсайт положен раз в cadenceDays. 0 = не положен вовсе (Странник).
+      // TRIAL/Мастер/Хранитель проходят через tier resolver и сохраняют доступ.
+      const cadenceDays = pricing.getDiaryInsightCadenceDays(user);
+      if (!cadenceDays || cadenceDays <= 0) {
+        return res.status(403).json({
+          error: 'AI-инсайт в Дневнике доступен на тарифе Хранитель и выше.',
+          paywall: {
+            feature: 'diary_ai_insight',
+            required_tier: 'extended',
+            price: pricing.PLANS.guardian_1m
+              ? { rub: pricing.PLANS.guardian_1m.rub, stars: pricing.PLANS.guardian_1m.stars }
+              : null
+          }
+        });
+      }
+
       // Берём последние 7-14 записей
       let entries = [];
       try {
@@ -117,13 +135,43 @@ module.exports = async (req, res) => {
           .eq('user_id', user.id)
           .gte('date_key', since.toISOString().slice(0, 10))
           .order('date_key', { ascending: true });
-        entries = data || [];
+        // В той же таблице лежат записи АРКА-Дневника (mood='arka', note=JSON).
+        // Для инсайта по настроению они не годятся — берём только реальные
+        // эмоции из MOODS, иначе в промпт попадёт "undefined undefined", а
+        // кэш-инсайт может записаться на арка-строку.
+        entries = (data || []).filter(e => e.mood && MOODS[e.mood]);
       } catch (e) {
         return res.status(500).json({ error: 'Не удалось загрузить дневник' });
       }
 
       if (entries.length < 3) {
         return res.json({ insight: null, message: 'Нужно минимум 3 записи для анализа. Продолжай вести дневник!' });
+      }
+
+      // --- КЭШ ПО КАДЕНЦИИ (C2) ---
+      // Инсайт регенерируется не чаще раза в cadenceDays. Если в окне уже есть
+      // сохранённый ai_insight — отдаём его, не тратя AI-вызов.
+      const cacheSince = new Date();
+      cacheSince.setDate(cacheSince.getDate() - cadenceDays);
+      const cacheSinceKey = cacheSince.toISOString().slice(0, 10);
+      try {
+        const { data: cachedRows } = await db
+          .from('dar_diary')
+          .select('date_key, ai_insight')
+          .eq('user_id', user.id)
+          .gte('date_key', cacheSinceKey)
+          .not('ai_insight', 'is', null)
+          .order('date_key', { ascending: false })
+          .limit(1);
+        const cached = (cachedRows || [])[0];
+        if (cached && cached.ai_insight) {
+          return res.json({ insight: cached.ai_insight, cached: true });
+        }
+      } catch (e) {
+        // Колонки/таблицы нет — деградируем на генерацию без кэша, не падаем
+        if (!(e.message && e.message.includes('does not exist'))) {
+          console.warn('[diary] insight cache lookup failed:', e.message);
+        }
       }
 
       // Дар юзера
@@ -186,6 +234,29 @@ ${moodSummary}
         }
         const insight = (completion.choices[0]?.message?.content || '')
           .replace(/\u2014/g, '-').replace(/\u2013/g, '-').trim();
+
+        // \u041a\u044d\u0448\u0438\u0440\u0443\u0435\u043c \u0438\u043d\u0441\u0430\u0439\u0442 \u043d\u0430 \u0441\u0430\u043c\u043e\u0439 \u0441\u0432\u0435\u0436\u0435\u0439 \u0437\u0430\u043f\u0438\u0441\u0438 \u0434\u043d\u0435\u0432\u043d\u0438\u043a\u0430, \u0447\u0442\u043e\u0431\u044b \u043d\u0435
+        // \u0440\u0435\u0433\u0435\u043d\u0435\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0447\u0430\u0449\u0435, \u0447\u0435\u043c \u0440\u0430\u0437 \u0432 cadenceDays. \u041f\u0438\u0448\u0435\u043c \u0447\u0435\u0440\u0435\u0437 UPDATE
+        // \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044e\u0449\u0435\u0439 \u0441\u0442\u0440\u043e\u043a\u0438 (mood NOT NULL \u2014 \u0432\u0441\u0442\u0430\u0432\u043b\u044f\u0442\u044c \u043f\u0443\u0441\u0442\u0443\u044e \u043d\u0435\u043b\u044c\u0437\u044f).
+        // entries \u043e\u0442\u0441\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u044b \u043f\u043e \u0432\u043e\u0437\u0440\u0430\u0441\u0442\u0430\u043d\u0438\u044e \u2014 \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u044f\u044f = \u0441\u0430\u043c\u0430\u044f \u0441\u0432\u0435\u0436\u0430\u044f.
+        try {
+          const latestKey = entries[entries.length - 1].date_key;
+          // .select() возвращает изменённые строки — по их числу видно, что
+          // кэш реально записан. Если 0 — схема/ключ разошлись, и без этого
+          // лога каждый вызов молча регенерировал бы инсайт (утечка AI-стоимости).
+          const { data: updated } = await db.from('dar_diary')
+            .update({ ai_insight: insight })
+            .eq('user_id', user.id)
+            .eq('date_key', latestKey)
+            .select('date_key');
+          if (!updated || updated.length === 0) {
+            console.warn('[diary] insight cache write matched 0 rows (user', user.id, 'date', latestKey + ') — cache defeated, will regenerate next call');
+          }
+        } catch (e) {
+          if (!(e.message && e.message.includes('does not exist'))) {
+            console.warn('[diary] insight cache write failed:', e.message);
+          }
+        }
 
         return res.json({ insight });
       } catch (e) {

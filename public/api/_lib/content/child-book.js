@@ -4,6 +4,7 @@
 
 const { requireUser } = require('../auth');
 const { getSupabase, getOrCreateUser } = require('../db');
+const pricing = require('../pricing');
 const deepseek = require('../deepseek');
 const language = require('../language');
 const Groq = require('groq-sdk');
@@ -117,6 +118,135 @@ function calcAge(birthDateStr) {
 function getFieldForDar(darCode) {
   const kun = parseInt(darCode.split('-')[2], 10);
   return FIELDS_BY_ID[kun] || FIELDS_BY_ID[1];
+}
+
+/**
+ * Проверка доступа к генерации главы «Книги для Родителей».
+ *
+ * Пускаем:
+ *  - тариф с лимитом children_book_unlocked > 0 (Хранитель=1, Мастер=∞,
+ *    а также пробный Мастер 7 дней и оплаченные тарифы — через tier resolver);
+ *  - обладателя активного разового add-on child_book_chapter (1 глава).
+ *
+ * Basic без add-on — 403 с paywall-пейлоадом (required_tier / addon / price).
+ *
+ * Возвращает { allowed:true, source, addon? } либо { allowed:false, paywall }.
+ * Не падает, если таблицы add-on ещё нет (деградирует на tier-проверку).
+ */
+async function canGenerateChildBookChapter(user, req, relativeId, db) {
+  // Эффективный тариф (учитывает пробный период, оплату, админ-симуляцию).
+  const limits = pricing.getLimits(user, req);
+  const bookLimit = limits.children_book_unlocked;
+  // true, если у пользователя есть тарифный доступ, но исчерпан лимит РАЗНЫХ
+  // детей (например Хранитель уже открыл 1 ребёнка и хочет второго). Тогда
+  // paywall апселлит на Мастер (безлимит), а не на «Хранитель».
+  let tierLimitReached = false;
+
+  if (bookLimit && bookLimit > 0) {
+    // Безлимит (Мастер / пробный Мастер) — не считаем детей.
+    if (bookLimit === Infinity) {
+      return { allowed: true, source: 'tier' };
+    }
+
+    // Конечный лимит детей (Хранитель = 1): считаем РАЗНЫХ детей, у которых
+    // уже есть сгенерированные главы. Уже открытый ребёнок — всегда бесплатно
+    // (кэш и добор глав по нему не тратит лимит). НОВЫЙ ребёнок сверх лимита —
+    // paywall. Если БД недоступна — не блокируем платящего пользователя.
+    try {
+      const unlockedIds = await getUnlockedRelativeIds(user, relativeId, db);
+      const alreadyUnlocked = relativeId != null && unlockedIds.has(Number(relativeId));
+      if (alreadyUnlocked || unlockedIds.size < bookLimit) {
+        return { allowed: true, source: 'tier' };
+      }
+      // Достигнут лимит и это НОВЫЙ ребёнок — падаем в paywall ниже,
+      // но только если нет активного add-on (проверяется дальше).
+      tierLimitReached = true;
+    } catch (e) {
+      // Не удалось посчитать — не наказываем платящего, пускаем по тарифу.
+      console.warn('[child-book] distinct-children count failed, allowing:', e.message);
+      return { allowed: true, source: 'tier' };
+    }
+  }
+
+  // Разовый add-on «1 глава Книги для Родителей».
+  let addon = null;
+  try {
+    addon = await pricing.getActiveAddon(user.id, 'child_book_chapter');
+  } catch (e) {
+    addon = null;
+  }
+  if (addon) {
+    return { allowed: true, source: 'addon', addon };
+  }
+
+  const addonDef = pricing.ADDONS.child_book_chapter || {};
+  return {
+    allowed: false,
+    paywall: tierLimitReached ? {
+      // Тарифный лимит РАЗНЫХ детей исчерпан (Хранитель = 1 ребёнок).
+      // Апселл на Мастер (безлимит) или разовая глава на нового ребёнка.
+      reason: 'child_book_limit_reached',
+      required_tier: 'premium',
+      required_tier_label: 'Мастер',
+      addon: 'child_book_chapter',
+      addon_label: addonDef.label || '1 глава Книги для Родителей',
+      price: {
+        rub: addonDef.rub,
+        stars: addonDef.stars,
+        usd: addonDef.usd,
+        darai: addonDef.darai
+      },
+      message: 'На тарифе «Хранитель» Книга для Родителей открыта для одного ребёнка. Чтобы создать книгу для ещё одного ребёнка — перейди на «Мастер» (безлимит) или купи отдельную главу.'
+    } : {
+      reason: 'child_book_locked',
+      required_tier: 'extended',
+      required_tier_label: 'Хранитель',
+      addon: 'child_book_chapter',
+      addon_label: addonDef.label || '1 глава Книги для Родителей',
+      price: {
+        rub: addonDef.rub,
+        stars: addonDef.stars,
+        usd: addonDef.usd,
+        darai: addonDef.darai
+      },
+      message: 'Персональная «Книга для Родителей» открывается на тарифе «Хранитель» и выше, либо можно купить отдельную главу.'
+    }
+  };
+}
+
+/**
+ * Множество relative_id (детей текущего пользователя), у которых уже есть
+ * сгенерированные главы child_book_sections. Используется для лимита РАЗНЫХ
+ * детей на тарифах с конечным children_book_unlocked.
+ *
+ * child_book_sections не хранит user_id (только relative_id), поэтому сперва
+ * берём id детей пользователя из user_relatives (scoped by user_id), затем
+ * фильтруем секции по этим id — чужие дети сюда попасть не могут.
+ *
+ * relativeId (текущий запрос) добавляется в выборку, чтобы «уже открытый»
+ * ребёнок гарантированно определялся даже при выборке-срезе.
+ */
+async function getUnlockedRelativeIds(user, relativeId, db) {
+  const { data: rels, error: relErr } = await db
+    .from('user_relatives')
+    .select('id')
+    .eq('user_id', user.id);
+  if (relErr) throw new Error(relErr.message);
+
+  const ownIds = (rels || []).map(r => Number(r.id));
+  const unlocked = new Set();
+  if (ownIds.length === 0) return unlocked;
+
+  const { data: secs, error: secErr } = await db
+    .from('child_book_sections')
+    .select('relative_id')
+    .in('relative_id', ownIds);
+  if (secErr) throw new Error(secErr.message);
+
+  (secs || []).forEach(s => {
+    if (s.relative_id != null) unlocked.add(Number(s.relative_id));
+  });
+  return unlocked;
 }
 
 function buildPrompt(child, section, darData, field, agePeriod) {
@@ -350,6 +480,61 @@ module.exports = async (req, res) => {
         } catch (e) {}
       }
 
+      // === ГЕЙТ ДОСТУПА (перед платной AI-генерацией) ===
+      // Кэш уже отдан выше бесплатно (глава оплачена ранее). Здесь — только
+      // НОВАЯ генерация: тариф/лимит children_book / add-on child_book_chapter.
+      const gate = await canGenerateChildBookChapter(user, req, relative_id, db);
+      if (!gate.allowed) {
+        return res.status(403).json({
+          error: 'child_book_locked',
+          paywall: gate.paywall
+        });
+      }
+
+      // === CLAIM-BEFORE-GENERATE для разового add-on ===
+      // Раньше add-on списывался ПОСЛЕ 30-60с AI-вызова безусловным UPDATE, из-за
+      // чего два параллельных запроса проходили гейт (оба видели add-on активным)
+      // и списывали одну и ту же главу дважды (double-spend). Теперь резервируем
+      // add-on атомарно ДО генерации: UPDATE ... WHERE id=$id AND consumed_at IS NULL
+      // RETURNING id. Продолжаем только если строка вернулась — проигравший гонку
+      // запрос получает paywall, а не бесплатную главу.
+      if (gate.source === 'addon' && gate.addon && gate.addon.id) {
+        let claimedRow = null;
+        try {
+          const { data: claimed } = await db.from('user_addons')
+            .update({ consumed_at: new Date().toISOString() })
+            .eq('id', gate.addon.id)
+            .is('consumed_at', null)
+            .select('id');
+          claimedRow = (claimed && claimed.length) ? claimed[0] : null;
+        } catch (claimErr) {
+          console.warn('[child-book] addon claim failed:', claimErr.message);
+          claimedRow = null;
+        }
+        if (!claimedRow) {
+          // Не удалось зарезервировать (уже потрачен другим запросом или БД-ошибка)
+          // — не генерируем платную главу бесплатно, отдаём paywall.
+          const addonDef = pricing.ADDONS.child_book_chapter || {};
+          return res.status(403).json({
+            error: 'child_book_locked',
+            paywall: {
+              reason: 'child_book_locked',
+              required_tier: 'extended',
+              required_tier_label: 'Хранитель',
+              addon: 'child_book_chapter',
+              addon_label: addonDef.label || '1 глава Книги для Родителей',
+              price: {
+                rub: addonDef.rub,
+                stars: addonDef.stars,
+                usd: addonDef.usd,
+                darai: addonDef.darai
+              },
+              message: 'Персональная «Книга для Родителей» открывается на тарифе «Хранитель» и выше, либо можно купить отдельную главу.'
+            }
+          });
+        }
+      }
+
       const darData = darContent[child.dar_code] || {};
       const field = getFieldForDar(child.dar_code);
       const agePeriod = getAgePeriod(age);
@@ -387,6 +572,18 @@ module.exports = async (req, res) => {
         }
       } catch (aiErr) {
         console.error('[child-book] AI generation failed:', aiErr.message);
+        // Add-on был зарезервирован до генерации — вернём его, чтобы пользователь
+        // не терял оплаченную главу из-за сбоя AI. Возвращаем только строку,
+        // которую МЫ зарезервировали в этом запросе (consumed_at всё ещё наш).
+        if (gate.source === 'addon' && gate.addon && gate.addon.id) {
+          try {
+            await db.from('user_addons')
+              .update({ consumed_at: null })
+              .eq('id', gate.addon.id);
+          } catch (refundErr) {
+            console.warn('[child-book] addon refund failed:', refundErr.message);
+          }
+        }
         return res.status(500).json({ error: 'Не удалось создать главу. Попробуй позже.' });
       }
 
@@ -419,6 +616,9 @@ module.exports = async (req, res) => {
       } catch (cacheErr) {
         console.warn('[child-book] cache save failed:', cacheErr.message);
       }
+
+      // Add-on уже атомарно списан ДО генерации (claim-before-generate выше),
+      // ровно одна глава за одну покупку. Тарифный доступ ничего не тратит.
 
       return res.json({
         section_id,

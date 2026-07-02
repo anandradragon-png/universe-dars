@@ -20,6 +20,118 @@ const { getSupabase, addCrystals } = require('./db');
 const TIER_PRIORITY = { basic: 0, extended: 1, premium: 2 };
 
 /**
+ * Извлечь уникальный ключ платежа провайдера из providerMetadata.
+ * Используется для идемпотентности (дедуп повторной доставки вебхука).
+ */
+function paymentKeyFor(provider, providerMetadata) {
+  const pm = providerMetadata || {};
+  if (provider === 'stars') return pm.telegram_payment_charge_id || null;
+  if (provider === 'darai') return pm.invoice_id || null;
+  if (provider === 'yookassa') return pm.yookassa_payment_id || null;
+  return null;
+}
+
+/**
+ * Идемпотентность: помечаем платёж как обработанный ДО применения.
+ * insert-if-absent по UNIQUE(provider, payment_key). Если запись уже была
+ * (повторная доставка/replay вебхука) — вернём { alreadyProcessed: true },
+ * и вызывающий код не применяет платёж повторно.
+ *
+ * Fail-safe: если таблицы ещё нет (миграция не накатана) — НЕ блокируем платёж
+ * (лучше применить, чем потерять деньги клиента). Дедуп заработает после миграции.
+ */
+async function claimPayment(provider, paymentKey, userId, kind, metadata) {
+  if (!paymentKey) return { alreadyProcessed: false, claimed: false };
+  const db = getSupabase();
+  const { error } = await db.from('processed_payments').insert({
+    provider,
+    payment_key: String(paymentKey),
+    user_id: userId || null,
+    kind: kind || null,
+    metadata: metadata || null
+  });
+  if (!error) return { alreadyProcessed: false, claimed: true };
+
+  const msg = (error.message || '').toLowerCase();
+  const code = error.code || '';
+  // 23505 = unique_violation → платёж уже был обработан → no-op.
+  if (code === '23505' || msg.includes('duplicate') || msg.includes('unique')) {
+    return { alreadyProcessed: true, claimed: false };
+  }
+  // Таблица не создана (миграция не применена) — не блокируем платёж.
+  if (msg.includes('does not exist') || msg.includes('relation') || code === '42P01') {
+    console.warn('[apply] processed_payments table missing — skipping idempotency guard');
+    return { alreadyProcessed: false, claimed: false };
+  }
+  // Прочая ошибка — тоже не блокируем оплату, только логируем.
+  console.warn('[apply] claimPayment failed (continuing):', error.message);
+  return { alreadyProcessed: false, claimed: false };
+}
+
+/**
+ * H3-гард: атомарно зарезервировать промо «-50% первый месяц» за юзером.
+ *
+ * Скидка считается при СОЗДАНИИ инвойса от (!first_purchase_at). Два одновременных
+ * _1m-инвойса оба видят first_purchase_at=NULL → оба берут скидку → двойное списание
+ * 50%. Чтобы этого не было, ПЕРЕД выдачей скидки делаем conditional UPDATE:
+ * строку получает только один запрос — он и получает скидку. Второй идёт по полной
+ * цене (displayed == charged для обоих).
+ *
+ * @returns {Promise<{granted:boolean, guardActive:boolean}>}
+ *   granted=true  → этот запрос зарезервировал промо, скидку выдаём.
+ *   granted=false → промо уже занято другим запросом/использовано, скидку НЕ выдаём.
+ *   guardActive=false → колонки ещё нет (миграция не накатана) → fail-open: разрешаем
+ *   скидку (не ломаем happy path), гонка станет невозможной после миграции.
+ */
+async function claimFirstPurchasePromo(userId) {
+  if (!userId) return { granted: false, guardActive: true };
+  const db = getSupabase();
+  const { data, error } = await db
+    .from('users')
+    .update({ first_purchase_promo_used_at: new Date().toISOString() })
+    .eq('id', userId)
+    .is('first_purchase_promo_used_at', null)
+    .is('first_purchase_at', null)
+    .select('id');
+
+  if (error) {
+    const msg = (error.message || '').toLowerCase();
+    const code = error.code || '';
+    // Колонки нет (миграция не применена) — не блокируем скидку.
+    if (msg.includes('first_purchase_promo_used_at') ||
+        msg.includes('does not exist') || msg.includes('column') || code === '42703') {
+      console.warn('[promo] first_purchase_promo_used_at missing — skipping race guard');
+      return { granted: true, guardActive: false };
+    }
+    // Прочая ошибка — не блокируем скидку, только логируем.
+    console.warn('[promo] claimFirstPurchasePromo failed (allowing promo):', error.message);
+    return { granted: true, guardActive: false };
+  }
+
+  // UPDATE ... RETURNING: строка есть → мы первыми зарезервировали промо.
+  return { granted: Array.isArray(data) && data.length > 0, guardActive: true };
+}
+
+/**
+ * Освободить резерв промо (обратно в NULL), если создание инвойса у провайдера
+ * упало ПОСЛЕ успешного резерва — чтобы промо не «сгорело» из-за тех. ошибки.
+ * Снимаем только пока first_purchase_at ещё NULL (реальной оплаты не было).
+ */
+async function releaseFirstPurchasePromo(userId) {
+  if (!userId) return;
+  try {
+    const db = getSupabase();
+    await db
+      .from('users')
+      .update({ first_purchase_promo_used_at: null })
+      .eq('id', userId)
+      .is('first_purchase_at', null);
+  } catch (e) {
+    console.warn('[promo] releaseFirstPurchasePromo failed:', e.message);
+  }
+}
+
+/**
  * Применить покупку подписки (любой период любого тарифа).
  *
  * @param {object} args
@@ -258,6 +370,17 @@ async function applyByMetadata({ userId, metadata, provider, amountPaid, currenc
   const paymentType = metadata.payment_type || metadata.payload_type;
   const productKey = metadata.product_key;
 
+  // Идемпотентность: replay/повторная доставка того же платежа = no-op.
+  // Помечаем платёж ДО применения; если он уже обработан — не применяем.
+  const paymentKey = paymentKeyFor(provider, providerMetadata);
+  const claim = await claimPayment(provider, paymentKey, userId, paymentType, {
+    product_key: productKey, amount_paid: amountPaid, currency
+  });
+  if (claim.alreadyProcessed) {
+    console.log('[apply] duplicate payment ignored:', provider, paymentKey);
+    return { kind: 'duplicate', result: { already_processed: true, provider, payment_key: paymentKey } };
+  }
+
   const extraMetadata = {};
   if (metadata.dar_code) extraMetadata.dar_code = metadata.dar_code;
 
@@ -374,5 +497,9 @@ module.exports = {
   applyBookPurchase,
   applyAddon,
   applyByMetadata,
+  claimPayment,
+  claimFirstPurchasePromo,
+  releaseFirstPurchasePromo,
+  paymentKeyFor,
   upgradeReferrerPreviewIfPaid
 };

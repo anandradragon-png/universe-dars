@@ -19,7 +19,7 @@ const { getSupabase, getOrCreateUser } = require('./_lib/db');
 const pricing = require('./_lib/pricing');
 const language = require('./_lib/language');
 const { logEvent } = require('./_lib/notify');
-const { getUser, requireUser } = require('./_lib/auth');
+const { getUser, requireUser, validateTelegramData, devHeaderAuthAllowed } = require('./_lib/auth');
 
 // ===== Общие загрузки =====
 const fieldsData = require('../fields.json');
@@ -769,6 +769,104 @@ ${genderBlock}
 }
 
 // =====================================================================
+// ========== TYPE: book-chapter (C3 — раздача книги за гейтом) =========
+// =====================================================================
+//
+// Полные главы Книги Даров НЕ лежат в статическом public/book-chapters*.json
+// (там только preview: первые FREE_CHAPTERS глав). Платные главы отдаются
+// поштучно через ЭТОТ эндпоинт, за серверным гейтом pricing.canReadFullBook.
+//
+// GET/POST /api/content?type=book-chapter&n=<globalIndex 0-based>&lang=<ru|en|es>
+//   → 200 { chapter: { id, title, kind, html, ... } }        (доступ есть)
+//   → 403 { error, paywall: {...} }                          (нет доступа)
+//   → 401 (нет авторизации) / 404 (нет главы)
+
+const BOOK_FREE_CHAPTERS = 10; // должно совпадать с freeChapters (book-reader.js)
+const BOOK_FULL_DIR = path.join(__dirname, '..', '..', 'book-full');
+const _bookFullCache = {}; // lang → { parts:[...] }
+
+function loadFullBook(lang) {
+  const key = (lang === 'en' || lang === 'es') ? lang : 'ru';
+  if (_bookFullCache[key]) return _bookFullCache[key];
+  const file = key === 'ru' ? 'book-chapters.json' : `book-chapters.${key}.json`;
+  try {
+    const raw = fs.readFileSync(path.join(BOOK_FULL_DIR, file), 'utf8');
+    const parsed = JSON.parse(raw);
+    _bookFullCache[key] = parsed;
+    return parsed;
+  } catch (e) {
+    console.error('[book-chapter] full book load failed for', key, e.message);
+    return null;
+  }
+}
+
+function bookChapterByGlobalIndex(book, n) {
+  if (!book || !Array.isArray(book.parts)) return null;
+  let g = 0;
+  for (const part of book.parts) {
+    for (const ch of (part.chapters || [])) {
+      if (g === n) return ch;
+      g++;
+    }
+  }
+  return null;
+}
+
+async function handleBookChapter(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-telegram-init-data, x-telegram-id');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+
+  const nRaw = (req.query && req.query.n) != null ? req.query.n : (req.body && req.body.n);
+  const n = parseInt(nRaw, 10);
+  if (!Number.isFinite(n) || n < 0) {
+    return res.status(400).json({ error: 'n (global chapter index) required' });
+  }
+  const lang = ((req.query && req.query.lang) || (req.body && req.body.lang) || language.detectLang(req) || 'ru');
+
+  const book = loadFullBook(lang);
+  if (!book) return res.status(500).json({ error: 'book not available' });
+
+  const chapter = bookChapterByGlobalIndex(book, n);
+  if (!chapter) return res.status(404).json({ error: 'chapter not found' });
+
+  // Preview-главы (индекс < FREE_CHAPTERS) отдаём без гейта — они и так публичны
+  // в статике; этот путь лишь запасной, чтобы entitled-логика не зависела от него.
+  if (n < BOOK_FREE_CHAPTERS) {
+    return res.status(200).json({ chapter });
+  }
+
+  // Платная глава — нужен реальный доступ к полной книге.
+  let dbUser = null;
+  try {
+    const tgUser = getUser(req);
+    if (tgUser && tgUser.id) dbUser = await getOrCreateUser(tgUser);
+  } catch (e) {}
+
+  if (!dbUser) {
+    return res.status(401).json({
+      error: 'Не удалось авторизоваться. Открой приложение заново.',
+      reason: 'no_credentials'
+    });
+  }
+
+  if (!pricing.canReadFullBook(dbUser)) {
+    return res.status(403).json({
+      error: 'book_locked',
+      message: 'Эта глава доступна в полной версии Книги Даров.',
+      paywall: {
+        required_tier: 'premium',
+        addon: 'book_full_access',
+        price: { rub: 749, stars: 700 }
+      }
+    });
+  }
+
+  return res.status(200).json({ chapter });
+}
+
+// =====================================================================
 // ========== MAIN ROUTER ==============================================
 // =====================================================================
 
@@ -792,29 +890,42 @@ function handleMaintenance(req, res) {
 //   - 'get_default'  : вернуть дефолтные шаблоны промптов и контекст по даркоду
 //   - 'run'          : запустить генерацию с переданными промптами и вернуть JSON
 //
-// Безопасность: проверяем telegram_id из заголовка x-telegram-id или initData,
-// сверяем с ADMIN_IDS. Никаких изменений в БД, никаких уведомлений юзерам.
+// Безопасность (каркас 3.1 — не доверять фронту): личность ДОЛЖНА быть
+// подтверждена подписью Telegram (HMAC initData). Раньше здесь принимался
+// user.id из initData БЕЗ проверки hash, а также сырой x-telegram-id и
+// ?admin_id= из query — публично известный telegram_id админа (269932434)
+// позволял кому угодно выдать себя за админа и гонять AI-генерацию с
+// произвольными промптами. Теперь: только валидная подпись initData, чей id
+// в SANDBOX_ADMIN_IDS. Сырой хедер / query-param допускаются ТОЛЬКО в dev.
 const SANDBOX_ADMIN_IDS = [269932434]; // Светлана @AnandraDragon
 
 function isSandboxAdmin(req) {
-  // Через Mini App: парсим initData (без жёсткой проверки hash — это admin-tool, не публичный endpoint)
-  try {
-    const initData = req.headers['x-telegram-init-data'] || '';
-    if (initData) {
-      const params = new URLSearchParams(initData);
-      const userJson = params.get('user');
-      if (userJson) {
-        const u = JSON.parse(userJson);
-        if (u && u.id && SANDBOX_ADMIN_IDS.includes(Number(u.id))) return true;
-      }
+  // Доверенный путь: подписанный initData. Проверяем HMAC (не парсим user
+  // из неподписанных данных).
+  const initData = req.headers['x-telegram-init-data'];
+  if (initData) {
+    const result = validateTelegramData(initData, process.env.BOT_TOKEN);
+    if (result && result.id && SANDBOX_ADMIN_IDS.includes(Number(result.id))) {
+      return true;
     }
-  } catch (e) {}
-  // Через ?admin_id=... в query (для открытия страницы в обычном браузере)
-  // или через заголовок x-telegram-id (dev fallback)
-  const headerId = parseInt(req.headers['x-telegram-id'] || '', 10);
-  if (headerId && SANDBOX_ADMIN_IDS.includes(headerId)) return true;
-  const queryId = parseInt((req.query && req.query.admin_id) || '', 10);
-  if (queryId && SANDBOX_ADMIN_IDS.includes(queryId)) return true;
+    // Валидная, но устаревшая подпись (>24ч) — тоже принимаем: identity
+    // подтверждена HMAC, просто auth_date старый.
+    if (result && result.error === 'expired') {
+      const soft = validateTelegramData(initData, process.env.BOT_TOKEN, { skipAgeCheck: true });
+      if (soft && soft.id && SANDBOX_ADMIN_IDS.includes(Number(soft.id))) return true;
+    }
+    return false;
+  }
+
+  // Dev-режим (localhost / ALLOW_DEV_HEADER_AUTH): для открытия /sandbox.html
+  // в обычном браузере разрешаем сырой x-telegram-id и ?admin_id=. В проде
+  // это ИГНОРИРУЕТСЯ — иначе публичный telegram_id админа = обход.
+  if (devHeaderAuthAllowed()) {
+    const headerId = parseInt(req.headers['x-telegram-id'] || '', 10);
+    if (headerId && SANDBOX_ADMIN_IDS.includes(headerId)) return true;
+    const queryId = parseInt((req.query && req.query.admin_id) || '', 10);
+    if (queryId && SANDBOX_ADMIN_IDS.includes(queryId)) return true;
+  }
   return false;
 }
 
@@ -948,6 +1059,9 @@ module.exports = async (req, res) => {
   }
   if (type === 'diary-dar' || url.includes('/diary-dar')) {
     return require('./_lib/content/daily-dar')(req, res);
+  }
+  if (type === 'book-chapter' || url.includes('/book-chapter')) {
+    return handleBookChapter(req, res);
   }
 
   return res.status(400).json({ error: 'Unknown content type. Expected: oracle, shadow-review, section, message, message-humor, compatibility, child-book' });

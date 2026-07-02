@@ -1094,6 +1094,7 @@
     "label_period": "Period:",
     "label_currency": "Currency:",
     "promo_first_month": "🎁 First month of any plan with −{percent}% off",
+    "usd_charged_in_stars": "USD is a display currency. The charge goes out in Telegram Stars: {stars} ⭐. Continue?",
     "discount_badge": "−{percent}%",
     "save_percent": "save {percent}%",
     "per_month": "/ month",

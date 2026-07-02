@@ -485,7 +485,15 @@
         // Промо -50% применяется только к месячному тарифу и только если еще не платил.
         // На многомесячные периоды и DarAI скидка не применяется.
         const promoApplies = promoActive && UI.period === '1m' && UI.currency !== 'darai';
-        const price = promoApplies ? Math.round(originalPrice * 0.5 * 100) / 100 : originalPrice;
+        // Stars — целочисленная валюта: округляем как сервер (payment.js:524
+        // Math.max(1, Math.round(dyn.stars*0.5))), иначе odd-суммы (напр. master_1m
+        // dyn.stars=863) показали бы 431,5 ⭐, а списалось бы 432 ⭐ → displayed != charged.
+        // Прочие валюты (rub/usd) — до 2 знаков, ровно как сервер их считает.
+        const price = promoApplies
+          ? (UI.currency === 'stars'
+              ? Math.max(1, Math.round(originalPrice * 0.5))
+              : Math.round(originalPrice * 0.5 * 100) / 100)
+          : originalPrice;
         const isFeatured = period.is_default; // годовая = подсвечена
         const isCurrentTier = DATA.user && DATA.user.effective_tier === card.tier;
 
@@ -576,15 +584,54 @@
       });
     }
 
+    // Разрешить фактическую Stars-сумму, которой закончится оплата для текущего
+    // выбора (тот же снимок /api/pricing, что и на карточках → displayed == charged
+    // в пределах окна кэша). Нужна для прозрачного подтверждения при валюте USD.
+    function resolveStarsForSelection(kind, key) {
+      if (kind === 'book') return DATA.book ? DATA.book.stars : null;
+      if (kind === 'addon') {
+        const a = (DATA.addons || []).find(x => x.addon_key === key);
+        return a ? a.stars : null;
+      }
+      if (kind === 'plan') {
+        for (const groupKey of ['guardian', 'master']) {
+          const card = DATA.plans[groupKey];
+          if (!card) continue;
+          const period = (card.periods || []).find(p => p.plan_key === key);
+          if (!period) continue;
+          const promoActive = DATA.user && DATA.user.eligible_for_first_purchase_promo;
+          // Промо -50% только для месячного тарифа — ровно как на сервере (payment.js)
+          const promoApplies = promoActive && /_1m$/.test(key);
+          return promoApplies ? Math.max(1, Math.round(period.stars * 0.5)) : period.stars;
+        }
+      }
+      return null;
+    }
+
     async function onBuy(kind, key) {
       // Выбор провайдера: упрощённо по текущей валюте UI
       const providerByCurrency = {
         rub: 'yookassa',
         stars: 'stars',
-        usd: 'stars',     // для USD пока тоже Stars (через перерасчёт)
+        usd: 'stars',     // USD — валюта показа; фактический платёж идёт в Stars
         darai: 'darai'
       };
       const provider = providerByCurrency[UI.currency] || 'stars';
+
+      // USD не имеет платёжного рельса — это валюта показа. Оплата пойдёт в Stars.
+      // Чтобы displayed == charged и не было «сюрприз-валюты», прозрачно показываем,
+      // сколько именно Stars спишется, и просим подтверждение.
+      if (UI.currency === 'usd') {
+        const stars = resolveStarsForSelection(kind, key);
+        if (stars != null) {
+          const msg = i18n.t('tariffs.usd_charged_in_stars', { stars })
+            || ('USD — валюта показа. Оплата спишется в Telegram Stars: ' + stars + ' ⭐. Продолжить?');
+          const ok = tg && tg.showConfirm
+            ? await new Promise(res => tg.showConfirm(msg, res))
+            : confirm(msg);
+          if (!ok) return;
+        }
+      }
 
       // Если ЮKassa и юзер не привязан к Telegram (web) — спросим email для чека
       let email = null;

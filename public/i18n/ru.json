@@ -1089,6 +1089,7 @@
     "label_period": "Период:",
     "label_currency": "Валюта:",
     "promo_first_month": "🎁 Первый месяц любого тарифа со скидкой −{percent}%",
+    "usd_charged_in_stars": "USD — валюта показа. Оплата спишется в Telegram Stars: {stars} ⭐. Продолжить?",
     "discount_badge": "−{percent}%",
     "save_percent": "экономия {percent}%",
     "per_month": "/ месяц",

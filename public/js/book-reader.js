@@ -401,6 +401,23 @@ const BookReader = (function() {
       return;
     }
 
+    // C3: платные главы (index >= freeChapters) НЕ приходят в статическом
+    // book-chapters.json — там только preview. У них ch.gated === true и нет
+    // html. Для юзера с полным доступом догружаем html поштучно через
+    // защищённый API (/api/content?type=book-chapter), который сам проверяет
+    // pricing.canReadFullBook на сервере. Клиентская проверка выше — только UX.
+    if (ch.gated === true && !ch.html) {
+      wrap.innerHTML = `
+        <div style="text-align:center;padding:40px 10px">
+          <div style="font-size:32px;margin-bottom:12px;opacity:0.6">&#128214;</div>
+          <div style="font-size:13px;opacity:0.7">${((window.i18n && i18n.t && i18n.t('book.loading')) || 'Загружаем главу...')}</div>
+        </div>
+      `;
+      updatePosIndicator();
+      fetchGatedChapter(currentPartIdx, currentChapterIdx, gIdx);
+      return;
+    }
+
     // Картинки оставляем ТОЛЬКО в главах-Дарах (kind === 'dar').
     // В обычных главах (введение, теория, главы-обзоры) — убираем все
     // декоративные глифы из .docx, чтобы текст не пестрил иконками.
@@ -502,6 +519,100 @@ const BookReader = (function() {
     try {
       wrap.querySelectorAll('.book-img').forEach(img => { img.style.cursor = 'zoom-in'; });
     } catch(e) {}
+  }
+
+  // -------- C3: догрузка платной главы через защищённый API --------
+  // Заголовки авторизации как в DarAPI (подписанный initData / dev-id).
+  function _authHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    try {
+      const tg = window.Telegram && window.Telegram.WebApp;
+      if (tg && tg.initData) headers['x-telegram-init-data'] = tg.initData;
+      const devId = localStorage.getItem('_dev_telegram_id');
+      if (devId && !(tg && tg.initData)) headers['x-telegram-id'] = devId;
+      const tgUid = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
+      if (!(tg && tg.initData) && !devId && tgUid) headers['x-telegram-id'] = String(tgUid);
+      if (!(tg && tg.initData) && !devId && !tgUid) {
+        const webId = localStorage.getItem('_web_uid');
+        if (webId) headers['x-telegram-id'] = webId;
+      }
+    } catch (e) {}
+    return headers;
+  }
+
+  const _gatedInflight = new Set();
+  async function fetchGatedChapter(partIdx, chapterIdx, gIdx) {
+    if (_gatedInflight.has(gIdx)) return;
+    _gatedInflight.add(gIdx);
+    try {
+      const lang = _bookLang();
+      const resp = await fetch('/api/content?type=book-chapter&n=' + gIdx + '&lang=' + encodeURIComponent(lang), {
+        method: 'GET',
+        headers: _authHeaders()
+      });
+      let data = null;
+      try { data = await resp.json(); } catch (e) {}
+
+      // Пользователь мог пролистать дальше, пока грузилось — не перетираем.
+      const stillHere = (currentPartIdx === partIdx && currentChapterIdx === chapterIdx);
+
+      if (resp.ok && data && data.chapter && typeof data.chapter.html === 'string') {
+        // Кладём html в bookData, чтобы renderChapter показал главу и закэшировал.
+        try {
+          const ch = bookData.parts[partIdx].chapters[chapterIdx];
+          ch.html = data.chapter.html;
+          ch.gated = false;
+        } catch (e) {}
+        if (stillHere) renderChapter();
+        return;
+      }
+
+      // 403 — доступа нет (или профиль отстал): показываем пейволл в самой главе.
+      if (resp.status === 403) {
+        if (stillHere) renderGatedPaywall((data && data.paywall) || null);
+        return;
+      }
+
+      // 401 / прочее — просим переоткрыть.
+      if (stillHere) {
+        const wrap = document.getElementById('book-chapter');
+        if (wrap) {
+          wrap.innerHTML = `
+            <div style="text-align:center;padding:30px 10px">
+              <div style="font-size:36px;margin-bottom:10px">&#128274;</div>
+              <div style="font-size:14px;margin-bottom:6px">${((window.i18n && i18n.t && i18n.t('book.load_error')) || 'Не удалось загрузить главу')}</div>
+              <div style="font-size:12px;opacity:0.7">${((window.i18n && i18n.t && i18n.t('book.load_error_hint')) || 'Проверь соединение и попробуй снова.')}</div>
+            </div>
+          `;
+        }
+      }
+    } catch (e) {
+      console.error('[BookReader] fetchGatedChapter error:', e);
+      if (currentPartIdx === partIdx && currentChapterIdx === chapterIdx) {
+        const wrap = document.getElementById('book-chapter');
+        if (wrap) wrap.innerHTML = `<div style="text-align:center;padding:30px 10px;font-size:13px;opacity:0.7">${((window.i18n && i18n.t && i18n.t('book.load_error')) || 'Не удалось загрузить главу')}</div>`;
+      }
+    } finally {
+      _gatedInflight.delete(gIdx);
+    }
+  }
+
+  // Пейволл прямо в области главы (когда сервер вернул 403 на платную главу).
+  function renderGatedPaywall(paywall) {
+    const wrap = document.getElementById('book-chapter');
+    if (!wrap) return;
+    wrap.innerHTML = `
+      <div style="text-align:center;padding:30px 12px">
+        <div style="font-size:42px;margin-bottom:12px">&#128274;</div>
+        <div style="font-size:17px;margin-bottom:8px">${((window.i18n && i18n.t && i18n.t('book.locked_chapter_title')) || 'Эта глава доступна в полной версии')}</div>
+        <div style="font-size:13px;opacity:0.7;line-height:1.6;margin-bottom:16px">
+          ${((window.i18n && i18n.t && i18n.t('book.unlock_desc')) || '94 главы Книги Даров + дизайнерская PDF. Разовая покупка, навсегда.')}
+        </div>
+        <button onclick="if(typeof openTariffsPage==='function')openTariffsPage()" style="width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#D4AF37,#b8860b);color:#080808;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold;box-shadow:0 0 20px rgba(212,175,55,0.25);margin-bottom:8px">&#128142; ${((window.i18n && i18n.t && i18n.t('book.open_all_tariffs')) || 'Открыть все тарифы')}</button>
+        <button onclick="if(typeof buyBookAccess==='function')buyBookAccess()" style="width:100%;max-width:300px;padding:12px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.1);color:#D4AF37;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">&#11088; ${((window.i18n && i18n.t && i18n.t('book.buy_book')) || 'Купить Книгу — 749 ₽ / 700 ⭐')}</button>
+      </div>
+    `;
+    updatePosIndicator();
   }
 
   function renderYupSoulBannerIfDarEnd(ch) {

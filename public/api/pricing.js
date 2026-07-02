@@ -11,6 +11,7 @@
 const { getUser, requireUser } = require('./_lib/auth');
 const { getOrCreateUser } = require('./_lib/db');
 const pricing = require('./_lib/pricing');
+const rates = require('./_lib/rates');
 
 // =====================================================================
 // i18n для UI-текстов тарифов и аддонов.
@@ -231,7 +232,7 @@ function pickCurrency(lang) {
   return 'usd';
 }
 
-function buildPlanCards(lang) {
+function buildPlanCards(lang, snap) {
   const lp = pickLangPack(lang);
   const plansT = PLANS_I18N[lp];
   const periodsT = PERIOD_LABELS_I18N[lp];
@@ -270,26 +271,29 @@ function buildPlanCards(lang) {
       const shortKey = planKey.split('_')[1];
       const periodLabel = (periodsT && periodsT[shortKey]) || `${months}m`;
 
+      // Живой расчёт stars/darai/usd от ₽-базы (₽ остаётся как есть).
+      const p = rates.priceAllCurrenciesWith(plan.rub, snap);
+
       // Экономия в % относительно 1-месячной цены × число месяцев
       const monthlyEquivalent = monthly.rub * months;
       const discountPct = months > 1
         ? Math.round(100 * (1 - plan.rub / monthlyEquivalent))
         : 0;
 
-      // Цена за месяц (для подзаголовка карточки)
-      const perMonthRub = Math.round(plan.rub / months);
-      const perMonthStars = Math.round(plan.stars / months);
-      const perMonthUsd = Math.round((plan.usd / months) * 100) / 100;
+      // Цена за месяц (для подзаголовка карточки) — от живых значений
+      const perMonthRub = Math.round(p.rub / months);
+      const perMonthStars = Math.round(p.stars / months);
+      const perMonthUsd = Math.round((p.usd / months) * 100) / 100;
 
       return {
         plan_key: planKey,
         period_label: periodLabel,
         months,
         days: plan.days,
-        rub: plan.rub,
-        stars: plan.stars,
-        usd: plan.usd,
-        darai: plan.darai,
+        rub: p.rub,
+        stars: p.stars,
+        usd: p.usd,
+        darai: p.darai,
         per_month_rub: perMonthRub,
         per_month_stars: perMonthStars,
         per_month_usd: perMonthUsd,
@@ -312,39 +316,41 @@ function buildPlanCards(lang) {
   return cards;
 }
 
-function buildAddons(lang) {
+function buildAddons(lang, snap) {
   const lp = pickLangPack(lang);
   const addonsT = ADDONS_I18N[lp];
   return ADDON_GROUPS.map(group => {
     const addon = pricing.ADDONS[group.key];
     const txt = addonsT[group.key];
     if (!addon || !txt) return null;
+    const p = rates.priceAllCurrenciesWith(addon.rub, snap);
     return {
       addon_key: group.key,
       emoji: group.emoji,
       name: txt.name,
       description: txt.description,
       duration: txt.duration,
-      rub: addon.rub,
-      stars: addon.stars,
-      usd: addon.usd,
-      darai: addon.darai
+      rub: p.rub,
+      stars: p.stars,
+      usd: p.usd,
+      darai: p.darai
     };
   }).filter(Boolean);
 }
 
-function buildBook(lang) {
+function buildBook(lang, snap) {
   const lp = pickLangPack(lang);
   const txt = BOOK_I18N[lp];
+  const p = rates.priceAllCurrenciesWith(pricing.BOOK_PRODUCT.rub, snap);
   return {
     name: txt.name,
     emoji: '📚',
     description: txt.description,
     note: txt.note,
-    rub: pricing.BOOK_PRODUCT.rub,
-    stars: pricing.BOOK_PRODUCT.stars,
-    usd: pricing.BOOK_PRODUCT.usd,
-    darai: pricing.BOOK_PRODUCT.darai
+    rub: p.rub,
+    stars: p.stars,
+    usd: p.usd,
+    darai: p.darai
   };
 }
 
@@ -373,6 +379,17 @@ module.exports = async function handler(req, res) {
   if (!lang) lang = 'ru';
 
   const currency = pickCurrency(lang);
+
+  // Один снимок живых курсов на весь запрос — чтобы все тарифы/аддоны/книга
+  // считались согласованно (и совпадали с тем, что спишет payment.js в том же
+  // 10-мин окне кэша). getRates() никогда не бросает — фолбэк на последнее известное.
+  let snap;
+  try {
+    snap = await rates.getRates();
+  } catch (e) {
+    console.warn('[pricing] getRates failed, using null snapshot fallback:', e.message);
+    snap = null; // priceAllCurrenciesWith имеет внутренний фолбэк на битый снимок
+  }
 
   // Текущий статус юзера (если авторизован)
   let userStatus = null;
@@ -406,9 +423,9 @@ module.exports = async function handler(req, res) {
   return res.json({
     lang,
     currency,
-    plans: buildPlanCards(lang),
-    addons: buildAddons(lang),
-    book: buildBook(lang),
+    plans: buildPlanCards(lang, snap),
+    addons: buildAddons(lang, snap),
+    book: buildBook(lang, snap),
     first_purchase_discount_pct: 50, // -50% на первый месяц
     user: userStatus
   });

@@ -79,11 +79,65 @@ async function handleQuest(req, res) {
       const reward = QUEST_REWARDS[quest_type] || 1;
       console.log('[quest] submitting:', { user_id: user.id, dar_code, section_index, quest_type, reward, answer_len: (answer_text || '').length });
 
+      // ============ ИДЕМПОТЕНТНОСТЬ (claim-before-grant) ============
+      // Награду за квест выдаём ровно один раз на (user, dar_code, section_index,
+      // quest_type). Реплей того же submit не должен начислять кристаллы повторно.
+      //
+      // Паттерн зеркалит claimPayment: сначала пытаемся ВСТАВИТЬ запись квеста
+      // (claim). Уникальный индекс uq_user_quests_unique делает повтор no-op —
+      // вторая вставка падает с 23505 (unique_violation), и мы понимаем «уже
+      // выполнен» → пропускаем начисление и разблокировку, возвращаем 0 кристаллов.
+      //
+      // Fail-safe: если индекс ещё не накатан (миграция не применена), в старой
+      // схеме дубликат вставится успешно. Тогда подстрахуемся предварительным
+      // SELECT: если запись уже есть — считаем квест уже выполненным.
+      const db = getSupabase();
+      let alreadyCompleted = false;
       try {
-        await completeQuest(user.id, dar_code, section_index, quest_type, answer_text || '');
-      } catch (questErr) {
-        console.error('[quest] completeQuest failed:', questErr.message, questErr.code, questErr.details);
-        return res.status(500).json({ error: 'Не удалось записать квест: ' + (questErr.message || 'неизвестная ошибка') });
+        const { data: prior } = await db
+          .from('user_quests')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('dar_code', dar_code)
+          .eq('section_index', section_index)
+          .eq('quest_type', quest_type)
+          .limit(1);
+        if (prior && prior.length > 0) alreadyCompleted = true;
+      } catch (_) { /* нет таблицы/ошибка — не блокируем, полагаемся на insert ниже */ }
+
+      if (!alreadyCompleted) {
+        try {
+          await completeQuest(user.id, dar_code, section_index, quest_type, answer_text || '');
+        } catch (questErr) {
+          // 23505 = unique_violation → параллельный/повторный submit уже записал квест.
+          const code = questErr && questErr.code;
+          const msg = (questErr && questErr.message || '').toLowerCase();
+          if (code === '23505' || msg.includes('duplicate') || msg.includes('unique')) {
+            alreadyCompleted = true;
+          } else {
+            console.error('[quest] completeQuest failed:', questErr.message, questErr.code, questErr.details);
+            return res.status(500).json({ error: 'Не удалось записать квест: ' + (questErr.message || 'неизвестная ошибка') });
+          }
+        }
+      }
+
+      if (alreadyCompleted) {
+        // Квест уже был выполнен ранее — награду не начисляем повторно.
+        // Секция при этом остаётся разблокированной (это идемпотентная операция),
+        // но кристаллы = 0, чтобы исключить фарм реплеем.
+        try {
+          await unlockSection(user.id, dar_code, section_index);
+        } catch (unlockErr) {
+          console.error('[quest] unlockSection (replay) failed:', unlockErr.message);
+        }
+        const { data: freshUser } = await db.from('users').select('crystals').eq('id', user.id).single();
+        return res.json({
+          success: true,
+          crystals_earned: 0,
+          total_crystals: (freshUser && freshUser.crystals) || user.crystals || 0,
+          section_unlocked: section_index,
+          already_completed: true
+        });
       }
 
       let newBalance;

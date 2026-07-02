@@ -141,6 +141,14 @@ window.UpgradeModal = (function() {
         icon: '🗺',
         title: t('limits.hero_journey_locked_title', 'Путешествие Героя закрыто'),
         message: t('limits.hero_journey_locked_msg', 'Чтобы открыть путешествие по чужому Дару, нужен Хранитель или прямая разовая покупка.')
+      },
+      // Превью-доступ: шаг 1 бесплатен, шаги 2-7 требуют доплаты.
+      'hero_journey_preview_locked': {
+        icon: '🗺',
+        title: t('limits.hero_journey_preview_title', 'Это превью Пути Героя'),
+        message: t('limits.hero_journey_preview_msg', 'Первый шаг пройден! Открой полный Путь (ещё 6 шагов) со скидкой — или подожди, пока друг сделает любую покупку: тебе откроется автоматом.'),
+        addonKey: 'hero_journey_upgrade_preview',
+        addonLabel: t('limits.hero_journey_preview_addon_label', 'Открыть полный Путь Героя')
       }
     };
   }

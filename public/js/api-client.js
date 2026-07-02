@@ -149,6 +149,7 @@ const DarAPI = (function() {
       const err = new Error(friendlyError('http', { status: resp.status, body: data }));
       err.kind = 'http';
       err.status = resp.status;
+      err.body = data; // сырое тело ответа — нужно фронту для рендера paywall (403)
       throw err;
     }
     return data;
@@ -266,6 +267,10 @@ const DarAPI = (function() {
         })
       }).then(r => r.json());
     },
+
+    // ---- Тарифы/цены (живой расчёт на сервере) ----
+    getPricing: (lang) =>
+      request('/api/pricing' + (lang ? ('?lang=' + encodeURIComponent(lang)) : ''), 'GET'),
 
     // ---- Платежи (Telegram Stars) ----
     createBookInvoice: () =>

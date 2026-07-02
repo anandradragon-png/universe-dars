@@ -99,6 +99,28 @@ function getFieldId(darCode) {
   return parseInt(parts[2]) || 1;
 }
 
+// Единый payload paywall для превью-доступа (шаг 1 бесплатен, шаги 2-7 — доплата).
+// Используется и на завершении шага 1, и как гейт при попытке дёрнуть шаги 2-7.
+async function buildPreviewPaywall(user, darCode, state, extra) {
+  const pricingNs = require('./_lib/pricing');
+  const paywall = {
+    reason: 'preview_only',
+    message: 'Это превью-доступ. Чтобы пройти оставшиеся 6 шагов — доплати со скидкой 30% или подожди пока друг сделает любую покупку — тебе откроется автоматом.',
+    options: {
+      upgrade_crystals: pricingNs.HERO_JOURNEY_CRYSTAL_PRICES.upgrade,
+      upgrade_addon_key: 'hero_journey_upgrade_preview',
+      upgrade_addon: pricingNs.ADDONS.hero_journey_upgrade_preview,
+      can_wait_for_friend: true
+    }
+  };
+  return Object.assign({
+    result: 'preview_complete_paywall',
+    error: 'hero_journey_preview_locked',
+    dar_code: darCode,
+    paywall
+  }, extra || {});
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST only' });
@@ -159,6 +181,14 @@ module.exports = async (req, res) => {
     // ---- start: начать или продолжить путешествие ----
     if (action === 'start') {
       let journey = await getHeroJourney(user.id, dar_code);
+
+      // === HERO JOURNEY 2.0: PREVIEW-ГЕЙТ В START ===
+      // Превью-доступ разрешает только шаг 1. Не генерируем/не возвращаем контент
+      // шагов 2-7 — иначе превью-юзер прочитал бы платные шаги через start.
+      if (accessGate && accessGate.preview_only && journey && journey.step && journey.step !== 1
+          && !(journey.completed_at) && (journey.completed_steps || []).length < 7) {
+        return res.status(403).json(await buildPreviewPaywall(user, dar_code, journey.step_state || {}, { journey }));
+      }
 
       // Если путешествие уже есть и ТЕКУЩИЙ шаг имеет актуальный контент - вернуть как есть
       if (journey && journey.step_state) {
@@ -342,6 +372,14 @@ module.exports = async (req, res) => {
       const state = journey.step_state || {};
       const step = journey.step;
 
+      // === HERO JOURNEY 2.0: PREVIEW-ГЕЙТ НА КАЖДОМ ШАГЕ ===
+      // Превью-доступ (preview_only) даёт только шаг 1. Любое действие на шагах 2-7
+      // (сцены/битвы) для превью-юзера обязано упираться в paywall, а не пропускать.
+      // Раньше проверка стояла только на завершении шага 1 → превью-юзеры доходили до 2-7.
+      if (accessGate && accessGate.preview_only && step !== 1) {
+        return res.status(403).json(await buildPreviewPaywall(user, dar_code, state));
+      }
+
       // ШАГИ СО СЦЕНАМИ (1, 3, 4, 5, 7) - обработка выбора
       if ([1, 3, 4, 5, 7].includes(step)) {
         const currentScene = state.current_scene || 0;
@@ -452,25 +490,14 @@ module.exports = async (req, res) => {
             // блокируем дальнейший прогресс, показываем paywall.
             // Откатываем step обратно на 1 чтобы он не «висел» на 2.
             if (accessGate && accessGate.preview_only && step === 1 && !isJourneyComplete) {
-              const pricingNs = require('./_lib/pricing');
-              const isRelative = await pricingNs.isDarInFamily(user.id, dar_code);
-              return res.json({
-                result: 'preview_complete_paywall',
+              // Шаг 1 (Пробуждение) реально пройден и награда выдана — отдаём 200 с
+              // victory-текстом и paywall для дальнейших шагов (не dead-end).
+              return res.json(await buildPreviewPaywall(user, dar_code, state, {
                 victory_text: state.victory || 'Пробуждение пройдено! Открой полный Путь, чтобы идти дальше.',
                 reward,
                 new_balance: newBalance,
-                journey,
-                paywall: {
-                  reason: 'preview_only',
-                  message: 'Это превью-доступ. Чтобы пройти оставшиеся 6 шагов — доплати со скидкой 30% или подожди пока друг сделает любую покупку — тебе откроется автоматом.',
-                  options: {
-                    upgrade_crystals: pricingNs.HERO_JOURNEY_CRYSTAL_PRICES.upgrade,
-                    upgrade_addon_key: 'hero_journey_upgrade_preview',
-                    upgrade_addon: pricingNs.ADDONS.hero_journey_upgrade_preview,
-                    can_wait_for_friend: true
-                  }
-                }
-              });
+                journey
+              }));
             }
 
             return res.json({

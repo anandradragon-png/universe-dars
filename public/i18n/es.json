@@ -1093,6 +1093,7 @@
     "label_period": "Período:",
     "label_currency": "Moneda:",
     "promo_first_month": "🎁 Primer mes de cualquier plan con −{percent}% de descuento",
+    "usd_charged_in_stars": "USD es una moneda de visualización. El cobro se realiza en Telegram Stars: {stars} ⭐. ¿Continuar?",
     "discount_badge": "−{percent}%",
     "save_percent": "ahorra {percent}%",
     "per_month": "/ mes",

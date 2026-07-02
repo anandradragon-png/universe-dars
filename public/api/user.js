@@ -580,8 +580,10 @@ async function handlePromo(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    // Мягкая авторизация (как в payment.js) — initData может быть expired
-    let tgUser = getUser(req);
+    // Мягкая авторизация (как в payment.js): softInitData допускает HMAC-валидную,
+    // но устаревшую подпись + гостевой отрицательный _web_uid. НЕ доверяем
+    // не-подписанному user из initData / положительному x-telegram-id в проде.
+    let tgUser = getUser(req, { softInitData: true });
     let user = null;
 
     if (tgUser && tgUser.id) {
@@ -589,27 +591,6 @@ async function handlePromo(req, res) {
         user = await getOrCreateUser(tgUser);
       } catch (e) {
         console.warn('[promo] getOrCreateUser failed:', e.message);
-      }
-    }
-
-    // Fallback: парсим user из initData без валидации hash
-    if (!user) {
-      try {
-        const initData = req.headers['x-telegram-init-data'] || '';
-        if (initData) {
-          const params = new URLSearchParams(initData);
-          const userJson = params.get('user');
-          if (userJson) {
-            const parsed = JSON.parse(userJson);
-            if (parsed.id) {
-              tgUser = parsed;
-              user = await getOrCreateUser(parsed);
-              console.log('[promo] Using unvalidated user fallback:', parsed.id);
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('[promo] fallback auth failed:', e.message);
       }
     }
 

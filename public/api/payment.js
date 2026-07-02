@@ -13,7 +13,9 @@
 const { requireUser } = require('./_lib/auth');
 const { getOrCreateUser } = require('./_lib/db');
 const pricing = require('./_lib/pricing');
+const rates = require('./_lib/rates');
 const { notifyAdmin, logEvent, escapeHtml } = require('./_lib/notify');
+const subApply = require('./_lib/subscription_apply');
 
 // Тип А: попытка оплаты — счёт/ссылка на оплату успешно создан(а).
 // Fire-and-forget: не ждём и не роняем ответ юзеру.
@@ -34,10 +36,15 @@ function notifyPayAttempt(provider, item, priceText, user, telegramId) {
 const YUPPAY_API_URL = 'https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api';
 const YUPPAY_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpramdwYmF3aHh0YWZtd3Nyc2ViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzMDA3NjgsImV4cCI6MjA3NTg3Njc2OH0.Il2w6Vd40hGnosvI0QJKn2bHlZNrNvnl7UZxB92_vAQ';
 
-// Цены (в Stars)
-const PRICES = {
-  book_full_access: 700,  // ~$10 (реальный курс Telegram Stars ≈ $0.0145/⭐) — полный доступ к Книге + Хранитель
-};
+// Раздельные вшитые цены на Книгу удалены 02.07.2026 — теперь все валюты
+// (кроме ₽) считаются ЖИВО из ₽-базы pricing.BOOK_PRODUCT.rub тем же helper'ом,
+// что и /api/pricing (rates.priceAllCurrenciesWith). displayed == charged.
+
+// Хелпер raw-amount DarAI (NEP-141, 18 decimals) из целого числа токенов.
+// BigInt — чтобы не словить экспоненту/потерю точности на больших числах.
+function daraiRaw(tokens) {
+  return (BigInt(Math.round(tokens)) * (10n ** 18n)).toString();
+}
 
 // Вызов Telegram Bot API
 async function callTelegramAPI(method, body) {
@@ -67,8 +74,11 @@ module.exports = async (req, res) => {
     // Мягкая авторизация: пробуем получить юзера, но если не удалось —
     // всё равно создаём invoice (это просто ссылка на оплату, безвредная).
     // Настоящая проверка происходит в webhook при successful_payment.
+    // softInitData: допускаем HMAC-валидную, но устаревшую подпись, а также
+    // гостевой отрицательный _web_uid. НЕ доверяем не-подписанному user из
+    // initData и положительному x-telegram-id в проде (см. auth.js).
     const { getUser } = require('./_lib/auth');
-    let tgUser = getUser(req);
+    let tgUser = getUser(req, { softInitData: true });
     let user = null;
 
     if (tgUser && tgUser.id) {
@@ -76,27 +86,6 @@ module.exports = async (req, res) => {
         user = await getOrCreateUser(tgUser);
       } catch (e) {
         console.warn('[payment] getOrCreateUser failed:', e.message);
-      }
-    }
-
-    // Fallback: берём telegram_id из initDataUnsafe (без валидации hash)
-    if (!user) {
-      try {
-        const initData = req.headers['x-telegram-init-data'] || '';
-        if (initData) {
-          const params = new URLSearchParams(initData);
-          const userJson = params.get('user');
-          if (userJson) {
-            const parsed = JSON.parse(userJson);
-            if (parsed.id) {
-              tgUser = parsed;
-              user = await getOrCreateUser(parsed);
-              console.log('[payment] Using unvalidated user fallback:', parsed.id);
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('[payment] fallback auth failed:', e.message);
       }
     }
 
@@ -115,7 +104,12 @@ module.exports = async (req, res) => {
         });
       }
 
-      const price = PRICES.book_full_access;
+      // Живой расчёт цены Книги от ₽-базы (тот же helper, что и /api/pricing →
+      // displayed == charged). getRates() не бросает; при битом снимке — фолбэк.
+      let bookSnap = null;
+      try { bookSnap = await rates.getRates(); }
+      catch (e) { console.warn('[payment] getRates failed (book stars), fallback:', e.message); }
+      const price = rates.priceAllCurrenciesWith(pricing.BOOK_PRODUCT.rub, bookSnap).stars;
       const userId = user ? user.id : telegramId;
       const payload = `book_full_access_${userId}_${Date.now()}`;
 
@@ -190,9 +184,13 @@ module.exports = async (req, res) => {
         return res.status(503).json({ error: 'Оплата в DarAI временно недоступна' });
       }
 
-      // Цена: 40 000 000 DarAI (~$10 при курсе $0.00000025/DarAI)
-      // 40000000 * 10^18 (18 decimals для NEP-141)
-      const DARAI_PRICE = '40000000000000000000000000';
+      // Цена в DarAI считается ЖИВО от ₽-базы Книги (тот же helper, что и
+      // /api/pricing → displayed == charged). Raw-units через BigInt (18 decimals).
+      let bookSnap = null;
+      try { bookSnap = await rates.getRates(); }
+      catch (e) { console.warn('[payment] getRates failed (book darai), fallback:', e.message); }
+      const bookDarai = rates.priceAllCurrenciesWith(pricing.BOOK_PRODUCT.rub, bookSnap).darai;
+      const DARAI_PRICE = daraiRaw(bookDarai);
 
       try {
         const resp = await fetch(YUPPAY_API_URL, {
@@ -232,11 +230,12 @@ module.exports = async (req, res) => {
           throw new Error(data.error || data.message || 'YupPay error');
         }
 
-        notifyPayAttempt('DarAI', 'Книга — полный доступ', '10 DarAI', user, telegramId);
+        const daraiLabel = `${(bookDarai / 1_000_000).toFixed(1)}M DarAI`;
+        notifyPayAttempt('DarAI', 'Книга — полный доступ', daraiLabel, user, telegramId);
         return res.json({
           invoice_url: data.pay_url,
           invoice_tg_url: data.pay_tg_url || (data.links && data.links.telegram_mini_app),
-          price: '10 DarAI',
+          price: daraiLabel,
           currency: 'DARAI'
         });
       } catch (e) {
@@ -312,7 +311,8 @@ module.exports = async (req, res) => {
         return res.status(503).json({ error: 'Оплата картой временно недоступна. Попробуй Stars или DarAI.' });
       }
 
-      const amountValue = '749.00';
+      // ₽-цена Книги — из единого источника (pricing.BOOK_PRODUCT.rub), не литерал.
+      const amountValue = `${pricing.BOOK_PRODUCT.rub}.00`;
       const description = 'Книга Даров — полный доступ + Хранитель';
 
       // Контакт от веб-юзера (вне Telegram Mini App): нужен либо TG-username, либо email.
@@ -506,15 +506,53 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Неизвестный тариф или add-on: ' + key });
       }
 
-      // Промо: -50% если это первая покупка юзера И это plan (промо НЕ на add-ons и Книгу)
-      const isFirstPurchasePromo = kind === 'plan' && !user.first_purchase_at;
+      // Промо: -50% «первый месяц любого тарифа» — только первая покупка юзера,
+      // только plan и только МЕСЯЧНЫЙ период (_1m). На 3m/6m/12m, add-ons и Книгу
+      // скидка НЕ действует. Это ровно то, что показывает клиент (pricing.html:
+      // promoApplies = ... && UI.period === '1m'), поэтому displayed == charged.
+      // H3: право на промо определяем от !first_purchase_at, но саму скидку выдаём
+      // только после АТОМАРНОГО резерва промо за юзером. Два одновременных _1m-инвойса
+      // оба видят first_purchase_at=NULL — но conditional UPDATE вернёт строку лишь
+      // одному; второй идёт по полной цене (displayed == charged у обоих).
+      // DarAI цену не дисконтирует (промо на DarAI не действует) — там резерв промо
+      // не делаем, иначе промо «сгорит» без выгоды для юзера.
+      const eligibleFirstPurchasePromo =
+        kind === 'plan' && !user.first_purchase_at && /_1m$/.test(key) && provider !== 'darai';
+      let promoClaimed = false;
+      if (eligibleFirstPurchasePromo) {
+        try {
+          const claim = await subApply.claimFirstPurchasePromo(user.id);
+          promoClaimed = claim.granted;
+        } catch (e) {
+          // При сбое гарда не блокируем покупку — просто без промо (полная цена).
+          console.warn('[payment] promo claim failed, charging full price:', e.message);
+          promoClaimed = false;
+        }
+      }
+      const isFirstPurchasePromo = eligibleFirstPurchasePromo && promoClaimed;
       const discount = isFirstPurchasePromo ? 0.5 : 1.0;
+
+      // Если промо зарезервировано, но инвойс у провайдера так и не создался —
+      // вернуть резерв, чтобы промо не «сгорело» из-за тех. ошибки.
+      const releasePromoOnFail = async () => {
+        if (promoClaimed) {
+          try { await subApply.releaseFirstPurchasePromo(user.id); }
+          catch (e) { console.warn('[payment] promo release failed:', e.message); }
+        }
+      };
+
+      // Живой расчёт цен от ₽-базы (тот же helper, что и /api/pricing → displayed == charged
+      // в пределах 10-мин окна кэша). getRates() не бросает; при битом снимке — внутренний фолбэк.
+      let snap = null;
+      try { snap = await rates.getRates(); }
+      catch (e) { console.warn('[payment] getRates failed, using fallback:', e.message); }
+      const dyn = rates.priceAllCurrenciesWith(product.rub, snap);
 
       // Подсчитать цену в нужной валюте с учётом скидки
       const priceRub = Math.round(product.rub * discount);
-      const priceStars = Math.round(product.stars * discount);
-      const priceUsd = Math.round(product.usd * discount * 100) / 100;
-      const priceDarai = product.darai; // DarAI фиксирована, без скидки
+      const priceStars = Math.max(1, Math.round(dyn.stars * discount));
+      const priceUsd = Math.round(dyn.usd * discount * 100) / 100;
+      const priceDarai = dyn.darai; // DarAI по живому курсу, без скидки (промо на DarAI не действует)
 
       // Описание
       const label = product.label || (kind === 'plan' ? 'Подписка YupDar' : 'Покупка YupDar');
@@ -569,6 +607,7 @@ module.exports = async (req, res) => {
           });
         } catch (e) {
           console.error('[payment] subscription stars error:', e.message);
+          await releasePromoOnFail();
           return res.status(500).json({ error: 'Не удалось создать счёт Stars: ' + e.message });
         }
       }
@@ -578,6 +617,7 @@ module.exports = async (req, res) => {
         const yooShopId = (process.env.YOOKASSA_SHOP_ID || '').trim();
         const yooSecret = (process.env.YOOKASSA_SECRET_KEY || '').trim();
         if (!yooShopId || !yooSecret) {
+          await releasePromoOnFail();
           return res.status(503).json({ error: 'Оплата картой временно недоступна. Попробуй Stars или DarAI.' });
         }
 
@@ -621,10 +661,14 @@ module.exports = async (req, res) => {
           let data; try { data = JSON.parse(respText); } catch { data = {}; }
           if (!resp.ok) {
             console.error('[payment] yookassa subscription failed:', resp.status, respText);
+            await releasePromoOnFail();
             return res.status(502).json({ error: data.description || 'Не удалось создать платёж' });
           }
           const confirmUrl = data.confirmation && data.confirmation.confirmation_url;
-          if (!confirmUrl) return res.status(502).json({ error: 'ЮKassa не вернула ссылку' });
+          if (!confirmUrl) {
+            await releasePromoOnFail();
+            return res.status(502).json({ error: 'ЮKassa не вернула ссылку' });
+          }
           notifyPayAttempt('ЮKassa (карта)', label, `${priceRub}₽`, user, telegramId);
           return res.json({
             invoice_url: confirmUrl,
@@ -635,6 +679,7 @@ module.exports = async (req, res) => {
           });
         } catch (e) {
           console.error('[payment] yookassa subscription threw:', e.message);
+          await releasePromoOnFail();
           return res.status(500).json({ error: 'Не удалось создать платёж: ' + e.message });
         }
       }
@@ -645,8 +690,8 @@ module.exports = async (req, res) => {
         if (!yuppayKey) {
           return res.status(503).json({ error: 'Оплата в DarAI временно недоступна' });
         }
-        // DarAI цена фиксирована и в base units (×10^18 для NEP-141)
-        const amountRaw = String(priceDarai) + '000000000000000000';
+        // DarAI по живому курсу, в base units (×10^18 для NEP-141). BigInt — надёжно.
+        const amountRaw = daraiRaw(priceDarai);
         try {
           const resp = await fetch(YUPPAY_API_URL, {
             method: 'POST',

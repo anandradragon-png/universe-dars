@@ -92,6 +92,31 @@ app.all('/api/admin/stars-balance',require('./public/api/admin/stars-balance'));
 app.all('/api/admin/stats',        require('./public/api/admin/stats'));
 app.all('/api/admin/users',        require('./public/api/admin/users'));
 
+// ── Юр-документы: extensionless /legal/... → реальный HTML из public/legal/ ──
+// Лендинги ссылаются на /legal/terms|privacy|offer|cookies (без .html) и на
+// /legal/<lang>/<doc> (ru/en/es). Без этого роута SPA-fallback ниже отдавал бы
+// оболочку Mini App вместо документа. Варианты с .html обслуживает static.
+const LEGAL_DOCS  = ['terms', 'privacy', 'offer', 'cookies'];
+const LEGAL_LANGS = ['ru', 'en', 'es'];
+function serveLegal(lang, doc, res, next) {
+  doc = String(doc).replace(/\.html$/i, '');
+  if (!LEGAL_DOCS.includes(doc)) return next();
+  if (lang !== null && !LEGAL_LANGS.includes(lang)) return next();
+  const rel = lang ? path.join('legal', lang, doc + '.html')
+                   : path.join('legal', doc + '.html');
+  res.sendFile(path.join(PUBLIC_DIR, rel), (err) => {
+    if (err) next(err);
+  });
+}
+// /legal/<doc> → корневые (RU) документы
+app.get('/legal/:doc', (req, res, next) => {
+  serveLegal(null, req.params.doc, res, next);
+});
+// /legal/<lang>/<doc> → локализованные документы
+app.get('/legal/:lang/:doc', (req, res, next) => {
+  serveLegal(req.params.lang, req.params.doc, res, next);
+});
+
 // ── Статика + SPA fallback ─────────────────────────────────────────────────
 app.use(express.static(PUBLIC_DIR, {
   index: 'index.html',

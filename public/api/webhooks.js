@@ -57,22 +57,27 @@ async function handleBotWebhook(req, res) {
     return res.status(405).end();
   }
 
-  // Проверка подлинности запроса (каркас 12.3).
+  // Проверка подлинности запроса (каркас 12.3) — FAIL CLOSED.
   // Telegram при setWebhook с параметром secret_token присылает его обратно
   // в заголовке X-Telegram-Bot-Api-Secret-Token. Без этой проверки кто угодно,
   // зная URL вебхука, может прислать поддельный successful_payment и выдать
   // себе доступ + кристаллы.
-  // Проверка включается ТОЛЬКО когда задан TELEGRAM_WEBHOOK_SECRET — иначе
-  // ведём себя как раньше (чтобы ничего не сломать до настройки секрета).
+  // FAIL CLOSED: если секрет НЕ задан ИЛИ подпись не совпала — отказ (403),
+  // ничего не обрабатываем. Раньше при незаданном секрете обработка шла
+  // как обычно (fail-open) — это была дыра: форжатый платёж → бесплатный доступ.
   const webhookSecret = (process.env.TELEGRAM_WEBHOOK_SECRET || '').trim();
-  if (webhookSecret) {
+  if (!webhookSecret) {
+    console.error('[bot-webhook] TELEGRAM_WEBHOOK_SECRET is not set — refusing to process (fail closed)');
+    return res.status(403).json({ error: 'Webhook secret not configured' });
+  }
+  {
     const got = req.headers['x-telegram-bot-api-secret-token'] || '';
     const gotBuf = Buffer.from(String(got), 'utf8');
     const expBuf = Buffer.from(webhookSecret, 'utf8');
     const valid = gotBuf.length === expBuf.length && crypto.timingSafeEqual(gotBuf, expBuf);
     if (!valid) {
-      console.warn('[bot-webhook] Invalid secret token — ignoring request');
-      return res.status(200).end(); // 200, чтобы не провоцировать ретраи; запрос игнорируем
+      console.warn('[bot-webhook] Invalid secret token — rejecting request');
+      return res.status(403).json({ error: 'Invalid webhook signature' });
     }
   }
 
@@ -177,6 +182,10 @@ async function handleBotWebhook(req, res) {
           });
 
           console.log('[bot-webhook] applied (new schema):', result);
+          if (result.kind === 'duplicate') {
+            // Повторная доставка того же платежа — уже применён, ничего не делаем.
+            return res.status(200).end();
+          }
           notifyPaySuccess('Telegram Stars', `${result.kind === 'plan' ? 'Тариф' : 'Доп.'}: ${productKey}`, `${payment.total_amount}⭐`, telegramId, fromUser?.first_name);
 
           // Уведомление юзеру
@@ -209,6 +218,22 @@ async function handleBotWebhook(req, res) {
 
           if (!user) {
             console.error('[bot-webhook] User not found for telegram_id:', telegramId);
+            return res.status(200).end();
+          }
+
+          // Идемпотентность (каркас 12.3): повторная доставка того же
+          // successful_payment не должна повторно апгрейдить доступ и
+          // начислять +50 кристаллов. reason 'purchase_book' НЕ в FROZEN_REWARDS,
+          // поэтому без этого гейта каждый replay = +50 кристаллов. Помечаем
+          // платёж по telegram_payment_charge_id ДО начисления; если уже был —
+          // no-op. Тот же processed_payments-паттерн что и в новой схеме (plan_/addon_).
+          const { claimPayment } = require('./_lib/subscription_apply');
+          const bookClaim = await claimPayment(
+            'stars', payment.telegram_payment_charge_id, user.id, 'book',
+            { payload, amount: payment.total_amount, currency: payment.currency }
+          );
+          if (bookClaim.alreadyProcessed) {
+            console.log('[bot-webhook] duplicate book_full_access payment ignored:', payment.telegram_payment_charge_id);
             return res.status(200).end();
           }
 
@@ -602,8 +627,14 @@ async function handleYuppayWebhook(req, res) {
       rawBody = JSON.stringify(req.body);
     }
 
-    // Проверка HMAC подписи
-    if (webhookSecret) {
+    // Проверка HMAC подписи — FAIL CLOSED.
+    // Если секрет не задан — отказ (иначе кто угодно, зная URL, форжит
+    // payment.confirmed и получает бесплатный доступ + кристаллы).
+    if (!webhookSecret) {
+      console.error('[yuppay-webhook] YUPPAY_WEBHOOK_SECRET is not set — refusing to process (fail closed)');
+      return res.status(403).json({ error: 'Webhook secret not configured' });
+    }
+    {
       const signature = req.headers['x-yuppay-signature'] || '';
       const timestamp = req.headers['x-yuppay-timestamp'] || '';
 
@@ -717,6 +748,9 @@ async function handleYuppayWebhook(req, res) {
           }
         });
         console.log('[yuppay-webhook] applied (new schema):', result);
+        if (result.kind === 'duplicate') {
+          return res.status(200).json({ ok: true });
+        }
         notifyPaySuccess('DarAI', `${result.kind === 'plan' ? 'Тариф' : 'Доп.'}: ${metadata.product_key}`, 'DarAI', telegramChatId);
 
         try {
@@ -963,6 +997,9 @@ async function handleYookassaWebhook(req, res) {
           providerMetadata: { yookassa_payment_id: obj.id, email: userEmail }
         });
         console.log('[yookassa-webhook] applied (new schema):', result);
+        if (result.kind === 'duplicate') {
+          return res.status(200).json({ ok: true });
+        }
         notifyPaySuccess('ЮKassa (карта)', `${result.kind === 'plan' ? 'Тариф' : 'Доп.'}: ${metadata.product_key}`, `${amountValue}₽`, tgChatId, user.first_name);
 
         // Уведомление в Telegram

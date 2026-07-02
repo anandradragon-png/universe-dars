@@ -96,6 +96,45 @@ function resetOutdatedPeriods(row) {
   return updates;
 }
 
+// =====================================================================
+// ========== ANTI-CHEAT: серверные границы очков/кристаллов ============
+// =====================================================================
+// Клиент присылает points/won/streak/crystals_earned, но им доверять нельзя.
+// Сервер знает балансную таблицу игры (см. public/js/intuition-game.js MODES +
+// calculatePoints) и клампит присланные значения к максимуму, физически
+// достижимому на данном уровне сложности. За один submit = один раунд.
+//
+// Ключ уровня приходит без режима (classic vs multi имеют общие hard/expert),
+// поэтому берём МАКСИМУМ по обоим режимам — легитимные очки любого режима
+// проходят, накрутка сверх потолка режима режется.
+//
+// Формулы (макс. по режимам):
+//   points = pointsTry + pointsWin, затем ×(1..2) бонус серии (до +100%).
+//   medium: (1+15)=16  → ×2 = 32
+//   hard:   multi (5+50)=55  → ×2 = 110   (classic 3+25=28)
+//   expert: multi (8+80)=88  → ×2 = 176   (classic 5+40=45)
+//   easy/песочница: 0 (в рейтинг не идёт).
+//
+//   crystals за победу = base × (hitBuff?2:1) × (перваяИграДня?2:1) → до ×4.
+//   medium:3→12, hard:multi 12→48, expert:multi 20→80, easy:0.
+const INTUITION_LIMITS = {
+  easy:   { maxPoints: 0,   maxCrystals: 0  },
+  medium: { maxPoints: 32,  maxCrystals: 12 },
+  hard:   { maxPoints: 110, maxCrystals: 48 },
+  expert: { maxPoints: 176, maxCrystals: 80 },
+  // Незнакомый/устаревший ключ сложности — считаем как рейтинговую игру
+  // без наград: очки в рейтинг не идут, кристаллы 0. 'all' используется
+  // фронтом как дефолт до выбора уровня.
+  all:    { maxPoints: 0,   maxCrystals: 0  }
+};
+
+// Возвращает жёсткие серверные границы для уровня. Победа обязательна
+// для начисления кристаллов; при проигрыше очки сверх pointsTry невозможны,
+// но мы просто клампим к общему максимуму уровня (pointsTry входит в него).
+function intuitionBounds(difficulty) {
+  return INTUITION_LIMITS[difficulty] || INTUITION_LIMITS.all;
+}
+
 async function handleLeaderboard(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -209,10 +248,26 @@ async function handleLeaderboard(req, res) {
       const body = req.body || {};
       const points = body.points;
       const difficulty = body.difficulty || 'all';
-      const won = body.won;
+      const won = !!body.won;
       const streak = body.streak;
-      const crystalsEarned = Math.max(0, Math.min(1000, parseInt(body.crystals_earned, 10) || 0));
-      const addPoints = Math.max(0, Math.min(1000, parseInt(points, 10) || 0));
+
+      // ============ ANTI-CHEAT: серверный кламп очков/кристаллов ============
+      // Не доверяем клиентским points/crystals_earned/won. Берём жёсткие границы
+      // уровня и режем присланные значения к физически достижимому максимуму.
+      // Так легитимные результаты проходят как есть, а накрутка (гигантские очки,
+      // кристаллы за проигрыш, награда на песочнице) отсекается.
+      const bounds = intuitionBounds(difficulty);
+
+      // Очки: >=0, целые, не больше потолка уровня. Отрицательные/NaN → 0.
+      const rawPoints = parseInt(points, 10);
+      const addPoints = Math.max(0, Math.min(bounds.maxPoints, Number.isFinite(rawPoints) ? rawPoints : 0));
+
+      // Кристаллы: только при победе, >=0, целые, не больше потолка уровня.
+      // Проигрыш или песочница → 0 (клиентский crystals_earned игнорируем).
+      const rawCrystals = parseInt(body.crystals_earned, 10);
+      const crystalsEarned = won
+        ? Math.max(0, Math.min(bounds.maxCrystals, Number.isFinite(rawCrystals) ? rawCrystals : 0))
+        : 0;
 
       // ============ ЛИМИТ 5 РАУНДОВ В ДЕНЬ ДЛЯ БЕСПЛАТНОГО ТАРИФА ============
       // Подписчики (extended/premium) играют без ограничений.

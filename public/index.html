@@ -2853,8 +2853,19 @@
       st.textContent =
         '@keyframes onbPulse{0%,100%{box-shadow:0 0 0 3px rgba(212,175,55,.9),0 0 0 9999px rgba(6,6,6,.86),0 0 26px 6px rgba(212,175,55,.45)}50%{box-shadow:0 0 0 5px rgba(212,175,55,1),0 0 0 9999px rgba(6,6,6,.86),0 0 40px 12px rgba(212,175,55,.7)}}' +
         '@keyframes onbCardIn{from{opacity:0}to{opacity:1}}' +
+        // Покачивание маскота-дракончика Юпика в шапке карточки (как Юпик в Юпсоле — «живой»)
+        '@keyframes onbYupikBob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-3px) rotate(4deg)}}' +
         '#onb-spotlight{position:fixed;border-radius:16px;pointer-events:none;z-index:100001;transition:top .45s cubic-bezier(.4,0,.2,1),left .45s cubic-bezier(.4,0,.2,1),width .45s cubic-bezier(.4,0,.2,1),height .45s cubic-bezier(.4,0,.2,1);animation:onbPulse 1.8s ease-in-out infinite}' +
-        '#onb-card{animation:onbCardIn .35s ease both}';
+        '#onb-card{animation:onbCardIn .35s ease both}' +
+        // Маскот-дракончик Юпик — покачивается, с золотым свечением
+        '#onb-yupik{font-size:34px;line-height:1;transform-origin:50% 85%;animation:onbYupikBob 2.6s ease-in-out infinite;filter:drop-shadow(0 3px 8px rgba(212,175,55,.4))}' +
+        // Клювик-стрелка от карточки к подсвеченному элементу (ромб, показываем 2 грани)
+        '#onb-beak{position:absolute;width:14px;height:14px;background:#1a1108;border:1px solid rgba(212,175,55,.4);display:none;transform:rotate(45deg)}' +
+        '#onb-card.beak-up #onb-beak{display:block;top:-8px;border-right:none;border-bottom:none}' +
+        '#onb-card.beak-down #onb-beak{display:block;bottom:-8px;border-left:none;border-top:none}' +
+        // Мистический прогресс-бар (как в Юпсоле вместо точек)
+        '#onb-track{height:5px;border-radius:3px;background:rgba(212,175,55,.15);overflow:hidden}' +
+        '#onb-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#B8901F,#E8C84A);transition:width .4s cubic-bezier(.4,0,.2,1)}';
       document.head.appendChild(st);
     }
 
@@ -2875,15 +2886,22 @@
       card.id = 'onb-card';
       card.style.cssText = 'position:fixed;z-index:100002;width:calc(100% - 40px);max-width:360px;left:50%;top:50%;transform:translate(-50%,-50%);background:linear-gradient(160deg,#141007,#1e1608);border:1px solid rgba(212,175,55,0.4);border-radius:22px;padding:22px 20px 18px;box-shadow:0 20px 60px rgba(0,0,0,0.6);font-family:Manrope,sans-serif';
       card.innerHTML =
-        '<button onclick="skipOnboarding()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#8a7f60;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('skip', 'Пропустить') + '</button>' +
-        '<div style="font-size:10px;letter-spacing:1.5px;color:#8a7f60;text-transform:uppercase;margin-bottom:10px">' + _onbT('badge', 'Путеводитель') + '</div>' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
-          '<div id="onb-icon" style="font-size:32px;line-height:1"></div>' +
-          '<div id="onb-title" style="color:#D4AF37;font-size:18px;font-weight:700"></div>' +
+        '<div id="onb-beak"></div>' +
+        '<button onclick="skipOnboarding()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#8a7f60;font-size:12px;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('skip', 'Не нужно') + '</button>' +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">' +
+          '<div id="onb-yupik">🐉</div>' +
+          '<div>' +
+            '<div style="font-size:10px;letter-spacing:1.5px;color:#8a7f60;text-transform:uppercase;margin-bottom:2px">' + _onbT('badge', 'Путеводитель') + '</div>' +
+            '<div style="display:flex;align-items:center;gap:8px">' +
+              '<div id="onb-icon" style="font-size:22px;line-height:1"></div>' +
+              '<div id="onb-title" style="color:#D4AF37;font-size:17px;font-weight:700;line-height:1.2"></div>' +
+            '</div>' +
+          '</div>' +
         '</div>' +
         '<div id="onb-body" style="color:#e8ddc4;font-size:14px;line-height:1.6"></div>' +
-        '<div id="onb-dots" style="display:flex;gap:6px;margin:14px 0 14px"></div>' +
-        '<div style="display:flex;gap:10px">' +
+        '<div id="onb-track" style="margin:14px 0 12px"><div id="onb-fill" style="width:0%"></div></div>' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div id="onb-counter" style="font-size:11px;color:#8a7f60;font-weight:600;white-space:nowrap;min-width:42px"></div>' +
           '<button id="onb-back" onclick="onbPrev()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-dim);font-size:14px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('back', 'Назад') + '</button>' +
           '<button id="onb-next" onclick="onbNext()" style="flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#E8C84A,#B8901F);color:#080808;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif">' + _onbT('next', 'Далее') + '</button>' +
         '</div>';
@@ -2912,8 +2930,9 @@
       if (!spot || !card) return;
       const vw = window.innerWidth, vh = window.innerHeight;
       if (!_onbVisible(target)) {
-        // Нет цели — прячем спотлайт, карточку по центру.
+        // Нет цели — прячем спотлайт, карточку по центру, клювик убираем.
         spot.style.display = 'none';
+        card.classList.remove('beak-up', 'beak-down');
         card.style.top = '50%';
         card.style.bottom = 'auto';
         card.style.transform = 'translate(-50%,-50%)';
@@ -2928,19 +2947,33 @@
       spot.style.height = (r.height + pad * 2) + 'px';
       // Карточку ставим со свободной стороны от подсвеченного элемента.
       const targetCenterY = r.top + r.height / 2;
-      card.style.transform = 'none';
+      // центрируем по горизонтали через left+translateX
       card.style.left = '50%';
       card.style.marginLeft = '0';
-      // центрируем по горизонтали через left+translateX
       card.style.transform = 'translateX(-50%)';
-      if (targetCenterY < vh * 0.5) {
-        // цель в верхней половине → карточка снизу от неё
+      const below = targetCenterY < vh * 0.5;
+      if (below) {
+        // цель в верхней половине → карточка снизу от неё, клювик смотрит вверх
         card.style.top = Math.min(vh - 20, r.bottom + 16) + 'px';
         card.style.bottom = 'auto';
+        card.classList.add('beak-up');
+        card.classList.remove('beak-down');
       } else {
-        // цель в нижней половине → карточка сверху от неё
+        // цель в нижней половине → карточка сверху от неё, клювик смотрит вниз
         card.style.bottom = (vh - r.top + 16) + 'px';
         card.style.top = 'auto';
+        card.classList.add('beak-down');
+        card.classList.remove('beak-up');
+      }
+      // Клювик указывает на центр подсвеченного элемента по горизонтали.
+      const beak = document.getElementById('onb-beak');
+      if (beak) {
+        const cardW = Math.min(360, vw - 40);
+        const cardLeft = vw / 2 - cardW / 2;
+        const targetCenterX = r.left + r.width / 2;
+        const bx = Math.max(16, Math.min(targetCenterX - cardLeft - 7, cardW - 30));
+        beak.style.left = bx + 'px';
+        beak.style.right = 'auto';
       }
     }
 
@@ -2951,17 +2984,16 @@
       const iconEl = document.getElementById('onb-icon');
       const titleEl = document.getElementById('onb-title');
       const bodyEl = document.getElementById('onb-body');
-      const dotsEl = document.getElementById('onb-dots');
+      const fillEl = document.getElementById('onb-fill');
+      const counterEl = document.getElementById('onb-counter');
       const backEl = document.getElementById('onb-back');
       const nextEl = document.getElementById('onb-next');
       if (iconEl) iconEl.textContent = s.icon;
       if (titleEl) titleEl.textContent = s.title;
       if (bodyEl) bodyEl.textContent = s.body;
-      if (dotsEl) {
-        dotsEl.innerHTML = slides.map((_, i) =>
-          '<span style="width:' + (i === _onbStep ? '18px' : '6px') + ';height:6px;border-radius:3px;background:' + (i === _onbStep ? '#D4AF37' : 'rgba(212,175,55,0.3)') + ';transition:all .3s"></span>'
-        ).join('');
-      }
+      // Прогресс-бар + счётчик шагов (как в Юпсоле)
+      if (fillEl) fillEl.style.width = Math.round((_onbStep + 1) / slides.length * 100) + '%';
+      if (counterEl) counterEl.textContent = (_onbStep + 1) + ' ' + _onbT('of', 'из') + ' ' + slides.length;
       if (backEl) backEl.style.visibility = _onbStep === 0 ? 'hidden' : 'visible';
       if (nextEl) nextEl.textContent = _onbStep === slides.length - 1
         ? _onbT('start', 'Начать')

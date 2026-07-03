@@ -143,21 +143,52 @@ async function ensureTrialAccess(user) {
   if (user.is_admin || user.is_blocked) return user; // им триал не нужен
   const db = getSupabase();
 
-  // Гард: выдаём ровно один раз за всё время — смотрим журнал подписок.
+  const now = Date.now();
+
+  // Гард: триал выдаётся ровно один раз — смотрим журнал подписок.
+  // Берём время выдачи, чтобы уметь САМОВОССТАНАВЛИВАТЬ доступ: если запись
+  // в users по какой-то причине сбросилась в basic (сбой/чужая правка), но
+  // 7-дневное окно ещё не прошло — возвращаем премиум, не выдавая новый триал.
   try {
     const { data: prior } = await db
       .from('subscription_log')
-      .select('id')
+      .select('id, event_type, created_at')
       .eq('user_id', user.id)
       .in('event_type', ['trial', 'trial_bonus'])
+      .order('created_at', { ascending: false })
       .limit(1);
-    if (prior && prior.length) return user; // уже выдавали — больше никогда
+    if (prior && prior.length) {
+      const grant = prior[0];
+      const grantedAt = grant.created_at ? new Date(grant.created_at).getTime() : 0;
+      const windowEnd = grantedAt + TRIAL_MS;
+      // Самолечение ТОЛЬКО для чистого триала (не для платных бонусников —
+      // у них свой тариф). Окно ещё активно, а уровень слетел в basic → чиним.
+      const stillInWindow = grantedAt && windowEnd > now;
+      const droppedToBasic = (!user.access_level || user.access_level === 'basic');
+      const noActivePaid = !(user.subscription_end
+        && new Date(user.subscription_end).getTime() > now
+        && user.subscription_plan && user.subscription_plan !== 'trial_7d');
+      if (grant.event_type === 'trial' && stillInWindow && droppedToBasic && noActivePaid) {
+        try {
+          const endISO = new Date(windowEnd).toISOString();
+          await db.from('users').update({
+            access_level: 'premium', subscription_plan: 'trial_7d',
+            subscription_start: new Date(grantedAt).toISOString(), subscription_end: endISO
+          }).eq('id', user.id);
+          user.access_level = 'premium';
+          user.subscription_plan = 'trial_7d';
+          user.subscription_start = new Date(grantedAt).toISOString();
+          user.subscription_end = endISO;
+          console.log('[trial] self-healed premium for user', user.id);
+        } catch (e) { console.warn('[trial] self-heal failed:', e.message); }
+      }
+      return user; // триал уже выдавали — нового не создаём
+    }
   } catch (e) {
     console.warn('[trial] guard check failed:', e.message);
     return user; // при ошибке не рискуем повторной выдачей
   }
 
-  const now = Date.now();
   const nowISO = new Date(now).toISOString();
   const paidEnd = user.subscription_end ? new Date(user.subscription_end).getTime() : 0;
   const hasActivePaid = paidEnd > now

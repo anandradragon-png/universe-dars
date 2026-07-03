@@ -57,6 +57,45 @@
   <script>
   (function() {
     var BUILD = '20260703-8bb74a4'; // = public/version.txt; бампить вместе с токеном ?v=
+    // Стереть все HTTP-кэши WebView (Cache API + любые service worker'ы).
+    // Их сейчас нет, но если когда-нибудь появятся — старые ассеты не должны
+    // пережить перезагрузку. Возвращает промис, который никогда не реджектится.
+    function purgeCaches() {
+      var jobs = [];
+      try {
+        if (window.caches && caches.keys) {
+          jobs.push(caches.keys().then(function(keys) {
+            return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+          }).catch(function() {}));
+        }
+      } catch (e) {}
+      try {
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+          jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs) {
+            return Promise.all(rs.map(function(r) { return r.unregister(); }));
+          }).catch(function() {}));
+        }
+      } catch (e) {}
+      return Promise.all(jobs).catch(function() {});
+    }
+    // Жёсткая перезагрузка на свежий HTML. Каждая попытка — УНИКАЛЬНЫЙ URL
+    // (таймстамп), иначе Telegram WebView может отдать даже ?_v=<версия> из
+    // кэша и обновление зациклится. Старый _v= из адреса срезаем, чтобы URL
+    // не разрастался и оставался предсказуемым.
+    function hardReload(server) {
+      try {
+        var search = (location.search || '').replace(/[?&]_v=[^&]*/g, '').replace(/^&/, '?');
+        if (search && search.charAt(0) !== '?') search = '?' + search;
+        var sep = search ? '&' : '?';
+        var buster = server + '.' + Date.now();
+        var target = location.pathname + search + sep + '_v=' + buster + (location.hash || '');
+        purgeCaches().then(function() { location.replace(target); });
+        // Подстраховка: если purge завис — всё равно уходим через 1.2с.
+        setTimeout(function() { try { location.replace(target); } catch (e) {} }, 1200);
+      } catch (e) {
+        try { location.reload(); } catch (e2) {}
+      }
+    }
     // Сверка с сервером + автоперезагрузка на свежий HTML, если версия новее.
     function checkVersion() {
       try {
@@ -65,18 +104,32 @@
           .then(function(txt) {
             if (!txt) return;
             var server = txt.trim();
-            if (!server || server === BUILD) return;     // версия актуальна — ничего не делаем
-            // Анти-петля: не перезагружаемся чаще раза в 30 секунд для одной версии.
-            // Используем localStorage+TTL вместо sessionStorage — sessionStorage
-            // в Telegram WebView может сохраняться между запусками и навсегда
-            // блокировать следующие обновления.
+            if (!server || server === BUILD) {
+              // Версия совпала — сбрасываем счётчик попыток для чистого старта.
+              try { localStorage.removeItem('_vtry_' + server); } catch (e) {}
+              return;
+            }
+            // Анти-петля: не перезагружаемся чаще раза в 20 секунд для одной версии.
+            // localStorage+TTL (sessionStorage в Telegram WebView может пережить
+            // перезапуск и навсегда заблокировать обновление).
             var reloadKey = '_vreload_' + server;
             var lastTime = parseInt(localStorage.getItem(reloadKey) || '0');
-            if (Date.now() - lastTime < 30000) return;
+            if (Date.now() - lastTime < 20000) return;
             localStorage.setItem(reloadKey, String(Date.now()));
-            // Уникальный параметр → новый URL → Telegram грузит свежий HTML.
-            var sep = location.search ? '&' : '?';
-            location.replace(location.pathname + location.search + sep + '_v=' + server + (location.hash || ''));
+            // Счётчик попыток на эту версию. Если за 3 захода HTML так и не
+            // обновился (кэш особо упорный) — эскалация: чистим ВСЕ наши флаги
+            // версий, чтобы следующая перезагрузка стартовала с нуля.
+            var tryKey = '_vtry_' + server;
+            var tries = parseInt(localStorage.getItem(tryKey) || '0') + 1;
+            localStorage.setItem(tryKey, String(tries));
+            if (tries >= 3) {
+              try {
+                Object.keys(localStorage).forEach(function(k) {
+                  if (k.indexOf('_vreload_') === 0) localStorage.removeItem(k);
+                });
+              } catch (e) {}
+            }
+            hardReload(server);
           })
           .catch(function() {});
       } catch (e) {}

@@ -1,0 +1,56 @@
+name: Supabase Run
+
+# Постоянный канал Claude к базе Supabase БЕЗ участия человека.
+# Запуск: gh workflow run "Supabase Run" -f script_b64="<base64 JS>"
+# Скрипт получает готовый клиент `db` (supabase-js, service-ключ из секрета)
+# и печатает что угодно в лог. Результат читается: gh run view <id> --log
+# Ключ SUPABASE_SERVICE_KEY здесь — тот же боевой, что раскатывается на прод.
+
+on:
+  workflow_dispatch:
+    inputs:
+      script_b64:
+        description: "Node.js скрипт в base64 (доступна переменная db = supabase-js client)"
+        required: true
+        type: string
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install supabase-js
+        run: npm init -y >/dev/null 2>&1 && npm install @supabase/supabase-js@2 >/dev/null 2>&1
+
+      - name: Run script
+        env:
+          SUPABASE_URL: https://cmqiwivdjzyieekyxtar.supabase.co
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SCRIPT_B64: ${{ inputs.script_b64 }}
+        run: |
+          echo "$SCRIPT_B64" | base64 -d > _claude_script.js
+          echo "===== SCRIPT ====="
+          cat _claude_script.js
+          echo "===== OUTPUT ====="
+          node -e '
+            const { createClient } = require("@supabase/supabase-js");
+            const url = process.env.SUPABASE_URL;
+            const key = process.env.SUPABASE_SERVICE_KEY;
+            if (!url || !key) { console.error("НЕТ SUPABASE_URL/KEY в секретах"); process.exit(1); }
+            const db = createClient(url, key, { auth: { persistSession: false } });
+            globalThis.db = db;
+            const user_code = require("fs").readFileSync("_claude_script.js", "utf8");
+            (async () => {
+              try {
+                const fn = new Function("db", "require", "return (async () => {" + user_code + "})()");
+                await fn(db, require);
+              } catch (e) {
+                console.error("ОШИБКА:", e && e.message ? e.message : e);
+                process.exit(1);
+              }
+            })();
+          '

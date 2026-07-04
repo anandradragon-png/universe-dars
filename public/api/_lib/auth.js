@@ -145,7 +145,7 @@ function getUser(req, opts = {}) {
       };
     }
 
-    // Положительный id из НЕподписанного хедера — только в dev-режиме.
+    // Положительный id из НЕподписанного хедера.
     if (devHeaderAuthAllowed()) {
       return {
         id,
@@ -156,9 +156,31 @@ function getUser(req, opts = {}) {
       };
     }
 
-    // Прод: положительный id без подписи — вектор подмены. Отказ.
-    console.warn('[auth] Rejected unsigned positive x-telegram-id in production');
-    return { error: 'unsigned_id_rejected' };
+    // Строгий путь (админка/деньги, opts.strictId=true): положительный id без
+    // подписи — вектор подмены (telegram_id публичны, можно выдать себя за
+    // чужого/админа и получить права/деньги). Отказ. Каркас 3.1 — не доверять фронту.
+    if (opts.strictId) {
+      console.warn('[auth] Rejected unsigned positive x-telegram-id (strict path)');
+      return { error: 'unsigned_id_rejected' };
+    }
+
+    // Нестрогий путь (профиль/контент/цены/промо): Telegram при части способов
+    // открытия Mini App (перезапуск из истории, отдельные типы ссылок/кнопок)
+    // отдаёт initDataUnsafe.user.id, но ПУСТОЙ initData — клиент шлёт
+    // положительный x-telegram-id БЕЗ подписи. Это ШТАТНЫЙ сценарий, не атака.
+    // Без его приёма живой юзер получает 401 → профиль не грузится → весь
+    // доступ «слетает под замок» (инцидент 04.07.2026, регрессия PR #36).
+    // Пускаем как identity НИЗКОГО доверия: только под этот id, только для
+    // нестрогих операций. Привилегии (админка) и деньги идут строгим путём
+    // (strictId=true) и сюда не попадают.
+    return {
+      id,
+      first_name: '',
+      last_name: '',
+      username: '',
+      auth_date: Math.floor(Date.now() / 1000),
+      low_trust: true
+    };
   }
 
   return null;
@@ -185,8 +207,11 @@ function getUser(req, opts = {}) {
  */
 function requireUser(req, res, strict = false) {
   // strict — только свежая подпись; non-strict — допускаем HMAC-валидную,
-  // но устаревшую подпись (softInitData) и гостевой отрицательный id.
-  const result = getUser(req, { softInitData: !strict });
+  // но устаревшую подпись (softInitData), гостевой отрицательный id и
+  // положительный НЕподписанный id (Telegram-перезапуск без initData) как
+  // low-trust. strict дополнительно требует strictId=true — отвергает любой
+  // неподписанный положительный id (защита админки/повышения прав/денег).
+  const result = getUser(req, { softInitData: !strict, strictId: strict });
   if (result && result.id) {
     // strict-гейт: гостевой веб-вход (отрицательный id) НЕ является Telegram-
     // подписью, поэтому в строгом режиме (админка/деньги) его не пускаем.

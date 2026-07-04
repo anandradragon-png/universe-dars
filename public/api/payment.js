@@ -76,9 +76,12 @@ module.exports = async (req, res) => {
     // Настоящая проверка происходит в webhook при successful_payment.
     // softInitData: допускаем HMAC-валидную, но устаревшую подпись, а также
     // гостевой отрицательный _web_uid. НЕ доверяем не-подписанному user из
-    // initData и положительному x-telegram-id в проде (см. auth.js).
+    // initData. strictId=true: деньги/скидки завязаны на identity, поэтому
+    // положительный НЕподписанный x-telegram-id здесь ЗАПРЕЩЁН (вектор подмены —
+    // применить скидку/создать инвойс от чужого id). Это отличается от
+    // нестрогих путей (профиль/контент), где такой id пускается low-trust.
     const { getUser } = require('./_lib/auth');
-    let tgUser = getUser(req, { softInitData: true });
+    let tgUser = getUser(req, { softInitData: true, strictId: true });
     let user = null;
 
     if (tgUser && tgUser.id) {

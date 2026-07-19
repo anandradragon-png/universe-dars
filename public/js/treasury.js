@@ -1248,9 +1248,11 @@ const Treasury = (function() {
   }
 
   function startHeroJourney() {
-    // Запускаем путешествие для своего дара
-    if (userDarCode && typeof HeroJourney !== 'undefined') {
-      HeroJourney.render(userDarCode);
+    // Запускаем путешествие для своего дара.
+    // hero-journey.js грузится ЛЕНИВО — идём через window.openHeroJourney,
+    // которая сама подгружает модуль перед рендером.
+    if (userDarCode && typeof window.openHeroJourney === 'function') {
+      window.openHeroJourney(userDarCode);
     } else {
       if (typeof showToast === 'function') showToast(_t('treasury.calc_first', 'Сначала рассчитай свой дар'), 'warning');
     }

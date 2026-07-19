@@ -33,8 +33,11 @@ function notifyPayAttempt(provider, item, priceText, user, telegramId) {
 }
 
 // YupPay (DarAI/NEAR) - Supabase Edge Function
+// Ключ — публичный anon-ключ проекта YuPay. Берём из env (YUPPAY_ANON_KEY),
+// с фолбэком на прежнее значение, чтобы платежи не сломались до установки env.
+// После установки YUPPAY_ANON_KEY на сервере фолбэк можно удалить.
 const YUPPAY_API_URL = 'https://jkjgpbawhxtafmwsrseb.supabase.co/functions/v1/yuppay-api';
-const YUPPAY_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpramdwYmF3aHh0YWZtd3Nyc2ViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzMDA3NjgsImV4cCI6MjA3NTg3Njc2OH0.Il2w6Vd40hGnosvI0QJKn2bHlZNrNvnl7UZxB92_vAQ';
+const YUPPAY_ANON_KEY = process.env.YUPPAY_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpramdwYmF3aHh0YWZtd3Nyc2ViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzMDA3NjgsImV4cCI6MjA3NTg3Njc2OH0.Il2w6Vd40hGnosvI0QJKn2bHlZNrNvnl7UZxB92_vAQ';
 
 // Раздельные вшитые цены на Книгу удалены 02.07.2026 — теперь все валюты
 // (кроме ₽) считаются ЖИВО из ₽-базы pricing.BOOK_PRODUCT.rub тем же helper'ом,

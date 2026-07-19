@@ -117,6 +117,19 @@ app.get('/legal/:lang/:doc', (req, res, next) => {
   serveLegal(req.params.lang, req.params.doc, res, next);
 });
 
+// ── Защита: не отдавать исходники и зависимости по HTTP ────────────────────
+// Все реальные /api/* маршруты обработаны выше и до сюда НЕ доходят.
+// Значит любой запрос к /api/... или /node_modules/..., долетевший сюда, —
+// это попытка скачать исходник обработчика (напр. /api/payment.js,
+// /api/_lib/auth.js) или файл зависимости. Отдаём 404, а не файл.
+// (ЗАКОН 5 RULES.md: серверный код и node_modules не доступны наружу.)
+app.use((req, res, next) => {
+  if (/^\/(api|node_modules)(\/|$)/i.test(req.path)) {
+    return res.status(404).send('Not found');
+  }
+  next();
+});
+
 // ── Статика + SPA fallback ─────────────────────────────────────────────────
 app.use(express.static(PUBLIC_DIR, {
   index: 'index.html',

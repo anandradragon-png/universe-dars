@@ -1735,9 +1735,9 @@
   <script src="js/treasury.js?v=20260719-37d7a25"></script>
   <script src="js/referral.js?v=20260719-37d7a25"></script>
   <script src="js/book-reader.js?v=20260719-37d7a25"></script>
-  <script src="js/intuition-game.js?v=20260719-37d7a25"></script>
-  <script src="js/atlantis-game.js?v=20260719-37d7a25"></script>
-  <script src="js/hero-journey.js?v=20260719-37d7a25"></script>
+  <!-- intuition-game / atlantis-game / hero-journey грузятся ЛЕНИВО по клику
+       (loadModuleOnce), а не на старте — экономия ~193 КБ JS при первой загрузке.
+       Кэш-бастинг сохранён: загрузчик берёт актуальный ?v= из тега api-client. -->
   <script src="js/share-card.js?v=20260719-37d7a25"></script>
   <script src="js/humor-card.js?v=20260719-37d7a25"></script>
   <script src="js/daily-dar.js?v=20260719-37d7a25"></script>
@@ -4866,12 +4866,35 @@
     }
     window.goToMyDarInBook = goToMyDarInBook;
 
+    // Ленивая подгрузка тяжёлых модулей (игры) по требованию.
+    // Кэш промисов: один модуль грузится ровно один раз.
+    // Токен ?v= берём из уже подключённого тега api-client — его бампит CI,
+    // значит кэш-бастинг сохраняется и для лениво загружаемых скриптов.
+    const _moduleCache = {};
+    function _assetVer() {
+      const s = document.querySelector('script[src*="api-client.js?v="]');
+      const m = s && s.src.match(/\?v=([^"&]+)/);
+      return m ? m[1] : '';
+    }
+    function loadModuleOnce(file) {
+      if (_moduleCache[file]) return _moduleCache[file];
+      _moduleCache[file] = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        const v = _assetVer();
+        s.src = 'js/' + file + (v ? '?v=' + v : '');
+        s.onload = () => resolve();
+        s.onerror = () => { delete _moduleCache[file]; reject(new Error('load fail ' + file)); };
+        document.head.appendChild(s);
+      });
+      return _moduleCache[file];
+    }
+
     function openHeroJourney(code, name) {
-      try {
-        if (typeof HeroJourney !== 'undefined') {
-          HeroJourney.render(code, name);
-        }
-      } catch(e) { console.error('openHeroJourney error:', e); }
+      loadModuleOnce('hero-journey.js')
+        .then(() => {
+          if (typeof HeroJourney !== 'undefined') HeroJourney.render(code, name);
+        })
+        .catch(e => console.error('openHeroJourney error:', e));
     }
     window.openHeroJourney = openHeroJourney;
 
@@ -5863,7 +5886,9 @@
       if (mode === 'intuition') {
         hub.style.display = 'none';
         active.style.display = 'block';
-        if (typeof IntuitionGame !== 'undefined') IntuitionGame.render();
+        loadModuleOnce('intuition-game.js')
+          .then(() => { if (typeof IntuitionGame !== 'undefined') IntuitionGame.render(); })
+          .catch(e => console.error('intuition load error:', e));
       } else if (mode === 'pvp') {
         if (typeof showToast === 'function') showToast(((window.i18n && i18n.t && i18n.t('games.battles_soon')) || 'Батлы с друзьями появятся скоро! Пока можно сразиться с AI-Юпиком.'), 'info');
       }
@@ -5875,7 +5900,9 @@
       const active = document.getElementById('game-active');
       if (hub) hub.style.display = 'none';
       if (active) active.style.display = 'block';
-      if (typeof AtlantisGame !== 'undefined') AtlantisGame.start();
+      loadModuleOnce('atlantis-game.js')
+        .then(() => { if (typeof AtlantisGame !== 'undefined') AtlantisGame.start(); })
+        .catch(e => console.error('atlantis load error:', e));
     }
     window.openAtlantisGame = openAtlantisGame;
 

@@ -16,6 +16,7 @@ const pricing = require('./_lib/pricing');
 const rates = require('./_lib/rates');
 const { notifyAdmin, logEvent, escapeHtml } = require('./_lib/notify');
 const subApply = require('./_lib/subscription_apply');
+const rateLimit = require('./_lib/ratelimit');
 
 // Тип А: попытка оплаты — счёт/ссылка на оплату успешно создан(а).
 // Fire-and-forget: не ждём и не роняем ответ юзеру.
@@ -72,6 +73,10 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-telegram-init-data, x-telegram-id');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Rate-limit создания инвойсов: 15 в минуту на клиента. Живой человек столько
+  // счетов не создаёт — режется только автоматический флуд платёжного шлюза.
+  if (!rateLimit.enforce(req, res, { bucket: 'payment', limit: 15, windowMs: 60000 })) return;
 
   try {
     // Мягкая авторизация: пробуем получить юзера, но если не удалось —

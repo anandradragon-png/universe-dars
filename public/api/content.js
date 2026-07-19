@@ -20,6 +20,7 @@ const pricing = require('./_lib/pricing');
 const language = require('./_lib/language');
 const { logEvent } = require('./_lib/notify');
 const { getUser, requireUser, validateTelegramData, devHeaderAuthAllowed } = require('./_lib/auth');
+const rateLimit = require('./_lib/ratelimit');
 
 // ===== Общие загрузки =====
 const fieldsData = require('../fields.json');
@@ -1028,6 +1029,12 @@ module.exports = async (req, res) => {
   if (type === 'maintenance' || url.includes('/maintenance')) {
     return handleMaintenance(req, res);
   }
+
+  // Rate-limit только для дорогих AI-генераций (не для фонового maintenance).
+  // 20 запросов в минуту на клиента — живой человек столько не кликает,
+  // режется только автоматический флуд (защита квоты LLM). Аудит 19.07.2026.
+  if (!rateLimit.enforce(req, res, { bucket: 'ai', limit: 20, windowMs: 60000 })) return;
+
   if (type === 'sandbox-message' || url.includes('/sandbox-message')) {
     return handleSandboxMessage(req, res);
   }

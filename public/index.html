@@ -1739,7 +1739,7 @@
        (loadModuleOnce), а не на старте — экономия ~193 КБ JS при первой загрузке.
        Кэш-бастинг сохранён: загрузчик берёт актуальный ?v= из тега api-client. -->
   <script src="js/share-card.js?v=20260719-1563d0c"></script>
-  <script src="js/humor-card.js?v=20260719-1563d0c"></script>
+  <!-- humor-card грузится ЛЕНИВО по клику (openHumorShareCard → loadModuleOnce). -->
   <script src="js/daily-dar.js?v=20260719-1563d0c"></script>
   <script>
     const tg = window.Telegram?.WebApp;
@@ -3918,22 +3918,21 @@
       }
     }
 
-    // Открыть модалку с карточкой стендапа для соцсетей (QR + реф-ссылка)
+    // Открыть модалку с карточкой стендапа для соцсетей (QR + реф-ссылка).
+    // humor-card.js грузится лениво по клику (не на старте) — экономия ~24 КБ.
     function openHumorShareCard() {
-      try {
-        if (window.HumorCard && typeof window.HumorCard.openModal === 'function') {
-          window.HumorCard.openModal();
-        } else {
-          if (typeof showToast === 'function') {
-            showToast('Модуль карточек ещё загружается, попробуй через секунду', 'error');
+      loadModuleOnce('humor-card.js')
+        .then(() => {
+          if (window.HumorCard && typeof window.HumorCard.openModal === 'function') {
+            window.HumorCard.openModal();
           }
-        }
-      } catch (e) {
-        console.error('openHumorShareCard error:', e);
-        if (typeof showToast === 'function') {
-          showToast('Не получилось открыть карточку: ' + e.message, 'error');
-        }
-      }
+        })
+        .catch((e) => {
+          console.error('openHumorShareCard error:', e);
+          if (typeof showToast === 'function') {
+            showToast('Не получилось открыть карточку: ' + e.message, 'error');
+          }
+        });
     }
 
     window.openHumorOverlay = openHumorOverlay;

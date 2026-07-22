@@ -117,6 +117,64 @@ async function handleBotWebhook(req, res) {
       return res.status(200).end();
     }
 
+    // ========== CALLBACK_QUERY (кнопки под сообщениями) ==========
+    // Пока обслуживает только утреннюю рассылку «Дар дня»:
+    //   dailydar_off — отписка от утренних сообщений
+    //   dailydar_on  — включить обратно
+    // Отписываем именно от рассылки (флаг users.daily_dar_optout), а НЕ блокируем
+    // бота целиком — иначе теряются оплаты/поддержка/уведомления.
+    if (update.callback_query) {
+      const cq = update.callback_query;
+      const data = cq.data || '';
+      const tgId = cq.from?.id;
+
+      if (data === 'dailydar_off' || data === 'dailydar_on') {
+        const optout = (data === 'dailydar_off');
+        try {
+          const db = getSupabase();
+          if (tgId) {
+            await db.from('users').update({ daily_dar_optout: optout }).eq('telegram_id', tgId);
+          }
+        } catch (e) {
+          console.error('[bot-webhook] dailydar optout update failed:', e.message);
+        }
+
+        // Всплывашка-подтверждение
+        try {
+          await callTelegramAPI('answerCallbackQuery', {
+            callback_query_id: cq.id,
+            text: optout
+              ? 'Утренние сообщения отключены'
+              : 'Утренние сообщения снова включены'
+          });
+        } catch (e) {}
+
+        // Перерисовываем клавиатуру: показываем противоположное действие
+        try {
+          const chatId = cq.message?.chat?.id;
+          const msgId = cq.message?.message_id;
+          if (chatId && msgId) {
+            const newBtn = optout
+              ? { text: '🔔 Включить утренние сообщения', callback_data: 'dailydar_on' }
+              : { text: '🔕 Отключить утренние сообщения', callback_data: 'dailydar_off' };
+            await callTelegramAPI('editMessageReplyMarkup', {
+              chat_id: chatId,
+              message_id: msgId,
+              reply_markup: { inline_keyboard: [[newBtn]] }
+            });
+          }
+        } catch (e) {}
+
+        return res.status(200).end();
+      }
+
+      // Прочие callback — просто закрываем «часики»
+      try {
+        await callTelegramAPI('answerCallbackQuery', { callback_query_id: cq.id });
+      } catch (e) {}
+      return res.status(200).end();
+    }
+
     // ========== SUCCESSFUL_PAYMENT ==========
     if (update.message && update.message.successful_payment) {
       const payment = update.message.successful_payment;

@@ -7817,6 +7817,18 @@
           setTimeout(() => { try { window.buyBookChoice(); } catch (e) {} }, 1200);
         } else if (sp === 'book' && typeof window.switchNav === 'function') {
           setTimeout(() => { try { window.switchNav('book'); } catch (e) {} }, 1200);
+        } else if (sp === 'dailydar') {
+          // Открыт из утренней рассылки «Дар дня» → замеряем клик и ведём
+          // сразу на личный Дар дня.
+          try { fetch(`${API_URL}/api/daily?ev=open&src=dailydar`).catch(() => {}); } catch (e) {}
+          setTimeout(() => {
+            try {
+              if (typeof DailyDar !== 'undefined') {
+                DailyDar.open();
+                setTimeout(() => { try { DailyDar.switchTab('personal'); } catch (e) {} }, 100);
+              }
+            } catch (e) {}
+          }, 1200);
         }
       } catch (e) {}
     });

@@ -72,6 +72,7 @@ rewrite('/api/admin-feedback',   './public/api/feedback',      { action: 'admin'
 app.all('/api/user',         require('./public/api/user'));
 app.all('/api/content',      require('./public/api/content'));
 app.all('/api/daily',        require('./public/api/daily'));
+app.all('/api/daily-dar-broadcast', require('./public/api/daily-dar-broadcast'));
 app.all('/api/diary',        require('./public/api/diary'));
 app.all('/api/feedback',     require('./public/api/feedback'));
 app.all('/api/game-actions', require('./public/api/game-actions'));
@@ -178,6 +179,24 @@ cron.schedule('0 6 * * *', async () => {
   };
   try { await dailySummaryHandler(fakeReq, fakeRes); }
   catch(e) { console.error('[cron] daily-summary error:', e.message); }
+});
+
+// ── Cron: рассылка «Дар дня» по будням в 07:00 МСК (04:00 UTC) ─────────────
+// Пн-Пт (1-5): по выходным не шлём. Идемпотентность и метрики — внутри
+// обработчика (журнал daily_broadcast_log по send_date).
+const dailyDarBroadcastHandler = require('./public/api/daily-dar-broadcast');
+cron.schedule('0 4 * * 1-5', async () => {
+  const fakeReq = {
+    headers: { authorization: `Bearer ${process.env.CRON_SECRET || ''}` },
+    query: {}, method: 'POST'
+  };
+  const fakeRes = {
+    status() { return this; },
+    json(d)  { console.log('[cron] daily-dar broadcast:', JSON.stringify(d)); return this; },
+    end()    { return this; }
+  };
+  try { await dailyDarBroadcastHandler(fakeReq, fakeRes); }
+  catch(e) { console.error('[cron] daily-dar broadcast error:', e.message); }
 });
 
 // ── Старт ──────────────────────────────────────────────────────────────────

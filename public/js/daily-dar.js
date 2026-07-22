@@ -31,6 +31,61 @@ const DailyDar = (function() {
       .catch(() => { _darContent = {}; return {}; });
   }
 
+  // --- Загрузка контента «Дар дня» (сферы + практики по КУН-полю) ---
+  // Тот же источник, что и в утренней рассылке — public/daily-dar-content.json.
+  let _dailyContent = null;
+  function loadDailyContent() {
+    if (_dailyContent) return Promise.resolve(_dailyContent);
+    return fetch('daily-dar-content.json' + (window.BUILD ? ('?v=' + window.BUILD) : ''))
+      .then(r => r.json())
+      .then(data => { _dailyContent = data; return data; })
+      .catch(() => { _dailyContent = {}; return {}; });
+  }
+
+  // Свёрнутый блок «в сферах жизни» — для личного Дара дня. По закону
+  // минимального экрана открывается по клику. Сферы берутся по КУН-полю кода.
+  function renderSpheresBlock(targetId, code) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    loadDailyContent().then(content => {
+      const meta = content && content.meta;
+      const byKun = meta && meta.spheres_by_kun;
+      const labels = (meta && meta.spheres) || [];
+      const kun = parseInt(String(code).split('-')[2], 10);
+      const set = byKun && byKun[kun];
+      if (!set || !labels.length) return;
+      let rows = '';
+      labels.forEach(s => {
+        const txt = set[s.key];
+        if (!txt) return;
+        rows += `<div style="padding:10px 0;border-top:1px solid rgba(255,255,255,0.05)">
+          <div style="font-size:13px;color:#D4AF37;margin-bottom:3px">${s.emoji || ''} ${_esc(s.label)}</div>
+          <div style="font-size:13px;color:#e0e0e0;line-height:1.6">${_esc(txt)}</div>
+        </div>`;
+      });
+      if (!rows) return;
+      const title = (window.i18n && i18n.t && i18n.t('daily.spheres_title')) || 'Как день проявится в сферах жизни';
+      el.innerHTML = `
+        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+          <button type="button" id="daily-spheres-trigger" onclick="DailyDar.toggleSpheres()"
+            style="width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:none;color:#D4AF37;font-family:Manrope,sans-serif;font-size:13px;letter-spacing:0.5px;cursor:pointer;padding:0">
+            <span>🌈 ${_esc(title)}</span>
+            <span id="daily-spheres-arrow" style="transition:transform 0.2s">▾</span>
+          </button>
+          <div id="daily-spheres-body" style="display:none;margin-top:8px">${rows}</div>
+        </div>`;
+    });
+  }
+
+  function toggleSpheres() {
+    const body = document.getElementById('daily-spheres-body');
+    const arrow = document.getElementById('daily-spheres-arrow');
+    if (!body) return;
+    const open = body.style.display === 'block';
+    body.style.display = open ? 'none' : 'block';
+    if (arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+  }
+
   // --- Редукция числа к одной цифре (1-9) ---
   function reduce(n) {
     while (n > 9) n = n.toString().split('').reduce((s,d) => s + parseInt(d), 0);
@@ -790,9 +845,11 @@ const DailyDar = (function() {
     let html = `<div style="text-align:center;font-size:12px;color:var(--text-muted);letter-spacing:2px;margin-bottom:14px">${dateStr}</div>`;
     html += renderDarCard(personalDar.code, ((window.i18n && i18n.t && i18n.t('daily.your_dar_of_day')) || 'ТВОЙ ДАР ДНЯ'), null, true);
     html += `<div id="oracle-personal-result"></div>`;
+    html += `<div id="daily-personal-spheres"></div>`;
 
     container.innerHTML = html;
     loadProphecy('oracle-personal-result', personalDar.code, 'personal');
+    renderSpheresBlock('daily-personal-spheres', personalDar.code);
   }
 
   // === Навигация ===
@@ -841,7 +898,7 @@ const DailyDar = (function() {
     }
   }
 
-  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook, togglePresets, pickPresetQuery };
+  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook, togglePresets, pickPresetQuery, toggleSpheres };
 })();
 
 // Экспортируем в window — нужен для api-client.js (Оракул для родственника

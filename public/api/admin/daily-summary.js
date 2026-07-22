@@ -99,6 +99,23 @@ module.exports = async (req, res) => {
     }
   } catch (e) { topDarsLine = '—'; }
 
+  // — Утренняя рассылка «Дар дня»: сегодняшний журнал + клики по метке —
+  const dailyOpens = await countEvents(db, 'dailydar_open', sinceIso);
+  let broadcastLine = null;
+  try {
+    const todayMsk = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10);
+    const { data: bl } = await db
+      .from('daily_broadcast_log')
+      .select('sent, failed, blocked, recipients, dar_code')
+      .eq('send_date', todayMsk)
+      .maybeSingle();
+    if (bl) {
+      broadcastLine = `отправлено ${bl.sent}/${bl.recipients}` +
+        (bl.blocked ? `, заблокировали ${bl.blocked}` : '') +
+        (bl.failed ? `, ошибок ${bl.failed}` : '');
+    }
+  } catch (e) { broadcastLine = null; }
+
   // Хелпер отрисовки числа (null → «нет данных»)
   const v = function (n) { return n === null ? 'нет данных' : String(n); };
 
@@ -112,6 +129,8 @@ module.exports = async (req, res) => {
     `📖 Расшифровок: <b>${v(decryptions)}</b>\n` +
     `💳 Попыток оплаты: <b>${v(payAttempts)}</b>\n` +
     `✅ Успешных оплат: <b>${v(paySuccess)}</b>\n\n` +
+    (broadcastLine ? `🌅 Рассылка «Дар дня»: <b>${broadcastLine}</b>\n` : '') +
+    `👆 Открытий из рассылки: <b>${v(dailyOpens)}</b>\n\n` +
     `🏆 Чаще считали Дары: ${topDarsLine}`;
 
   await notifyAdmin(text);
@@ -125,6 +144,7 @@ module.exports = async (req, res) => {
     oracles,
     decryptions,
     pay_attempts: payAttempts,
-    pay_success: paySuccess
+    pay_success: paySuccess,
+    dailydar_opens: dailyOpens
   });
 };

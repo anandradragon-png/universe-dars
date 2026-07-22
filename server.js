@@ -184,6 +184,8 @@ cron.schedule('0 6 * * *', async () => {
 // ── Cron: рассылка «Дар дня» по будням в 07:00 МСК (04:00 UTC) ─────────────
 // Пн-Пт (1-5): по выходным не шлём. Идемпотентность и метрики — внутри
 // обработчика (журнал daily_broadcast_log по send_date).
+// ПАУЗА: реальная отправка идёт только при DAILY_DAR_BROADCAST_ENABLED=true
+// (рубильник внутри обработчика). Cron тикает вхолостую, пока флаг не выставлен.
 const dailyDarBroadcastHandler = require('./public/api/daily-dar-broadcast');
 cron.schedule('0 4 * * 1-5', async () => {
   const fakeReq = {

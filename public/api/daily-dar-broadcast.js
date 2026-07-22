@@ -111,6 +111,13 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'unauthorized' });
   }
 
+  // ПАУЗА (рубильник): рассылка идёт только при DAILY_DAR_BROADCAST_ENABLED=true.
+  // По умолчанию выключено — ни cron, ни ручной вызов ничего не отправят.
+  // Чтобы запустить: выставить переменную окружения и передеплоить.
+  if (process.env.DAILY_DAR_BROADCAST_ENABLED !== 'true') {
+    return res.json({ ok: true, skipped: 'disabled' });
+  }
+
   const db = getSupabase();
   const { dateStr } = mskParts();
   const dar = calcGeneralDar();

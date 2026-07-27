@@ -788,6 +788,19 @@
       </div>
     </div>
 
+    <!-- Расчёт Дара другого человека — доступно только allowlist- id
+         (разработчик + доверенные). Видимость управляется showCalcOtherIfAllowed(). -->
+    <div class="profile-section" id="profile-calc-other" style="display:none;cursor:pointer;background:linear-gradient(135deg,rgba(212,175,55,0.14),rgba(154,123,26,0.08));border:1px solid rgba(212,175,55,0.4)" onclick="openCalcOther()">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="color:#D4AF37;font-size:18px">&#128302;</div>
+        <div>
+          <div style="font-size:13px;color:#D4AF37">Рассчитать Дар другого человека</div>
+          <div style="font-size:10px;color:var(--text-dim)">По дате рождения — код, название и полное послание</div>
+        </div>
+        <div style="margin-left:auto;color:#D4AF37">&#10095;</div>
+      </div>
+    </div>
+
     <!-- Достижения и Семья переехали из ЛК (2026-05-25):
          - Достижения → вкладка «Игры» (внутри Сокровищницы)
          - Семья → вкладка «Семья» (через family-list-container)
@@ -912,6 +925,31 @@
       <span style="font-size:10px" data-i18n="profile.about_caption">64 дара &middot; 9 полей &middot; бесконечные возможности</span>
     </div>
   </div>
+
+  <!-- Модалка: расчёт Дара другого человека (allowlist). Ничего не сохраняет в БД. -->
+  <div id="calc-other-modal" style="display:none;position:fixed;inset:0;z-index:10400;background:rgba(0,0,0,0.88);backdrop-filter:blur(6px);overflow-y:auto;padding:16px">
+    <div style="max-width:520px;margin:0 auto;background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:20px 18px;position:relative">
+      <button onclick="closeCalcOther()" style="position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(0,0,0,0.6);color:#D4AF37;font-size:16px;cursor:pointer">&#10005;</button>
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:26px;margin-bottom:4px">&#128302;</div>
+        <div style="font-size:15px;color:var(--text);font-weight:600">Дар другого человека</div>
+        <div style="font-size:11.5px;color:var(--text-dim);margin-top:5px;line-height:1.5">Введи дату рождения — получишь код, название и полное послание. Данные никуда не сохраняются.</div>
+      </div>
+      <input id="co-name" type="text" placeholder="Имя (необязательно)" autocomplete="off"
+        style="width:100%;padding:12px;margin-bottom:8px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;outline:none;box-sizing:border-box">
+      <input id="co-date" type="text" inputmode="numeric" maxlength="10" placeholder="ДД.ММ.ГГГГ" autocomplete="off"
+        oninput="window._dateMaskInput && window._dateMaskInput(this,event)"
+        style="width:100%;padding:12px;margin-bottom:10px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:16px;letter-spacing:2px;text-align:center;font-family:Manrope,sans-serif;outline:none;box-sizing:border-box">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button id="co-gender-m" onclick="coSelectGender('male')" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">Мужской</button>
+        <button id="co-gender-f" onclick="coSelectGender('female')" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif">Женский</button>
+      </div>
+      <div id="co-error" style="font-size:12px;color:#e07798;margin-bottom:8px;min-height:14px;text-align:center"></div>
+      <button id="co-submit" onclick="submitCalcOther()" style="width:100%;padding:13px;border-radius:11px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:bold">Рассчитать Дар</button>
+      <div id="co-result" style="display:none;margin-top:16px"></div>
+    </div>
+  </div>
+
   <div id="app">
     <div class="tab active" id="tab-calc">
       <div class="main-container">
@@ -1899,6 +1937,7 @@
       if (crystalCounter) crystalCounter.style.display = 'none';
       loadProfileData();
       showAdminSectionIfAdmin();
+      if (typeof showCalcOtherIfAllowed === 'function') showCalcOtherIfAllowed();
       if (typeof renderProfileDataBlock === 'function') renderProfileDataBlock();
       if (typeof renderLeaderboardNameBlock === 'function') renderLeaderboardNameBlock();
       if (typeof loadHallOfFame === 'function') loadHallOfFame();
@@ -7610,6 +7649,127 @@
       if (fb) fb.style.display = isAdmin ? 'block' : 'none';
       const panel = document.getElementById('profile-admin-panel');
       if (panel) panel.style.display = isAdmin ? 'block' : 'none';
+    }
+
+    // ============================================================
+    // РАСЧЁТ ДАРА ДРУГОГО ЧЕЛОВЕКА — только для allowlist-id.
+    // Считает Дар по дате рождения и показывает полный профиль
+    // (код + название + архетип + полное послание от AI). Ничего
+    // не сохраняет в БД и не трогает собственный Дар пользователя.
+    // Чтобы дать доступ ещё кому-то — добавь его Telegram-id в CALC_OTHERS_IDS.
+    // ============================================================
+    const CALC_OTHERS_IDS = [269932434, 539752406]; // Светлана (разработчик), Альбина @alicat_makaeva. Добавлять доверенные id сюда.
+    function canCalcOthers() {
+      try {
+        const uid = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        if (uid && CALC_OTHERS_IDS.includes(Number(uid))) return true;
+        const devId = localStorage.getItem('_dev_telegram_id');
+        if (devId && CALC_OTHERS_IDS.includes(Number(devId))) return true;
+      } catch (e) {}
+      return false;
+    }
+    function showCalcOtherIfAllowed() {
+      const el = document.getElementById('profile-calc-other');
+      if (el) el.style.display = canCalcOthers() ? 'block' : 'none';
+    }
+    let _coGender = '';
+    function coSelectGender(g) {
+      _coGender = g;
+      const bm = document.getElementById('co-gender-m');
+      const bf = document.getElementById('co-gender-f');
+      if (bm) bm.style.background = g === 'male' ? 'rgba(212,175,55,0.28)' : 'rgba(255,255,255,0.04)';
+      if (bf) bf.style.background = g === 'female' ? 'rgba(212,175,55,0.28)' : 'rgba(255,255,255,0.04)';
+    }
+    function openCalcOther() {
+      if (!canCalcOthers()) return;
+      _coGender = '';
+      const n = document.getElementById('co-name'); if (n) n.value = '';
+      const d = document.getElementById('co-date'); if (d) d.value = '';
+      const e = document.getElementById('co-error'); if (e) e.textContent = '';
+      const r = document.getElementById('co-result'); if (r) { r.style.display = 'none'; r.innerHTML = ''; }
+      coSelectGender('');
+      document.getElementById('calc-other-modal').style.display = 'block';
+    }
+    function closeCalcOther() {
+      document.getElementById('calc-other-modal').style.display = 'none';
+    }
+    function _coEscape(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    async function submitCalcOther() {
+      const err = document.getElementById('co-error');
+      err.textContent = '';
+      const name = (document.getElementById('co-name').value || '').trim();
+      const dateStr = (document.getElementById('co-date').value || '').trim();
+      const mm = dateStr.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+      if (!mm) { err.textContent = 'Введи дату в формате ДД.ММ.ГГГГ'; return; }
+      const day = +mm[1], mon = +mm[2], year = +mm[3];
+      if (day < 1 || day > 31 || mon < 1 || mon > 12 || year < 1900 || year > 2100) {
+        err.textContent = 'Проверь дату — что-то не так'; return;
+      }
+      if (!_coGender) { err.textContent = 'Выбери пол — от него зависит текст послания'; return; }
+
+      const gift = calcGift(day, mon, year);
+      const isInt = !!INTEGRATORS[gift.code];
+      const darName = isInt ? INTEGRATORS[gift.code] : (DARS[gift.code] || gift.code);
+      const darArch = isInt ? '' : (DAR_ARCHETYPES[gift.code] || '');
+
+      const r = document.getElementById('co-result');
+      r.style.display = 'block';
+      r.innerHTML =
+        '<div style="text-align:center;border-top:1px solid var(--border);padding-top:14px">'
+        + (name ? '<div style="font-size:13px;color:var(--text-dim);margin-bottom:2px">' + _coEscape(name) + '</div>' : '')
+        + '<div style="font-size:20px;color:#D4AF37;font-weight:700;letter-spacing:1px">' + _coEscape(darName) + '</div>'
+        + '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">Код дара: ' + gift.code + '</div>'
+        + (darArch ? '<div style="font-size:12px;color:var(--text-muted);margin-top:2px">' + _coEscape(darArch) + '</div>' : '')
+        + '</div>'
+        + '<div id="co-msg" style="margin-top:14px;text-align:center;color:var(--text-dim);font-size:13px">&#9203; Получаю послание…</div>';
+
+      const btn = document.getElementById('co-submit');
+      if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; }
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        try {
+          if (window.Telegram?.WebApp?.initData) headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
+          const lang = localStorage.getItem('_yupdar_lang'); if (lang) headers['x-yupdar-lang'] = lang;
+        } catch (e) {}
+        const resp = await fetch(`${API_URL}/api/message`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ giftCode: gift.code, gender: _coGender })
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const result = await resp.json();
+        if (result.error) throw new Error(result.error);
+        if (!result.data) throw new Error('Пустой ответ');
+        renderCalcOtherMessage(result.data);
+      } catch (e) {
+        console.warn('calcOther message failed:', e.message);
+        const host = document.getElementById('co-msg');
+        if (host) { host.style.color = '#e07798'; host.textContent = 'Не удалось получить послание. Попробуй ещё раз.'; }
+      } finally {
+        if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+      }
+    }
+    function renderCalcOtherMessage(data) {
+      const host = document.getElementById('co-msg');
+      if (!host) return;
+      let html = '';
+      if (data.archetype) {
+        const a = typeof data.archetype === 'object' ? data.archetype : { title: String(data.archetype), motto: '' };
+        const motto = (a.motto || '').trim();
+        if (motto) html += '<div style="text-align:center;color:#D4AF37;font-style:italic;margin-bottom:14px">«' + _coEscape(motto) + '»</div>';
+      }
+      JSON_SECTIONS.forEach(s => {
+        const text = s.getText(data);
+        if (!text || !text.trim()) return;
+        html += '<div style="margin-bottom:16px;text-align:left">'
+          + '<div style="font-size:13px;color:#D4AF37;font-weight:600;margin-bottom:5px">' + s.icon + ' ' + s.title + '</div>'
+          + '<div style="font-size:13px;color:var(--text);line-height:1.65">' + formatText(text) + '</div>'
+          + '</div>';
+      });
+      host.style.color = '';
+      host.style.textAlign = 'left';
+      host.innerHTML = html || 'Пусто';
     }
 
     function openAdminPanel() {

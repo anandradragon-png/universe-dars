@@ -1846,8 +1846,15 @@
                 nav.style.transform = 'translateZ(0)';
                 requestAnimationFrame(() => { nav.style.transform = ''; });
               }
-              // Книгу перерисовываем ТОЛЬКО на большое изменение viewport
-              if (delta >= 100 && typeof BookReader !== 'undefined' && document.getElementById('tab-book')?.classList.contains('active')) {
+              // Книгу перерисовываем ТОЛЬКО на большое изменение viewport.
+              // НО: если открыта панель заметки или курсор в поле ввода —
+              // это подъём клавиатуры (Samsung/Android). Перерисовка тут
+              // убивала бы панель заметки и отбрасывала скролл наверх
+              // (баг Лены 27.07.2026). Пропускаем reflow книги в этом случае.
+              const _ae = document.activeElement;
+              const _typing = _ae && (_ae.tagName === 'TEXTAREA' || _ae.tagName === 'INPUT');
+              const _notePanelOpen = !!document.getElementById('book-note-panel');
+              if (delta >= 100 && !_typing && !_notePanelOpen && typeof BookReader !== 'undefined' && document.getElementById('tab-book')?.classList.contains('active')) {
                 try { BookReader.render(); } catch (e) {}
               }
             }

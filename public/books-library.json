@@ -1,5 +1,5 @@
 {
-  "version": "20260727a",
+  "version": "20260728b",
   "shelves": [
     { "id": "popular", "title": "Популярная литература", "icon": "\uD83D\uDCD6" },
     { "id": "science", "title": "Научные книги", "icon": "\uD83D\uDD2C" },

@@ -14,6 +14,7 @@
       "source": "book-chapters.json",
       "access": "gated",
       "i18n": true,
+      "image": "dars-cover.jpg",
       "cover": { "from": "#D4AF37", "to": "#8b6b2c" }
     },
     {

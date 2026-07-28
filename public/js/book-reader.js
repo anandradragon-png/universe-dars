@@ -326,16 +326,20 @@ const BookReader = (function() {
       const sub = b.subtitle || '';
       const isFree = (b.access || 'gated') === 'free';
       const badge = isFree
-        ? '<div style="position:absolute;top:8px;right:8px;background:rgba(46,204,113,0.9);color:#06210f;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:0.3px">' + freeTxt + '</div>'
+        ? '<div style="position:absolute;top:8px;right:8px;z-index:2;background:rgba(46,204,113,0.9);color:#06210f;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:0.3px">' + freeTxt + '</div>'
         : '';
+      // Если у книги есть готовая обложка-картинка — показываем её на всю
+      // плитку. Иначе — градиентная плашка с названием (фоллбэк).
+      const coverInner = b.image
+        ? '<img src="/book-images/' + b.image + '?v=' + BOOKS_VER + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>'
+        : '<div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:rgba(0,0,0,0.18)"></div>' +
+          '<div style="text-align:center;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.35)">' +
+          '<div style="font-size:14px;font-weight:700;line-height:1.25;letter-spacing:0.3px">' + escapeHtml(title) + '</div></div>';
       return `
         <button onclick="BookReader.openBook('${b.id}')" style="all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left">
-          <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:linear-gradient(150deg,${from},${to});box-shadow:0 6px 18px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;padding:14px">
+          <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:linear-gradient(150deg,${from},${to});box-shadow:0 6px 18px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;padding:${b.image ? '0' : '14px'}">
             ${badge}
-            <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:rgba(0,0,0,0.18)"></div>
-            <div style="text-align:center;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.35)">
-              <div style="font-size:14px;font-weight:700;line-height:1.25;letter-spacing:0.3px">${escapeHtml(title)}</div>
-            </div>
+            ${coverInner}
           </div>
           <div style="padding:0 2px">
             <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.3">${escapeHtml(title)}</div>

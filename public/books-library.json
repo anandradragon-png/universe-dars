@@ -1,0 +1,38 @@
+{
+  "version": "20260727a",
+  "shelves": [
+    { "id": "popular", "title": "Популярная литература", "icon": "\uD83D\uDCD6" },
+    { "id": "science", "title": "Научные книги", "icon": "\uD83D\uDD2C" },
+    { "id": "kids", "title": "Детские книги", "icon": "\uD83E\uDDF8", "soon": true }
+  ],
+  "books": [
+    {
+      "id": "dars",
+      "title": "Книга Даров",
+      "subtitle": "94 главы о 64 Дарах",
+      "shelf": "popular",
+      "source": "book-chapters.json",
+      "access": "gated",
+      "i18n": true,
+      "cover": { "from": "#D4AF37", "to": "#8b6b2c" }
+    },
+    {
+      "id": "nine-fields-popular",
+      "title": "Девять полей",
+      "subtitle": "Популярное изложение",
+      "shelf": "popular",
+      "source": "nine-fields-popular.json",
+      "access": "free",
+      "cover": { "from": "#6c8cff", "to": "#3a4f9c" }
+    },
+    {
+      "id": "nine-fields-science",
+      "title": "Модель девяти полей восприятия",
+      "subtitle": "Научное изложение",
+      "shelf": "science",
+      "source": "nine-fields-science.json",
+      "access": "free",
+      "cover": { "from": "#4fb0a5", "to": "#25635c" }
+    }
+  ]
+}

@@ -365,6 +365,13 @@
     .book-chapter.theme-dark .book-body img{
       filter: brightness(0) saturate(100%) invert(74%) sepia(54%) saturate(2476%) hue-rotate(353deg) brightness(89%) contrast(85%) drop-shadow(0 0 14px rgba(212,175,55,0.55));
     }
+    /* Иллюстрации-схемы (figure) — реальные картинки/фото, а не глифы Даров:
+       золотой перекрас к ним не применяем, показываем как есть. */
+    .book-chapter .book-body figure{margin:18px 0;text-align:center}
+    .book-chapter.theme-dark .book-body .book-figure img{filter:none;box-shadow:0 4px 16px rgba(0,0,0,0.35)}
+    .book-chapter .book-body figcaption{margin-top:8px;font-size:0.85em;color:var(--text-dim,#9aa);font-style:italic;text-align:center;line-height:1.4}
+    .book-chapter.theme-sepia .book-body figcaption{color:#6b5a3a}
+    .book-chapter.theme-light .book-body figcaption{color:#666}
     .book-chapter .book-body strong{font-weight:700}
     .book-chapter .book-body em{font-style:italic;opacity:0.95}
     .book-chapter .book-body blockquote{margin:14px 0;padding:10px 14px;border-left:3px solid #D4AF37;background:rgba(212,175,55,0.08);border-radius:0 8px 8px 0;font-style:italic}

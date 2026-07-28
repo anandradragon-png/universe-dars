@@ -21,6 +21,17 @@ const BookReader = (function() {
   let totalChapters = 0;
   let tocOpen = false;
 
+  // -------- Библиотека (несколько книг + жанровые полки) --------
+  // Манифест public/books-library.json описывает полки и книги.
+  // currentBookId — какая книга сейчас открыта в ридере ('dars' по умолчанию,
+  //   у неё сохраняется обратная совместимость ключей localStorage).
+  // viewMode: 'library' — экран полок (витрина), 'reader' — чтение книги.
+  let library = null;
+  let currentBookId = 'dars';
+  let currentBookAccess = 'gated'; // 'gated' — по тарифу/покупке, 'free' — открыта всем
+  let viewMode = 'library';
+  const BOOKS_VER = '20260727a';   // токен кэша для JSON новых книг
+
   // Настройки читателя (сохраняются в localStorage)
   const DEFAULTS = { fontSize: 16, theme: 'dark', lineHeight: 1.75 };
   let settings = Object.assign({}, DEFAULTS);
@@ -38,17 +49,25 @@ const BookReader = (function() {
     try { localStorage.setItem('_book_settings', JSON.stringify(settings)); } catch(e) {}
   }
 
+  // -------- Пространство имён ключей localStorage по книге --------
+  // Для 'dars' (Книга Даров) оставляем прежние ключи без суффикса — обратная
+  // совместимость с уже сохранённым прогрессом/закладками/заметками у тестеров.
+  // Для новых книг добавляем суффикс «__<bookId>».
+  function _ns(base) {
+    return currentBookId === 'dars' ? base : base + '__' + currentBookId;
+  }
+
   // -------- Позиция чтения --------
   function saveProgress() {
     try {
-      localStorage.setItem('_book_progress', JSON.stringify({
+      localStorage.setItem(_ns('_book_progress'), JSON.stringify({
         partIdx: currentPartIdx, chapterIdx: currentChapterIdx
       }));
     } catch(e) {}
   }
   function loadProgress() {
     try {
-      const p = JSON.parse(localStorage.getItem('_book_progress') || '{}');
+      const p = JSON.parse(localStorage.getItem(_ns('_book_progress')) || '{}');
       if (typeof p.partIdx === 'number') currentPartIdx = p.partIdx;
       if (typeof p.chapterIdx === 'number') currentChapterIdx = p.chapterIdx;
     } catch(e) {}
@@ -59,12 +78,12 @@ const BookReader = (function() {
   // когда юзер на неё переходит (renderChapter).
   function loadReadSet() {
     try {
-      const arr = JSON.parse(localStorage.getItem('_book_read') || '[]');
+      const arr = JSON.parse(localStorage.getItem(_ns('_book_read')) || '[]');
       return new Set(arr);
     } catch(e) { return new Set(); }
   }
   function saveReadSet(set) {
-    try { localStorage.setItem('_book_read', JSON.stringify([...set])); } catch(e) {}
+    try { localStorage.setItem(_ns('_book_read'), JSON.stringify([...set])); } catch(e) {}
   }
   function readKey(partIdx, chapterIdx) { return partIdx + ':' + chapterIdx; }
   function markChapterRead(partIdx, chapterIdx) {
@@ -94,11 +113,11 @@ const BookReader = (function() {
   // -------- Закладки --------
   function loadBookmarks() {
     try {
-      return JSON.parse(localStorage.getItem('_book_bookmarks') || '[]');
+      return JSON.parse(localStorage.getItem(_ns('_book_bookmarks')) || '[]');
     } catch(e) { return []; }
   }
   function saveBookmarks(list) {
-    try { localStorage.setItem('_book_bookmarks', JSON.stringify(list)); } catch(e) {}
+    try { localStorage.setItem(_ns('_book_bookmarks'), JSON.stringify(list)); } catch(e) {}
   }
   function bookmarkKey(partIdx, chapterIdx) {
     return partIdx + ':' + chapterIdx;
@@ -160,37 +179,101 @@ const BookReader = (function() {
     return 'ru';
   }
   function _bookUrl() {
-    const lang = _bookLang();
-    const file = (lang === 'en' || lang === 'es') ? `/book-chapters.${lang}.json` : '/book-chapters.json';
-    return file + '?v=20260610a';
+    // Книга Даров ('dars') — с локализацией EN/ES (авторские оригиналы).
+    if (currentBookId === 'dars') {
+      const lang = _bookLang();
+      const file = (lang === 'en' || lang === 'es') ? `/book-chapters.${lang}.json` : '/book-chapters.json';
+      return file + '?v=20260610a';
+    }
+    // Остальные книги — по манифесту (пока только русский оригинал).
+    const meta = getBookMeta(currentBookId);
+    const src = (meta && meta.source) || 'book-chapters.json';
+    return '/' + src + '?v=' + BOOKS_VER;
   }
+
+  // -------- Манифест библиотеки --------
+  function getBookMeta(id) {
+    if (!library || !Array.isArray(library.books)) return null;
+    return library.books.find(b => b.id === id) || null;
+  }
+  async function loadLibrary() {
+    if (library) return library;
+    try {
+      const resp = await fetch('/books-library.json?v=' + BOOKS_VER);
+      library = await resp.json();
+    } catch (e) {
+      console.error('[BookReader] library load error:', e);
+      // Фоллбэк — только Книга Даров, чтобы ридер работал даже без манифеста.
+      library = {
+        shelves: [{ id: 'popular', title: 'Книги', icon: '\uD83D\uDCD6' }],
+        books: [{ id: 'dars', title: 'Книга Даров', shelf: 'popular', source: 'book-chapters.json', access: 'gated', i18n: true }]
+      };
+    }
+    return library;
+  }
+
+  // -------- Восстановление вида (какая книга / полки) --------
+  function saveView() {
+    try { localStorage.setItem('_book_view', JSON.stringify({ mode: viewMode, bookId: currentBookId })); } catch (e) {}
+  }
+  function restoreView() {
+    try {
+      const v = JSON.parse(localStorage.getItem('_book_view') || '{}');
+      if (v.mode === 'reader' && v.bookId && getBookMeta(v.bookId)) {
+        viewMode = 'reader';
+        currentBookId = v.bookId;
+      } else {
+        viewMode = 'library';
+        currentBookId = 'dars';
+      }
+    } catch (e) { viewMode = 'library'; currentBookId = 'dars'; }
+  }
+
+  // -------- Загрузка конкретной книги в ридер --------
   let _loadedBookLang = null;
-  async function init() {
-    loadSettings();
-    loadProgress();
+  async function loadBook(id) {
+    currentBookId = id;
+    const meta = getBookMeta(id);
+    currentBookAccess = meta ? (meta.access || 'gated') : 'gated';
+    currentPartIdx = 0;
+    currentChapterIdx = 0;
+    loadProgress(); // прогресс namespaced по книге
     try {
       _loadedBookLang = _bookLang();
       const resp = await fetch(_bookUrl());
       bookData = await resp.json();
       totalChapters = bookData.parts.reduce((s, p) => s + p.chapters.length, 0);
-    } catch(e) {
-      console.error('[BookReader] load error:', e);
+    } catch (e) {
+      console.error('[BookReader] book load error:', e);
+      bookData = null;
     }
-    // Доступ к книге: сначала из localStorage (мгновенно), потом обновится из PROFILE
-    try {
-      const cached = localStorage.getItem('_book_full_access');
-      if (cached === 'true') bookFullAccess = true;
-    } catch(e) {}
-    try {
-      if (window.PROFILE && typeof window.PROFILE.book_full_access === 'boolean') {
-        bookFullAccess = window.PROFILE.book_full_access;
-        try { localStorage.setItem('_book_full_access', bookFullAccess ? 'true' : 'false'); } catch(e) {}
-      }
-    } catch(e) {}
+    // Доступ к Книге Даров: сначала из localStorage, потом из PROFILE.
+    if (id === 'dars') {
+      try {
+        const cached = localStorage.getItem('_book_full_access');
+        if (cached === 'true') bookFullAccess = true;
+      } catch (e) {}
+      try {
+        if (window.PROFILE && typeof window.PROFILE.book_full_access === 'boolean') {
+          bookFullAccess = window.PROFILE.book_full_access;
+          try { localStorage.setItem('_book_full_access', bookFullAccess ? 'true' : 'false'); } catch (e) {}
+        }
+      } catch (e) {}
+    }
+    return bookData;
+  }
+
+  async function init() {
+    loadSettings();
+    await loadLibrary();
+    restoreView();
+    await loadBook(currentBookId);
   }
 
   // -------- Доступ --------
   function hasFullAccess() {
+    // Бесплатные книги (access:'free') открыты всем целиком.
+    if (currentBookAccess === 'free') return true;
     return bookFullAccess === true;
   }
   function isChapterAccessible(globalIdx) {
@@ -202,8 +285,101 @@ const BookReader = (function() {
     return g + chapterIdx;
   }
 
-  // -------- Главный рендер --------
+  // -------- Диспетчер: витрина полок или чтение --------
   function render() {
+    const container = document.getElementById('book-content');
+    if (!container) return;
+    // Манифест ещё не загружен — подгружаем и перерисовываемся.
+    if (!library) {
+      container.innerHTML = `
+        <div style="padding:24px 16px;text-align:center">
+          <div style="font-size:32px;margin-bottom:10px;opacity:0.6">&#128218;</div>
+          <div style="font-size:13px;color:var(--text-dim)">${((window.i18n && i18n.t && i18n.t('book.loading')) || 'Загружаем библиотеку...')}</div>
+        </div>`;
+      init().then(() => render());
+      return;
+    }
+    if (viewMode === 'library') { renderLibrary(); return; }
+    renderReader();
+  }
+
+  // -------- Витрина: книжные полки по жанрам --------
+  function renderLibrary() {
+    const container = document.getElementById('book-content');
+    if (!container || !library) return;
+
+    const shelves = Array.isArray(library.shelves) ? library.shelves : [];
+    const books = Array.isArray(library.books) ? library.books : [];
+
+    const titleTxt = (window.i18n && i18n.t && i18n.t('library.title')) || '\u0411\u0438\u0431\u043b\u0438\u043e\u0442\u0435\u043a\u0430';
+    const subTxt = (window.i18n && i18n.t && i18n.t('library.subtitle')) || '\u041a\u043d\u0438\u0433\u0438 \u043f\u043e \u043f\u043e\u043b\u043a\u0430\u043c \u2014 \u0432\u044b\u0431\u0435\u0440\u0438, \u0447\u0442\u043e \u0447\u0438\u0442\u0430\u0442\u044c';
+    const soonTxt = (window.i18n && i18n.t && i18n.t('library.soon')) || '\u0421\u043a\u043e\u0440\u043e';
+    const freeTxt = (window.i18n && i18n.t && i18n.t('library.free')) || '\u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e';
+
+    function bookCard(b) {
+      const cover = b.cover || {};
+      const from = cover.from || '#D4AF37';
+      const to = cover.to || '#8b6b2c';
+      const title = (b.id === 'dars')
+        ? ((window.i18n && i18n.t && i18n.t('book.title')) || b.title || '')
+        : (b.title || '');
+      const sub = b.subtitle || '';
+      const isFree = (b.access || 'gated') === 'free';
+      const badge = isFree
+        ? '<div style="position:absolute;top:8px;right:8px;background:rgba(46,204,113,0.9);color:#06210f;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:0.3px">' + freeTxt + '</div>'
+        : '';
+      return `
+        <button onclick="BookReader.openBook('${b.id}')" style="all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left">
+          <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:linear-gradient(150deg,${from},${to});box-shadow:0 6px 18px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;padding:14px">
+            ${badge}
+            <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:rgba(0,0,0,0.18)"></div>
+            <div style="text-align:center;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.35)">
+              <div style="font-size:14px;font-weight:700;line-height:1.25;letter-spacing:0.3px">${escapeHtml(title)}</div>
+            </div>
+          </div>
+          <div style="padding:0 2px">
+            <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.3">${escapeHtml(title)}</div>
+            ${sub ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px;line-height:1.3">' + escapeHtml(sub) + '</div>' : ''}
+          </div>
+        </button>`;
+    }
+
+    let shelvesHtml = '';
+    shelves.forEach(sh => {
+      const shelfBooks = books.filter(b => b.shelf === sh.id);
+      if (!shelfBooks.length && !sh.soon) return; // пустую полку без «скоро» не показываем
+      const icon = sh.icon ? (sh.icon + ' ') : '';
+      shelvesHtml += `
+        <div style="margin-bottom:22px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:0.4px">${icon}${escapeHtml(sh.title || '')}</div>
+            <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(212,175,55,0.35),transparent)"></div>
+          </div>`;
+      if (shelfBooks.length) {
+        shelvesHtml += `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">${shelfBooks.map(bookCard).join('')}</div>`;
+      }
+      if (sh.soon) {
+        shelvesHtml += `
+          <div style="margin-top:${shelfBooks.length ? '12px' : '0'};border:1px dashed rgba(255,255,255,0.15);border-radius:12px;padding:18px;text-align:center;color:var(--text-dim);font-size:12px">
+            ${soonTxt}
+          </div>`;
+      }
+      shelvesHtml += `</div>`;
+    });
+
+    container.innerHTML = `
+      <div style="padding:16px 16px 24px">
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="font-size:28px;margin-bottom:6px">&#128218;</div>
+          <div style="font-size:18px;color:var(--text);letter-spacing:1px;margin-bottom:4px">${escapeHtml(titleTxt)}</div>
+          <div style="font-size:12px;color:var(--text-dim)">${escapeHtml(subTxt)}</div>
+        </div>
+        ${shelvesHtml}
+      </div>`;
+  }
+
+  // -------- Рендер ридера (одна книга) --------
+  function renderReader() {
     const container = document.getElementById('book-content');
     if (!container) return;
 
@@ -220,7 +396,7 @@ const BookReader = (function() {
         <div style="padding:24px 16px">
           <div style="text-align:center;margin-bottom:20px">
             <div style="font-size:32px;margin-bottom:10px;opacity:0.6">&#128214;</div>
-            <div style="font-size:13px;color:var(--text-dim)">${((window.i18n && i18n.t && i18n.t('book.loading')) || 'Загружаем Книгу Даров...')}</div>
+            <div style="font-size:13px;color:var(--text-dim)">${((window.i18n && i18n.t && i18n.t('book.loading')) || 'Загружаем книгу...')}</div>
           </div>
           <div class="skeleton-card">
             <div class="skeleton skeleton-title"></div>
@@ -234,7 +410,7 @@ const BookReader = (function() {
           </div>
         </div>
       `;
-      init().then(() => render());
+      loadBook(currentBookId).then(() => renderReader());
       return;
     }
 
@@ -244,13 +420,23 @@ const BookReader = (function() {
     const accent = theme === 'sepia' ? '#8b6b2c' : (theme === 'light' ? '#D4AF37' : '#D4AF37');
 
     const progress = getReadProgress();
+    const meta = getBookMeta(currentBookId);
+    // Заголовок: у Книги Даров — из i18n, у остальных — из манифеста.
+    const bookTitle = (currentBookId === 'dars')
+      ? ((window.i18n && i18n.t && i18n.t('book.title')) || 'КНИГА ДАРОВ')
+      : ((meta && meta.title) || (bookData.title || ''));
+    const chaptersLabel = (window.i18n && i18n.t && i18n.t('book.chapters_count', { n: totalChapters })) || (totalChapters + ' глав');
+    const backLabel = (window.i18n && i18n.t && i18n.t('book.back_to_shelves')) || '\u2190 \u041a \u043f\u043e\u043b\u043a\u0430\u043c';
 
     container.innerHTML = `
       <div style="padding:16px 16px 0">
+        <div style="margin-bottom:8px">
+          <button class="btn btn-ghost" style="width:auto;margin:0;font-size:12px;padding:6px 12px" onclick="BookReader.showLibrary()">${backLabel}</button>
+        </div>
         <div style="text-align:center;margin-bottom:12px">
           <div style="font-size:26px;margin-bottom:6px">&#128214;</div>
-          <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">${((window.i18n && i18n.t && i18n.t('book.title')) || 'КНИГА ДАРОВ')}</div>
-          <div style="font-size:12px;color:var(--text-dim)">${bookData.version || ''} &bull; ${((window.i18n && i18n.t && i18n.t('book.chapters_count', { n: totalChapters })) || (totalChapters + ' глав'))}</div>
+          <div style="font-size:18px;color:var(--text);letter-spacing:2px;margin-bottom:4px">${escapeHtml(bookTitle)}</div>
+          <div style="font-size:12px;color:var(--text-dim)">${escapeHtml(bookData.version || '')} &bull; ${chaptersLabel}</div>
         </div>
 
         <!-- Прогресс чтения -->
@@ -264,7 +450,7 @@ const BookReader = (function() {
           </div>
         </div>
 
-        ${!hasFullAccess() ? `
+        ${currentBookAccess !== 'gated' ? '' : (!hasFullAccess() ? `
           <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:12px;margin-bottom:12px;text-align:center">
             <div style="font-size:13px;color:#D4AF37;margin-bottom:4px">&#128142; ${((window.i18n && i18n.t && i18n.t('book.preview_free', { n: freeChapters })) || ('Превью: первые ' + freeChapters + ' глав бесплатно'))}</div>
             <div style="font-size:11px;color:var(--text-dim);line-height:1.4">${((window.i18n && i18n.t && i18n.t('book.preview_hint')) || 'Для полного доступа введите промо-код или оформите подписку')}</div>
@@ -273,7 +459,7 @@ const BookReader = (function() {
           <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:14px;padding:10px;margin-bottom:12px;text-align:center">
             <div style="font-size:13px;color:#2ecc71">&#10003; ${((window.i18n && i18n.t && i18n.t('book.full_access')) || 'Полный доступ')}</div>
           </div>
-        `}
+        `)}
 
         <!-- Панель кнопок -->
         <div style="display:flex;gap:6px;margin-bottom:8px">
@@ -423,7 +609,10 @@ const BookReader = (function() {
     // декоративные глифы из .docx, чтобы текст не пестрил иконками.
     // Решено по обратной связи автора 2026-05-21.
     let html = ch.html || '';
-    if (ch.kind === 'dar') {
+    // Картинки рендерим в главах-Дарах (kind==='dar') Книги Даров, а также
+    // во ВСЕХ главах прочих книг (у «Девяти полей» рисунки — смысловые схемы,
+    // не декоративные глифы, поэтому их не вырезаем).
+    if (ch.kind === 'dar' || currentBookId !== 'dars') {
       // Конвертер уже вставил в data-ref имя файла — рендерим тег полноценно
       html = html.replace(/<img\b[^>]*data-ref="([^"]+)"[^>]*>/g, function(_, filename) {
         return '<img class="book-img" src="/book-images/' + filename + '" alt="" />';
@@ -727,9 +916,15 @@ const BookReader = (function() {
     renderChapter();
   }
 
-  // Переход к дару по коду (внешнее API)
-  function goToDar(darCode) {
-    if (!bookData) return false;
+  // Переход к дару по коду (внешнее API — из Энциклопедии/Сокровищницы).
+  // Дары есть только в Книге Даров, поэтому сначала переключаемся на неё.
+  async function goToDar(darCode) {
+    if (!library) { await loadLibrary(); }
+    if (currentBookId !== 'dars') { await loadBook('dars'); }
+    viewMode = 'reader';
+    saveView();
+    if (!bookData) { await loadBook('dars'); }
+    renderReader();
     for (let i = 0; i < bookData.parts.length; i++) {
       const part = bookData.parts[i];
       for (let j = 0; j < part.chapters.length; j++) {
@@ -740,6 +935,30 @@ const BookReader = (function() {
       }
     }
     return false;
+  }
+
+  // -------- Навигация между витриной и книгами --------
+  async function openBook(id) {
+    if (!library) { await loadLibrary(); }
+    if (!getBookMeta(id)) return;
+    if (id !== currentBookId || !bookData) {
+      await loadBook(id);
+    }
+    viewMode = 'reader';
+    saveView();
+    renderReader();
+    try {
+      const c = document.getElementById('book-content');
+      if (c && c.scrollIntoView) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {}
+  }
+  function showLibrary() {
+    viewMode = 'library';
+    saveView();
+    // Закрываем возможную панель заметки, чтобы не висела поверх витрины.
+    const np = document.getElementById('book-note-panel');
+    if (np) np.remove();
+    renderLibrary();
   }
 
   // -------- Оглавление --------
@@ -1061,14 +1280,14 @@ const BookReader = (function() {
   function setFontSize(n) {
     settings.fontSize = n;
     saveSettings();
-    render();
+    renderReader();
     // Оставляем панель настроек открытой
     setTimeout(() => { const p = document.getElementById('book-settings-panel'); if (p) { toggleSettings(); toggleSettings(); } }, 10);
   }
   function setTheme(t) {
     settings.theme = t;
     saveSettings();
-    render();
+    renderReader();
     setTimeout(() => { const p = document.getElementById('book-settings-panel'); if (p) { toggleSettings(); toggleSettings(); } }, 10);
   }
 
@@ -1096,7 +1315,7 @@ const BookReader = (function() {
         const okMsg = ((window.i18n && i18n.t && i18n.t('book.full_access_unlocked')) || 'Полный доступ к книге открыт!');
         if (typeof showToast === 'function') showToast('\u2728 ' + okMsg, 'success');
         else alert(okMsg);
-        render();
+        renderReader();
       } else {
         const errMsg = result.message || (((window.i18n && i18n.t && i18n.t('book.invalid_promo')) || 'Неверный промо-код'));
         if (typeof showToast === 'function') showToast(errMsg, 'error');
@@ -1217,11 +1436,11 @@ const BookReader = (function() {
   // ---- Заметки на полях (приватные, по главе) ----
   function noteKey(partIdx, chapterIdx) { return partIdx + ':' + chapterIdx; }
   function loadNotes() {
-    try { return JSON.parse(localStorage.getItem('_book_notes') || '{}'); }
+    try { return JSON.parse(localStorage.getItem(_ns('_book_notes')) || '{}'); }
     catch (e) { return {}; }
   }
   function saveNotesMap(map) {
-    try { localStorage.setItem('_book_notes', JSON.stringify(map)); } catch (e) {}
+    try { localStorage.setItem(_ns('_book_notes'), JSON.stringify(map)); } catch (e) {}
   }
   function getNote(partIdx, chapterIdx) {
     return loadNotes()[noteKey(partIdx, chapterIdx)] || '';
@@ -1336,8 +1555,11 @@ const BookReader = (function() {
     attachImageClickHandler();
     attachKeyboardShortcuts();
     // Смена языка → перезагрузка книги на оригинале EN/ES/RU и перерисовка.
+    // Локализованы только оригиналы Книги Даров ('dars'); прочие книги пока
+    // только на русском — им достаточно перерисовать подписи интерфейса.
     const _onLangChange = async () => {
-      if (!bookData) return;            // ещё не инициализировались
+      if (!bookData) { render(); return; } // ещё не инициализировались
+      if (currentBookId !== 'dars') { render(); return; }
       if (_loadedBookLang === _bookLang()) return;  // язык не изменился
       try {
         _loadedBookLang = _bookLang();
@@ -1354,6 +1576,7 @@ const BookReader = (function() {
 
   return {
     init, render, renderChapter,
+    showLibrary, openBook,
     nextChapter, prevChapter, goTo, goToDar, openInTreasury,
     toggleTOC, toggleSettings, toggleBookmarks, toggleSearch, runSearch,
     toggleBookmark, removeBookmark, clearBookmarks,

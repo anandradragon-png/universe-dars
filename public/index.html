@@ -1615,7 +1615,7 @@
       </div>
       <div style="margin-bottom:12px">
         <div class="psu-label" data-i18n="psu.label_gender">Пол</div>
-        <div style="display:flex;gap:8px">
+        <div id="psu-gender-row" style="display:flex;gap:8px">
           <button class="psu-gender" data-gender="female" onclick="psuSelectGender('female')">&#9792; <span data-i18n="rel.gender_female">Женский</span></button>
           <button class="psu-gender" data-gender="male" onclick="psuSelectGender('male')">&#9794; <span data-i18n="rel.gender_male">Мужской</span></button>
         </div>
@@ -6295,23 +6295,32 @@
 
       // Валидация
       const _t = (k, f) => ((window.i18n && i18n.t && i18n.t(k)) || f);
-      if (!firstName) { status.textContent = _t('psu.err_firstname', 'Укажи своё настоящее имя'); document.getElementById('psu-first-name').focus(); return; }
-      if (!lastName) { status.textContent = _t('psu.err_lastname', 'Укажи свою настоящую фамилию'); document.getElementById('psu-last-name').focus(); return; }
-      if (_psuGender !== 'male' && _psuGender !== 'female') { status.textContent = _t('psu.err_gender', 'Укажи свой пол'); return; }
-      if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(birthDate)) {
-        status.textContent = _t('psu.err_date_format', 'Дата рождения в формате ДД.ММ.ГГГГ');
-        return;
-      }
+      // Ошибку валидации показываем ТРЕМЯ способами, чтобы на телефоне её нельзя
+      // было пропустить: строка статуса + всплывашка (toast) + прокрутка/фокус к полю.
+      // Раньше ошибка писалась только в #psu-status над кнопкой — на iPhone она
+      // часто вне экрана, и тестеру казалось, что «кнопка не работает».
+      const fail = (msg, focusId) => {
+        if (status) status.textContent = msg;
+        if (typeof showToast === 'function') showToast(msg, 'error');
+        if (focusId) {
+          const el = document.getElementById(focusId);
+          if (el) {
+            try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+            try { el.focus({ preventScroll: true }); } catch (e) {}
+          }
+        }
+      };
+      if (!firstName) { fail(_t('psu.err_firstname', 'Укажи своё настоящее имя'), 'psu-first-name'); return; }
+      if (!lastName) { fail(_t('psu.err_lastname', 'Укажи свою настоящую фамилию'), 'psu-last-name'); return; }
+      if (_psuGender !== 'male' && _psuGender !== 'female') { fail(_t('psu.err_gender', 'Укажи свой пол'), 'psu-gender-row'); return; }
+      if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(birthDate)) { fail(_t('psu.err_date_format', 'Дата рождения в формате ДД.ММ.ГГГГ'), 'psu-birth-date'); return; }
       const [dd, mm, yyyy] = birthDate.split('.').map(Number);
       const nowYear = new Date().getFullYear();
-      if (dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy < 1900 || yyyy > nowYear) {
-        status.textContent = _t('psu.err_date_invalid', 'Проверь дату — что-то не так');
-        return;
-      }
-      if (!/^\d{1,2}:\d{2}$/.test(birthTime)) { status.textContent = _t('psu.err_time_format', 'Время в формате ЧЧ:ММ (например 14:30)'); return; }
+      if (dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy < 1900 || yyyy > nowYear) { fail(_t('psu.err_date_invalid', 'Проверь дату — что-то не так'), 'psu-birth-date'); return; }
+      if (!/^\d{1,2}:\d{2}$/.test(birthTime)) { fail(_t('psu.err_time_format', 'Время в формате ЧЧ:ММ (например 14:30)'), 'psu-birth-time'); return; }
       const [h, m] = birthTime.split(':').map(Number);
-      if (h > 23 || m > 59) { status.textContent = _t('psu.err_time_range', 'Проверь время: часы 00-23, минуты 00-59'); return; }
-      if (!birthPlace) { status.textContent = _t('psu.err_place', 'Укажи место рождения'); return; }
+      if (h > 23 || m > 59) { fail(_t('psu.err_time_range', 'Проверь время: часы 00-23, минуты 00-59'), 'psu-birth-time'); return; }
+      if (!birthPlace) { fail(_t('psu.err_place', 'Укажи место рождения'), 'psu-birth-place'); return; }
       // Источник истины — реальные координаты. Принимаем их из трёх источников по
       // очереди, чтобы кнопка НЕ молчала, если тестер ввёл город руками, а не тапнул
       // подсказку: (1) координаты из выбранной подсказки; (2) из сохранённого профиля
@@ -6347,7 +6356,7 @@
         status.textContent = '';
       }
       if (!(Number.isFinite(_lat) && Number.isFinite(_lon))) {
-        status.textContent = _t('psu.err_city_pick', 'Не нашла такой город. Начни вводить название и выбери подсказку из списка.');
+        fail(_t('psu.err_city_pick', 'Не нашла такой город. Начни вводить название и выбери подсказку из списка.'), 'psu-birth-place');
         return;
       }
       // Синхронизируем переменные — их использует _psuActuallySave().

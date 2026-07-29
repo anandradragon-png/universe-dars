@@ -1,5 +1,5 @@
 {
-  "version": "20260728b",
+  "version": "20260729a",
   "shelves": [
     { "id": "popular", "title": "Популярная литература", "icon": "\uD83D\uDCD6" },
     { "id": "science", "title": "Научные книги", "icon": "\uD83D\uDD2C" },
@@ -34,6 +34,15 @@
       "source": "nine-fields-science.json",
       "access": "free",
       "cover": { "from": "#4fb0a5", "to": "#25635c" }
+    },
+    {
+      "id": "odno-semya",
+      "title": "Одно семя — целый человек",
+      "subtitle": "Описательная сила системы ДАРов",
+      "shelf": "science",
+      "source": "odno-semya-science.json",
+      "access": "free",
+      "cover": { "from": "#5a6db0", "to": "#2b356b" }
     }
   ]
 }

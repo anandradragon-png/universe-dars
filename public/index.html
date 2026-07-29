@@ -134,6 +134,12 @@
           .catch(function() {});
       } catch (e) {}
     }
+    // Отдаём версию наружу + печатаем её в модалку профиля, чтобы по скриншоту
+    // тестера сразу видеть, свежая у него сборка или застрявший кэш.
+    window.__YUPDAR_BUILD = BUILD;
+    document.addEventListener('DOMContentLoaded', function() {
+      try { var s = document.getElementById('psu-build-stamp'); if (s) s.textContent = 'v ' + BUILD; } catch (e) {}
+    });
     // 1) Проверка при первой загрузке.
     checkVersion();
     // 2) Проверка при КАЖДОМ возврате приложения на передний план.
@@ -1646,6 +1652,7 @@
       <button id="psu-save-btn" onclick="psuSave()" style="position:relative;z-index:30;width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 30%,#9A7B1A 70%,#D4AF37 100%);color:#080808;font-size:15px;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:1px;font-weight:bold;box-shadow:0 0 15px rgba(212,175,55,0.3)" data-i18n="psu.save_and_continue">Сохранить и продолжить</button>
       <button id="psu-later-btn" onclick="psuSkip()" style="width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;font-family:Manrope,sans-serif" data-i18n="psu.fill_later">Заполнить позже</button>
       <button id="psu-debug-btn" onclick="psuSendDebugLog()" style="display:none;width:100%;padding:10px;margin-top:8px;border-radius:12px;border:1px dashed rgba(212,175,55,0.4);background:rgba(212,175,55,0.05);color:#D4AF37;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif">&#128203; <span data-i18n="psu.send_log">Прислать лог разработчику</span></button>
+      <div id="psu-build-stamp" style="text-align:center;font-size:9px;color:var(--text-muted);opacity:0.5;margin-top:10px;letter-spacing:0.5px"></div>
     </div>
   </div>
 
@@ -6295,6 +6302,15 @@
     window.psuConfirmOk = psuConfirmOk;
 
     async function psuSave() {
+      // Мгновенная реакция: если тап дошёл до обработчика — кнопка сразу мигает
+      // «Проверяю…». Если тестер жмёт, а надпись НЕ меняется — значит тап не
+      // доходит (застрявший кэш / оверлей / мёртвый JS), и это уже другой диагноз.
+      const _saveBtn = document.getElementById('psu-save-btn');
+      if (_saveBtn) {
+        _saveBtn.dataset.origLabel = _saveBtn.dataset.origLabel || _saveBtn.textContent;
+        _saveBtn.textContent = 'Проверяю…';
+        setTimeout(function(){ if (_saveBtn.textContent === 'Проверяю…') _saveBtn.textContent = _saveBtn.dataset.origLabel; }, 2500);
+      }
       const firstName = document.getElementById('psu-first-name').value.trim();
       const lastName = document.getElementById('psu-last-name').value.trim();
       const birthDate = document.getElementById('psu-birth-date').value.trim();

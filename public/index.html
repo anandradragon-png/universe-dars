@@ -1137,6 +1137,14 @@
           </button>
           <div class="me-acc-body" data-i18n="me.acc_wealth_text" data-placeholder="1">Через что приходят ресурсы. Появится после получения полного послания.</div>
         </div>
+        <div class="me-acc-item" data-section="drive">
+          <button class="me-acc-header" onclick="toggleMeAcc(this)">
+            <span class="me-acc-icon">🔥</span>
+            <span class="me-acc-title" data-i18n="me.acc_drive">Твоя Движущая Сила</span>
+            <span class="me-acc-arrow">▼</span>
+          </button>
+          <div class="me-acc-body" data-i18n="me.acc_drive_text" data-placeholder="1">Что ведёт тебя вперёд и даёт энергию. Появится после получения полного послания.</div>
+        </div>
         <div class="me-acc-item" data-section="relationships">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
             <span class="me-acc-icon">❤️</span>
@@ -1147,7 +1155,7 @@
         </div>
         <div class="me-acc-item" data-section="traps">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
-            <span class="me-acc-icon">⚠️</span>
+            <span class="me-acc-icon">🌑</span>
             <span class="me-acc-title" data-i18n="me.acc_traps">Твои Ловушки</span>
             <span class="me-acc-arrow">▼</span>
           </button>
@@ -1161,9 +1169,21 @@
           </button>
           <div class="me-acc-body" data-i18n="me.acc_key_text" data-placeholder="1">Главный ресурс твоего Дара. Появится после получения полного послания.</div>
         </div>
+        <div class="me-acc-item me-acc-rod-locked" data-section="rod">
+          <button class="me-acc-header" onclick="toggleMeAcc(this)">
+            <span class="me-acc-icon">🎁</span>
+            <span class="me-acc-title" data-i18n="me.acc_rod">Дар Твоего Рода</span>
+            <span class="me-acc-arrow">▼</span>
+            <span class="me-acc-lock me-rod-lock" title="Имя и фамилия">🔒</span>
+          </button>
+          <div class="me-acc-body" data-placeholder="1">
+            <div class="me-rod-teaser" data-i18n="me.acc_rod_teaser" style="margin-bottom:12px">Добавь своё имя и фамилию — и откроется врождённая сила, которая досталась тебе от рода.</div>
+            <button class="me-rod-cta" onclick="openProfileSetup()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(184,134,11,0.1));color:#D4AF37;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif" data-i18n="me.acc_rod_cta">✨ Дополнить профиль</button>
+          </div>
+        </div>
         <div class="me-acc-item" data-section="mission">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
-            <span class="me-acc-icon">🌍</span>
+            <span class="me-acc-icon">🎯</span>
             <span class="me-acc-title" data-i18n="me.acc_mission">Твоё Предназначение</span>
             <span class="me-acc-arrow">▼</span>
           </button>
@@ -1700,9 +1720,9 @@
     .me-acc-header.open .me-acc-arrow{transform:rotate(180deg)}
     .me-acc-body{max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;padding:0 16px;color:var(--text-dim,#94a3b8);font-size:13px;line-height:1.6}
     .me-acc-body.open{max-height:1200px;padding:4px 16px 14px}
-    .me-acc-locked .me-acc-title{color:var(--text-dim,#94a3b8)}
+    .me-acc-locked .me-acc-title,.me-acc-rod-locked .me-acc-title{color:var(--text-dim,#94a3b8)}
     .me-acc-lock{font-size:14px;color:#D4AF37;flex-shrink:0;opacity:0.85}
-    .me-acc-locked .me-acc-header:hover .me-acc-lock{opacity:1;transform:scale(1.1);transition:transform 0.2s}
+    .me-acc-locked .me-acc-header:hover .me-acc-lock,.me-acc-rod-locked .me-acc-header:hover .me-acc-lock{opacity:1;transform:scale(1.1);transition:transform 0.2s}
     /* Блок «Дневник Дара» — freemium-крючок */
     .me-diary-card{margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,rgba(140,90,200,0.10),rgba(140,90,200,0.04));border:1px solid rgba(140,90,200,0.3);border-radius:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s}
     .me-diary-card:hover{border-color:rgba(140,90,200,0.5)}
@@ -2670,6 +2690,24 @@
       });
     }
     window.refreshArkaPremiumLocks = refreshArkaPremiumLocks;
+
+    // Ячейка «Дар Твоего Рода» открывается только после ввода имени И фамилии.
+    // Пока их нет — показываем тизер-замок с приглашением дополнить профиль.
+    // Возвращает true, если ячейка разблокирована (есть имя и фамилия).
+    function refreshRodLock() {
+      const item = document.querySelector('.me-acc-item[data-section="rod"]');
+      if (!item) return false;
+      let hasName = false;
+      try {
+        const p = (typeof getLocalProfile === 'function') ? getLocalProfile() : {};
+        hasName = !!(p && (p.real_first_name || '').trim() && (p.real_last_name || '').trim());
+      } catch (e) {}
+      item.classList.toggle('me-acc-rod-locked', !hasName);
+      const lock = item.querySelector('.me-rod-lock');
+      if (lock) lock.style.display = hasName ? 'none' : '';
+      return hasName;
+    }
+    window.refreshRodLock = refreshRodLock;
 
     // ──────────────────────────────────────────────────────────
     // Вкладка «Дар / АРКА» — этап 3 слияния (2026-05-25).
@@ -4177,6 +4215,7 @@
         if (w.blocks) parts.push('**Что блокирует поток:**\n' + w.blocks);
         return parts.join('\n\n');
       }},
+      {key:'drive',        icon:'🔥', title:'Твоя Движущая Сила', getText: d => d.drive},
       {key:'relationships',icon:'❤️', title:'Ты в Отношениях', getText: d => {
         const r = d.relationships;
         if (!r) return '';
@@ -4189,9 +4228,10 @@
         if (r.hint) parts.push(r.hint);
         return parts.join('\n\n');
       }},
-      {key:'traps',        icon:'⚠️', title:'Твои Ловушки', getText: d => d.traps},
+      {key:'traps',        icon:'🌑', title:'Твои Ловушки', getText: d => d.traps},
       {key:'key_to_self',  icon:'🗝', title:'Ключ к Себе', getText: d => d.key_to_self},
-      {key:'mission',      icon:'🌍', title:'Твоё Предназначение', getText: d => d.mission}
+      {key:'rod',          icon:'🎁', title:'Дар Твоего Рода', getText: d => d.rod},
+      {key:'mission',      icon:'🎯', title:'Твоё Предназначение', getText: d => d.mission}
     ];
 
     // Отрисовка блока архетипа (от AI) над аккордеоном
@@ -4225,6 +4265,17 @@
     // Заполнение аккордеона на вкладке «Я» полным посланием от AI
     // (этап 9 слияния, 2026-05-25). Промт уже возвращает JSON с 7 секциями —
     // просто кладём текст в .me-acc-body соответствующей секции.
+    // Крючок в АРКУ под текстом «Ключ к Себе»: приглашение развернуть тень в силу.
+    function arkaKeyHookHtml(){
+      const t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
+      const line = t('me.key_arka_hook', 'Хочешь узнать, как сделать тень своей супер-силой — по шагам, в ритме своего Дара?');
+      const btn = t('me.key_arka_btn', '🗝 Пройти в АРКЕ');
+      return '<div class="me-key-arka" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(212,175,55,0.18)">' +
+             '<div style="font-size:13px;line-height:1.6;color:var(--text-dim);margin-bottom:10px">' + line + '</div>' +
+             '<button onclick="switchNav(\'arka\')" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;border:1px solid rgba(212,175,55,0.5);background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(184,134,11,0.1));color:#D4AF37;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif">' + btn + '</button>' +
+             '</div>';
+    }
+
     function fillMeAccordionFromJSON(data){
       const acc = document.getElementById('me-accordion');
       if (!acc) return;
@@ -4237,14 +4288,23 @@
           archHost.textContent = '«' + archMotto + '»';
         }
       }
+      // «Дар Рода» открываем только после ввода имени и фамилии.
+      const rodUnlocked = (typeof refreshRodLock === 'function') ? refreshRodLock() : true;
       JSON_SECTIONS.forEach(s => {
         const item = acc.querySelector('.me-acc-item[data-section="' + s.key + '"]');
         if (!item) return;
+        // Пока «Дар Рода» под замком — не затираем тизер-приглашение AI-текстом.
+        if (s.key === 'rod' && !rodUnlocked) return;
         const body = item.querySelector('.me-acc-body');
         if (!body) return;
-        const text = s.getText(data);
+        let text = s.getText(data);
         if (!text || !text.trim()) return;
-        body.innerHTML = formatText(text);
+        // «Ключ к Себе» — после микро-инструмента добавляем мягкий крючок в АРКУ.
+        if (s.key === 'key_to_self') {
+          body.innerHTML = formatText(text) + arkaKeyHookHtml();
+        } else {
+          body.innerHTML = formatText(text);
+        }
         body.removeAttribute('data-placeholder');
         body.removeAttribute('data-i18n'); // больше не перерисовываем плейсхолдером при смене языка
       });
@@ -6164,6 +6224,36 @@
       }).join('');
     }
 
+    // Геокодирование одного города по названию (для сохранения, когда тестер ввёл
+    // город руками и не тапнул подсказку). Возвращает {lat, lon, name} или null.
+    async function psuGeocodeCity(query) {
+      const q = (query || '').trim();
+      if (!q) return null;
+      const pick = (arr) => {
+        if (!arr || !arr.length) return null;
+        const it = arr[0];
+        const lat = parseFloat(it.lat), lon = parseFloat(it.lon);
+        if (!(Number.isFinite(lat) && Number.isFinite(lon))) return null;
+        const parts = (it.display_name || '').split(',').map(s => s.trim()).filter(Boolean);
+        return { lat, lon, name: parts[0] || q };
+      };
+      try {
+        const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&accept-language=ru&featureType=city';
+        const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const data = resp.ok ? await resp.json() : [];
+        let hit = pick(data);
+        if (!hit) {
+          const url2 = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&accept-language=ru';
+          const resp2 = await fetch(url2, { headers: { 'Accept': 'application/json' } });
+          const data2 = resp2.ok ? await resp2.json() : [];
+          hit = pick(data2);
+        }
+        return hit;
+      } catch (e) {
+        return null;
+      }
+    }
+
     function psuSelectCity(el) {
       const short = el.dataset.short;
       const full = el.dataset.full;
@@ -6222,11 +6312,14 @@
       const [h, m] = birthTime.split(':').map(Number);
       if (h > 23 || m > 59) { status.textContent = _t('psu.err_time_range', 'Проверь время: часы 00-23, минуты 00-59'); return; }
       if (!birthPlace) { status.textContent = _t('psu.err_place', 'Укажи место рождения'); return; }
-      // Источник истины — реальные координаты, а не хрупкий флаг. Принимаем, если
-      // они валидны в переменных, либо восстанавливаются из сохранённого профиля
-      // при непустом тексте города (защита от мусора: без валидных координат — ошибка).
+      // Источник истины — реальные координаты. Принимаем их из трёх источников по
+      // очереди, чтобы кнопка НЕ молчала, если тестер ввёл город руками, а не тапнул
+      // подсказку: (1) координаты из выбранной подсказки; (2) из сохранённого профиля
+      // при похожем названии города; (3) геокодируем введённый текст прямо при сохранении.
       let _lat = parseFloat(_psuCityLat);
       let _lon = parseFloat(_psuCityLon);
+      // Нормализация названия города: нижний регистр, первая часть до запятой.
+      const _cityKey = (s) => (s || '').toString().trim().toLowerCase().split(',')[0].trim();
       if (!(Number.isFinite(_lat) && Number.isFinite(_lon))) {
         try {
           const sp = (typeof getLocalProfile === 'function') ? getLocalProfile() : null;
@@ -6234,14 +6327,27 @@
             const pLat = parseFloat(sp.birth_lat);
             const pLon = parseFloat(sp.birth_lon);
             if (Number.isFinite(pLat) && Number.isFinite(pLon) &&
-                (sp.birth_place || '').trim() === birthPlace) {
+                _cityKey(sp.birth_place) === _cityKey(birthPlace)) {
               _lat = pLat; _lon = pLon;
             }
           }
         } catch (e) {}
       }
+      // Последний шанс: геокодируем введённый город прямо сейчас (город набран руками).
       if (!(Number.isFinite(_lat) && Number.isFinite(_lon))) {
-        status.textContent = _t('psu.err_city_pick', 'Выбери город из списка подсказок (для точных координат)');
+        status.textContent = _t('psu.geocoding', 'Определяю координаты города...');
+        try {
+          const g = await psuGeocodeCity(birthPlace);
+          if (g && Number.isFinite(g.lat) && Number.isFinite(g.lon)) {
+            _lat = g.lat; _lon = g.lon;
+            document.getElementById('psu-city-coords').textContent =
+              `${g.lat.toFixed(4)}°, ${g.lon.toFixed(4)}° — ${g.name || birthPlace}`;
+          }
+        } catch (e) {}
+        status.textContent = '';
+      }
+      if (!(Number.isFinite(_lat) && Number.isFinite(_lon))) {
+        status.textContent = _t('psu.err_city_pick', 'Не нашла такой город. Начни вводить название и выбери подсказку из списка.');
         return;
       }
       // Синхронизируем переменные — их использует _psuActuallySave().
@@ -6338,6 +6444,14 @@
           status.textContent = '';
           closeProfileSetup();
           if (typeof loadProfileData === 'function') loadProfileData();
+          // Профиль дополнен именем и фамилией — открываем «Дар Рода» и
+          // перерисовываем аккордеон из кэша, чтобы ячейка сразу наполнилась.
+          try {
+            if (typeof refreshRodLock === 'function') refreshRodLock();
+            const _sv = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            const _code = (_sv && _sv.gift && _sv.gift.code) ? _sv.gift.code : '';
+            if (_code && typeof tryRestoreMessageCache === 'function') tryRestoreMessageCache(_code);
+          } catch (e) {}
           const pending = sessionStorage.getItem('_pendingShowResult');
           if (pending) {
             sessionStorage.removeItem('_pendingShowResult');

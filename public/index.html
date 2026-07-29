@@ -4467,6 +4467,27 @@
         currentList = null;
       }
 
+      // Длинную сплошную прозу (частый случай «Твоя Суть» — AI шлёт одним
+      // куском без \n\n) дробим на абзацы по 2-3 предложения, иначе на
+      // телефоне это нечитаемая стена. Структурные блоки (с подзаголовком
+      // <strong>) не трогаем — там разбивка уже сделана.
+      function splitProse(p) {
+        if (p.length <= 300 || /<strong>/.test(p)) return [p];
+        const sentences = p.match(/[^.!?…]+[.!?…]+(?:["»)]+)?\s*/g);
+        if (!sentences || sentences.length < 4) return [p];
+        const out = [];
+        let buf = '', cnt = 0;
+        for (const s of sentences) {
+          buf += s; cnt++;
+          if (cnt >= 2 && (buf.length >= 220 || cnt >= 3)) { out.push(buf.trim()); buf = ''; cnt = 0; }
+        }
+        if (buf.trim()) {
+          if (out.length && buf.trim().length < 80) out[out.length - 1] += ' ' + buf.trim();
+          else out.push(buf.trim());
+        }
+        return out.length ? out : [p];
+      }
+
       for (const p of paragraphs) {
         const numMatch = p.match(NUM_RE);
         const bulletMatch = p.match(BULLET_RE);
@@ -4496,7 +4517,7 @@
             const items = lines.map(l => l.trim().replace(/^[•\-–]\s+/,''));
             blocks.push(`<ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul>`);
           } else {
-            blocks.push(`<p>${p.replace(/\n/g,'<br>')}</p>`);
+            splitProse(p).forEach(chunk => blocks.push(`<p>${chunk.replace(/\n/g,'<br>')}</p>`));
           }
         }
       }

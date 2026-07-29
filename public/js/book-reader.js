@@ -30,7 +30,7 @@ const BookReader = (function() {
   let currentBookId = 'dars';
   let currentBookAccess = 'gated'; // 'gated' — по тарифу/покупке, 'free' — открыта всем
   let viewMode = 'library';
-  const BOOKS_VER = '20260729a';   // токен кэша для JSON новых книг
+  const BOOKS_VER = '20260729b';   // токен кэша для JSON новых книг
 
   // Настройки читателя (сохраняются в localStorage)
   const DEFAULTS = { fontSize: 16, theme: 'dark', lineHeight: 1.75 };
@@ -178,17 +178,53 @@ const BookReader = (function() {
     } catch(e) {}
     return 'ru';
   }
-  function _bookUrl() {
+  // Локализованное поле манифеста: field_en / field_es, иначе базовое (RU).
+  function _locField(obj, field) {
+    if (!obj) return '';
+    const lang = _bookLang();
+    if ((lang === 'en' || lang === 'es') && obj[field + '_' + lang]) return obj[field + '_' + lang];
+    return obj[field] || '';
+  }
+  function _bookUrl(langOverride) {
+    const lang = langOverride || _bookLang();
     // Книга Даров ('dars') — с локализацией EN/ES (авторские оригиналы).
     if (currentBookId === 'dars') {
-      const lang = _bookLang();
       const file = (lang === 'en' || lang === 'es') ? `/book-chapters.${lang}.json` : '/book-chapters.json';
       return file + '?v=20260610a';
     }
-    // Остальные книги — по манифесту (пока только русский оригинал).
     const meta = getBookMeta(currentBookId);
     const src = (meta && meta.source) || 'book-chapters.json';
+    // Книги с i18n:true имеют переводы рядом: {база}.en.json / {база}.es.json.
+    // Если перевода нет — сработает откат на русский (см. _fetchBookData).
+    if (meta && meta.i18n && (lang === 'en' || lang === 'es')) {
+      const localized = src.replace(/\.json$/, '.' + lang + '.json');
+      return '/' + localized + '?v=' + BOOKS_VER;
+    }
     return '/' + src + '?v=' + BOOKS_VER;
+  }
+  // Грузит контент книги на текущем языке; при отсутствии/битом переводе
+  // безопасно откатывается на русский оригинал.
+  async function _fetchBookData() {
+    const lang = _bookLang();
+    const primary = _bookUrl();
+    try {
+      const resp = await fetch(primary);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && Array.isArray(data.parts)) return data;
+      }
+    } catch (e) {}
+    if (lang !== 'ru') {
+      const ruUrl = _bookUrl('ru');
+      if (ruUrl !== primary) {
+        try {
+          const resp = await fetch(ruUrl);
+          const data = await resp.json();
+          if (data && Array.isArray(data.parts)) return data;
+        } catch (e2) {}
+      }
+    }
+    return null;
   }
 
   // -------- Манифест библиотеки --------
@@ -240,9 +276,8 @@ const BookReader = (function() {
     loadProgress(); // прогресс namespaced по книге
     try {
       _loadedBookLang = _bookLang();
-      const resp = await fetch(_bookUrl());
-      bookData = await resp.json();
-      totalChapters = bookData.parts.reduce((s, p) => s + p.chapters.length, 0);
+      bookData = await _fetchBookData();
+      if (bookData) totalChapters = bookData.parts.reduce((s, p) => s + p.chapters.length, 0);
     } catch (e) {
       console.error('[BookReader] book load error:', e);
       bookData = null;
@@ -322,8 +357,8 @@ const BookReader = (function() {
       const to = cover.to || '#8b6b2c';
       const title = (b.id === 'dars')
         ? ((window.i18n && i18n.t && i18n.t('book.title')) || b.title || '')
-        : (b.title || '');
-      const sub = b.subtitle || '';
+        : _locField(b, 'title');
+      const sub = _locField(b, 'subtitle');
       const isFree = (b.access || 'gated') === 'free';
       const badge = isFree
         ? '<div style="position:absolute;top:8px;right:8px;z-index:2;background:rgba(46,204,113,0.9);color:#06210f;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:0.3px">' + freeTxt + '</div>'
@@ -356,7 +391,7 @@ const BookReader = (function() {
       shelvesHtml += `
         <div style="margin-bottom:22px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-            <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:0.4px">${icon}${escapeHtml(sh.title || '')}</div>
+            <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:0.4px">${icon}${escapeHtml(_locField(sh, 'title'))}</div>
             <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(212,175,55,0.35),transparent)"></div>
           </div>`;
       if (shelfBooks.length) {
@@ -1558,20 +1593,24 @@ const BookReader = (function() {
   if (typeof document !== 'undefined') {
     attachImageClickHandler();
     attachKeyboardShortcuts();
-    // Смена языка → перезагрузка книги на оригинале EN/ES/RU и перерисовка.
-    // Локализованы только оригиналы Книги Даров ('dars'); прочие книги пока
-    // только на русском — им достаточно перерисовать подписи интерфейса.
+    // Смена языка → перезагрузка книги на нужном языке и перерисовка.
+    // Локализуются Книга Даров ('dars') и любые книги с i18n:true в манифесте;
+    // остальным достаточно перерисовать подписи интерфейса.
     const _onLangChange = async () => {
       if (!bookData) { render(); return; } // ещё не инициализировались
-      if (currentBookId !== 'dars') { render(); return; }
+      const meta = getBookMeta(currentBookId);
+      const localizable = (currentBookId === 'dars') || (meta && meta.i18n);
+      if (!localizable) { render(); return; }
       if (_loadedBookLang === _bookLang()) return;  // язык не изменился
       try {
         _loadedBookLang = _bookLang();
-        const resp = await fetch(_bookUrl());
-        bookData = await resp.json();
-        totalChapters = bookData.parts.reduce((s, p) => s + p.chapters.length, 0);
-        currentPartIdx = 0;
-        currentChapterIdx = 0;
+        const data = await _fetchBookData();
+        if (data) {
+          bookData = data;
+          totalChapters = bookData.parts.reduce((s, p) => s + p.chapters.length, 0);
+          currentPartIdx = 0;
+          currentChapterIdx = 0;
+        }
         render();
       } catch(e) { console.error('[BookReader] reload error:', e); }
     };

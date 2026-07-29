@@ -1,9 +1,9 @@
 {
-  "version": "20260729a",
+  "version": "20260729b",
   "shelves": [
-    { "id": "popular", "title": "Популярная литература", "icon": "\uD83D\uDCD6" },
-    { "id": "science", "title": "Научные книги", "icon": "\uD83D\uDD2C" },
-    { "id": "kids", "title": "Детские книги", "icon": "\uD83E\uDDF8", "soon": true }
+    { "id": "popular", "title": "Популярная литература", "title_en": "Popular reading", "title_es": "Lectura popular", "icon": "\uD83D\uDCD6" },
+    { "id": "science", "title": "Научные книги", "title_en": "Science books", "title_es": "Libros científicos", "icon": "\uD83D\uDD2C" },
+    { "id": "kids", "title": "Детские книги", "title_en": "Children's books", "title_es": "Libros infantiles", "icon": "\uD83E\uDDF8", "soon": true }
   ],
   "books": [
     {
@@ -20,28 +20,43 @@
     {
       "id": "nine-fields-popular",
       "title": "Девять полей",
+      "title_en": "Nine Fields",
+      "title_es": "Nueve Campos",
       "subtitle": "Популярное изложение",
+      "subtitle_en": "A popular account",
+      "subtitle_es": "Exposición divulgativa",
       "shelf": "popular",
       "source": "nine-fields-popular.json",
       "access": "free",
+      "i18n": true,
       "cover": { "from": "#6c8cff", "to": "#3a4f9c" }
     },
     {
       "id": "nine-fields-science",
       "title": "Модель девяти полей восприятия",
+      "title_en": "The Nine Fields of Perception",
+      "title_es": "El modelo de los nueve campos de percepción",
       "subtitle": "Научное изложение",
+      "subtitle_en": "A scientific account",
+      "subtitle_es": "Exposición científica",
       "shelf": "science",
       "source": "nine-fields-science.json",
       "access": "free",
+      "i18n": true,
       "cover": { "from": "#4fb0a5", "to": "#25635c" }
     },
     {
       "id": "odno-semya",
       "title": "Одно семя — целый человек",
+      "title_en": "One Seed — a Whole Person",
+      "title_es": "Una semilla, una persona entera",
       "subtitle": "Описательная сила системы ДАРов",
+      "subtitle_en": "The descriptive power of the DAR system",
+      "subtitle_es": "El poder descriptivo del sistema DAR",
       "shelf": "science",
       "source": "odno-semya-science.json",
       "access": "free",
+      "i18n": true,
       "cover": { "from": "#5a6db0", "to": "#2b356b" }
     }
   ]

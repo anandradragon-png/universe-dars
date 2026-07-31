@@ -30,7 +30,7 @@ const BookReader = (function() {
   let currentBookId = 'dars';
   let currentBookAccess = 'gated'; // 'gated' — по тарифу/покупке, 'free' — открыта всем
   let viewMode = 'library';
-  const BOOKS_VER = '20260731g';   // токен кэша для JSON новых книг
+  const BOOKS_VER = '20260731h';   // токен кэша для JSON новых книг
 
   // Настройки читателя (сохраняются в localStorage)
   const DEFAULTS = { fontSize: 16, theme: 'dark', lineHeight: 1.75 };
@@ -369,7 +369,7 @@ const BookReader = (function() {
       // Если у книги есть готовая обложка-картинка — показываем её на всю
       // плитку. Иначе — градиентная плашка с названием (фоллбэк).
       const coverInner = b.image
-        ? '<img src="/book-images/' + b.image + '?v=' + BOOKS_VER + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>'
+        ? '<img src="/book-images/' + b.image + '?v=' + BOOKS_VER + '" alt="" loading="eager" decoding="async" fetchpriority="high" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>'
         : '<div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:rgba(0,0,0,0.18)"></div>' +
           '<div style="text-align:center;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.35)">' +
           '<div style="font-size:14px;font-weight:700;line-height:1.25;letter-spacing:0.3px">' + escapeHtml(title) + '</div></div>';
@@ -382,14 +382,16 @@ const BookReader = (function() {
         ? '<span style="color:#2ecc71;font-weight:700">' + freeTxt + '</span>'
         : '<span style="color:#D4AF37;font-weight:700">' + paidTxt + '</span>';
       // Поповер «о книге»: всплывает ПОВЕРХ сетки (не удлиняет ленту).
-      // Десктоп — по наведению (mouseenter/leave), телефон — по тапу.
+      // Кнопка — явная, с фоном и рамкой, крупная зона под палец.
+      // Десктоп — открытие по наведению; телефон — по тапу (hover там отключён,
+      // чтобы не было конфликта mouseenter+click = «двойной тык»).
       const aboutBlock = about ? `
           <div id="about-wrap-${b.id}" style="position:relative" onmouseenter="BookReader.openAbout('${b.id}')" onmouseleave="BookReader.closeAbout('${b.id}')">
-            <button onclick="BookReader.toggleAbout('${b.id}')" style="all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#D4AF37;padding:2px 2px;margin-top:1px">
+            <button onclick="BookReader.toggleAbout('${b.id}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#D4AF37;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.35);border-radius:9px;padding:7px 12px;margin-top:2px;font-family:Manrope,sans-serif;line-height:1;-webkit-tap-highlight-color:transparent">
               <span>${escapeHtml(aboutTxt)}</span>
               <span id="about-caret-${b.id}" style="display:inline-block;transition:transform 0.2s;font-size:9px">&#9662;</span>
             </button>
-            <div id="about-panel-${b.id}" style="display:none;position:absolute;left:-2px;right:-2px;top:calc(100% - 2px);z-index:40;padding:10px 12px;background:#141210;border:1px solid rgba(212,175,55,0.4);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,0.55)">
+            <div id="about-panel-${b.id}" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 3px);z-index:40;padding:10px 12px;background:#141210;border:1px solid rgba(212,175,55,0.4);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,0.55)">
               <div style="font-size:12px;color:var(--text);line-height:1.45">${escapeHtml(about)}</div>
               ${authors ? '<div style="font-size:11px;color:var(--text-dim);margin-top:6px">' + escapeHtml(authorTxt) + ': ' + escapeHtml(authors) + '</div>' : ''}
               <div style="font-size:11px;margin-top:4px">${statusChip}</div>
@@ -958,7 +960,7 @@ const BookReader = (function() {
         <div style="background:var(--card);border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:18px;text-align:center">
           <div style="font-size:24px;margin-bottom:6px">&#10024;</div>
           <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:6px">${t('book.inspire_title', 'Автору на вдохновение')}</div>
-          <div style="font-size:12px;color:var(--text-dim);line-height:1.55;margin-bottom:14px">${t('book.inspire_sub', 'Понравилась книга? Отправь автору столько звёзд, сколько захочешь.')}</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.55;margin-bottom:14px">${t('book.inspire_sub', 'Понравилась книга? Вдохнови автора на новые шедевры, поддержи звёздами.')}</div>
           <div style="display:flex;gap:8px;justify-content:center;max-width:300px;margin:0 auto">
             <input id="book-inspire-amount" type="number" min="1" max="100000" placeholder="${t('book.inspire_placeholder', 'Сколько звёзд \u2728')}" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;text-align:center;outline:none;font-family:Manrope,sans-serif"/>
             <button onclick="BookReader.sendInspire()" style="padding:12px 18px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 40%,#9A7B1A 100%);color:#080808;font-size:13px;font-weight:bold;cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap">${t('book.inspire_send', 'Отправить')}</button>
@@ -1697,6 +1699,13 @@ const BookReader = (function() {
   let _aboutTimers = {};
   let _aboutOpenId = null;
   let _aboutDocBound = false;
+  // Реальное наведение есть только у мыши. На тачскрине hover эмулируется первым
+  // тапом и конфликтует с click → «двойной тык». Поэтому hover-ветку включаем
+  // только для устройств с настоящим ховером; на телефоне работает чистый тап.
+  function _hasHover() {
+    try { return window.matchMedia && window.matchMedia('(hover: hover)').matches; }
+    catch (e) { return false; }
+  }
 
   function _showAbout(id, show) {
     const panel = document.getElementById('about-panel-' + id);
@@ -1717,7 +1726,9 @@ const BookReader = (function() {
     });
   }
 
+  // Вызывается из onmouseenter — работает только на устройствах с мышью.
   function openAbout(id) {
+    if (!_hasHover()) return;
     _bindAboutDoc();
     if (_aboutTimers[id]) { clearTimeout(_aboutTimers[id]); _aboutTimers[id] = null; }
     if (_aboutOpenId && _aboutOpenId !== id) _showAbout(_aboutOpenId, false);
@@ -1727,6 +1738,7 @@ const BookReader = (function() {
 
   // Задержка на закрытие: пересечение зазора курсором до панели её не захлопнет.
   function closeAbout(id) {
+    if (!_hasHover()) return;
     if (_aboutTimers[id]) clearTimeout(_aboutTimers[id]);
     _aboutTimers[id] = setTimeout(function () {
       _showAbout(id, false);
@@ -1734,13 +1746,19 @@ const BookReader = (function() {
     }, 160);
   }
 
+  // Клик/тап по кнопке — работает всегда (и на телефоне, и на десктопе).
   function toggleAbout(id) {
     _bindAboutDoc();
     const panel = document.getElementById('about-panel-' + id);
     if (!panel) return;
     const open = panel.style.display !== 'none';
     if (open) { _showAbout(id, false); if (_aboutOpenId === id) _aboutOpenId = null; }
-    else { openAbout(id); }
+    else {
+      if (_aboutTimers[id]) { clearTimeout(_aboutTimers[id]); _aboutTimers[id] = null; }
+      if (_aboutOpenId && _aboutOpenId !== id) _showAbout(_aboutOpenId, false);
+      _aboutOpenId = id;
+      _showAbout(id, true);
+    }
   }
 
   return {

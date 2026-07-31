@@ -30,7 +30,7 @@ const BookReader = (function() {
   let currentBookId = 'dars';
   let currentBookAccess = 'gated'; // 'gated' — по тарифу/покупке, 'free' — открыта всем
   let viewMode = 'library';
-  const BOOKS_VER = '20260731c';   // токен кэша для JSON новых книг
+  const BOOKS_VER = '20260731d';   // токен кэша для JSON новых книг
 
   // Настройки читателя (сохраняются в localStorage)
   const DEFAULTS = { fontSize: 16, theme: 'dark', lineHeight: 1.75 };

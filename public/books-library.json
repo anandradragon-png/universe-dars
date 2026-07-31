@@ -1,5 +1,5 @@
 {
-  "version": "20260731b",
+  "version": "20260731c",
   "shelves": [
     { "id": "popular", "title": "Популярная литература", "title_en": "Popular reading", "title_es": "Lectura popular", "icon": "\uD83D\uDCD6" },
     { "id": "science", "title": "Научные книги", "title_en": "Science books", "title_es": "Libros científicos", "icon": "\uD83D\uDD2C" },
@@ -33,6 +33,7 @@
       "source": "nine-fields-popular.json",
       "access": "free",
       "i18n": true,
+      "image": "nine-fields-popular.jpg",
       "authors": "СветЛана",
       "about": "Простой рассказ о девяти полях восприятия — способах, которыми перед нами разворачивается жизнь: от структуры и пространства до времени и роста.",
       "about_en": "A simple account of the nine fields of perception — the ways life unfolds before us: from structure and space to time and growth.",

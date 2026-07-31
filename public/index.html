@@ -8239,6 +8239,18 @@
         const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param || '';
         if (sp === 'buybook' && typeof window.buyBookChoice === 'function') {
           setTimeout(() => { try { window.buyBookChoice(); } catch (e) {} }, 1200);
+        } else if (sp.indexOf('book_') === 0 && typeof window.switchNav === 'function') {
+          // Прямая ссылка на конкретную книгу: startapp=book_<id>.
+          //   https://t.me/YupDarBot?startapp=book_yupland-monograph-en
+          const _bookId = sp.slice(5);
+          setTimeout(() => {
+            try {
+              window.switchNav('book');
+              if (typeof BookReader !== 'undefined' && BookReader.openBook) {
+                setTimeout(() => { try { BookReader.openBook(_bookId); } catch (e) {} }, 150);
+              }
+            } catch (e) {}
+          }, 1200);
         } else if (sp === 'book' && typeof window.switchNav === 'function') {
           setTimeout(() => { try { window.switchNav('book'); } catch (e) {} }, 1200);
         } else if (sp === 'dailydar') {

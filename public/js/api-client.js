@@ -21,6 +21,15 @@ const DarAPI = (function() {
       if (signed) localStorage.setItem('_tg_init_cache', signed);
       else signed = localStorage.getItem('_tg_init_cache') || '';
     } catch (e) {}
+    // Веб-сессия (вход через Telegram Login Widget на yupdar.com без Mini App).
+    // Если токен есть — шлём его; сервер (auth.js) подтвердит identity по нему и
+    // вернёт тот же аккаунт, что и в боте. Аддитивно: срабатывает только при
+    // наличии токена, все существующие Telegram/dev/гость-потоки не меняются.
+    let webSession = '';
+    try { webSession = localStorage.getItem('_web_session') || ''; } catch (e) {}
+    if (webSession) {
+      headers['x-web-session'] = webSession;
+    }
     if (signed) {
       headers['x-telegram-init-data'] = signed;
     }
@@ -43,7 +52,7 @@ const DarAPI = (function() {
     // анонимный аккаунт. Отрицательный id, чтобы никогда не пересечься с
     // реальными Telegram-id (они положительные). Хранится в localStorage,
     // так что гость возвращается в свой аккаунт.
-    if (!signed && !devId && !tgUid) {
+    if (!signed && !devId && !tgUid && !webSession) {
       let webId = localStorage.getItem('_web_uid');
       if (!webId) {
         webId = String(-(Math.floor(Math.random() * 900000000000) + 100000000000));

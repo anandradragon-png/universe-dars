@@ -112,6 +112,19 @@ function getUser(req, opts = {}) {
   const initData = req.headers['x-telegram-init-data'];
   const botToken = process.env.BOT_TOKEN;
 
+  // Веб-сессия (вход через Telegram Login Widget на yupdar.com без Mini App).
+  // Аддитивно: срабатывает ТОЛЬКО если клиент прислал x-web-session. Токен
+  // подписан секретом сервера (BOT_TOKEN) после проверки подписи виджета —
+  // identity криптографически подлинная, как у initData. Подделать нельзя, так
+  // что путь безопасен и для строгих операций (оплата). Существующие потоки без
+  // этого заголовка ведут себя ровно как раньше.
+  const webSess = req.headers['x-web-session'];
+  if (webSess && botToken) {
+    const { verifySession } = require('./websession');
+    const v = verifySession(webSess, botToken);
+    if (v && v.id) return v;
+  }
+
   if (initData) {
     const result = validateTelegramData(initData, botToken);
     if (result && result.id) return result;

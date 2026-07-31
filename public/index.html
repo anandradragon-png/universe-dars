@@ -2488,6 +2488,13 @@
       // Старое имя 'calc' тоже остаётся валидным (используется goHome).
       var TAB_ALIAS = { me: 'calc' };
       var tabName = TAB_ALIAS[name] || name;
+      // Запоминаем текущую вкладку: Telegram перезагружает WebView при возврате
+      // из фона, и без этого юзера каждый раз выкидывало на «Я». Имя + время
+      // читаются при старте (DOMContentLoaded) для восстановления места.
+      try {
+        localStorage.setItem('_last_nav', name);
+        localStorage.setItem('_last_nav_ts', String(Date.now()));
+      } catch (e) {}
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       var tabEl = document.getElementById('tab-' + tabName);
@@ -2569,6 +2576,16 @@
       // Все секции в клоне свёрнуты по закону минимума — юзер сам раскрывает.
       clone.querySelectorAll('.me-acc-header').forEach(h => h.classList.remove('open'));
       clone.querySelectorAll('.me-acc-body').forEach(b => b.classList.remove('open'));
+      // Крючки «Загляни в АРКУ» / «Читать в Книге Даров» внутри клона: перед
+      // переходом закрываем overlay, иначе switchNav переключает таб ПОД
+      // оверлеем — оверлей остаётся сверху и визуально «ничего не происходит»
+      // (тот же приём, что и для share-кнопок ниже).
+      clone.querySelectorAll('.me-key-arka-btn, .me-traps-book-btn').forEach(btn => {
+        const o = btn.getAttribute('onclick');
+        if (o && o.indexOf('closeMessageOverlay') === -1) {
+          btn.setAttribute('onclick', 'closeMessageOverlay(); ' + o);
+        }
+      });
       content.innerHTML = '';
       content.appendChild(clone);
       // Шеринг-кнопки внизу: Книга / Карточка / А4 / Поделись с другом.
@@ -8236,6 +8253,24 @@
               }
             } catch (e) {}
           }, 1200);
+        }
+      } catch (e) {}
+
+      // Восстановление последней вкладки после перезагрузки WebView.
+      // Баг: при возврате из фона (переключение окон) Telegram перезагружает
+      // страницу, и юзера выкидывало на «Я», теряя место. Восстанавливаем, если
+      // нет deep-link start_param и запись свежая (< 30 мин) — при осознанном
+      // новом заходе спустя время открываем «Я» как обычно.
+      try {
+        const spNav = window.Telegram?.WebApp?.initDataUnsafe?.start_param || '';
+        if (!spNav) {
+          const lastNav = localStorage.getItem('_last_nav');
+          const lastTs = parseInt(localStorage.getItem('_last_nav_ts') || '0', 10);
+          const fresh = lastTs && (Date.now() - lastTs) < 30 * 60 * 1000;
+          const VALID_NAV = ['family', 'treasury', 'arka', 'book', 'base', 'games'];
+          if (lastNav && fresh && VALID_NAV.includes(lastNav) && typeof switchNav === 'function') {
+            setTimeout(() => { try { switchNav(lastNav); } catch (e) {} }, 300);
+          }
         }
       } catch (e) {}
     });

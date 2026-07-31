@@ -731,6 +731,58 @@ function _parseAndPostprocess(completion, isFemale, lang) {
   return cleaned;
 }
 
+// ===== Серверный кэш «Полного послания» =====
+// Послание зависит ТОЛЬКО от (giftCode, gender, lang): buildContext берёт
+// поля кода Дара + пол, без имени/даты рождения. Значит для всех людей с
+// одинаковым (код, пол, язык) текст идентичен — его можно кэшировать один
+// раз и мгновенно отдавать всем повторным запросам вместо AI-генерации
+// (5-15 с). Промт при этом НЕ трогаем — кэшируем готовый результат.
+function msgCacheKey(giftCode, gender, lang) {
+  return {
+    gift_code: String(giftCode),
+    gender: gender || 'none',
+    lang: lang || 'ru'
+  };
+}
+
+async function getMessageCache(giftCode, gender, lang) {
+  try {
+    const { getSupabase } = require('../db');
+    const db = getSupabase();
+    const k = msgCacheKey(giftCode, gender, lang);
+    const { data } = await db
+      .from('message_cache')
+      .select('data, image_url')
+      .eq('gift_code', k.gift_code)
+      .eq('gender', k.gender)
+      .eq('lang', k.lang)
+      .single();
+    if (data && data.data) {
+      console.log('[message] cache HIT for', k.gift_code, k.gender, k.lang);
+      return { data: data.data, imageUrl: data.image_url || '' };
+    }
+  } catch (e) {}
+  return null;
+}
+
+async function saveMessageCache(giftCode, gender, lang, parsed, imageUrl) {
+  try {
+    const { getSupabase } = require('../db');
+    const db = getSupabase();
+    const k = msgCacheKey(giftCode, gender, lang);
+    await db.from('message_cache').upsert({
+      gift_code: k.gift_code,
+      gender: k.gender,
+      lang: k.lang,
+      data: parsed,
+      image_url: imageUrl || ''
+    }, { onConflict: 'gift_code,gender,lang' });
+    console.log('[message] cache SAVED for', k.gift_code, k.gender, k.lang);
+  } catch (e) {
+    console.warn('[message] cache save failed:', e.message);
+  }
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -749,6 +801,18 @@ module.exports = async (req, res) => {
   const zhiF = FIELDS_DB[codeZHI];
   const kunF = FIELDS_DB[codeKUN];
   if (!maF || !zhiF || !kunF) { res.status(400).json({ error: 'Invalid code' }); return; }
+
+  // Язык нужен и для кэша, и для генерации — определяем один раз здесь.
+  let userLang = 'ru';
+  try {
+    const language = require('../language');
+    userLang = language.detectLang(req);
+  } catch (e) {}
+
+  // Серверный кэш: если для (код, пол, язык) послание уже сгенерировано —
+  // отдаём его мгновенно, минуя AI. Повторные входы становятся быстрыми.
+  const cached = await getMessageCache(giftCode, gender, userLang);
+  if (cached) { res.status(200).json(cached); return; }
 
   const isIntegrator = !!INTEGRATORS[giftCode];
   const darName = isIntegrator ? INTEGRATORS[giftCode] : (DARS_DB[giftCode] || 'Дар');
@@ -1147,13 +1211,7 @@ ${intPhrase ? `▓ Особое послание Интегратора: «${int
     // Идём через runMessageGeneration: DeepSeek по умолчанию + Groq как
     // fallback при сбое. Раньше тут был прямой вызов Groq в обход DeepSeek —
     // это был остаток старого кода, мы давно договорились на DeepSeek (29.04).
-    // Определяем язык юзера из req-заголовков (для генерации на нужном языке)
-    let userLang = 'ru';
-    try {
-      const language = require('../language');
-      userLang = language.detectLang(req);
-    } catch (e) {}
-
+    // userLang уже определён выше (для кэша и генерации).
     const parsed = await runMessageGeneration({
       systemMsg,
       userPrompt: prompt,
@@ -1164,6 +1222,9 @@ ${intPhrase ? `▓ Особое послание Интегратора: «${int
 
     const totalLen = JSON.stringify(parsed).length;
     if (totalLen < 800) throw new Error('Ответ слишком короткий (' + totalLen + ' символов)');
+
+    // Сохраняем в кэш, чтобы следующие входы были мгновенными.
+    await saveMessageCache(giftCode, gender, userLang, parsed, imageUrl);
 
     res.status(200).json({ data: parsed, imageUrl });
   } catch (e) {

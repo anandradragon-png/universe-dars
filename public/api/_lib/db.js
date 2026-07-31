@@ -62,6 +62,60 @@ async function getOrCreateUser(telegramUser) {
   return newUser;
 }
 
+// Детерминированный отрицательный telegram_id из email — для веб-аккаунтов
+// без Telegram. Отрицательный, чтобы не пересечься с реальными (положительными)
+// Telegram id. Один и тот же email всегда даёт один и тот же id → повторные
+// покупки ложатся на тот же аккаунт. Значение < 9e14, безопасно для Number.
+function emailToSyntheticTgId(email) {
+  const s = String(email || '').trim().toLowerCase();
+  let h = 0n;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 131n + BigInt(s.charCodeAt(i))) % 900000000000000n;
+  }
+  return -(Number(h) + 1);
+}
+
+// Найти/создать постоянный аккаунт по email (веб-юзер без Telegram).
+// Схему НЕ трогаем: email кладём в first_name (виден в админ-уведомлениях),
+// ключ — синтетический telegram_id из email.
+async function getOrCreateUserByEmail(email) {
+  const clean = String(email || '').trim().toLowerCase();
+  if (!clean || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean)) {
+    throw new Error('getOrCreateUserByEmail: invalid email');
+  }
+  const db = getSupabase();
+  const synthId = emailToSyntheticTgId(clean);
+
+  const { data: existing } = await db
+    .from('users')
+    .select('*')
+    .eq('telegram_id', synthId)
+    .single();
+
+  if (existing) {
+    await db.from('users').update({
+      last_active_at: new Date().toISOString()
+    }).eq('id', existing.id);
+    return existing;
+  }
+
+  const { data: newUser, error } = await db
+    .from('users')
+    .insert({
+      telegram_id: synthId,
+      first_name: clean,
+      last_name: '',
+      username: '',
+      crystals: 0,
+      access_level: 'basic'
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return newUser;
+}
+
 async function updateUser(userId, fields) {
   const db = getSupabase();
   const { data, error } = await db.from('users').update(fields).eq('id', userId).select().single();
@@ -297,7 +351,7 @@ async function getAllHeroJourneys(userId) {
 
 module.exports = {
   getSupabase,
-  getOrCreateUser, updateUser,
+  getOrCreateUser, getOrCreateUserByEmail, emailToSyntheticTgId, updateUser,
   getUserDars, unlockDar, unlockSection,
   addCrystals,
   createReferral, getReferralCount,

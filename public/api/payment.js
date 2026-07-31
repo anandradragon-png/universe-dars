@@ -11,7 +11,7 @@
  */
 
 const { requireUser } = require('./_lib/auth');
-const { getOrCreateUser } = require('./_lib/db');
+const { getOrCreateUser, getOrCreateUserByEmail } = require('./_lib/db');
 const pricing = require('./_lib/pricing');
 const rates = require('./_lib/rates');
 const { notifyAdmin, logEvent, escapeHtml } = require('./_lib/notify');
@@ -104,6 +104,27 @@ module.exports = async (req, res) => {
     const telegramId = tgUser?.id || 0;
 
     const { action, amount } = req.body || {};
+
+    // === ВЕБ-ПОКУПКА БЕЗ TELEGRAM ===
+    // Юзер из веб-версии (нет Telegram) может оплатить картой (ЮKassa). Чтобы
+    // доступ выдался автоматически (а не вручную), заводим/находим постоянный
+    // аккаунт по email ДО создания счёта. Тогда user.id есть везде, meta.user_id
+    // заполнен, и webhook сможет привязать оплату к этому аккаунту.
+    // Работает только для покупок (не для донатов) и только при валидном email.
+    const PURCHASE_ACTIONS = new Set([
+      'create_subscription', 'create_addon',
+      'create_yookassa_book', 'create_book_invoice', 'create_darai_book_invoice'
+    ]);
+    if ((!user || !user.id) && PURCHASE_ACTIONS.has(action)) {
+      const bodyEmail = String((req.body && req.body.email) || '').trim().toLowerCase();
+      if (bodyEmail && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(bodyEmail)) {
+        try {
+          user = await getOrCreateUserByEmail(bodyEmail);
+        } catch (e) {
+          console.warn('[payment] getOrCreateUserByEmail failed:', e.message);
+        }
+      }
+    }
 
     // ========== ПОКУПКА КНИГИ ($10 = 700⭐) ==========
     if (action === 'create_book_invoice') {
@@ -508,7 +529,13 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'provider должен быть stars, yookassa или darai' });
       }
       if (!user || !user.id) {
-        return res.status(401).json({ error: 'Чтобы купить тариф или add-on, войди через Telegram' });
+        // Веб-юзеру без Telegram доступна оплата картой (ЮKassa) — но нужен email
+        // (на него придёт чек и к нему привяжется доступ). Stars/DarAI требуют Telegram.
+        return res.status(401).json({
+          error: provider === 'yookassa'
+            ? 'Укажи email — на него придёт чек и откроется доступ.'
+            : 'Оплата через Stars/DarAI доступна только в Telegram. Для оплаты картой открой веб-версию и укажи email.'
+        });
       }
 
       // Найти цену

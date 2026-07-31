@@ -988,6 +988,14 @@ async function handleYookassaWebhook(req, res) {
         .eq('telegram_id', String(telegramId)).single();
       if (data) user = data;
     }
+    // 1.5) По metadata.user_id — надёжно для веб-покупок: аккаунт был создан
+    // при оформлении счёта (по email), и его id лежит в metadata.
+    const metaUserId = metadata.user_id || '';
+    if (!user && metaUserId) {
+      const { data } = await db.from('users').select('id, telegram_id, access_level, crystals, first_name')
+        .eq('id', metaUserId).single();
+      if (data) user = data;
+    }
     if (!user && userTgUsername) {
       const { data } = await db.from('users').select('id, telegram_id, access_level, crystals')
         .ilike('username', userTgUsername).limit(1).single();
@@ -1040,7 +1048,10 @@ async function handleYookassaWebhook(req, res) {
 
     // chat_id для отправки сообщения в Telegram. Если оплата пришла из Mini App —
     // metadata.telegram_id уже валидирован. Если найден по username/email — берём из user.telegram_id.
-    const tgChatId = telegramId || (user.telegram_id ? String(user.telegram_id) : '');
+    // ВАЖНО: у веб-аккаунтов telegram_id отрицательный (синтетический из email) —
+    // это НЕ реальный чат (отрицательные id принадлежат группам!), поэтому не шлём.
+    const realUserTgId = (user.telegram_id && Number(user.telegram_id) > 0) ? String(user.telegram_id) : '';
+    const tgChatId = telegramId || realUserTgId;
 
     // === НОВАЯ СХЕМА: plan_* / addon_* (с 11.05.2026) ===
     if (paymentType === 'plan' || paymentType === 'addon') {

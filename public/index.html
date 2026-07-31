@@ -8026,7 +8026,9 @@
     function openPricing() {
       // Страница тарифов открывается в том же WebApp.
       // На странице есть кнопка "← Назад", которая возвращает на главную.
-      window.location.href = '/pricing.html';
+      // ?v=BUILD — чтобы Telegram WebView взял СВЕЖУЮ pricing.html при новой
+      // сборке (у неё самолечение сверяет ?v= с /version.txt).
+      window.location.href = '/pricing.html?v=' + (typeof BUILD !== 'undefined' ? BUILD : Date.now());
     }
 
     // Переключатель языка в ЛК.

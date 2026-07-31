@@ -213,7 +213,7 @@ module.exports = async (req, res) => {
 
       const yuppayKey = (process.env.YUPPAY_API_KEY || '').trim();
       if (!yuppayKey) {
-        return res.status(503).json({ error: 'Оплата в DarAI временно недоступна' });
+        return res.status(503).json({ error: 'Оплата через DarAI сейчас на техобслуживании — уже налаживаем. Пока можно оплатить картой или звёздами ⭐.' });
       }
 
       // Цена в DarAI считается ЖИВО от ₽-базы Книги (тот же helper, что и
@@ -272,7 +272,7 @@ module.exports = async (req, res) => {
         });
       } catch (e) {
         console.error('[payment] YupPay error:', e.message);
-        return res.status(500).json({ error: 'Не удалось создать платёж в DarAI: ' + e.message });
+        return res.status(503).json({ error: 'Оплата через DarAI сейчас на техобслуживании — уже налаживаем. Пока можно оплатить картой или звёздами ⭐.' });
       }
     }
 
@@ -285,7 +285,7 @@ module.exports = async (req, res) => {
 
       const yuppayKey = (process.env.YUPPAY_API_KEY || '').trim();
       if (!yuppayKey) {
-        return res.status(503).json({ error: 'Оплата в DarAI временно недоступна' });
+        return res.status(503).json({ error: 'Оплата через DarAI сейчас на техобслуживании — уже налаживаем. Пока можно оплатить картой или звёздами ⭐.' });
       }
 
       try {
@@ -326,7 +326,7 @@ module.exports = async (req, res) => {
         });
       } catch (e) {
         console.error('[payment] YupPay donation error:', e.message);
-        return res.status(500).json({ error: 'Не удалось создать платёж: ' + e.message });
+        return res.status(503).json({ error: 'Оплата через DarAI сейчас на техобслуживании — уже налаживаем. Пока можно оплатить картой или звёздами ⭐.' });
       }
     }
 
@@ -337,7 +337,7 @@ module.exports = async (req, res) => {
         return res.json({ already_purchased: true, message: 'У тебя уже есть полный доступ!' });
       }
 
-      const yooShopId = (process.env.YOOKASSA_SHOP_ID || '').trim();
+      const yooShopId = (process.env.YOOKASSA_SHOP_ID || '1369212').trim();
       const yooSecret = (process.env.YOOKASSA_SECRET_KEY || '').trim();
       if (!yooShopId || !yooSecret) {
         return res.status(503).json({ error: 'Оплата картой временно недоступна. Попробуй Stars или DarAI.' });
@@ -447,7 +447,7 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Максимум 100 000 ₽ за раз' });
       }
 
-      const yooShopId = (process.env.YOOKASSA_SHOP_ID || '').trim();
+      const yooShopId = (process.env.YOOKASSA_SHOP_ID || '1369212').trim();
       const yooSecret = (process.env.YOOKASSA_SECRET_KEY || '').trim();
       if (!yooShopId || !yooSecret) {
         return res.status(503).json({ error: 'Оплата картой временно недоступна.' });
@@ -652,7 +652,7 @@ module.exports = async (req, res) => {
 
       // === YOOKASSA ===
       if (provider === 'yookassa') {
-        const yooShopId = (process.env.YOOKASSA_SHOP_ID || '').trim();
+        const yooShopId = (process.env.YOOKASSA_SHOP_ID || '1369212').trim();
         const yooSecret = (process.env.YOOKASSA_SECRET_KEY || '').trim();
         if (!yooShopId || !yooSecret) {
           await releasePromoOnFail();
@@ -726,7 +726,7 @@ module.exports = async (req, res) => {
       if (provider === 'darai') {
         const yuppayKey = (process.env.YUPPAY_API_KEY || '').trim();
         if (!yuppayKey) {
-          return res.status(503).json({ error: 'Оплата в DarAI временно недоступна' });
+          return res.status(503).json({ error: 'Оплата через DarAI сейчас на техобслуживании — уже налаживаем. Пока можно оплатить картой или звёздами ⭐.' });
         }
         // DarAI по живому курсу, в base units (×10^18 для NEP-141). BigInt — надёжно.
         const amountRaw = daraiRaw(priceDarai);
@@ -750,7 +750,7 @@ module.exports = async (req, res) => {
           let data; try { data = JSON.parse(respText); } catch { data = {}; }
           if (!resp.ok || (!data.ok && !data.pay_tg_url && !data.pay_url)) {
             console.error('[payment] darai subscription failed:', resp.status, respText);
-            return res.status(500).json({ error: data.error || data.message || 'YupPay error' });
+            return res.status(503).json({ error: 'Оплата через DarAI сейчас на техобслуживании — уже налаживаем. Пока можно оплатить картой или звёздами ⭐.' });
           }
           notifyPayAttempt('DarAI', label, `${(priceDarai / 1_000_000).toFixed(0)}M DarAI`, user, telegramId);
           return res.json({
@@ -762,7 +762,7 @@ module.exports = async (req, res) => {
           });
         } catch (e) {
           console.error('[payment] darai subscription threw:', e.message);
-          return res.status(500).json({ error: 'Не удалось создать платёж DarAI: ' + e.message });
+          return res.status(503).json({ error: 'Оплата через DarAI сейчас на техобслуживании — уже налаживаем. Пока можно оплатить картой или звёздами ⭐.' });
         }
       }
     }

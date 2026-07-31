@@ -938,7 +938,7 @@ async function handleYookassaWebhook(req, res) {
 
     // Доп. защита: дёрнем GET /v3/payments/{id} для подтверждения статуса
     // (IP можно подделать, авторитетный источник — сам API ЮKassa)
-    const yooShopId = (process.env.YOOKASSA_SHOP_ID || '').trim();
+    const yooShopId = (process.env.YOOKASSA_SHOP_ID || '1369212').trim();
     const yooSecret = (process.env.YOOKASSA_SECRET_KEY || '').trim();
     if (yooShopId && yooSecret && obj.id) {
       try {

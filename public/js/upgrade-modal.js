@@ -43,7 +43,10 @@ window.UpgradeModal = (function() {
     modalEl.querySelector('#upgrade-modal-close').addEventListener('click', hide);
     modalEl.querySelector('#upgrade-modal-open-pricing').addEventListener('click', () => {
       hide();
-      window.location.href = '/pricing.html';
+      // ?v=BUILD — чтобы Telegram WebView взял СВЕЖУЮ pricing.html при новой
+      // сборке (самолечение pricing.html сверяет ?v= с /version.txt).
+      const v = window.__YUPDAR_BUILD || Date.now();
+      window.location.href = '/pricing.html?v=' + v;
     });
     return modalEl;
   }

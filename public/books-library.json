@@ -1,5 +1,5 @@
 {
-  "version": "20260731a",
+  "version": "20260731b",
   "shelves": [
     { "id": "popular", "title": "Популярная литература", "title_en": "Popular reading", "title_es": "Lectura popular", "icon": "\uD83D\uDCD6" },
     { "id": "science", "title": "Научные книги", "title_en": "Science books", "title_es": "Libros científicos", "icon": "\uD83D\uDD2C" },
@@ -15,6 +15,10 @@
       "access": "gated",
       "i18n": true,
       "image": "dars-cover.jpg",
+      "authors": "СветЛана",
+      "about": "Карта из 64 Даров — врождённых энергетических паттернов. Твой код задаётся датой рождения. Помогает понять, где ты сильна от природы, а где теряешь энергию.",
+      "about_en": "A map of 64 Gifts — innate energy patterns. Your code is set by your date of birth. It helps you see where you are naturally strong and where you lose energy.",
+      "about_es": "Un mapa de 64 Dones: patrones de energía innatos. Tu código lo define tu fecha de nacimiento. Te ayuda a ver dónde eres fuerte por naturaleza y dónde pierdes energía.",
       "cover": { "from": "#D4AF37", "to": "#8b6b2c" }
     },
     {
@@ -29,6 +33,10 @@
       "source": "nine-fields-popular.json",
       "access": "free",
       "i18n": true,
+      "authors": "СветЛана",
+      "about": "Простой рассказ о девяти полях восприятия — способах, которыми перед нами разворачивается жизнь: от структуры и пространства до времени и роста.",
+      "about_en": "A simple account of the nine fields of perception — the ways life unfolds before us: from structure and space to time and growth.",
+      "about_es": "Un relato sencillo sobre los nueve campos de percepción: las formas en que la vida se despliega ante nosotros, desde la estructura y el espacio hasta el tiempo y el crecimiento.",
       "cover": { "from": "#6c8cff", "to": "#3a4f9c" }
     },
     {
@@ -43,6 +51,10 @@
       "source": "nine-fields-science.json",
       "access": "free",
       "i18n": true,
+      "authors": "СветЛана",
+      "about": "Строгое описание системы из девяти полей восприятия: своя феноменология у каждого, три позиции проявления и телесная кодировка.",
+      "about_en": "A rigorous description of the system of nine fields of perception: each with its own phenomenology, three positions of manifestation, and a bodily coding.",
+      "about_es": "Una descripción rigurosa del sistema de nueve campos de percepción: cada uno con su fenomenología, tres posiciones de manifestación y una codificación corporal.",
       "cover": { "from": "#4fb0a5", "to": "#25635c" }
     },
     {
@@ -57,6 +69,10 @@
       "source": "odno-semya-science.json",
       "access": "free",
       "i18n": true,
+      "authors": "СветЛана",
+      "about": "Исследование: система ДАРов против шести типологий. Из компактного входа — дата, время, место, имя — разворачивается целостный портрет человека.",
+      "about_en": "A study: the DAR system versus six typologies. From a compact input — date, time, place, name — a whole portrait of a person unfolds.",
+      "about_es": "Un estudio: el sistema DAR frente a seis tipologías. A partir de una entrada compacta —fecha, hora, lugar, nombre— se despliega un retrato completo de la persona.",
       "cover": { "from": "#5a6db0", "to": "#2b356b" }
     },
     {
@@ -72,6 +88,8 @@
       "access": "free",
       "i18n": false,
       "image": "monograph-noumenon.jpg",
+      "authors": "С. Нестерова, А. Макаева, Я. Сибирский, Л. Краснамирава",
+      "about": "Научная монография: кантовское различение ноумена и феномена приложено к типологии Даров (81 архетип) и её воплощению в цифровой экосистеме ЮпЛенд.",
       "cover": { "from": "#2a3a52", "to": "#12203a" }
     }
   ]

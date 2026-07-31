@@ -30,7 +30,7 @@ const BookReader = (function() {
   let currentBookId = 'dars';
   let currentBookAccess = 'gated'; // 'gated' — по тарифу/покупке, 'free' — открыта всем
   let viewMode = 'library';
-  const BOOKS_VER = '20260731b';   // токен кэша для JSON новых книг
+  const BOOKS_VER = '20260731c';   // токен кэша для JSON новых книг
 
   // Настройки читателя (сохраняются в localStorage)
   const DEFAULTS = { fontSize: 16, theme: 'dark', lineHeight: 1.75 };
@@ -350,6 +350,9 @@ const BookReader = (function() {
     const subTxt = (window.i18n && i18n.t && i18n.t('library.subtitle')) || '\u041a\u043d\u0438\u0433\u0438 \u043f\u043e \u043f\u043e\u043b\u043a\u0430\u043c \u2014 \u0432\u044b\u0431\u0435\u0440\u0438, \u0447\u0442\u043e \u0447\u0438\u0442\u0430\u0442\u044c';
     const soonTxt = (window.i18n && i18n.t && i18n.t('library.soon')) || '\u0421\u043a\u043e\u0440\u043e';
     const freeTxt = (window.i18n && i18n.t && i18n.t('library.free')) || '\u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e';
+    const aboutTxt = (window.i18n && i18n.t && i18n.t('library.about')) || '\u041e \u043a\u043d\u0438\u0433\u0435';
+    const authorTxt = (window.i18n && i18n.t && i18n.t('library.author')) || '\u0410\u0432\u0442\u043e\u0440';
+    const paidTxt = (window.i18n && i18n.t && i18n.t('library.paid')) || '\u041f\u043b\u0430\u0442\u043d\u0430\u044f \u043a\u043d\u0438\u0433\u0430';
 
     function bookCard(b) {
       const cover = b.cover || {};
@@ -370,17 +373,39 @@ const BookReader = (function() {
         : '<div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:rgba(0,0,0,0.18)"></div>' +
           '<div style="text-align:center;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.35)">' +
           '<div style="font-size:14px;font-weight:700;line-height:1.25;letter-spacing:0.3px">' + escapeHtml(title) + '</div></div>';
+
+      // Короткая аннотация «о чём книга» + авторы — раскрывается по клику,
+      // чтобы читатель решил, стоит ли открывать/покупать. Свёрнута по умолчанию.
+      const about = _locField(b, 'about');
+      const authors = b.authors || '';
+      const statusChip = isFree
+        ? '<span style="color:#2ecc71;font-weight:700">' + freeTxt + '</span>'
+        : '<span style="color:#D4AF37;font-weight:700">' + paidTxt + '</span>';
+      const aboutBlock = about ? `
+          <button onclick="BookReader.toggleAbout('${b.id}')" style="all:unset;cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;color:#D4AF37;padding:2px 2px;margin-top:1px">
+            <span>${escapeHtml(aboutTxt)}</span>
+            <span id="about-caret-${b.id}" style="display:inline-block;transition:transform 0.2s;font-size:9px">&#9662;</span>
+          </button>
+          <div id="about-panel-${b.id}" style="display:none;padding:8px 10px;margin-top:2px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.18);border-radius:10px">
+            <div style="font-size:12px;color:var(--text);line-height:1.4">${escapeHtml(about)}</div>
+            ${authors ? '<div style="font-size:11px;color:var(--text-dim);margin-top:6px">' + escapeHtml(authorTxt) + ': ' + escapeHtml(authors) + '</div>' : ''}
+            <div style="font-size:11px;margin-top:4px">${statusChip}</div>
+          </div>` : '';
+
       return `
-        <button onclick="BookReader.openBook('${b.id}')" style="all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left">
-          <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:linear-gradient(150deg,${from},${to});box-shadow:0 6px 18px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;padding:${b.image ? '0' : '14px'}">
-            ${badge}
-            ${coverInner}
+        <div style="display:flex;flex-direction:column;gap:8px;text-align:left">
+          <div onclick="BookReader.openBook('${b.id}')" style="cursor:pointer;display:flex;flex-direction:column;gap:8px">
+            <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:linear-gradient(150deg,${from},${to});box-shadow:0 6px 18px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;padding:${b.image ? '0' : '14px'}">
+              ${badge}
+              ${coverInner}
+            </div>
+            <div style="padding:0 2px">
+              <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.3">${escapeHtml(title)}</div>
+              ${sub ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px;line-height:1.3">' + escapeHtml(sub) + '</div>' : ''}
+            </div>
           </div>
-          <div style="padding:0 2px">
-            <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.3">${escapeHtml(title)}</div>
-            ${sub ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px;line-height:1.3">' + escapeHtml(sub) + '</div>' : ''}
-          </div>
-        </button>`;
+          ${aboutBlock}
+        </div>`;
     }
 
     let shelvesHtml = '';
@@ -1617,9 +1642,19 @@ const BookReader = (function() {
     window.addEventListener('i18n:changed', _onLangChange);
   }
 
+  // Раскрыть/свернуть короткую аннотацию под карточкой книги в витрине.
+  function toggleAbout(id) {
+    const panel = document.getElementById('about-panel-' + id);
+    const caret = document.getElementById('about-caret-' + id);
+    if (!panel) return;
+    const open = panel.style.display !== 'none';
+    panel.style.display = open ? 'none' : 'block';
+    if (caret) caret.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+  }
+
   return {
     init, render, renderChapter,
-    showLibrary, openBook,
+    showLibrary, openBook, toggleAbout,
     nextChapter, prevChapter, goTo, goToDar, openInTreasury,
     toggleTOC, toggleSettings, toggleBookmarks, toggleSearch, runSearch,
     toggleBookmark, removeBookmark, clearBookmarks,

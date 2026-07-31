@@ -1,5 +1,5 @@
 {
-  "version": "20260729b",
+  "version": "20260731a",
   "shelves": [
     { "id": "popular", "title": "Популярная литература", "title_en": "Popular reading", "title_es": "Lectura popular", "icon": "\uD83D\uDCD6" },
     { "id": "science", "title": "Научные книги", "title_en": "Science books", "title_es": "Libros científicos", "icon": "\uD83D\uDD2C" },
@@ -58,6 +58,21 @@
       "access": "free",
       "i18n": true,
       "cover": { "from": "#5a6db0", "to": "#2b356b" }
+    },
+    {
+      "id": "yupland-monograph-en",
+      "title": "From Noumenon to Phenomenon",
+      "title_en": "From Noumenon to Phenomenon",
+      "title_es": "From Noumenon to Phenomenon",
+      "subtitle": "The Potential of the YupLand Digital Platform (EN)",
+      "subtitle_en": "The Potential of the YupLand Digital Platform (EN)",
+      "subtitle_es": "The Potential of the YupLand Digital Platform (EN)",
+      "shelf": "science",
+      "source": "yupland-monograph-en.json",
+      "access": "free",
+      "i18n": false,
+      "image": "monograph-noumenon.jpg",
+      "cover": { "from": "#2a3a52", "to": "#12203a" }
     }
   ]
 }

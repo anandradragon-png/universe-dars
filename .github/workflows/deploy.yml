@@ -27,13 +27,16 @@ jobs:
           echo "Новая версия кэша: $NEW_VER"
           # version.txt — источник правды для самолечения версии в браузере
           echo "$NEW_VER" > public/version.txt
-          # Константа BUILD в index.html (с ней сверяется самолечение)
-          sed -i -E "s/var BUILD = '[^']*';/var BUILD = '${NEW_VER}';/" public/index.html
-          # Все токены ?v= у локальных ассетов (js/css) в index.html
-          sed -i -E "s/(href|src)=\"([^\"]+)\?v=[^\"]*\"/\1=\"\2?v=${NEW_VER}\"/g" public/index.html
+          # Константа BUILD в index.html и pricing.html (обе страницы самолечатся).
+          # pricing.html — страница оплаты, у неё СВОЯ проверка версии; без бампа
+          # её BUILD навсегда отставал бы от version.txt и она уходила бы в вечную
+          # перезагрузку. Поэтому патчим BUILD в обоих файлах.
+          sed -i -E "s/var BUILD = '[^']*';/var BUILD = '${NEW_VER}';/" public/index.html public/pricing.html
+          # Все токены ?v= у локальных ассетов (js/css) в index.html и pricing.html
+          sed -i -E "s/(href|src)=\"([^\"]+)\?v=[^\"]*\"/\1=\"\2?v=${NEW_VER}\"/g" public/index.html public/pricing.html
           git config user.name "yupdar-deploy-bot"
           git config user.email "deploy@yupdar.com"
-          git add public/version.txt public/index.html
+          git add public/version.txt public/index.html public/pricing.html
           if git diff --cached --quiet; then
             echo "Нечего бампить — версия уже актуальна."
           else

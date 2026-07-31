@@ -30,7 +30,7 @@ const BookReader = (function() {
   let currentBookId = 'dars';
   let currentBookAccess = 'gated'; // 'gated' — по тарифу/покупке, 'free' — открыта всем
   let viewMode = 'library';
-  const BOOKS_VER = '20260731d';   // токен кэша для JSON новых книг
+  const BOOKS_VER = '20260731e';   // токен кэша для JSON новых книг
 
   // Настройки читателя (сохраняются в localStorage)
   const DEFAULTS = { fontSize: 16, theme: 'dark', lineHeight: 1.75 };
@@ -395,7 +395,7 @@ const BookReader = (function() {
       return `
         <div style="display:flex;flex-direction:column;gap:8px;text-align:left">
           <div onclick="BookReader.openBook('${b.id}')" style="cursor:pointer;display:flex;flex-direction:column;gap:8px">
-            <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:linear-gradient(150deg,${from},${to});box-shadow:0 6px 18px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;padding:${b.image ? '0' : '14px'}">
+            <div style="position:relative;aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:linear-gradient(150deg,${from},${to});box-shadow:0 6px 18px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;padding:${b.image ? '0' : '14px'}">
               ${badge}
               ${coverInner}
             </div>

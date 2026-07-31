@@ -1,5 +1,5 @@
 {
-  "version": "20260731c",
+  "version": "20260731d",
   "shelves": [
     { "id": "popular", "title": "Популярная литература", "title_en": "Popular reading", "title_es": "Lectura popular", "icon": "\uD83D\uDCD6" },
     { "id": "science", "title": "Научные книги", "title_en": "Science books", "title_es": "Libros científicos", "icon": "\uD83D\uDD2C" },
@@ -70,6 +70,7 @@
       "source": "odno-semya-science.json",
       "access": "free",
       "i18n": true,
+      "image": "odno-semya.jpg",
       "authors": "СветЛана",
       "about": "Исследование: система ДАРов против шести типологий. Из компактного входа — дата, время, место, имя — разворачивается целостный портрет человека.",
       "about_en": "A study: the DAR system versus six typologies. From a compact input — date, time, place, name — a whole portrait of a person unfolds.",

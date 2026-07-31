@@ -588,6 +588,9 @@ const BookReader = (function() {
         })()}
       </div>
 
+      <!-- «Автору на вдохновение» — показывается только на последней главе -->
+      <div id="book-inspire"></div>
+
       ${!hasFullAccess() ? `
         <div style="padding:0 16px 20px">
           <div style="background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;text-align:center">
@@ -766,6 +769,7 @@ const BookReader = (function() {
     // Скролл наверх
     try { wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
     updatePosIndicator();
+    updateInspireBlock();
     saveProgress();
     // Помечаем главу прочитанной (если юзер реально получил доступ - не превью-замок)
     markChapterRead(currentPartIdx, currentChapterIdx);
@@ -937,6 +941,48 @@ const BookReader = (function() {
           nextBtn.innerHTML = ((window.i18n && i18n.t && i18n.t('book.nav_forward')) || 'Вперёд') + ' &#8594;';
         }
       }
+    }
+  }
+
+  // Блок «Автору на вдохновение» в конце книги: одно поле, сумму звёзд
+  // выбирает сам читатель (без пресетов). Переиспользует готовый Stars-донат.
+  function updateInspireBlock() {
+    const box = document.getElementById('book-inspire');
+    if (!box) return;
+    const currG = globalIndex(currentPartIdx, currentChapterIdx);
+    const isLast = currG >= totalChapters - 1;
+    if (!isLast) { box.innerHTML = ''; return; }
+    const t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
+    box.innerHTML = `
+      <div style="padding:4px 16px 24px">
+        <div style="background:var(--card);border:1px solid rgba(212,175,55,0.25);border-radius:14px;padding:18px;text-align:center">
+          <div style="font-size:24px;margin-bottom:6px">&#10024;</div>
+          <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:6px">${t('book.inspire_title', 'Автору на вдохновение')}</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.55;margin-bottom:14px">${t('book.inspire_sub', 'Понравилась книга? Отправь автору столько звёзд, сколько захочешь.')}</div>
+          <div style="display:flex;gap:8px;justify-content:center;max-width:300px;margin:0 auto">
+            <input id="book-inspire-amount" type="number" min="1" max="100000" placeholder="${t('book.inspire_placeholder', 'Сколько звёзд \u2728')}" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;text-align:center;outline:none;font-family:Manrope,sans-serif"/>
+            <button onclick="BookReader.sendInspire()" style="padding:12px 18px;border-radius:10px;border:none;background:linear-gradient(160deg,#E8C84A 0%,#D4AF37 40%,#9A7B1A 100%);color:#080808;font-size:13px;font-weight:bold;cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap">${t('book.inspire_send', 'Отправить')}</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Читает введённое число звёзд и запускает готовый Stars-донат (index.html).
+  function sendInspire() {
+    const el = document.getElementById('book-inspire-amount');
+    const amount = el ? parseInt(el.value, 10) : 0;
+    if (typeof submitDonation === 'function') { submitDonation(amount); return; }
+    // Фолбэк, если глобальный обработчик недоступен
+    if (!amount || amount < 1) {
+      if (typeof showToast === 'function') showToast('Укажи число звёзд (минимум 1)', 'error');
+      return;
+    }
+    if (window.DarAPI && DarAPI.createDonation) {
+      DarAPI.createDonation(amount).then(r => {
+        const tg = window.Telegram && window.Telegram.WebApp;
+        if (r && r.invoice_url && tg && tg.openInvoice) tg.openInvoice(r.invoice_url, function(){});
+        else if (r && r.invoice_url) window.open(r.invoice_url, '_blank');
+      }).catch(e => { if (typeof showToast === 'function') showToast(e.message || 'Ошибка', 'error'); });
     }
   }
 
@@ -1700,7 +1746,7 @@ const BookReader = (function() {
   return {
     init, render, renderChapter,
     showLibrary, openBook, toggleAbout, openAbout, closeAbout,
-    nextChapter, prevChapter, goTo, goToDar, openInTreasury,
+    nextChapter, prevChapter, goTo, goToDar, openInTreasury, sendInspire,
     toggleTOC, toggleSettings, toggleBookmarks, toggleSearch, runSearch,
     toggleBookmark, removeBookmark, clearBookmarks,
     setFontSize, setTheme,

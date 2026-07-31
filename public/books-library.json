@@ -1,5 +1,5 @@
 {
-  "version": "20260731f",
+  "version": "20260731g",
   "shelves": [
     { "id": "popular", "title": "Популярная литература", "title_en": "Popular reading", "title_es": "Lectura popular", "icon": "\uD83D\uDCD6" },
     { "id": "science", "title": "Научные книги", "title_en": "Science books", "title_es": "Libros científicos", "icon": "\uD83D\uDD2C" },
@@ -52,6 +52,7 @@
       "source": "nine-fields-science.json",
       "access": "free",
       "i18n": true,
+      "image": "nine-fields-science.jpg",
       "authors": "СветЛана",
       "about": "Строгое описание системы из девяти полей восприятия: своя феноменология у каждого, три позиции проявления и телесная кодировка.",
       "about_en": "A rigorous description of the system of nine fields of perception: each with its own phenomenology, three positions of manifestation, and a bodily coding.",

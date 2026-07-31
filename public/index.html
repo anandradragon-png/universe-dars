@@ -1643,7 +1643,7 @@
       <div style="margin-bottom:16px;position:relative">
         <div class="psu-label" data-i18n="psu.label_birthplace">Место рождения (город)</div>
         <input id="psu-birth-place" type="text" placeholder="Начни вводить город..." data-i18n="psu.birthplace_placeholder" data-i18n-attr="placeholder" class="psu-input" maxlength="100" autocomplete="off" oninput="psuSearchCity(this.value)" onblur="setTimeout(()=>{var s=document.getElementById('psu-city-suggest');if(s&&!s.dataset.sticky)s.style.display='none'},400)">
-        <div id="psu-city-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:10;background:#0d0d0d;border:1px solid rgba(212,175,55,0.3);border-top:none;border-radius:0 0 12px 12px;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.5)"></div>
+        <div id="psu-city-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:10;background:#0d0d0d;border:1px solid rgba(212,175,55,0.3);border-top:none;border-radius:0 0 12px 12px;max-height:220px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;box-shadow:0 4px 12px rgba(0,0,0,0.5)"></div>
         <div id="psu-city-coords" style="font-size:10px;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
       </div>
 
@@ -6254,7 +6254,7 @@
         // Используем pointerdown (работает и для мыши, и для touch) +
         // touchstart для надёжности на Android-WebView. Тестеры на мобилках
         // выбирали подсказку, но input терял фокус раньше и данные не сохранялись.
-        return `<div class="psu-city-item" data-idx="${i}" data-lat="${lat}" data-lon="${lon}" data-short="${escapeAdminHtml(shortName)}" data-full="${name}" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:var(--text);transition:background .2s" onpointerdown="event.preventDefault();psuSelectCity(this)" ontouchstart="event.preventDefault();psuSelectCity(this)" onclick="psuSelectCity(this)">
+        return `<div class="psu-city-item" data-idx="${i}" data-lat="${lat}" data-lon="${lon}" data-short="${escapeAdminHtml(shortName)}" data-full="${name}" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:var(--text);transition:background .2s;touch-action:pan-y" onpointerdown="cityItemDown(event)" onpointerup="cityItemUp(event,this)">
           <div style="color:var(--text);font-weight:600">${escapeAdminHtml(shortName)}</div>
           <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${escapeAdminHtml(region)}</div>
         </div>`;
@@ -6291,6 +6291,39 @@
       }
     }
 
+    // Тап vs прокрутка: выбор города срабатывает только на ЗАВЕРШЁННОМ тапе без
+    // движения пальца. Раньше на подсказках стоял ontouchstart+preventDefault —
+    // он блокировал прокрутку списка, и попытка проскроллить к нужному городу
+    // мгновенно выбирала тот, что под пальцем («при выборе города баг»).
+    let _cityDownX = null, _cityDownY = null;
+    function cityItemDown(e) {
+      _cityDownX = e.clientX; _cityDownY = e.clientY;
+      // Держим список открытым, пока идёт взаимодействие (blur не должен его прятать).
+      const s = document.getElementById('psu-city-suggest');
+      if (s) s.dataset.sticky = '1';
+    }
+    function cityItemUp(e, el) {
+      const moved = (_cityDownX != null) &&
+        (Math.abs(e.clientX - _cityDownX) > 8 || Math.abs(e.clientY - _cityDownY) > 8);
+      _cityDownX = _cityDownY = null;
+      if (moved) return;           // это была прокрутка, не выбор
+      e.preventDefault();
+      psuSelectCity(el);
+    }
+
+    // Закрыть список подсказок при тапе вне поля города (регистрируем один раз).
+    if (!window._cityOutsideBound) {
+      window._cityOutsideBound = true;
+      document.addEventListener('pointerdown', function (ev) {
+        const s = document.getElementById('psu-city-suggest');
+        if (!s || s.style.display === 'none') return;
+        const inp = document.getElementById('psu-birth-place');
+        if (s.contains(ev.target) || (inp && (inp === ev.target || inp.contains(ev.target)))) return;
+        delete s.dataset.sticky;
+        s.style.display = 'none';
+      }, true);
+    }
+
     function psuSelectCity(el) {
       const short = el.dataset.short;
       const full = el.dataset.full;
@@ -6304,7 +6337,8 @@
       if (Number.isFinite(lat) && Number.isFinite(lon)) {
         document.getElementById('psu-city-coords').textContent = `${lat.toFixed(4)}°, ${lon.toFixed(4)}° — ${full}`;
       }
-      document.getElementById('psu-city-suggest').style.display = 'none';
+      const s = document.getElementById('psu-city-suggest');
+      if (s) { delete s.dataset.sticky; s.style.display = 'none'; }
     }
 
     // Подтверждение сохранения (закон: личные данные read-only после сохранения).

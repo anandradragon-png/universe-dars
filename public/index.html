@@ -1045,7 +1045,7 @@
               </button>
             </div>
           </div>
-          <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()">📩 <span data-i18n="dar.get_full_message">Получить полное послание</span></button>
+          <button class="btn btn-secondary" id="btn-get-message" onclick="requestMessage()">🪞 <span data-i18n="dar.get_full_message">Кто я по своему Дару</span></button>
           <!-- Кнопка «Изменить дату» убрана по закону law_personal_data_immutable
                (личные данные read-only после сохранения). Скрытый элемент
                #btn-change-date оставлен для совместимости со старым кодом
@@ -1125,7 +1125,7 @@
             <span class="me-acc-title" data-i18n="me.acc_essence">Твоя Суть</span>
             <span class="me-acc-arrow">▼</span>
           </button>
-          <div class="me-acc-body" data-i18n="me.acc_essence_text" data-placeholder="1">Нажми «Получить полное послание» под карточкой Дара — здесь появится твоя личная расшифровка.</div>
+          <div class="me-acc-body" data-i18n="me.acc_essence_text" data-placeholder="1">Нажми «Кто я по своему Дару» под карточкой Дара — здесь появится твоя личная расшифровка.</div>
         </div>
         <div class="me-acc-item" data-section="superpowers">
           <button class="me-acc-header" onclick="toggleMeAcc(this)">
@@ -1725,7 +1725,7 @@
     .me-acc-title{flex:1;font-weight:600}
     .me-acc-arrow{font-size:11px;color:var(--text-dim,#94a3b8);transition:transform 0.25s;flex-shrink:0}
     .me-acc-header.open .me-acc-arrow{transform:rotate(180deg)}
-    .me-acc-body{max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease;padding:0 16px;color:var(--text-dim,#94a3b8);font-size:13.5px;line-height:1.7}
+    .me-acc-body{max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease;padding:0 16px;color:#e7dfce;font-size:14px;line-height:1.72}
     .me-acc-body.open{max-height:6000px;padding:6px 16px 16px}
     /* Читаемость: воздух между смысловыми абзацами, чтобы текст не шёл сплошняком */
     .me-acc-body p{margin:0 0 12px}
@@ -1734,8 +1734,10 @@
     .me-acc-body li{margin-bottom:6px}
     /* Подзаголовок = жирный текст, стоящий отдельным абзацем. Золото + воздух сверху.
        Селектор only-child не трогает выделения жирным ВНУТРИ предложений. */
-    .me-acc-body p > strong:only-child{display:block;color:#D4AF37;font-weight:700;font-size:14px;letter-spacing:0.2px;margin:16px 0 2px}
-    .me-acc-body p:first-child > strong:only-child{margin-top:0}
+    .me-acc-body p > strong:only-child:not(.lead){display:block;color:#D4AF37;font-weight:700;font-size:14px;letter-spacing:0.2px;margin:16px 0 2px}
+    .me-acc-body p:first-child > strong:only-child:not(.lead){margin-top:0}
+    /* Акцент на первой фразе абзаца — тёплое золото, ярче основного текста, для читабельности и «украшения». Строго inline, чтобы не превратиться в блок-подзаголовок. */
+    .me-acc-body p > strong.lead{display:inline;color:#f0e0ad;font-weight:700}
     .me-acc-locked .me-acc-title,.me-acc-rod-locked .me-acc-title{color:var(--text-dim,#94a3b8)}
     .me-acc-lock{font-size:14px;color:#D4AF37;flex-shrink:0;opacity:0.85}
     .me-acc-locked .me-acc-header:hover .me-acc-lock,.me-acc-rod-locked .me-acc-header:hover .me-acc-lock{opacity:1;transform:scale(1.1);transition:transform 0.2s}
@@ -2606,7 +2608,7 @@
     window.openMessageOverlay = openMessageOverlay;
     window.closeMessageOverlay = closeMessageOverlay;
 
-    // Превращает кнопку «📩 Получить полное послание» в «📖 Читать о своём Даре».
+    // Превращает кнопку «🪞 Кто я по своему Дару» в «📖 Читать о своём Даре».
     // Вызывается после успешного ответа AI и при восстановлении из кеша.
     // Также скрывает шеринг-блоки на главном — они теперь только в overlay.
     function setMessageButtonReady() {
@@ -3319,7 +3321,7 @@
       // Восстанавливаем структуру со span[data-i18n], чтобы i18n.applyToDOM()
       // мог перерисовать кнопку при смене языка. Раньше тут был плоский
       // textContent — после смены RU→EN текст не обновлялся (баг 24.05.2026).
-      btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание')) + '</span>';
+      btn.innerHTML = '🪞 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Кто я по своему Дару')) + '</span>';
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';
@@ -3831,7 +3833,7 @@
         if (style === 'humor') {
           btn.innerHTML = '<span data-i18n="dar.get_humor">' + _t('dar.get_humor', '🎭 Читать свой стендап') + '</span>';
         } else {
-          btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">' + _t('dar.get_full_message', 'Получить полное послание') + '</span>';
+          btn.innerHTML = '🪞 <span data-i18n="dar.get_full_message">' + _t('dar.get_full_message', 'Кто я по своему Дару') + '</span>';
         }
         btn.onclick = requestMessage;
       }
@@ -4194,12 +4196,12 @@
         if (typeof openMessageOverlay === 'function') setTimeout(openMessageOverlay, 200);
       }catch(e){
         console.error('requestMessage error:', e.message);
-        // Возвращаем кнопку в исходное состояние «📩 Получить полное послание».
+        // Возвращаем кнопку в исходное состояние «🪞 Кто я по своему Дару».
         if (btn) {
           btn.dataset.busy = '';
           btn.style.pointerEvents = '';
           btn.style.opacity = '';
-          btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание')) + '</span>';
+          btn.innerHTML = '🪞 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Кто я по своему Дару')) + '</span>';
         }
         // Показываем подсказку в первой секции аккордеона (она в overlay).
         const errAcc = document.getElementById('me-accordion');
@@ -4292,6 +4294,18 @@
              '</div>';
     }
 
+    // Крючок в Книгу Даров под текстом «Ловушки»: назвали тень — путь к силе в книге.
+    // АРКА (ежедневная практика) остаётся в «Ключе к Себе», книга (глубина) — здесь.
+    function trapsBookHookHtml(){
+      const t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
+      const line = t('me.traps_book_hook', 'Как превратить свои тени в силу — читай в Книге Даров.');
+      const btn = t('me.traps_book_btn', '📖 Читать в Книге Даров');
+      return '<div class="me-traps-book" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(212,175,55,0.18)">' +
+             '<div style="font-size:13px;line-height:1.6;color:var(--text-dim);margin-bottom:12px">' + line + '</div>' +
+             '<button onclick="goToMyDarInBook()" class="me-traps-book-btn" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:13px 18px;border-radius:12px;border:1px solid rgba(212,175,55,0.5);background:rgba(212,175,55,0.08);color:#f0e0ad;font-size:14px;font-weight:700;letter-spacing:0.3px;cursor:pointer;font-family:Manrope,sans-serif">' + btn + '</button>' +
+             '</div>';
+    }
+
     function fillMeAccordionFromJSON(data){
       const acc = document.getElementById('me-accordion');
       if (!acc) return;
@@ -4316,8 +4330,11 @@
         let text = s.getText(data);
         if (!text || !text.trim()) return;
         // «Ключ к Себе» — после микро-инструмента добавляем мягкий крючок в АРКУ.
+        // «Ловушки» — после теней добавляем переход в Книгу Даров (как развернуть в силу).
         if (s.key === 'key_to_self') {
           body.innerHTML = formatText(text) + arkaKeyHookHtml();
+        } else if (s.key === 'traps') {
+          body.innerHTML = formatText(text) + trapsBookHookHtml();
         } else {
           body.innerHTML = formatText(text);
         }
@@ -4488,6 +4505,17 @@
         return out.length ? out : [p];
       }
 
+      // Выделяем первую фразу абзаца жирным — акцент на главной мысли + читабельность.
+      // Только если после первой фразы есть ещё текст: иначе <strong> станет
+      // единственным ребёнком <p> и превратится в золотой блок-подзаголовок (это мы убрали).
+      // Если акцент уже есть (AI прислал **…**) — не трогаем.
+      function boldLead(s) {
+        if (/<strong>/.test(s)) return s;
+        const m = s.match(/^(\s*[^.!?…]+[.!?…]+(?:["»)]+)?)(\s+)([\s\S]+)$/);
+        if (!m) return s;
+        return '<strong class="lead">' + m[1].trim() + '</strong>' + m[2] + m[3];
+      }
+
       for (const p of paragraphs) {
         const numMatch = p.match(NUM_RE);
         const bulletMatch = p.match(BULLET_RE);
@@ -4517,7 +4545,7 @@
             const items = lines.map(l => l.trim().replace(/^[•\-–]\s+/,''));
             blocks.push(`<ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul>`);
           } else {
-            splitProse(p).forEach(chunk => blocks.push(`<p>${chunk.replace(/\n/g,'<br>')}</p>`));
+            splitProse(p).forEach(chunk => blocks.push(`<p>${boldLead(chunk).replace(/\n/g,'<br>')}</p>`));
           }
         }
       }
@@ -4531,7 +4559,7 @@
       // Восстанавливаем структуру со span[data-i18n], чтобы i18n.applyToDOM()
       // мог перерисовать кнопку при смене языка. Раньше тут был плоский
       // textContent — после смены RU→EN текст не обновлялся (баг 24.05.2026).
-      btn.innerHTML = '📩 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Получить полное послание')) + '</span>';
+      btn.innerHTML = '🪞 <span data-i18n="dar.get_full_message">' + (((window.i18n && i18n.t && i18n.t('dar.get_full_message')) || 'Кто я по своему Дару')) + '</span>';
       btn.disabled=false;
       btn.style.display='';
       document.getElementById('btn-change-date').style.display='';

@@ -321,6 +321,21 @@
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.expand(); tg.ready(); }
 
+    // Подписанный initData с кэшем. Страница тарифов открывается как отдельная
+    // навигация — Telegram при повторном открытии Mini App отдаёт tg.initData
+    // ПУСТЫМ, и тогда платёж падал на строгой авторизации сервера («войди через
+    // Telegram»). Кэш подписи (общий с api-client, ключ _tg_init_cache) пишется
+    // в главном приложении при валидном initData, а здесь переиспользуется.
+    // Сервер принимает устаревшую, но HMAC-подтверждённую подпись (softInitData).
+    function tgSignedInitData() {
+      let s = tg?.initData || '';
+      try {
+        if (s) localStorage.setItem('_tg_init_cache', s);
+        else s = localStorage.getItem('_tg_init_cache') || '';
+      } catch (e) {}
+      return s;
+    }
+
     function goBack() { window.location.href = '/'; }
 
     let DATA = null;
@@ -332,7 +347,8 @@
     async function fetchPricing() {
       try {
         const headers = { 'Content-Type': 'application/json' };
-        if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
+        const signed = tgSignedInitData();
+        if (signed) headers['x-telegram-init-data'] = signed;
         else if (tg?.initDataUnsafe?.user?.id) headers['x-telegram-id'] = String(tg.initDataUnsafe.user.id);
         // Передаём текущий язык клиента, чтобы сервер вернул описания на нужном языке
         const lang = (window.i18n && i18n.getLang) ? i18n.getLang() : 'ru';
@@ -642,7 +658,8 @@
 
       try {
         const headers = { 'Content-Type': 'application/json' };
-        if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
+        const signed = tgSignedInitData();
+        if (signed) headers['x-telegram-init-data'] = signed;
         else if (tg?.initDataUnsafe?.user?.id) headers['x-telegram-id'] = String(tg.initDataUnsafe.user.id);
 
         let body;

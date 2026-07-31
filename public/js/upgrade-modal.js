@@ -80,7 +80,16 @@ window.UpgradeModal = (function() {
     try {
       const tg = window.Telegram?.WebApp;
       const headers = { 'Content-Type': 'application/json' };
-      if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
+      // Подписанный initData с кэшем (общий ключ _tg_init_cache с api-client):
+      // при повторном открытии Mini App tg.initData пуст, и без кэша платёж
+      // падал на строгой авторизации. Сервер принимает устаревшую, но
+      // HMAC-подтверждённую подпись (softInitData) — подмена не проходит.
+      let signed = tg?.initData || '';
+      try {
+        if (signed) localStorage.setItem('_tg_init_cache', signed);
+        else signed = localStorage.getItem('_tg_init_cache') || '';
+      } catch (e) {}
+      if (signed) headers['x-telegram-init-data'] = signed;
       else if (tg?.initDataUnsafe?.user?.id) headers['x-telegram-id'] = String(tg.initDataUnsafe.user.id);
 
       // Веб-юзер без Telegram (обычный браузер): нет ни подписанного initData,

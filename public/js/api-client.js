@@ -9,24 +9,33 @@ const DarAPI = (function() {
 
   function getHeaders() {
     const headers = { 'Content-Type': 'application/json' };
-    if (tg?.initData) {
-      headers['x-telegram-init-data'] = tg.initData;
+    // Подписанный initData. При ПОВТОРНОМ открытии Mini App (из истории,
+    // отдельные типы кнопок/ссылок) Telegram отдаёт tg.initData ПУСТЫМ, хотя
+    // пользователь тот же. Кэшируем последнюю валидную подпись и переиспользуем
+    // её, когда живой initData пуст. Сервер принимает устаревшую, но
+    // HMAC-подтверждённую подпись (softInitData) — identity подлинная, а защита
+    // от подмены НЕ ослабляется (в отличие от голого x-telegram-id, который
+    // строгий платёжный путь на сервере законно отвергает).
+    let signed = tg?.initData || '';
+    try {
+      if (signed) localStorage.setItem('_tg_init_cache', signed);
+      else signed = localStorage.getItem('_tg_init_cache') || '';
+    } catch (e) {}
+    if (signed) {
+      headers['x-telegram-init-data'] = signed;
     }
     // Dev fallback
     const devId = localStorage.getItem('_dev_telegram_id');
-    if (devId && !tg?.initData) {
+    if (devId && !signed) {
       headers['x-telegram-id'] = devId;
     }
-    // Telegram-юзер без подписанного initData. Некоторые способы открытия
-    // Mini App (повторный запуск из истории, отдельные типы ссылок/кнопок)
-    // дают заполненный initDataUnsafe.user, но ПУСТОЙ initData. Раньше такой
-    // юзер проваливался в гостевой режим ниже и получал случайный _web_uid —
-    // то есть отрывался от своего реального Telegram-аккаунта: дар и тариф
-    // «слетали», доступа не было, приходилось делать «старт заново». Опознаём
-    // его по настоящему telegram_id из initDataUnsafe (как это уже делает
-    // getUserId() в index.html), чтобы сервер вернул его собственный профиль.
+    // Telegram-юзер без подписанного initData И без кэша подписи (первый заход
+    // именно таким способом). Опознаём по настоящему telegram_id из
+    // initDataUnsafe, чтобы сервер вернул его собственный профиль (нестрогие
+    // ручки принимают low-trust id; строгий платёж — нет, но там уже работает
+    // кэш подписи выше).
     const tgUid = tg?.initDataUnsafe?.user?.id;
-    if (!tg?.initData && !devId && tgUid) {
+    if (!signed && !devId && tgUid) {
       headers['x-telegram-id'] = String(tgUid);
     }
     // Гостевой веб-вход: ТОЛЬКО когда Telegram-контекста нет вообще (открыто
@@ -34,7 +43,7 @@ const DarAPI = (function() {
     // анонимный аккаунт. Отрицательный id, чтобы никогда не пересечься с
     // реальными Telegram-id (они положительные). Хранится в localStorage,
     // так что гость возвращается в свой аккаунт.
-    if (!tg?.initData && !devId && !tgUid) {
+    if (!signed && !devId && !tgUid) {
       let webId = localStorage.getItem('_web_uid');
       if (!webId) {
         webId = String(-(Math.floor(Math.random() * 900000000000) + 100000000000));

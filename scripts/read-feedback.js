@@ -22,7 +22,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error('❌ Не хватает переменных в .env:');
   console.error('   SUPABASE_URL и SUPABASE_SERVICE_KEY');
   console.error('');
-  console.error('Скопируй значения из Vercel → Settings → Environment Variables');
+  console.error('Возьми значения из .env.production на сервере (/opt/yupdar/.env.production)');
   process.exit(1);
 }
 

@@ -740,7 +740,7 @@
     <div class="subtitle" onclick="goHome()" data-i18n="app.tagline">ВСЕЛЕННАЯ ДАРОВ</div>
   </header>
 
-  <!-- Баннер технических работ. Управляется env-переменной MAINTENANCE_MESSAGE в Vercel.
+  <!-- Баннер технических работ. Управляется env-переменной MAINTENANCE_MESSAGE на сервере.
        Если переменная пустая или не задана — баннер скрыт.
        Изменения видны на всех клиентах через ~1 минуту (cache-control в эндпоинте). -->
   <div id="maintenance-banner" style="display:none;position:relative;margin:0 12px 8px;padding:10px 14px 10px 38px;background:linear-gradient(135deg,rgba(255,165,0,0.12),rgba(212,175,55,0.06));border:1px solid rgba(255,165,0,0.4);border-radius:10px;font-size:12.5px;color:#FFC97A;line-height:1.5;font-family:Manrope,sans-serif">
@@ -1773,7 +1773,7 @@
     <button class="nav-btn" id="nav-arka" onclick="switchNav('arka')"><span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9a8 8 0 0 1 16 0v12"/><path d="M4 21h16"/><path d="M9 21V13"/><path d="M15 21V13"/></svg></span><span class="nav-label" data-i18n="nav.arka">АРКА</span></button>
   </div>
 
-  <!-- Загрузка баннера техработ. Управляется env MAINTENANCE_MESSAGE в Vercel. -->
+  <!-- Загрузка баннера техработ. Управляется env MAINTENANCE_MESSAGE на сервере. -->
   <script>
     (function loadMaintenanceBanner() {
       // Тихо игнорируем любые ошибки — баннер не должен ломать загрузку приложения.
@@ -3660,7 +3660,7 @@
       document.getElementById('full-description-block').style.display='none';
     }
 
-    // Относительный путь: приложение деплоится туда же, где API. Не зависит от смены домена Vercel.
+    // Относительный путь: приложение деплоится туда же, где API. Не зависит от смены домена.
     const API_URL='';
 
     // Красивая анимация ожидания: сменяющиеся фразы + пульсирующая карта.

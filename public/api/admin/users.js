@@ -1,7 +1,7 @@
 /**
  * Админ-эндпоинты для управления пользователями.
  *
- * Маршруты (через query-параметры, чтобы один файл = одна Vercel-функция):
+ * Маршруты (через query-параметры, чтобы один файл = один обработчик):
  *   GET  /api/admin/users?action=search&q=...&limit=50
  *   GET  /api/admin/users?action=card&id=42       — детальная карточка
  *   POST /api/admin/users?action=crystals         — body: { user_id, amount, reason }

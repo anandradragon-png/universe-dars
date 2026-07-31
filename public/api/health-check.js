@@ -2,8 +2,8 @@
  * Cron-задача: каждые 5 минут проверяет здоровье yupdar.com.
  * Если сайт не отвечает / отвечает медленно — пишет Свете в Telegram.
  *
- * Запускается Vercel Cron Job (см. vercel.json -> crons).
- * Защищена секретом CRON_SECRET — Vercel передаёт его в заголовке Authorization.
+ * Запускается по расписанию (cron) на сервере.
+ * Защищена секретом CRON_SECRET — cron передаёт его в заголовке Authorization.
  *
  * Что проверяет:
  *  1. HTTP 200 от https://yupdar.com/
@@ -104,7 +104,7 @@ module.exports = async (req, res) => {
       `Сайт: ${site.status || 'таймаут'} (${site.ms}мс)\n` +
       `API:  ${api.status || 'таймаут'} (${api.ms}мс)\n\n` +
       `Время: ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК\n\n` +
-      'Проверь Vercel Dashboard или просто подожди 5 минут.';
+      'Проверь логи сервера или просто подожди 5 минут.';
   } else if (!isDown && wasDown) {
     // Сайт восстановился
     const downSince = lastState ? new Date(lastState.checked_at) : new Date();

@@ -24,7 +24,7 @@ function validateTelegramData(initData, botToken, opts = {}) {
   if (!initData) return { error: 'no_init_data' };
   if (!botToken) return { error: 'no_bot_token' };
 
-  // Защита от случайных пробелов/переносов строки в Vercel env
+  // Защита от случайных пробелов/переносов строки в env-переменных
   const cleanToken = botToken.trim();
   if (!cleanToken) return { error: 'empty_bot_token' };
 
@@ -89,7 +89,7 @@ function devHeaderAuthAllowed() {
 }
 
 /**
- * Middleware для Vercel API — извлекает пользователя из запроса.
+ * Middleware для API — извлекает пользователя из запроса.
  *
  * Границы доверия (каркас 3.1 — не доверять фронту):
  *   • x-telegram-init-data — подписанный HMAC от Telegram: доверенный путь

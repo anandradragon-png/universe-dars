@@ -5,7 +5,7 @@
 
 const DarAPI = (function() {
   const tg = window.Telegram?.WebApp;
-  const BASE_URL = ''; // Относительные пути для Vercel
+  const BASE_URL = ''; // Относительные пути (тот же origin, что и API)
 
   function getHeaders() {
     const headers = { 'Content-Type': 'application/json' };

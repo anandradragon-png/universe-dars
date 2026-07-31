@@ -4,7 +4,7 @@
  * - tbank     (Тинькофф/T-Bank)
  * - yuppay    (YupPay/DarAI/NEAR)
  *
- * Роутинг по req.query.provider (через vercel.json rewrites).
+ * Роутинг по req.query.provider (через rewrites в server.js).
  *
  * Env vars:
  *   BOT_TOKEN, TBANK_PASSWORD, YUPPAY_WEBHOOK_SECRET
@@ -671,7 +671,7 @@ async function handleYuppayWebhook(req, res) {
     const webhookSecret = (process.env.YUPPAY_WEBHOOK_SECRET || '').trim();
 
     // Получаем raw body для проверки подписи
-    // Vercel может передать body как объект (уже распарсенный)
+    // Сервер может передать body как объект (уже распарсенный)
     // или как Buffer/string (если настроен raw body parsing)
     let rawBody;
     if (typeof req.body === 'string') {
@@ -679,7 +679,7 @@ async function handleYuppayWebhook(req, res) {
     } else if (Buffer.isBuffer(req.body)) {
       rawBody = req.body.toString('utf8');
     } else {
-      // Vercel парсит JSON автоматически - re-stringify
+      // Сервер парсит JSON автоматически - re-stringify
       // Это может не совпасть байт-в-байт с оригиналом,
       // но YupPay тоже использует JSON.stringify на своей стороне
       rawBody = JSON.stringify(req.body);
@@ -1014,7 +1014,7 @@ async function handleYookassaWebhook(req, res) {
 
     if (!user) {
       // Юзер не найден — это веб-покупка, которую владелец активирует вручную.
-      // Логируем максимально подробно, чтобы Света увидела платёж в Vercel Logs и Supabase.
+      // Логируем максимально подробно, чтобы Света увидела платёж в логах сервера и Supabase.
       console.warn('[yookassa-webhook] PENDING PURCHASE — user not found:', JSON.stringify({
         payment_id: obj.id,
         amount: amountValue,

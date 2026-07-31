@@ -1982,10 +1982,10 @@ function drawShareCard(opts) {
   ctx.font = '16px Manrope, sans-serif';
   ctx.fillText((opts.dayLabel || '') , W / 2, H - 100);
 
-  // Подпись «public-yup-land1.vercel.app/preview/»
+  // Подпись «yupdar.com/preview/»
   ctx.fillStyle = 'rgba(226, 232, 240, 0.4)';
   ctx.font = '13px Manrope, sans-serif';
-  ctx.fillText('public-yup-land1.vercel.app/preview', W / 2, H - 60);
+  ctx.fillText('yupdar.com/preview', W / 2, H - 60);
 
   // Сохраняем dataURL для скачивания
   _lastShareDataUrl = canvas.toDataURL('image/png');
@@ -2441,7 +2441,7 @@ window.sendDragon = sendDragon;
 
 function inviteToCircle() {
   // В реальном проде — открывает Telegram share с приглашением
-  const inviteUrl = 'https://public-yup-land1.vercel.app/preview/';
+  const inviteUrl = 'https://yupdar.com/preview/';
   const text = dt('arka.circle_invite_text');
   try {
     if (window.parent && window.parent.Telegram && window.parent.Telegram.WebApp && window.parent.Telegram.WebApp.openTelegramLink) {
@@ -2510,7 +2510,7 @@ function initShadowQuest() {
 }
 
 function shareViaTelegram() {
-  const shareUrl = 'https://public-yup-land1.vercel.app/preview/';
+  const shareUrl = 'https://yupdar.com/preview/';
   const shareText = dtOrEmpty('share.tg_message') || 'Мой день в АРКА';
   // Если открыто в Telegram WebApp — используем нативный API
   try {

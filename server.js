@@ -1,6 +1,6 @@
 /**
  * YupDar — Express-сервер для запуска на собственном хостинге.
- * Заменяет Vercel: раздаёт статику из public/ и монтирует все API-обработчики.
+ * Раздаёт статику из public/ и монтирует все API-обработчики.
  *
  * Запуск: node server.js
  * Порт:   PORT (env) или 3000
@@ -38,7 +38,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ── Rewrites из vercel.json ────────────────────────────────────────────────
+// ── Маршруты API (rewrites) ─────────────────────────────────────────────────
 function rewrite(from, handlerPath, extraQuery) {
   app.all(from, (req, res) => {
     Object.assign(req.query, extraQuery);

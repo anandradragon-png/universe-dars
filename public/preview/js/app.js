@@ -210,7 +210,7 @@
   // Поделиться приглашением через Telegram (если в TG WebApp — нативный share)
   function shareInvite() {
     const lang = (window.previewI18n && previewI18n.getLang()) || 'ru';
-    const inviteUrl = 'https://public-yup-land1.vercel.app/preview/';
+    const inviteUrl = 'https://yupdar.com/preview/';
     const texts = {
       ru: 'YupDar — рассчитай свой Дар и открой свою силу',
       en: 'YupDar — calculate your DAR and open your strength',

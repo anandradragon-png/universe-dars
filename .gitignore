@@ -2,11 +2,8 @@
 public/.env
 node_modules/
 public/node_modules/
-.vercel/
-public/.vercel/
 public/.env.local
 *.zip
-.vercel
 
 # Продакшн-секреты на сервере (не коммитить!)
 .env.production

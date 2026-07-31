@@ -753,7 +753,7 @@ const Treasury = (function() {
         }));
       } catch (lsErr) {}
 
-      // Авто-retry один раз для сетевых ошибок (DeepSeek/Vercel могут моргнуть)
+      // Авто-retry один раз для сетевых ошибок (DeepSeek/сервер могут моргнуть)
       if (retryCount === 0 && (e.kind === 'network' || e.kind === 'non-json' || (e.status && e.status >= 500))) {
         console.log('Auto-retry submitQuest in 800ms...');
         await new Promise(r => setTimeout(r, 800));

@@ -381,15 +381,19 @@ const BookReader = (function() {
       const statusChip = isFree
         ? '<span style="color:#2ecc71;font-weight:700">' + freeTxt + '</span>'
         : '<span style="color:#D4AF37;font-weight:700">' + paidTxt + '</span>';
+      // Поповер «о книге»: всплывает ПОВЕРХ сетки (не удлиняет ленту).
+      // Десктоп — по наведению (mouseenter/leave), телефон — по тапу.
       const aboutBlock = about ? `
-          <button onclick="BookReader.toggleAbout('${b.id}')" style="all:unset;cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;color:#D4AF37;padding:2px 2px;margin-top:1px">
-            <span>${escapeHtml(aboutTxt)}</span>
-            <span id="about-caret-${b.id}" style="display:inline-block;transition:transform 0.2s;font-size:9px">&#9662;</span>
-          </button>
-          <div id="about-panel-${b.id}" style="display:none;padding:8px 10px;margin-top:2px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.18);border-radius:10px">
-            <div style="font-size:12px;color:var(--text);line-height:1.4">${escapeHtml(about)}</div>
-            ${authors ? '<div style="font-size:11px;color:var(--text-dim);margin-top:6px">' + escapeHtml(authorTxt) + ': ' + escapeHtml(authors) + '</div>' : ''}
-            <div style="font-size:11px;margin-top:4px">${statusChip}</div>
+          <div id="about-wrap-${b.id}" style="position:relative" onmouseenter="BookReader.openAbout('${b.id}')" onmouseleave="BookReader.closeAbout('${b.id}')">
+            <button onclick="BookReader.toggleAbout('${b.id}')" style="all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#D4AF37;padding:2px 2px;margin-top:1px">
+              <span>${escapeHtml(aboutTxt)}</span>
+              <span id="about-caret-${b.id}" style="display:inline-block;transition:transform 0.2s;font-size:9px">&#9662;</span>
+            </button>
+            <div id="about-panel-${b.id}" style="display:none;position:absolute;left:-2px;right:-2px;top:calc(100% - 2px);z-index:40;padding:10px 12px;background:#141210;border:1px solid rgba(212,175,55,0.4);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,0.55)">
+              <div style="font-size:12px;color:var(--text);line-height:1.45">${escapeHtml(about)}</div>
+              ${authors ? '<div style="font-size:11px;color:var(--text-dim);margin-top:6px">' + escapeHtml(authorTxt) + ': ' + escapeHtml(authors) + '</div>' : ''}
+              <div style="font-size:11px;margin-top:4px">${statusChip}</div>
+            </div>
           </div>` : '';
 
       return `
@@ -1642,19 +1646,60 @@ const BookReader = (function() {
     window.addEventListener('i18n:changed', _onLangChange);
   }
 
-  // Раскрыть/свернуть короткую аннотацию под карточкой книги в витрине.
-  function toggleAbout(id) {
+  // Поповер «о книге» под карточкой: всплывает поверх сетки, не удлиняя ленту.
+  // Десктоп — по наведению, телефон — по тапу. Открыт всегда один.
+  let _aboutTimers = {};
+  let _aboutOpenId = null;
+  let _aboutDocBound = false;
+
+  function _showAbout(id, show) {
     const panel = document.getElementById('about-panel-' + id);
     const caret = document.getElementById('about-caret-' + id);
     if (!panel) return;
+    panel.style.display = show ? 'block' : 'none';
+    if (caret) caret.style.transform = show ? 'rotate(180deg)' : 'rotate(0deg)';
+  }
+
+  // Тап вне открытого поповера — закрыть (для тачскрина).
+  function _bindAboutDoc() {
+    if (_aboutDocBound) return;
+    _aboutDocBound = true;
+    document.addEventListener('click', function (e) {
+      if (!_aboutOpenId) return;
+      const wrap = document.getElementById('about-wrap-' + _aboutOpenId);
+      if (wrap && !wrap.contains(e.target)) { _showAbout(_aboutOpenId, false); _aboutOpenId = null; }
+    });
+  }
+
+  function openAbout(id) {
+    _bindAboutDoc();
+    if (_aboutTimers[id]) { clearTimeout(_aboutTimers[id]); _aboutTimers[id] = null; }
+    if (_aboutOpenId && _aboutOpenId !== id) _showAbout(_aboutOpenId, false);
+    _aboutOpenId = id;
+    _showAbout(id, true);
+  }
+
+  // Задержка на закрытие: пересечение зазора курсором до панели её не захлопнет.
+  function closeAbout(id) {
+    if (_aboutTimers[id]) clearTimeout(_aboutTimers[id]);
+    _aboutTimers[id] = setTimeout(function () {
+      _showAbout(id, false);
+      if (_aboutOpenId === id) _aboutOpenId = null;
+    }, 160);
+  }
+
+  function toggleAbout(id) {
+    _bindAboutDoc();
+    const panel = document.getElementById('about-panel-' + id);
+    if (!panel) return;
     const open = panel.style.display !== 'none';
-    panel.style.display = open ? 'none' : 'block';
-    if (caret) caret.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+    if (open) { _showAbout(id, false); if (_aboutOpenId === id) _aboutOpenId = null; }
+    else { openAbout(id); }
   }
 
   return {
     init, render, renderChapter,
-    showLibrary, openBook, toggleAbout,
+    showLibrary, openBook, toggleAbout, openAbout, closeAbout,
     nextChapter, prevChapter, goTo, goToDar, openInTreasury,
     toggleTOC, toggleSettings, toggleBookmarks, toggleSearch, runSearch,
     toggleBookmark, removeBookmark, clearBookmarks,

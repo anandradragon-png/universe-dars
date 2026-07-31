@@ -81,12 +81,30 @@ window.UpgradeModal = (function() {
       const tg = window.Telegram?.WebApp;
       const headers = { 'Content-Type': 'application/json' };
       if (tg?.initData) headers['x-telegram-init-data'] = tg.initData;
+      else if (tg?.initDataUnsafe?.user?.id) headers['x-telegram-id'] = String(tg.initDataUnsafe.user.id);
 
-      // Провайдер: для пользователей RU по умолчанию ЮKassa, остальным Stars
+      // Веб-юзер без Telegram (обычный браузер): нет ни подписанного initData,
+      // ни telegram_id. Оплата Stars/DarAI ему недоступна — они требуют Telegram.
+      // Единственный рельс для него — карта (ЮKassa) + email, на который придёт
+      // чек и к которому автоматически привяжется доступ (см. payment.js:
+      // getOrCreateUserByEmail). Поэтому для веб-юзера ВСЕГДА yookassa + email.
+      const isWebNoTelegram = !tg || !tg.initDataUnsafe?.user?.id;
+
+      // Провайдер: веб-юзер без Telegram — только карта; иначе RU → ЮKassa, остальным Stars.
       const lang = (tg?.initDataUnsafe?.user?.language_code || '').toLowerCase();
-      const provider = (lang === 'ru' || lang === 'be' || lang === 'uk') ? 'yookassa' : 'stars';
+      const provider = isWebNoTelegram
+        ? 'yookassa'
+        : ((lang === 'ru' || lang === 'be' || lang === 'uk') ? 'yookassa' : 'stars');
+
+      // Для оплаты картой веб-юзером спросим email (нужен для чека и привязки доступа).
+      let email = null;
+      if (provider === 'yookassa' && isWebNoTelegram) {
+        email = prompt((window.i18n && i18n.t && i18n.t('tariffs.email_prompt')) || 'Введи email для чека и доступа:');
+        if (!email) return;
+      }
 
       const body = { action: 'create_addon', kind: 'addon', key: addonKey, provider };
+      if (email) body.email = email;
       const r = await fetch('/api/payment', { method: 'POST', headers, body: JSON.stringify(body) });
       const j = await r.json();
       if (!r.ok) {

@@ -360,6 +360,7 @@ const BookReader = (function() {
 
   // -------- Витрина: книжные полки по жанрам --------
   function renderLibrary() {
+    _exitImmersive();
     const container = document.getElementById('book-content');
     if (!container || !library) return;
 
@@ -519,7 +520,7 @@ const BookReader = (function() {
     const backLabel = (window.i18n && i18n.t && i18n.t('book.back_to_shelves')) || '\u2190 \u0412 \u0431\u0438\u0431\u043b\u0438\u043e\u0442\u0435\u043a\u0443';
 
     container.innerHTML = `
-      <div style="padding:16px 16px 0">
+      <div id="book-reader-chrome" style="padding:16px 16px 0">
         <div style="margin-bottom:8px">
           <button class="btn btn-ghost" style="width:auto;margin:0;font-size:12px;padding:7px 14px;border:1px solid rgba(212,175,55,0.45);color:#D4AF37;border-radius:10px" onclick="BookReader.showLibrary()">${backLabel}</button>
         </div>
@@ -585,13 +586,15 @@ const BookReader = (function() {
       <!-- Панель настроек -->
       <div id="book-settings-panel" style="display:none;padding:0 16px 12px"></div>
 
-      <!-- Контент главы -->
+      <!-- Контент главы. В режиме погружения (body.book-immersive) через CSS
+           разворачивается на весь экран — правила ниже переопределяются. -->
       <div id="book-chapter" class="book-chapter theme-${theme}" style="
-        padding:20px 18px;
+        padding:64px 18px 84px;
         background:${bg};
         color:${fg};
-        border-radius:14px;
-        margin:0 16px 12px;
+        border-radius:0;
+        margin:0;
+        min-height:100vh;
         font-size:${settings.fontSize}px;
         line-height:${settings.lineHeight};
         font-family:Manrope,sans-serif;
@@ -636,6 +639,7 @@ const BookReader = (function() {
     `;
 
     renderChapter();
+    _enterImmersive();
   }
 
   // -------- Рендер главы --------
@@ -940,6 +944,7 @@ const BookReader = (function() {
   }
 
   function updatePosIndicator() {
+    _syncImmersivePos();
     const el = document.getElementById('book-pos');
     if (!el) return;
     const gIdx = globalIndex(currentPartIdx, currentChapterIdx) + 1;
@@ -1091,6 +1096,7 @@ const BookReader = (function() {
   function showLibrary() {
     viewMode = 'library';
     saveView();
+    _exitImmersive();
     // Закрываем возможную панель заметки, чтобы не висела поверх витрины.
     const np = document.getElementById('book-note-panel');
     if (np) np.remove();
@@ -1781,9 +1787,152 @@ const BookReader = (function() {
     }
   }
 
+  // ═════════════════════════════════════════════════════
+  // ПОГРУЖЁННОЕ ЧТЕНИЕ (immersive)
+  // Разворачивает текст на весь экран, прячет обвязку. Верхний/нижний бары
+  // выезжают при скролле или тапе и сами прячутся через ~1.5с.
+  // Меню (Главы/Поиск/Закладки/Настройки) НЕ меняется — оно спрятано в
+  // #book-reader-chrome и открывается кнопкой «Меню».
+  // ═════════════════════════════════════════════════════
+  let _immScroll = null, _immHideTimer = null, _immActive = false, _immScrollTarget = null;
+
+  // Контейнер, который реально скроллится (в приложении это #app, не window).
+  function _getScrollTarget() {
+    const app = document.getElementById('app');
+    if (app && app.scrollHeight > app.clientHeight + 4) return app;
+    return window;
+  }
+  function _scrollY(t) { return (t === window) ? (window.scrollY || 0) : (t.scrollTop || 0); }
+
+  function _immBarLabels() {
+    const t = (k, fb) => ((window.i18n && i18n.t && i18n.t(k)) || fb);
+    return {
+      back: t('book.back_to_shelves', '\u2190 \u0412 \u0431\u0438\u0431\u043b\u0438\u043e\u0442\u0435\u043a\u0443'),
+      menu: '\u2630 ' + t('book.menu', '\u041c\u0435\u043d\u044e'),
+      prev: '\u2190 ' + t('book.nav_back', '\u041d\u0430\u0437\u0430\u0434'),
+      next: t('book.nav_forward', '\u0412\u043f\u0435\u0440\u0451\u0434') + ' \u2192'
+    };
+  }
+
+  function _buildImmersiveBars() {
+    if (document.getElementById('book-topbar')) return;
+    const L = _immBarLabels();
+    const top = document.createElement('div');
+    top.id = 'book-topbar';
+    top.className = 'bar-hidden';
+    top.innerHTML =
+      '<button onclick="BookReader.showLibrary()">' + L.back + '</button>' +
+      '<button onclick="BookReader.toggleChrome()">' + L.menu + '</button>';
+    const bot = document.createElement('div');
+    bot.id = 'book-bottombar';
+    bot.className = 'bar-hidden';
+    bot.innerHTML =
+      '<button onclick="BookReader.prevChapter()">' + L.prev + '</button>' +
+      '<span id="book-immersive-pos"></span>' +
+      '<button id="book-immersive-next" onclick="BookReader.nextChapter()">' + L.next + '</button>';
+    document.body.appendChild(top);
+    document.body.appendChild(bot);
+    // Тап по барам не должен запускать авто-скрытие мгновенно.
+    [top, bot].forEach(b => b.addEventListener('click', () => _showImmersiveBars(true)));
+  }
+
+  function _showImmersiveBars(keepOpen) {
+    const top = document.getElementById('book-topbar');
+    const bot = document.getElementById('book-bottombar');
+    if (top) top.classList.remove('bar-hidden');
+    if (bot) bot.classList.remove('bar-hidden');
+    if (_immHideTimer) clearTimeout(_immHideTimer);
+    // Пока открыто меню — бары не прячем.
+    if (keepOpen && document.body.classList.contains('book-chrome-open')) return;
+    _immHideTimer = setTimeout(_hideImmersiveBars, 1600);
+  }
+
+  function _hideImmersiveBars() {
+    // Меню открыто — держим верхний бар, чтобы кнопка «Меню» оставалась.
+    if (document.body.classList.contains('book-chrome-open')) return;
+    const top = document.getElementById('book-topbar');
+    const bot = document.getElementById('book-bottombar');
+    if (top) top.classList.add('bar-hidden');
+    if (bot) bot.classList.add('bar-hidden');
+  }
+
+  function toggleChrome() {
+    const open = document.body.classList.toggle('book-chrome-open');
+    if (open) {
+      // Показываем меню — держим бары, чистим таймер скрытия.
+      if (_immHideTimer) clearTimeout(_immHideTimer);
+      _showImmersiveBars(true);
+    } else {
+      _showImmersiveBars(false);
+    }
+  }
+
+  function _enterImmersive() {
+    document.body.classList.add('book-immersive');
+    document.body.classList.remove('book-chrome-open');
+    _buildImmersiveBars();
+    _syncImmersivePos();
+    if (_immActive) return;
+    _immActive = true;
+    _immScrollTarget = _getScrollTarget();
+    let lastY = _scrollY(_immScrollTarget);
+    _immScroll = function () {
+      const y = _scrollY(_immScrollTarget);
+      if (Math.abs(y - lastY) > 4) { _showImmersiveBars(false); lastY = y; }
+    };
+    _immScrollTarget.addEventListener('scroll', _immScroll, { passive: true });
+    // Тап по тексту — переключить бары.
+    const chap = document.getElementById('book-chapter');
+    if (chap && !chap._immTap) {
+      chap._immTap = true;
+      chap.addEventListener('click', (e) => {
+        // Не перехватываем клики по картинкам/ссылкам/номерам карт.
+        if (e.target.closest && e.target.closest('img, a, .copyable-card-number')) return;
+        const top = document.getElementById('book-topbar');
+        if (top && top.classList.contains('bar-hidden')) _showImmersiveBars(false);
+        else _hideImmersiveBars();
+      });
+    }
+    // При входе на короткий миг показываем бары — подсказка, что они есть.
+    _showImmersiveBars(false);
+  }
+
+  function _exitImmersive() {
+    _immActive = false;
+    document.body.classList.remove('book-immersive');
+    document.body.classList.remove('book-chrome-open');
+    if (_immHideTimer) clearTimeout(_immHideTimer);
+    if (_immScroll) {
+      const tgt = _immScrollTarget || window;
+      tgt.removeEventListener('scroll', _immScroll);
+      _immScroll = null; _immScrollTarget = null;
+    }
+    const top = document.getElementById('book-topbar');
+    const bot = document.getElementById('book-bottombar');
+    if (top) top.remove();
+    if (bot) bot.remove();
+  }
+
+  function _syncImmersivePos() {
+    const pos = document.getElementById('book-immersive-pos');
+    if (pos) pos.textContent = (globalIndex(currentPartIdx, currentChapterIdx) + 1) + ' / ' + totalChapters;
+    const nextBtn = document.getElementById('book-immersive-next');
+    if (nextBtn) {
+      const isLast = globalIndex(currentPartIdx, currentChapterIdx) >= totalChapters - 1;
+      if (isLast) {
+        nextBtn.setAttribute('onclick', 'BookReader.goTo(0,0)');
+        nextBtn.innerHTML = '\u2191 ' + ((window.i18n && i18n.t && i18n.t('book.nav_to_start')) || 'В начало');
+      } else {
+        nextBtn.setAttribute('onclick', 'BookReader.nextChapter()');
+        nextBtn.innerHTML = ((window.i18n && i18n.t && i18n.t('book.nav_forward')) || 'Вперёд') + ' \u2192';
+      }
+    }
+  }
+
   return {
     init, render, renderChapter,
     showLibrary, openBook, toggleAbout, openAbout, closeAbout,
+    toggleChrome, exitImmersive: _exitImmersive,
     nextChapter, prevChapter, goTo, goToDar, openInTreasury, sendInspire,
     toggleTOC, toggleSettings, toggleBookmarks, toggleSearch, runSearch,
     toggleBookmark, removeBookmark, clearBookmarks,

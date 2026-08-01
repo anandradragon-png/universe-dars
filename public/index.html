@@ -443,6 +443,34 @@
     .nav-btn .nav-label{font-size:10px;letter-spacing:0.5px;color:var(--text);font-family:Manrope,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
     .nav-btn .nav-desc{font-size:9px;color:var(--text-dim)}
 
+    /* === Погружённое чтение (immersive) ===
+       Во время чтения книги скрываем всю обвязку экрана, чтобы текст занимал
+       максимум места. Верхний/нижний бары выезжают при скролле или тапе и
+       сами прячутся через ~1.5с. Меню (Главы/Поиск/Закладки/Настройки)
+       не меняется — оно просто спрятано и открывается кнопкой «Меню». */
+    body.book-immersive .nav-bar{transform:translateX(-50%) translateY(160%);pointer-events:none;transition:transform .28s ease}
+    body.book-immersive > header{display:none}
+    body.book-immersive #crystal-counter,
+    body.book-immersive #btn-profile{display:none}
+    /* Кнопка языка: в читалке не актуальна (язык уже выбран в библиотеке).
+       Прячем ТОЛЬКО в режиме погружения; во всех остальных местах закон
+       «переключатель языка всегда в шапке» продолжает работать.
+       !important — потому что JS выставляет кнопке inline display:flex. */
+    body.book-immersive #btn-lang{display:none !important}
+    body.book-immersive .treasury-subnav[data-active="book"]{display:none}
+    body.book-immersive #book-reader-chrome{display:none}
+    body.book-immersive.book-chrome-open #book-reader-chrome{display:block}
+    body.book-immersive #book-nav{display:none}
+    body.book-immersive #app{padding-bottom:0}
+    #book-topbar,#book-bottombar{position:fixed;left:50%;transform:translateX(-50%) translateY(0);width:100%;max-width:700px;z-index:260;background:rgba(8,8,8,0.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;align-items:center;gap:8px;transition:transform .28s ease;box-sizing:border-box}
+    #book-topbar{top:0;justify-content:space-between;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top,0px));border-bottom:1px solid rgba(212,175,55,0.18)}
+    #book-bottombar{bottom:0;justify-content:center;padding:8px 14px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(212,175,55,0.18)}
+    #book-topbar.bar-hidden{transform:translateX(-50%) translateY(-115%)}
+    #book-bottombar.bar-hidden{transform:translateX(-50%) translateY(115%)}
+    #book-topbar button,#book-bottombar button{background:none;border:none;color:#D4AF37;font-size:13px;font-family:Manrope,sans-serif;cursor:pointer;padding:8px 12px;border-radius:10px}
+    #book-topbar button:active,#book-bottombar button:active{background:rgba(212,175,55,0.12)}
+    #book-immersive-pos{font-size:12px;color:var(--text-muted);min-width:90px;text-align:center}
+
     /* === Кристаллы === */
     #crystal-counter{position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:6px 14px;font-size:14px;color:#D4AF37;letter-spacing:1px}
     /* Когда открыта модалка тарифов — прячем fixed-элементы с z-index выше неё */
@@ -2497,6 +2525,11 @@
         localStorage.setItem('_last_nav', name);
         localStorage.setItem('_last_nav_ts', String(Date.now()));
       } catch (e) {}
+      // Уходим с вкладки книги — гарантированно выключаем режим погружения,
+      // чтобы нижняя навигация приложения вернулась.
+      if (name !== 'book' && typeof BookReader !== 'undefined' && BookReader.exitImmersive) {
+        try { BookReader.exitImmersive(); } catch (e) {}
+      }
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       var tabEl = document.getElementById('tab-' + tabName);

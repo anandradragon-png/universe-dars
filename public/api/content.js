@@ -184,6 +184,20 @@ function sanitizeOracleOutput(parsed, darName, darNamesAll, lang) {
       parsed.deep[k] = oracleCleanText(v);
     }
   }
+  // Расклад «Ты и Ситуация» (вариант 2) и три карты (вариант 1): те же правила чистки.
+  const cleanStr = (v) => {
+    if (typeof v !== 'string') return v;
+    let x = v;
+    if (isRu && hasLatin(x)) x = x.replace(/[a-zA-Z]+/g, '').replace(/\s+/g, ' ');
+    if (isRu) x = stripLeakedTerms(x, darName, darNamesAll);
+    return oracleCleanText(x);
+  };
+  for (const k of ['you_text', 'situation_text', 'synthesis', 'summary']) {
+    if (typeof parsed[k] === 'string') parsed[k] = cleanStr(parsed[k]);
+  }
+  if (Array.isArray(parsed.cards)) {
+    parsed.cards = parsed.cards.map(v => cleanStr(v)).filter(v => v && v.length > 0);
+  }
   return parsed;
 }
 
@@ -263,6 +277,18 @@ async function spellCheckOracleOutput(parsed, lang) {
     ['shadow_trap', 'resource', 'first_step'].forEach(k => {
       if (typeof parsed.deep[k] === 'string') {
         promises.push(spellCheckText(parsed.deep[k]).then(t => { parsed.deep[k] = t; }));
+      }
+    });
+  }
+  ['you_text', 'situation_text', 'synthesis', 'summary'].forEach(k => {
+    if (typeof parsed[k] === 'string') {
+      promises.push(spellCheckText(parsed[k]).then(t => { parsed[k] = t; }));
+    }
+  });
+  if (Array.isArray(parsed.cards)) {
+    parsed.cards.forEach((v, i) => {
+      if (typeof v === 'string') {
+        promises.push(spellCheckText(v).then(t => { parsed.cards[i] = t; }));
       }
     });
   }
@@ -367,6 +393,13 @@ async function handleOracle(req, res) {
 
   const { dar_code, mode, user_query, gender, relative_name, relative_relationship, relative_id, personal_dar } = req.body;
   if (!dar_code) { res.status(400).json({ error: 'dar_code required' }); return; }
+  // Карты расклада из трёх (вариант 1). dar_code = первая карта (для лимита/медитации).
+  const cards = Array.isArray(req.body.cards) ? req.body.cards.filter(c => typeof c === 'string') : null;
+  if (mode === 'spread3' && (!cards || cards.length < 3)) {
+    res.status(400).json({ error: 'spread3 requires 3 cards' }); return;
+  }
+  // Динамические расклады (вопрос + карта) не кэшируем на сервере — они всегда свежие.
+  const isDynamicSpread = (mode === 'card' || mode === 'duo' || mode === 'spread3');
 
   // Язык определяем сразу: он нужен и для ключа кэша (чтобы EN/ES не смешивались
   // с русским ответом за тот же день), и для генерации промпта ниже.
@@ -383,7 +416,7 @@ async function handleOracle(req, res) {
   } catch (e) {}
 
   // 1. Сначала — кэш (кэшированный ответ не съедает лимит)
-  if (userId && mode !== 'card') {
+  if (userId && !isDynamicSpread) {
     const cached = await getOracleCache(userId, dar_code, mode, relative_id || null, userLang);
     if (cached) return res.status(200).json(cached);
   }
@@ -459,7 +492,120 @@ async function handleOracle(req, res) {
   // интеграторов), AI трактует ВОПРОС через ВЫПАВШИЙ Дар, и подсказывает
   // как ему это применить с опорой на его ЛИЧНЫЙ Дар (если указан).
   // ===========================================================
-  if (mode === 'card' && user_query) {
+  if ((mode === 'duo' || mode === 'spread3') && user_query) {
+    // Расклады «Ты и Ситуация» (вариант 2) и три карты (вариант 1).
+    // Обе трактовки строятся под ПРИРОДУ спрашивающего (его личный Дар).
+    const truncP = (s, n) => s && s.length > n ? s.slice(0, n).replace(/\s+\S*$/, '') + '...' : (s || '');
+
+    // Природа юзера (его личный Дар) — призма для всей трактовки и советов.
+    let natureBlock = '';
+    if (personal_dar) {
+      const pName = (INTEGRATORS[personal_dar] && INTEGRATORS[personal_dar].name) || DARS_DB[personal_dar] || '';
+      const pData = darContent[personal_dar] || (INTEGRATORS[personal_dar] ? buildIntegratorDarData(personal_dar) : null);
+      if (pName && pData) {
+        natureBlock = `ПРИРОДА СПРАШИВАЮЩЕГО (его личный Дар по рождению - его архитектура, энергия, предрасположенности). Через ЭТУ призму давай ВСЮ трактовку и ВСЕ рекомендации:\nСУТЬ ЕГО ПРИРОДЫ: ${truncP(pData.essence, 320)}\nЕГО СИЛЬНЫЕ СТОРОНЫ: ${truncP(pData.light_power, 240)}\nЕГО УЯЗВИМОСТИ: ${truncP(pData.shadow, 200)}\n\nНЕ называй его Дар по имени и не описывай отдельным блоком. Просто вся трактовка и советы ложатся на его способ мыслить, чувствовать и действовать.`;
+      }
+    }
+
+    const commonRules = `СТРОГИЕ ПРАВИЛА:
+- Обращайся на «ты».
+- Всё должно ОТВЕЧАТЬ НА ВОПРОС, а не быть общим посланием дня.
+- НЕ называй Дары/карты по имени, не пиши «эта карта», «образ карты», «твой Дар».
+- НЕ упоминай поля (ЛОГОС, НИМА, АНДРА…), МА/ЖИ/КУН, цифры, коды.
+- Только грамматически безупречный литературный русский, без латиницы.
+- Не используй длинное тире, только дефис или запятую.
+- Не используй штампы: «Я вижу», «знаки небес», «звёзды говорят».
+- НИКОГДА не пиши «нужно», «надо», «должен», «обязан», «требуется». Пиши «важно», «полезно», «попробуй», «обрати внимание», «открывается возможность».
+- Не повторяй одну конструкцию подряд, варьируй начала фраз.`;
+
+    if (mode === 'duo') {
+      // «Ты» = природа спрашивающего. «Ситуация» = выпавшая карта (dar_code).
+      const situationCtx = [
+        darData.essence ? `СУТЬ КАРТЫ СИТУАЦИИ:\n${truncP(darData.essence, 360)}` : '',
+        darData.light_power ? `РЕСУРС КАРТЫ:\n${truncP(darData.light_power, 300)}` : '',
+        darData.shadow ? `ТЕНЬ КАРТЫ (как честная зона роста, без запугивания):\n${truncP(darData.shadow, 300)}` : ''
+      ].filter(Boolean).join('\n\n');
+
+      systemMsg = `Ты Оракул YupDar, древний мудрец. Юзер задал вопрос, и ты делаешь расклад из двух позиций: «Ты» (кто есть спрашивающий по своей природе) и «Ситуация» (что за обстоятельства выпали Картой). Твоя задача - сопоставить их и показать, как природа человека встречается с этой ситуацией.
+
+ТВОЯ ЗАДАЧА (JSON):
+1. you_text - что спрашивающий привносит в этот вопрос своей природой: его сильная сторона и его слепое пятно именно здесь. 2-3 предложения.
+2. situation_text - о чём на самом деле эта ситуация, что она проявляет и чего просит. Через образ выпавшей Карты. 2-3 предложения.
+3. synthesis - главное: как его природа встречается с этой ситуацией, где точка роста и куда двигаться. Опирайся и на его уязвимости, и на его силу. 3-4 предложения.
+4. practice - один конкретный шаг на сегодня, естественный для его способа действовать. 2-3 предложения.
+5. energies - 4-5 коротких маркеров (2-3 слова) ресурса, который открывается ему в этом вопросе.
+
+${natureBlock}
+
+${genderBlock}
+
+${commonRules}
+
+ФОРМАТ: только валидный JSON без markdown.`;
+
+      userPrompt = `Вопрос спрашивающего: "${user_query}"
+
+Позиция «Ситуация» (выпавшая Карта, используй как образ, НЕ называя по имени):
+
+${situationCtx}
+
+Сделай расклад «Ты и Ситуация», скроенный под природу этого человека.
+
+Верни ТОЛЬКО валидный JSON:
+{
+  "you_text": "2-3 предложения: что ты привносишь своей природой",
+  "situation_text": "2-3 предложения: о чём эта ситуация",
+  "synthesis": "3-4 предложения: как твоя природа встречается с ситуацией и куда идти",
+  "practice": "2-3 предложения: конкретный шаг на сегодня",
+  "energies": ["маркер1","маркер2","маркер3","маркер4"]
+}`;
+    } else {
+      // spread3: три карты — Ситуация · Препятствие · Совет.
+      const roles = ['Ситуация', 'Препятствие', 'Совет'];
+      const cardCtxs = (cards || []).slice(0, 3).map((code, i) => {
+        const info = INTEGRATORS[code];
+        const d = darContent[code] || (info ? buildIntegratorDarData(code) : null) || {};
+        const parts = [
+          d.essence ? `суть: ${truncP(d.essence, 300)}` : '',
+          d.light_power ? `ресурс: ${truncP(d.light_power, 220)}` : '',
+          (i === 1 && d.shadow) ? `тень (для позиции Препятствие - честная зона роста): ${truncP(d.shadow, 300)}` : ''
+        ].filter(Boolean).join('\n');
+        return `ПОЗИЦИЯ ${i + 1} - ${roles[i]}:\n${parts}`;
+      }).join('\n\n');
+
+      systemMsg = `Ты Оракул YupDar, древний мудрец. Юзер задал вопрос, и выпал расклад из трёх Карт по позициям: 1) Ситуация - что происходит сейчас; 2) Препятствие - что мешает или что важно увидеть честно; 3) Совет - что помогает, путь через. Сплети три позиции в один связный ответ под ПРИРОДУ спрашивающего.
+
+ТВОЯ ЗАДАЧА (JSON):
+1. cards - массив из ТРЁХ строк, по одной на каждую позицию (в порядке Ситуация, Препятствие, Совет). Каждая 2-3 предложения: трактовка позиции через её Карту и под природу человека. Для «Препятствие» опирайся на тень карты как на честную зону роста, без запугивания.
+2. summary - 2-3 предложения, которые сплетают три позиции в цельный ответ на вопрос.
+3. practice - один конкретный шаг на сегодня, естественный для его способа действовать. 2-3 предложения.
+4. energies - 4-5 коротких маркеров (2-3 слова) ресурса расклада.
+
+${natureBlock}
+
+${genderBlock}
+
+${commonRules}
+
+ФОРМАТ: только валидный JSON без markdown.`;
+
+      userPrompt = `Вопрос спрашивающего: "${user_query}"
+
+Три выпавшие Карты по позициям (используй как образы, НЕ называя по имени):
+
+${cardCtxs}
+
+Сделай расклад из трёх карт, сплетённый в один ответ под природу этого человека.
+
+Верни ТОЛЬКО валидный JSON:
+{
+  "cards": ["Ситуация: 2-3 предложения", "Препятствие: 2-3 предложения", "Совет: 2-3 предложения"],
+  "summary": "2-3 предложения, цельный ответ",
+  "practice": "2-3 предложения, конкретный шаг на сегодня",
+  "energies": ["маркер1","маркер2","маркер3","маркер4"]
+}`;
+    }
+  } else if (mode === 'card' && user_query) {
     // Личный Дар юзера — его ПРИРОДА. Через неё строим и трактовку, и советы:
     // как именно ЭТОМУ человеку увидеть ответ и как ему органичнее действовать.
     let personalContext = '';
@@ -725,9 +871,10 @@ ${genderBlock}
   // userLang уже определён выше (для ключа кэша).
   const finalSystemMsg = language.applyLanguage(systemMsg, userLang);
 
-  // Расклад «глубокая карта» возвращает больше текста (пророчество + слой deep),
-  // поэтому даём модели больший бюджет токенов.
-  const maxTokens = (mode === 'card' && user_query) ? 1400 : 900;
+  // Расклады возвращают больше текста, поэтому даём модели больший бюджет токенов.
+  // Три карты (spread3) — самый объёмный ответ, поэтому лимит выше.
+  const maxTokens = (mode === 'spread3' && user_query) ? 1800
+    : (((mode === 'card' || mode === 'duo') && user_query) ? 1400 : 900);
 
   try {
     let completion;
@@ -783,7 +930,7 @@ ${genderBlock}
     const med = pickMeditationForDar(dar_code);
     if (med) parsed.meditation_video = med;
 
-    if (userId && mode !== 'card') {
+    if (userId && !isDynamicSpread) {
       saveOracleCache(userId, dar_code, mode, parsed, relative_id || null, user_query || null, userLang);
     }
 

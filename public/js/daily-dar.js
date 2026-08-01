@@ -13,6 +13,11 @@ const DailyDar = (function() {
   let _cardRevealed = false;
   let _pulledCard = null;
   let _userQuery = '';
+  // Тип расклада: 'single' (одна карта, вариант 3), 'duo' (Ты и Ситуация,
+  // вариант 2), 'triple' (три карты Ситуация·Препятствие·Совет, вариант 1).
+  let _spreadType = 'single';
+  let _duoCards = null;    // { you, situation }
+  let _tripleCards = null; // [c1, c2, c3]
 
   // --- Экранирование HTML (защита от XSS в AI/user-тексте перед innerHTML) ---
   function _esc(s) {
@@ -94,6 +99,18 @@ const DailyDar = (function() {
     const open = body.style.display === 'block';
     body.style.display = open ? 'none' : 'block';
     if (arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+  }
+
+  // Выбор типа расклада на экране запроса (одна карта / Ты и Ситуация / три карты).
+  // Сохраняем черновик вопроса, чтобы он не потерялся при перерисовке.
+  function setSpread(type) {
+    if (type !== 'single' && type !== 'duo' && type !== 'triple') return;
+    const ta = document.getElementById('daily-card-query');
+    const draft = ta ? ta.value : '';
+    _spreadType = type;
+    renderTab();
+    const ta2 = document.getElementById('daily-card-query');
+    if (ta2 && draft) ta2.value = draft;
   }
 
   // --- Редукция числа к одной цифре (1-9) ---
@@ -396,6 +413,165 @@ const DailyDar = (function() {
               : ('&#127775; ' + ((window.i18n && i18n.t && i18n.t('daily.fb_title_general')) || 'Энергии этого дня для всех:'));
             el.innerHTML = renderFallbackBlock(darCode, content, title);
           }
+        });
+      });
+  }
+
+  // === РАСКЛАДЫ: «Ты и Ситуация» (вариант 2) и три карты (вариант 1) ===
+
+  // Низкоуровневый вызов Оракула с телом расклада (гендер + личный Дар
+  // подставляются автоматически, как в fetchOracle).
+  function fetchOracleRaw(body) {
+    let gender = '';
+    try {
+      const prof = JSON.parse(localStorage.getItem('_darProfile') || '{}');
+      if (prof.gender === 'male' || prof.gender === 'female') gender = prof.gender;
+    } catch (e) {}
+    let personalDar = '';
+    try {
+      const saved = JSON.parse(localStorage.getItem(window.STORAGE_KEY || '_darCalculator') || '{}');
+      if (saved.gift && saved.gift.code) personalDar = saved.gift.code;
+    } catch (e) {}
+    const headers = { 'Content-Type': 'application/json' };
+    try { if (window.Telegram?.WebApp?.initData) headers['x-telegram-init-data'] = window.Telegram.WebApp.initData; } catch (e) {}
+    try { const lang = localStorage.getItem('_yupdar_lang'); if (lang) headers['x-yupdar-lang'] = lang; } catch (e) {}
+    const full = Object.assign({ gender, personal_dar: personalDar, user_query: '' }, body);
+    return fetch(`${API_URL}/api/oracle`, { method: 'POST', headers, body: JSON.stringify(full) })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(data => { if (data.error) throw new Error(data.error); return data; });
+  }
+
+  // Общий хвост расклада: энергии + практика + медитация (та же вёрстка, что в renderOracleBlock).
+  function renderCommonTail(data) {
+    let html = '';
+    if (data.energies && data.energies.length > 0) {
+      html += `<div style="margin-bottom:16px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;letter-spacing:1px">${((window.i18n && i18n.t && i18n.t('daily.energies_of_day')) || 'ЭНЕРГИИ:')}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">`;
+      data.energies.forEach(e => {
+        html += `<span style="font-size:12px;padding:4px 10px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:8px;color:#D4AF37">${_esc(e)}</span>`;
+      });
+      html += `</div></div>`;
+    }
+    if (data.practice) {
+      html += `<div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
+        <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#127793; ${((window.i18n && i18n.t && i18n.t('daily.practice_of_day')) || 'Практика дня:')}</div>
+        <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${_esc(data.practice)}</div>
+      </div>`;
+    }
+    if (data.meditation_video && data.meditation_video.url) {
+      const mv = data.meditation_video;
+      const safeUrl = String(mv.url || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      html += `<div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(212,175,55,0.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:left">
+        <div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:8px">&#127911; ${((window.i18n && i18n.t && i18n.t('daily.amplify_energy_label')) || 'ЕСЛИ ЗАХОЧЕШЬ УСИЛИТЬ ЭНЕРГИЮ')}</div>
+        <div style="font-size:13px;color:#e0e0e0;line-height:1.6;margin-bottom:6px">${_esc(mv.title)}</div>
+        ${mv.description ? `<div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">${_esc(mv.description)}</div>` : ''}
+        <a href="${safeUrl}" target="_blank" rel="noopener" style="display:inline-block;font-size:12px;color:#D4AF37;text-decoration:none;border-bottom:1px solid rgba(212,175,55,0.35);padding-bottom:1px">${((window.i18n && i18n.t && i18n.t('daily.open_meditation')) || 'Открыть медитацию')} &rarr;</a>
+      </div>`;
+    }
+    return html;
+  }
+
+  // Расклад «Ты и Ситуация» (вариант 2)
+  function renderDuoBlock(data) {
+    const tt = (k, ru) => (window.i18n && i18n.t && i18n.t(k)) || ru;
+    let html = '';
+    const seg = (icon, label, txt) => txt ? `<div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:14px 16px;margin-bottom:12px;text-align:left">
+        <div style="font-size:12px;color:#D4AF37;letter-spacing:0.5px;margin-bottom:6px">${icon} ${_esc(label)}</div>
+        <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${_esc(txt)}</div>
+      </div>` : '';
+    html += seg('&#128100;', tt('oracle.pos_you', 'Ты'), data.you_text);
+    html += seg('&#127774;', tt('oracle.pos_situation', 'Ситуация'), data.situation_text);
+    if (data.synthesis) {
+      html += `<div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;margin-bottom:12px;text-align:left">
+        <div style="font-size:12px;color:#D4AF37;letter-spacing:0.5px;margin-bottom:8px">&#128302; ${_esc(tt('oracle.pos_synthesis', 'Как это встречается в тебе'))}</div>
+        <div style="font-size:14px;color:#e0e0e0;line-height:1.8;font-style:italic">${_esc(data.synthesis)}</div>
+      </div>`;
+    }
+    html += renderCommonTail(data);
+    return html;
+  }
+
+  // Расклад из трёх карт (вариант 1): Ситуация · Препятствие · Совет
+  function renderTripleBlock(data) {
+    const tt = (k, ru) => (window.i18n && i18n.t && i18n.t(k)) || ru;
+    const roles = [
+      ['&#127917;', tt('oracle.pos_situation', 'Ситуация')],
+      ['&#128721;', tt('oracle.pos_obstacle', 'Препятствие')],
+      ['&#129517;', tt('oracle.pos_advice', 'Совет')]
+    ];
+    let html = '';
+    const cardsArr = Array.isArray(data.cards) ? data.cards : [];
+    cardsArr.slice(0, 3).forEach((txt, i) => {
+      if (!txt) return;
+      const r = roles[i] || ['', ''];
+      html += `<div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:14px 16px;margin-bottom:12px;text-align:left">
+        <div style="font-size:12px;color:#D4AF37;letter-spacing:0.5px;margin-bottom:6px">${r[0]} ${_esc(r[1])}</div>
+        <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${_esc(txt)}</div>
+      </div>`;
+    });
+    if (data.summary) {
+      html += `<div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;margin-bottom:12px;text-align:left">
+        <div style="font-size:12px;color:#D4AF37;letter-spacing:0.5px;margin-bottom:8px">&#128302; ${_esc(tt('oracle.summary', 'Итог расклада'))}</div>
+        <div style="font-size:14px;color:#e0e0e0;line-height:1.8;font-style:italic">${_esc(data.summary)}</div>
+      </div>`;
+    }
+    html += renderCommonTail(data);
+    return html;
+  }
+
+  // Компактная карта с ролью — для рядов раскладов «Ты и Ситуация» и три карты.
+  function renderMiniCard(code, roleLabel) {
+    const name = getDarName(code);
+    return `<div style="flex:1;min-width:0;text-align:center;background:var(--card);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:12px 4px">
+      <div style="font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">${_esc(roleLabel)}</div>
+      <div style="width:60px;height:80px;margin:0 auto;border-radius:10px;background:#080808;border:1px solid rgba(212,175,55,0.4);display:flex;align-items:center;justify-content:center;overflow:hidden">
+        ${renderDarImage(code, 44)}
+      </div>
+      <div style="font-size:12px;letter-spacing:1px;color:#D4AF37;margin-top:8px">${_esc(name)}</div>
+    </div>`;
+  }
+
+  // Загрузка расклада «Ты и Ситуация». Лимит общий с одиночной картой ('card').
+  function loadDuo(targetId, situationCode, query) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const cached = getCachedOracle('duo', situationCode);
+    if (cached) { el.innerHTML = renderDuoBlock(cached); return; }
+    if (isLimitReached('card')) { el.innerHTML = renderLimitReachedBlock('card'); return; }
+    el.innerHTML = renderLoading();
+    fetchOracleRaw({ dar_code: situationCode, mode: 'duo', user_query: query || '' })
+      .then(data => {
+        incrementLimit('card');
+        saveCachedOracle('duo', situationCode, data);
+        if (el) el.innerHTML = renderDuoBlock(data);
+      })
+      .catch(err => {
+        console.log('Oracle duo fallback:', err.message);
+        loadDarContent().then(content => {
+          if (el) el.innerHTML = renderFallbackBlock(situationCode, content, '&#127774; ' + ((window.i18n && i18n.t && i18n.t('daily.fb_title_card')) || 'Энергии, которые помогут тебе:'));
+        });
+      });
+  }
+
+  // Загрузка расклада из трёх карт. Лимит общий с одиночной картой ('card').
+  function loadTriple(targetId, cardsArr, query) {
+    const el = document.getElementById(targetId);
+    if (!el || !Array.isArray(cardsArr) || cardsArr.length < 3) return;
+    const cached = getCachedOracle('triple', cardsArr[0]);
+    if (cached) { el.innerHTML = renderTripleBlock(cached); return; }
+    if (isLimitReached('card')) { el.innerHTML = renderLimitReachedBlock('card'); return; }
+    el.innerHTML = renderLoading();
+    fetchOracleRaw({ dar_code: cardsArr[0], cards: cardsArr, mode: 'spread3', user_query: query || '' })
+      .then(data => {
+        incrementLimit('card');
+        saveCachedOracle('triple', cardsArr[0], data);
+        if (el) el.innerHTML = renderTripleBlock(data);
+      })
+      .catch(err => {
+        console.log('Oracle triple fallback:', err.message);
+        loadDarContent().then(content => {
+          if (el) el.innerHTML = renderFallbackBlock(cardsArr[0], content, '&#128302; ' + ((window.i18n && i18n.t && i18n.t('daily.fb_title_card')) || 'Энергии, которые помогут тебе:'));
         });
       });
   }
@@ -721,8 +897,28 @@ const DailyDar = (function() {
           p.emoji + ' ' + c.label + '</button>';
       });
 
+      // Селектор типа расклада: одна карта / Ты и Ситуация / три карты.
+      const st = _spreadType;
+      const spreadBtn = (type, icon, label) => {
+        const active = st === type;
+        return '<button type="button" onclick="DailyDar.setSpread(\'' + type + '\')" ' +
+          'style="flex:1;min-width:0;padding:8px 4px;border-radius:10px;border:1px solid ' + (active ? 'rgba(212,175,55,0.6)' : 'var(--border)') + ';' +
+          'background:' + (active ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.04)') + ';' +
+          'color:' + (active ? '#D4AF37' : 'var(--text-dim)') + ';font-family:Manrope,sans-serif;font-size:11px;cursor:pointer;text-align:center;line-height:1.3">' +
+          '<div style="font-size:16px;margin-bottom:2px">' + icon + '</div>' + label + '</button>';
+      };
+      const spreadSelector = '<div style="display:flex;gap:6px;margin-bottom:14px">' +
+        spreadBtn('single', '&#127183;', tt('oracle.spread_single', 'Одна карта')) +
+        spreadBtn('duo', '&#9878;', tt('oracle.spread_duo', 'Ты и ситуация')) +
+        spreadBtn('triple', '&#128302;', tt('oracle.spread_triple', 'Три карты')) +
+        '</div>';
+      const tapHint = st === 'single'
+        ? tt('oracle.tap_card_hint', 'Нажми на карту, чтобы вытянуть подсказку')
+        : tt('oracle.tap_cards_hint', 'Нажми на карту, чтобы сделать расклад');
+
       container.innerHTML = `
         ${limitInfo}
+        ${spreadSelector}
         <div style="text-align:center;margin-bottom:16px">
           <div style="font-size:14px;color:var(--text);margin-bottom:8px">${((window.i18n && i18n.t && i18n.t('oracle.formulate_query')) || 'Сформулируй свой запрос')}</div>
           <textarea id="daily-card-query" placeholder="${tt('oracle.query_placeholder', 'Напиши свой вопрос...')}" style="width:100%;min-height:60px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5;text-align:left;box-sizing:border-box"></textarea>
@@ -742,11 +938,24 @@ const DailyDar = (function() {
           </div>
         </div>
         ${renderCardBack()}
-        <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:8px">${((window.i18n && i18n.t && i18n.t('oracle.tap_card_hint')) || 'Нажми на карту, чтобы вытянуть подсказку')}</div>`;
+        <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:8px">${tapHint}</div>`;
     } else {
       // Показать результат
+      const tt = (k, ru) => (window.i18n && window.i18n.t && window.i18n.t(k)) || ru;
       let html = limitInfo;
-      html += renderDarCard(_pulledCard, ((window.i18n && i18n.t && i18n.t('daily.your_hint_card')) || 'ТВОЯ КАРТА-ПОДСКАЗКА'), null, false);
+      if (_spreadType === 'duo' && _duoCards) {
+        html += `<div style="display:flex;gap:10px;margin-bottom:16px">
+          ${renderMiniCard(_duoCards.you, tt('oracle.pos_you', 'Ты'))}
+          ${renderMiniCard(_duoCards.situation, tt('oracle.pos_situation', 'Ситуация'))}
+        </div>`;
+      } else if (_spreadType === 'triple' && _tripleCards) {
+        const labels = [tt('oracle.pos_situation', 'Ситуация'), tt('oracle.pos_obstacle', 'Препятствие'), tt('oracle.pos_advice', 'Совет')];
+        html += `<div style="display:flex;gap:8px;margin-bottom:16px">
+          ${_tripleCards.map((c, i) => renderMiniCard(c, labels[i])).join('')}
+        </div>`;
+      } else {
+        html += renderDarCard(_pulledCard, ((window.i18n && i18n.t && i18n.t('daily.your_hint_card')) || 'ТВОЯ КАРТА-ПОДСКАЗКА'), null, false);
+      }
       html += `<div id="oracle-card-result"></div>`;
       // Кнопка "Вытянуть ещё раз" - только если после этого раза ещё остались попытки
       if (remaining > 0) {
@@ -755,8 +964,14 @@ const DailyDar = (function() {
         </div>`;
       }
       container.innerHTML = html;
-      // Запросить пророчество от Оракула
-      loadProphecy('oracle-card-result', _pulledCard, 'card', _userQuery);
+      // Запросить трактовку от Оракула — по типу расклада
+      if (_spreadType === 'duo' && _duoCards) {
+        loadDuo('oracle-card-result', _duoCards.situation, _userQuery);
+      } else if (_spreadType === 'triple' && _tripleCards) {
+        loadTriple('oracle-card-result', _tripleCards, _userQuery);
+      } else {
+        loadProphecy('oracle-card-result', _pulledCard, 'card', _userQuery);
+      }
     }
   }
 
@@ -806,7 +1021,36 @@ const DailyDar = (function() {
     const baseCodes = Object.keys(window.DARS || {});
     const intCodes = Object.keys(window.INTEGRATORS || {});
     const allCodes = baseCodes.concat(intCodes);
-    _pulledCard = allCodes[Math.floor(Math.random() * allCodes.length)];
+    const drawOne = () => allCodes[Math.floor(Math.random() * allCodes.length)];
+    const drawN = (n) => {
+      const chosen = [];
+      const pool = allCodes.slice();
+      while (chosen.length < n && pool.length) {
+        chosen.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+      }
+      return chosen;
+    };
+
+    _duoCards = null;
+    _tripleCards = null;
+    if (_spreadType === 'triple') {
+      _tripleCards = drawN(3);
+      _pulledCard = _tripleCards[0];
+    } else if (_spreadType === 'duo') {
+      // «Ты» = личный Дар юзера; если не рассчитан — тянем отдельную карту.
+      let youCode = '';
+      try {
+        const saved = JSON.parse(localStorage.getItem(window.STORAGE_KEY || '_darCalculator') || '{}');
+        if (saved.gift && saved.gift.code) youCode = saved.gift.code;
+      } catch (e) {}
+      let situation = drawOne();
+      if (!youCode) { const two = drawN(2); youCode = two[0]; situation = two[1]; }
+      else if (situation === youCode) { situation = drawOne(); }
+      _duoCards = { you: youCode, situation };
+      _pulledCard = situation;
+    } else {
+      _pulledCard = drawOne();
+    }
 
     const inner = document.getElementById('daily-card-inner');
     if (inner) {
@@ -833,6 +1077,8 @@ const DailyDar = (function() {
   function resetCard() {
     _cardRevealed = false;
     _pulledCard = null;
+    _duoCards = null;
+    _tripleCards = null;
     _userQuery = '';
     renderTab();
   }
@@ -931,7 +1177,7 @@ const DailyDar = (function() {
     }
   }
 
-  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook, togglePresets, pickPresetQuery, toggleSpheres, toggleDeep };
+  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook, togglePresets, pickPresetQuery, toggleSpheres, toggleDeep, setSpread };
 })();
 
 // Экспортируем в window — нужен для api-client.js (Оракул для родственника

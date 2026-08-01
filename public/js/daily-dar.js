@@ -880,23 +880,6 @@ const DailyDar = (function() {
       // Сохраняем массив в window — нужен для pickPresetQuery
       window._oraclePresets = presets;
 
-      // Видимые чипы-подсказки (4 самых частых) — по образцу YupSoul Soul Chat
-      const _topChipDefs = [
-        { idx: 7, label: tt('oracle.chip_self', 'Про себя') },
-        { idx: 1, label: tt('oracle.chip_work', 'В деле') },
-        { idx: 0, label: tt('oracle.chip_love', 'В любви') },
-        { idx: 6, label: tt('oracle.chip_path', 'Куда иду') }
-      ];
-      let topChipsHtml = '';
-      _topChipDefs.forEach(c => {
-        const p = presets[c.idx];
-        topChipsHtml += '<button type="button" onclick="DailyDar.pickPresetQuery(' + c.idx + ')" ' +
-          'style="padding:7px 13px;border-radius:20px;border:1px solid rgba(212,175,55,0.25);' +
-          'background:rgba(212,175,55,0.06);color:var(--text);font-family:Manrope,sans-serif;' +
-          'font-size:12px;cursor:pointer;transition:all 0.15s;white-space:nowrap">' +
-          p.emoji + ' ' + c.label + '</button>';
-      });
-
       // Селектор типа расклада: одна карта / Ты и Ситуация / три карты.
       const st = _spreadType;
       const spreadBtn = (type, icon, label) => {
@@ -919,20 +902,16 @@ const DailyDar = (function() {
       container.innerHTML = `
         ${limitInfo}
         ${spreadSelector}
-        <div style="text-align:center;margin-bottom:16px">
-          <div style="font-size:14px;color:var(--text);margin-bottom:8px">${((window.i18n && i18n.t && i18n.t('oracle.formulate_query')) || 'Сформулируй свой запрос')}</div>
-          <textarea id="daily-card-query" placeholder="${tt('oracle.query_placeholder', 'Напиши свой вопрос...')}" style="width:100%;min-height:60px;padding:12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5;text-align:left;box-sizing:border-box"></textarea>
-
-          <!-- Быстрые вопросы-чипы (YupSoul-стиль) -->
-          <div id="oracle-presets-wrap" style="margin-top:10px">
-            <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
-              ${topChipsHtml}
-              <button type="button" id="oracle-presets-trigger" onclick="DailyDar.togglePresets()"
-                style="padding:7px 13px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-dim);font-family:Manrope,sans-serif;font-size:12px;cursor:pointer;transition:all 0.15s;white-space:nowrap">
-                ${tt('oracle.chip_more', '💡 Ещё')}
-              </button>
-            </div>
-            <div id="oracle-presets-list" style="display:none;margin-top:8px;background:#0d0d0d;border:1px solid rgba(212,175,55,0.25);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.5);max-height:50vh;overflow-y:auto">
+        <div style="margin-bottom:16px">
+          <div style="font-size:14px;color:var(--text);margin-bottom:8px;text-align:center">${((window.i18n && i18n.t && i18n.t('oracle.formulate_query')) || 'Сформулируй свой запрос')}</div>
+          <!-- Поле запроса + выпадающий список подсказок прямо из поля (образец YupSoul) -->
+          <div id="oracle-query-wrap" style="position:relative">
+            <textarea id="daily-card-query" placeholder="${tt('oracle.query_placeholder', 'Напиши свой вопрос...')}" style="width:100%;min-height:60px;padding:12px 12px 40px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:Manrope,sans-serif;resize:vertical;outline:none;line-height:1.5;text-align:left;box-sizing:border-box"></textarea>
+            <button type="button" id="oracle-presets-trigger" onclick="DailyDar.togglePresets()"
+              style="position:absolute;right:10px;bottom:10px;padding:5px 12px;border-radius:16px;border:1px solid rgba(212,175,55,0.3);background:rgba(212,175,55,0.08);color:#D4AF37;font-family:Manrope,sans-serif;font-size:12px;cursor:pointer;white-space:nowrap;z-index:2">
+              ${tt('oracle.chip_suggest', '💡 Подсказки')}
+            </button>
+            <div id="oracle-presets-list" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;background:#0d0d0d;border:1px solid rgba(212,175,55,0.25);border-radius:14px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,0.6);max-height:52vh;overflow-y:auto">
               ${presetsHtml}
             </div>
           </div>

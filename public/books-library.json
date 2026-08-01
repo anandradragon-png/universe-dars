@@ -1,5 +1,5 @@
 {
-  "version": "20260731g",
+  "version": "20260801a",
   "shelves": [
     { "id": "popular", "title": "Популярная литература", "title_en": "Popular reading", "title_es": "Lectura popular", "icon": "\uD83D\uDCD6" },
     { "id": "science", "title": "Научные книги", "title_en": "Science books", "title_es": "Libros científicos", "icon": "\uD83D\uDD2C" },
@@ -93,6 +93,19 @@
       "image": "monograph-noumenon.jpg",
       "authors": "С. Нестерова, А. Макаева, Я. Сибирский, Л. Краснамирава",
       "about": "Научная монография: кантовское различение ноумена и феномена приложено к типологии Даров (81 архетип) и её воплощению в цифровой экосистеме ЮпЛенд.",
+      "cover": { "from": "#2a3a52", "to": "#12203a" }
+    },
+    {
+      "id": "yupland-monograph-ru",
+      "title": "От ноумена к феномену",
+      "subtitle": "Возможности цифровой платформы «YupLand»",
+      "shelf": "science",
+      "source": "yupland-monograph-ru.json",
+      "access": "free",
+      "i18n": false,
+      "image": "monograph-noumenon-ru.jpg",
+      "authors": "С. Нестерова, А. Макаева, Я. Сибирский",
+      "about": "Научная монография: кантовское различение ноумена и феномена приложено к авторской типологии Даров (81 архетип) и её овеществлению в цифровой экосистеме YupLand.",
       "cover": { "from": "#2a3a52", "to": "#12203a" }
     }
   ]

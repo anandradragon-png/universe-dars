@@ -496,12 +496,12 @@ const BookReader = (function() {
       ? ((window.i18n && i18n.t && i18n.t('book.title')) || 'КНИГА ДАРОВ')
       : ((meta && meta.title) || (bookData.title || ''));
     const chaptersLabel = (window.i18n && i18n.t && i18n.t('book.chapters_count', { n: totalChapters })) || (totalChapters + ' глав');
-    const backLabel = (window.i18n && i18n.t && i18n.t('book.back_to_shelves')) || '\u2190 \u041a \u043f\u043e\u043b\u043a\u0430\u043c';
+    const backLabel = (window.i18n && i18n.t && i18n.t('book.back_to_shelves')) || '\u2190 \u0412 \u0431\u0438\u0431\u043b\u0438\u043e\u0442\u0435\u043a\u0443';
 
     container.innerHTML = `
       <div style="padding:16px 16px 0">
         <div style="margin-bottom:8px">
-          <button class="btn btn-ghost" style="width:auto;margin:0;font-size:12px;padding:6px 12px" onclick="BookReader.showLibrary()">${backLabel}</button>
+          <button class="btn btn-ghost" style="width:auto;margin:0;font-size:12px;padding:7px 14px;border:1px solid rgba(212,175,55,0.45);color:#D4AF37;border-radius:10px" onclick="BookReader.showLibrary()">${backLabel}</button>
         </div>
         <div style="text-align:center;margin-bottom:12px">
           <div style="font-size:26px;margin-bottom:6px">&#128214;</div>

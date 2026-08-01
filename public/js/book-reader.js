@@ -252,16 +252,36 @@ const BookReader = (function() {
   function saveView() {
     try { localStorage.setItem('_book_view', JSON.stringify({ mode: viewMode, bookId: currentBookId })); } catch (e) {}
   }
+  // Есть ли по книге сохранённый прогресс чтения (человек уже читал —
+  // ушёл дальше самой первой главы). Ключ прогресса namespaced по книге.
+  function _hasReadingProgress(id) {
+    try {
+      const key = (id === 'dars') ? '_book_progress' : '_book_progress__' + id;
+      const p = JSON.parse(localStorage.getItem(key) || '{}');
+      return (typeof p.chapterIdx === 'number' && p.chapterIdx > 0) ||
+             (typeof p.partIdx === 'number' && p.partIdx > 0);
+    } catch (e) { return false; }
+  }
   function restoreView() {
     try {
       const v = JSON.parse(localStorage.getItem('_book_view') || '{}');
+      // 1) Человек оставался в ридере — открываем ту же книгу.
       if (v.mode === 'reader' && v.bookId && getBookMeta(v.bookId)) {
         viewMode = 'reader';
         currentBookId = v.bookId;
-      } else {
-        viewMode = 'library';
-        currentBookId = 'dars';
+        return;
       }
+      // 2) Иначе — если по последней книге есть сохранённый прогресс чтения,
+      //    продолжаем её с той же главы (кнопка «В библиотеку» остаётся в ридере).
+      const lastId = (v.bookId && getBookMeta(v.bookId)) ? v.bookId : 'dars';
+      if (_hasReadingProgress(lastId)) {
+        viewMode = 'reader';
+        currentBookId = lastId;
+        return;
+      }
+      // 3) Прогресса нет — показываем витрину полок.
+      viewMode = 'library';
+      currentBookId = 'dars';
     } catch (e) { viewMode = 'library'; currentBookId = 'dars'; }
   }
 

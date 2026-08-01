@@ -174,6 +174,16 @@ function sanitizeOracleOutput(parsed, darName, darNamesAll, lang) {
       return oracleCleanText(stripped);
     }).filter(e => e && e.length > 0);
   }
+  // Слой глубокого раскрытия (вариант 3): те же правила чистки, что и для пророчества.
+  if (parsed.deep && typeof parsed.deep === 'object') {
+    for (const k of ['shadow_trap', 'resource', 'first_step']) {
+      let v = parsed.deep[k];
+      if (typeof v !== 'string') continue;
+      if (isRu && hasLatin(v)) v = v.replace(/[a-zA-Z]+/g, '').replace(/\s+/g, ' ');
+      if (isRu) v = stripLeakedTerms(v, darName, darNamesAll);
+      parsed.deep[k] = oracleCleanText(v);
+    }
+  }
   return parsed;
 }
 
@@ -246,6 +256,13 @@ async function spellCheckOracleOutput(parsed, lang) {
     parsed.energies.forEach((e, i) => {
       if (typeof e === 'string') {
         promises.push(spellCheckText(e).then(t => { parsed.energies[i] = t; }));
+      }
+    });
+  }
+  if (parsed.deep && typeof parsed.deep === 'object') {
+    ['shadow_trap', 'resource', 'first_step'].forEach(k => {
+      if (typeof parsed.deep[k] === 'string') {
+        promises.push(spellCheckText(parsed.deep[k]).then(t => { parsed.deep[k] = t; }));
       }
     });
   }
@@ -443,39 +460,45 @@ async function handleOracle(req, res) {
   // как ему это применить с опорой на его ЛИЧНЫЙ Дар (если указан).
   // ===========================================================
   if (mode === 'card' && user_query) {
-    // Личный Дар юзера для трактовки «как тебе это принять»
+    // Личный Дар юзера — его ПРИРОДА. Через неё строим и трактовку, и советы:
+    // как именно ЭТОМУ человеку увидеть ответ и как ему органичнее действовать.
     let personalContext = '';
     if (personal_dar && personal_dar !== dar_code) {
       const personalName = (INTEGRATORS[personal_dar] && INTEGRATORS[personal_dar].name) || DARS_DB[personal_dar] || '';
       const personalData = darContent[personal_dar] || (INTEGRATORS[personal_dar] ? buildIntegratorDarData(personal_dar) : null);
       if (personalName && personalData) {
         const truncP = (s, n) => s && s.length > n ? s.slice(0, n).replace(/\s+\S*$/, '') + '...' : (s || '');
-        personalContext = `\n\nВНУТРЕННИЙ РЕСУРС ЮЗЕРА (его личный Дар по рождению, нужен только чтобы подсказать КАК ему этот ответ комфортнее принять и применить):\nСУТЬ: ${truncP(personalData.essence, 300)}\nСИЛЫ: ${truncP(personalData.light_power, 250)}\n\nНЕ называй личный Дар по имени и не описывай его отдельно. Просто учти его особенности в практике — какой способ действия будет наиболее естественным для этого человека.`;
+        personalContext = `\n\nПРИРОДА ЮЗЕРА (его личный Дар по рождению — его архитектура, энергия, предрасположенности). Через ЭТУ призму давай ВСЮ трактовку и ВСЕ рекомендации, чтобы ответ был скроен именно под этого человека:\nСУТЬ ЕГО ПРИРОДЫ: ${truncP(personalData.essence, 320)}\nЕГО СИЛЬНЫЕ СТОРОНЫ: ${truncP(personalData.light_power, 240)}\nЕГО УЯЗВИМОСТИ: ${truncP(personalData.shadow, 200)}\n\nНЕ называй его Дар по имени и не описывай его отдельным блоком. Просто вся трактовка, глубина и советы должны ложиться на его способ мыслить, чувствовать и действовать.`;
       }
     }
 
-    // Данные выпавшего Дара
+    // Данные выпавшего Дара (карты вопроса)
     const truncL = (s, n) => s && s.length > n ? s.slice(0, n).replace(/\s+\S*$/, '') + '...' : (s || '');
     const drawnContext = [
-      darData.essence ? `СУТЬ:\n${truncL(darData.essence, 400)}` : '',
-      darData.light_power ? `СИЛЫ:\n${truncL(darData.light_power, 350)}` : '',
-      darData.shadow ? `ТЕНЬ (упомянуть бережно, только как зона внимания):\n${truncL(darData.shadow, 250)}` : ''
+      darData.essence ? `СУТЬ КАРТЫ:\n${truncL(darData.essence, 380)}` : '',
+      darData.light_power ? `РЕСУРС КАРТЫ:\n${truncL(darData.light_power, 320)}` : '',
+      darData.shadow ? `СИЛЬНАЯ ТЕНЬ КАРТЫ (используй как честную зону роста, без запугивания):\n${truncL(darData.shadow, 340)}` : '',
+      darData.activation ? `КАК АКТИВИРОВАТЬ:\n${truncL(darData.activation, 220)}` : ''
     ].filter(Boolean).join('\n\n');
 
-    systemMsg = `Ты Оракул YupDar. Древний мудрец, который отвечает на вопросы людей через расклад Карт-Даров. Юзер задал вопрос, и Карта выпала — твоя задача истолковать вопрос ЧЕРЕЗ ОБРАЗ ВЫПАВШЕЙ КАРТЫ.
+    systemMsg = `Ты Оракул YupDar. Древний мудрец, который отвечает на вопросы людей через расклад Карт-Даров. Юзер задал вопрос, и Карта выпала — твоя задача истолковать вопрос ЧЕРЕЗ ОБРАЗ ВЫПАВШЕЙ КАРТЫ, но всю трактовку, глубину и советы скроить под ПРИРОДУ самого человека (его личный Дар дан ниже).
 
-ТВОЯ ЗАДАЧА (3 части):
-1. ПРОРОЧЕСТВО (prophecy) — ответ на конкретный вопрос юзера через образ выпавшего Дара. 3-5 предложений, поэтично и точно. Не общие слова, а указание на суть: что в его ситуации главное, что становится видно через эту Карту.
-2. ПРАКТИКА (practice) — конкретный шаг/действие/настройка на день. 2-3 предложения. Это должно быть применимо в реальности (не «помедитируй на образ», а «обрати внимание на X», «сделай Y», «попробуй Z»).
-3. ЭНЕРГИИ (energies) — 4-5 коротких маркеров (по 2-3 слова) того ресурса, который выпавшая Карта даёт юзеру в его вопросе.
+ТВОЯ ЗАДАЧА (4 части):
+1. ПРОРОЧЕСТВО (prophecy) — глубокий ответ на конкретный вопрос через образ выпавшей Карты, скроенный под природу этого человека. 4-6 предложений, поэтично и точно. Не общие слова, а указание на суть: что в его ситуации главное именно для него, что становится видно через эту Карту.
+2. ГЛУБИНА (deep) — три коротких раскрытия, по 2-3 предложения каждое:
+   - shadow_trap: честная ловушка/тень, которая может помешать именно ему в этом вопросе. Опирайся на сильную тень Карты и на его уязвимости. Без запугивания — как зона роста, что важно увидеть в себе.
+   - resource: его настоящая опора и сила в этой ситуации. Ресурс Карты, лёгший на его сильные стороны.
+   - first_step: первый конкретный шаг, естественный именно для его способа действовать.
+3. ПРАКТИКА (practice) — конкретный шаг/действие/настройка на день, в его стиле. 2-3 предложения. Применимо в реальности (не «помедитируй на образ», а «обрати внимание на X», «сделай Y», «попробуй Z»).
+4. ЭНЕРГИИ (energies) — 4-5 коротких маркеров (по 2-3 слова) того ресурса, который выпавшая Карта даёт юзеру в его вопросе.
 
 ${genderBlock}
 
 СТРОГИЕ ПРАВИЛА:
 - Обращайся на «ты».
-- Пророчество должно ОТВЕЧАТЬ НА ВОПРОС, а не быть общим посланием дня.
+- Пророчество и глубина должны ОТВЕЧАТЬ НА ВОПРОС, а не быть общим посланием дня.
 - Не пиши «энергии дня», «послание дня», «сегодня» в начале — это не дар дня, это ответ на вопрос.
-- НЕ называй ни выпавший Дар, ни «твой Дар», ни «эта Карта», ни «образ Карты». Говори через образы/смысл, не через имена.
+- НЕ называй ни выпавший Дар, ни личный Дар, ни «твой Дар», ни «эта Карта», ни «образ Карты». Говори через образы/смысл, не через имена.
 - НЕ упоминай поля (ЛОГОС, НИМА, АНДРА…), МА/ЖИ/КУН, цифры, коды.
 - Только грамматически безупречный литературный русский.
 - Не используй длинное тире, только дефис или запятую.
@@ -497,12 +520,17 @@ ${genderBlock}
 
 ${drawnContext}${personalContext}
 
-Дай ответ на вопрос через образ выпавшей Карты. Учти внутренний ресурс юзера (его личный Дар) при формулировке практики — пусть подсказка ляжет на его естественный способ действия.
+Дай глубокий ответ на вопрос через образ выпавшей Карты, скроенный под природу этого человека. Трактовка, слой глубины и советы должны лечь на его естественный способ мыслить и действовать.
 
 Верни ТОЛЬКО валидный JSON:
 {
-  "prophecy": "3-5 предложений, ответ на вопрос через образ Карты",
-  "practice": "2-3 предложения, конкретный шаг на сегодня",
+  "prophecy": "4-6 предложений, глубокий ответ на вопрос через образ Карты, под природу человека",
+  "deep": {
+    "shadow_trap": "2-3 предложения, честная ловушка/тень для него в этом вопросе",
+    "resource": "2-3 предложения, его опора и сила в этой ситуации",
+    "first_step": "2-3 предложения, первый шаг, естественный для него"
+  },
+  "practice": "2-3 предложения, конкретный шаг на сегодня в его стиле",
   "energies": ["маркер1", "маркер2", "маркер3", "маркер4"]
 }`;
   } else if (authoredPrediction && authoredPrediction.prophecy) {
@@ -697,6 +725,10 @@ ${genderBlock}
   // userLang уже определён выше (для ключа кэша).
   const finalSystemMsg = language.applyLanguage(systemMsg, userLang);
 
+  // Расклад «глубокая карта» возвращает больше текста (пророчество + слой deep),
+  // поэтому даём модели больший бюджет токенов.
+  const maxTokens = (mode === 'card' && user_query) ? 1400 : 900;
+
   try {
     let completion;
     let providerUsed = 'groq';
@@ -708,14 +740,14 @@ ${genderBlock}
     if (useDeepSeek) {
       try {
         completion = await deepseek.chatCompletion({
-          messages, model: 'deepseek-chat', temperature: 0.9, max_tokens: 900
+          messages, model: 'deepseek-chat', temperature: 0.9, max_tokens: maxTokens
         });
         providerUsed = 'deepseek';
       } catch (dsErr) {
         console.warn('[oracle] DeepSeek failed, fallback to Groq:', dsErr.message);
         const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
         completion = await groq.chat.completions.create({
-          messages, model: 'llama-3.3-70b-versatile', temperature: 0.9, max_tokens: 900
+          messages, model: 'llama-3.3-70b-versatile', temperature: 0.9, max_tokens: maxTokens
         });
         providerUsed = 'groq-fallback';
       }
@@ -723,11 +755,11 @@ ${genderBlock}
       const groq = new Groq({ apiKey: (process.env.GROQ_API_KEY || '').trim() });
       try {
         completion = await groq.chat.completions.create({
-          messages, model: 'llama-3.3-70b-versatile', temperature: 0.9, max_tokens: 900
+          messages, model: 'llama-3.3-70b-versatile', temperature: 0.9, max_tokens: maxTokens
         });
       } catch (modelErr) {
         completion = await groq.chat.completions.create({
-          messages, model: 'llama-3.1-8b-instant', temperature: 0.9, max_tokens: 900
+          messages, model: 'llama-3.1-8b-instant', temperature: 0.9, max_tokens: maxTokens
         });
         providerUsed = 'groq-8b';
       }

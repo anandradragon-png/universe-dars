@@ -86,6 +86,16 @@ const DailyDar = (function() {
     if (arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
   }
 
+  // Раскрытие глубокого слоя расклада (тень · ресурс · шаг) — вариант 3.
+  function toggleDeep() {
+    const body = document.getElementById('oracle-deep-body');
+    const arrow = document.getElementById('oracle-deep-arrow');
+    if (!body) return;
+    const open = body.style.display === 'block';
+    body.style.display = open ? 'none' : 'block';
+    if (arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+  }
+
   // --- Редукция числа к одной цифре (1-9) ---
   function reduce(n) {
     while (n > 9) n = n.toString().split('').reduce((s,d) => s + parseInt(d), 0);
@@ -227,6 +237,29 @@ const DailyDar = (function() {
       html += `<div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:16px;text-align:left">
         <div style="font-size:13px;color:#D4AF37;letter-spacing:1px;margin-bottom:10px">&#128302; ${((window.i18n && i18n.t && i18n.t('daily.oracle_message_label')) || 'Послание Оракула:')}</div>
         <div style="font-size:14px;color:#e0e0e0;line-height:1.8;font-style:italic">${_esc(data.prophecy)}</div>
+      </div>`;
+    }
+
+    // Глубокое раскрытие (вариант 3): тень · ресурс · первый шаг.
+    // По закону минимума экрана — свёрнуто, открывается по клику.
+    if (data.deep && (data.deep.shadow_trap || data.deep.resource || data.deep.first_step)) {
+      const d = data.deep;
+      const tt = (k, ru) => (window.i18n && i18n.t && i18n.t(k)) || ru;
+      const row = (icon, label, txt) => txt ? `<div style="padding:12px 0;border-top:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:12px;color:#D4AF37;margin-bottom:4px;letter-spacing:0.5px">${icon} ${_esc(label)}</div>
+          <div style="font-size:13px;color:#e0e0e0;line-height:1.7">${_esc(txt)}</div>
+        </div>` : '';
+      html += `<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+        <button type="button" onclick="DailyDar.toggleDeep()"
+          style="width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:none;color:#D4AF37;font-family:Manrope,sans-serif;font-size:13px;letter-spacing:0.5px;cursor:pointer;padding:0">
+          <span>&#128302; ${_esc(tt('oracle.deep_open', 'Раскрыть глубже'))}</span>
+          <span id="oracle-deep-arrow" style="transition:transform 0.2s">&#9662;</span>
+        </button>
+        <div id="oracle-deep-body" style="display:none;margin-top:6px">
+          ${row('&#9888;', tt('oracle.deep_shadow', 'Что тебя держит'), d.shadow_trap)}
+          ${row('&#128142;', tt('oracle.deep_resource', 'Твой ресурс'), d.resource)}
+          ${row('&#128099;', tt('oracle.deep_step', 'Первый шаг'), d.first_step)}
+        </div>
       </div>`;
     }
 
@@ -898,7 +931,7 @@ const DailyDar = (function() {
     }
   }
 
-  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook, togglePresets, pickPresetQuery, toggleSpheres };
+  return { render, switchTab, open, close, pullCard, resetCard, loadPreview, calcGeneralDar, calcPersonalDar, showUpgradeMessage, openInBook, togglePresets, pickPresetQuery, toggleSpheres, toggleDeep };
 })();
 
 // Экспортируем в window — нужен для api-client.js (Оракул для родственника

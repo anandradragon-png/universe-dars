@@ -1694,10 +1694,11 @@
   <div id="message-overlay" style="display:none;position:fixed;inset:0;z-index:9650;background:#080808;overflow-y:auto;padding-top:64px">
     <!-- Шапка overlay в потоке, не sticky — скроллится вместе с контентом,
          не перекрывает аккордеон. -->
-    <div style="border-bottom:1px solid rgba(212,175,55,0.25);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:#080808">
-      <button onclick="closeMessageOverlay()" style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);color:#D4AF37;padding:8px 14px 8px 10px;border-radius:12px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;display:flex;align-items:center;gap:6px"><span style="font-size:16px;line-height:1">←</span><span data-i18n="message.back">Вернуться</span></button>
-      <div style="font-size:14px;color:#D4AF37;font-weight:700;letter-spacing:0.5px" data-i18n="message.overlay_title">Послание о Даре</div>
-      <div style="width:32px"></div>
+    <div style="border-bottom:1px solid rgba(212,175,55,0.25);padding:14px 16px;background:#080808">
+      <div style="margin-bottom:12px">
+        <button onclick="closeMessageOverlay()" style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);color:#D4AF37;padding:8px 14px 8px 10px;border-radius:12px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;display:inline-flex;align-items:center;gap:6px"><span style="font-size:16px;line-height:1">←</span><span data-i18n="message.back">Вернуться</span></button>
+      </div>
+      <div style="font-size:16px;color:#D4AF37;font-weight:700;letter-spacing:0.5px;text-align:center" data-i18n="message.overlay_title">Послание о Даре</div>
     </div>
     <div style="max-width:600px;margin:0 auto;padding:18px 16px 60px">
       <div id="message-overlay-content"><!-- сюда клонируется аккордеон --></div>

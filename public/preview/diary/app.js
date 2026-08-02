@@ -658,6 +658,34 @@ function resetDiary() {
 }
 window.resetDiary = resetDiary;
 
+// Открыть АРКА через ГЛАВНОЕ приложение, чтобы сработала проверка тарифа.
+// Гейт живёт в renderArkaTab (index.html): АРКА доступна только Хранителю/Мастеру,
+// остальным — замок. Прямой <a href="/preview/arka/"> открывал АРКА в обход
+// этой проверки — Странник/гость видел премиум-АРКУ бесплатно (баг тестера:
+// «из дневника открывается прототип арки без авторизации, под гостем»).
+function openArkaGated(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  // 1) Дневник как iframe внутри YupDar — переключаем родителя.
+  //    switchNav('arka') → renderArkaTab() проверит тариф.
+  try {
+    if (window.parent && window.parent !== window && typeof window.parent.switchNav === 'function') {
+      window.parent.switchNav('arka');
+      return false;
+    }
+  } catch (err) {}
+  // 2) Дневник открыт top-level (location.href='/preview/diary/') — возвращаемся
+  //    в главное приложение и просим восстановить вкладку АРКА. Главное приложение
+  //    при загрузке вызовет switchNav('arka') → renderArkaTab() и покажет либо
+  //    АРКУ (Хранитель/Мастер), либо замок (остальным).
+  try {
+    localStorage.setItem('_last_nav', 'arka');
+    localStorage.setItem('_last_nav_ts', Date.now().toString());
+  } catch (err) {}
+  window.location.href = '/';
+  return false;
+}
+window.openArkaGated = openArkaGated;
+
 // === Фидбэк-кнопка ===
 function openTesterFeedback() {
   const lang = getLang();

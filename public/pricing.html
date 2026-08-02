@@ -708,7 +708,16 @@
       return null;
     }
 
+    // Защита от двойного тапа: пока один запрос оплаты «в полёте», повторные
+    // нажатия игнорируются. Флаг ставится СИНХРОННО до первого await, поэтому
+    // два клика в одну секунду не создадут два инвойса (баг: у одного юзера две
+    // «Попытки оплаты» в ту же секунду — 245₽ промо и 490₽ полная). Сбрасывается
+    // в finally, чтобы кнопка не осталась заблокированной навсегда.
+    let _buyInFlight = false;
     async function onBuy(kind, key) {
+      if (_buyInFlight) return;
+      _buyInFlight = true;
+      try {
       // Выбор провайдера: упрощённо по текущей валюте UI
       const providerByCurrency = {
         rub: 'yookassa',
@@ -792,6 +801,9 @@
       } catch (e) {
         const msg = i18n.t('tariffs.connection_error', { message: e.message });
         if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg);
+      }
+      } finally {
+        _buyInFlight = false;
       }
     }
 

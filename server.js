@@ -49,6 +49,7 @@ function rewrite(from, handlerPath, extraQuery) {
 rewrite('/api/bot-webhook',      './public/api/webhooks',      { provider: 'bot'   });
 rewrite('/api/tbank-webhook',    './public/api/webhooks',      { provider: 'tbank' });
 rewrite('/api/yuppay-webhook',   './public/api/webhooks',      { provider: 'yuppay'});
+rewrite('/api/yookassa-webhook', './public/api/webhooks',      { provider: 'yookassa'});
 rewrite('/api/relatives',        './public/api/user',          { action: 'relatives' });
 rewrite('/api/verify-code',      './public/api/user',          { action: 'verify'    });
 rewrite('/api/promo',            './public/api/user',          { action: 'promo'     });

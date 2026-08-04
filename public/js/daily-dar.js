@@ -257,8 +257,9 @@ const DailyDar = (function() {
       </div>`;
     }
 
-    // Глубокое раскрытие (вариант 3): тень · ресурс · первый шаг.
-    // По закону минимума экрана — свёрнуто, открывается по клику.
+    // Глубокое раскрытие: тень · ресурс · первый шаг.
+    // Раскрыто по умолчанию (решение автора 04.08.2026 — более детальная трактовка),
+    // но остаётся сворачиваемым по клику.
     if (data.deep && (data.deep.shadow_trap || data.deep.resource || data.deep.first_step)) {
       const d = data.deep;
       const tt = (k, ru) => (window.i18n && i18n.t && i18n.t(k)) || ru;
@@ -270,9 +271,9 @@ const DailyDar = (function() {
         <button type="button" onclick="DailyDar.toggleDeep()"
           style="width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:none;color:#D4AF37;font-family:Manrope,sans-serif;font-size:13px;letter-spacing:0.5px;cursor:pointer;padding:0">
           <span>&#128302; ${_esc(tt('oracle.deep_open', 'Раскрыть глубже'))}</span>
-          <span id="oracle-deep-arrow" style="transition:transform 0.2s">&#9662;</span>
+          <span id="oracle-deep-arrow" style="transition:transform 0.2s;transform:rotate(180deg)">&#9662;</span>
         </button>
-        <div id="oracle-deep-body" style="display:none;margin-top:6px">
+        <div id="oracle-deep-body" style="display:block;margin-top:6px">
           ${row('&#9888;', tt('oracle.deep_shadow', 'Что тебя держит'), d.shadow_trap)}
           ${row('&#128142;', tt('oracle.deep_resource', 'Твой ресурс'), d.resource)}
           ${row('&#128099;', tt('oracle.deep_step', 'Первый шаг'), d.first_step)}
@@ -880,28 +881,12 @@ const DailyDar = (function() {
       // Сохраняем массив в window — нужен для pickPresetQuery
       window._oraclePresets = presets;
 
-      // Селектор типа расклада: одна карта / Ты и Ситуация / три карты.
-      const st = _spreadType;
-      const spreadBtn = (type, icon, label) => {
-        const active = st === type;
-        return '<button type="button" onclick="DailyDar.setSpread(\'' + type + '\')" ' +
-          'style="flex:1;min-width:0;padding:8px 4px;border-radius:10px;border:1px solid ' + (active ? 'rgba(212,175,55,0.6)' : 'var(--border)') + ';' +
-          'background:' + (active ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.04)') + ';' +
-          'color:' + (active ? '#D4AF37' : 'var(--text-dim)') + ';font-family:Manrope,sans-serif;font-size:11px;cursor:pointer;text-align:center;line-height:1.3">' +
-          '<div style="font-size:16px;margin-bottom:2px">' + icon + '</div>' + label + '</button>';
-      };
-      const spreadSelector = '<div style="display:flex;gap:6px;margin-bottom:14px">' +
-        spreadBtn('single', '&#127183;', tt('oracle.spread_single', 'Одна карта')) +
-        spreadBtn('duo', '&#9878;', tt('oracle.spread_duo', 'Ты и ситуация')) +
-        spreadBtn('triple', '&#128302;', tt('oracle.spread_triple', 'Три карты')) +
-        '</div>';
-      const tapHint = st === 'single'
-        ? tt('oracle.tap_card_hint', 'Нажми на карту, чтобы вытянуть подсказку')
-        : tt('oracle.tap_cards_hint', 'Нажми на карту, чтобы сделать расклад');
+      // Механика Оракула: один вопрос → одна карта (утверждённая механика).
+      // Ряд выбора расклада убран по решению автора (04.08.2026).
+      const tapHint = tt('oracle.tap_card_hint', 'Нажми на карту, чтобы вытянуть подсказку');
 
       container.innerHTML = `
         ${limitInfo}
-        ${spreadSelector}
         <div style="margin-bottom:16px">
           <div style="font-size:14px;color:var(--text);margin-bottom:8px;text-align:center">${((window.i18n && i18n.t && i18n.t('oracle.formulate_query')) || 'Сформулируй свой запрос')}</div>
           <!-- Поле запроса + выпадающий список подсказок прямо из поля (образец YupSoul) -->

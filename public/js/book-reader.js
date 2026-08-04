@@ -252,37 +252,16 @@ const BookReader = (function() {
   function saveView() {
     try { localStorage.setItem('_book_view', JSON.stringify({ mode: viewMode, bookId: currentBookId })); } catch (e) {}
   }
-  // Есть ли по книге сохранённый прогресс чтения (человек уже читал —
-  // ушёл дальше самой первой главы). Ключ прогресса namespaced по книге.
-  function _hasReadingProgress(id) {
-    try {
-      const key = (id === 'dars') ? '_book_progress' : '_book_progress__' + id;
-      const p = JSON.parse(localStorage.getItem(key) || '{}');
-      return (typeof p.chapterIdx === 'number' && p.chapterIdx > 0) ||
-             (typeof p.partIdx === 'number' && p.partIdx > 0);
-    } catch (e) { return false; }
-  }
   function restoreView() {
+    // Вход в раздел «Книги» всегда открывает витрину полок, а не последнюю
+    // страницу (жалоба Светы 03.08: «последняя открытая открывается постоянно»).
+    // Прогресс по книге сохраняется отдельно — при выборе книги чтение
+    // продолжится с той же главы.
     try {
       const v = JSON.parse(localStorage.getItem('_book_view') || '{}');
-      // 1) Человек оставался в ридере — открываем ту же книгу.
-      if (v.mode === 'reader' && v.bookId && getBookMeta(v.bookId)) {
-        viewMode = 'reader';
-        currentBookId = v.bookId;
-        return;
-      }
-      // 2) Иначе — если по последней книге есть сохранённый прогресс чтения,
-      //    продолжаем её с той же главы (кнопка «В библиотеку» остаётся в ридере).
-      const lastId = (v.bookId && getBookMeta(v.bookId)) ? v.bookId : 'dars';
-      if (_hasReadingProgress(lastId)) {
-        viewMode = 'reader';
-        currentBookId = lastId;
-        return;
-      }
-      // 3) Прогресса нет — показываем витрину полок.
-      viewMode = 'library';
-      currentBookId = 'dars';
-    } catch (e) { viewMode = 'library'; currentBookId = 'dars'; }
+      currentBookId = (v.bookId && getBookMeta(v.bookId)) ? v.bookId : 'dars';
+    } catch (e) { currentBookId = 'dars'; }
+    viewMode = 'library';
   }
 
   // -------- Загрузка конкретной книги в ридер --------
@@ -1093,6 +1072,15 @@ const BookReader = (function() {
       if (c && c.scrollIntoView) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (e) {}
   }
+  // Вход в раздел «Книги» из нижней навигации: всегда витрина полок, а не
+  // последняя страница. Через render() — он сам подгрузит манифест при первом
+  // заходе, затем отрисует библиотеку (viewMode='library').
+  function showShelf() {
+    viewMode = 'library';
+    saveView();
+    _exitImmersive();
+    render();
+  }
   function showLibrary() {
     viewMode = 'library';
     saveView();
@@ -1848,11 +1836,11 @@ const BookReader = (function() {
   }
 
   function _hideImmersiveBars() {
-    // Меню открыто — держим верхний бар, чтобы кнопка «Меню» оставалась.
-    if (document.body.classList.contains('book-chrome-open')) return;
-    const top = document.getElementById('book-topbar');
+    // Верхний бар («В библиотеку» / «Меню») НИКОГДА не прячем — это
+    // единственный видимый выход из режима погружения. Жалоба Светы 03.08:
+    // «переходя по разделам на главную так и не вышел» — раньше бар исчезал
+    // через 1.6с и человек оставался заперт. Прячем только нижний (Назад/Вперёд).
     const bot = document.getElementById('book-bottombar');
-    if (top) top.classList.add('bar-hidden');
     if (bot) bot.classList.add('bar-hidden');
   }
 
@@ -1931,7 +1919,7 @@ const BookReader = (function() {
 
   return {
     init, render, renderChapter,
-    showLibrary, openBook, toggleAbout, openAbout, closeAbout,
+    showLibrary, showShelf, openBook, toggleAbout, openAbout, closeAbout,
     toggleChrome, exitImmersive: _exitImmersive,
     nextChapter, prevChapter, goTo, goToDar, openInTreasury, sendInspire,
     toggleTOC, toggleSettings, toggleBookmarks, toggleSearch, runSearch,

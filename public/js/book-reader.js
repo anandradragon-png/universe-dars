@@ -788,20 +788,28 @@ const BookReader = (function() {
   }
 
   // -------- C3: догрузка платной главы через защищённый API --------
-  // Заголовки авторизации как в DarAPI (подписанный initData / dev-id).
+  // Заголовки авторизации — та же логика, что в DarAPI.getHeaders: подписанный
+  // initData / кэш подписи / веб-сессия (x-web-session) / dev-id. Гостевого
+  // _web_uid здесь больше НЕТ — единый канал входа (04.08.2026). Веб-юзер
+  // авторизуется веб-сессией; без неё платная глава вернёт 401, и основной
+  // поток (DarAPI) уже увёл его на /login.html.
   function _authHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     try {
       const tg = window.Telegram && window.Telegram.WebApp;
-      if (tg && tg.initData) headers['x-telegram-init-data'] = tg.initData;
+      let signed = (tg && tg.initData) || '';
+      try {
+        if (signed) localStorage.setItem('_tg_init_cache', signed);
+        else signed = localStorage.getItem('_tg_init_cache') || '';
+      } catch (e) {}
+      let webSession = '';
+      try { webSession = localStorage.getItem('_web_session') || ''; } catch (e) {}
+      if (webSession) headers['x-web-session'] = webSession;
+      if (signed) headers['x-telegram-init-data'] = signed;
       const devId = localStorage.getItem('_dev_telegram_id');
-      if (devId && !(tg && tg.initData)) headers['x-telegram-id'] = devId;
+      if (devId && !signed) headers['x-telegram-id'] = devId;
       const tgUid = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
-      if (!(tg && tg.initData) && !devId && tgUid) headers['x-telegram-id'] = String(tgUid);
-      if (!(tg && tg.initData) && !devId && !tgUid) {
-        const webId = localStorage.getItem('_web_uid');
-        if (webId) headers['x-telegram-id'] = webId;
-      }
+      if (!signed && !devId && tgUid) headers['x-telegram-id'] = String(tgUid);
     } catch (e) {}
     return headers;
   }

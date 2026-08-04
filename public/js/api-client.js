@@ -47,19 +47,13 @@ const DarAPI = (function() {
     if (!signed && !devId && tgUid) {
       headers['x-telegram-id'] = String(tgUid);
     }
-    // Гостевой веб-вход: ТОЛЬКО когда Telegram-контекста нет вообще (открыто
-    // в обычном браузере без Telegram и без dev-id). Создаём стабильный
-    // анонимный аккаунт. Отрицательный id, чтобы никогда не пересечься с
-    // реальными Telegram-id (они положительные). Хранится в localStorage,
-    // так что гость возвращается в свой аккаунт.
-    if (!signed && !devId && !tgUid && !webSession) {
-      let webId = localStorage.getItem('_web_uid');
-      if (!webId) {
-        webId = String(-(Math.floor(Math.random() * 900000000000) + 100000000000));
-        localStorage.setItem('_web_uid', webId);
-      }
-      headers['x-telegram-id'] = webId;
-    }
+    // ЕДИНЫЙ КАНАЛ ВХОДА (04.08.2026, по решению автора): отдельного гостевого
+    // веб-аккаунта больше нет. Если Telegram-контекста и веб-сессии нет — не
+    // подставляем никакой identity: сервер вернёт 401, и maybeHandleAuthFailure
+    // уведёт на /login.html (вход через Telegram/Google). Так у браузерного
+    // юзера один вход, а не отдельный анонимный аккаунт, чьи данные потом
+    // невозможно связать с реальным. Старый _web_uid чистим, чтобы не мешал.
+    try { localStorage.removeItem('_web_uid'); } catch (e) {}
     // Язык приложения — для AI-генерации (Oracle, message, compatibility)
     // и для бэкенда чтобы знать какой язык вернуть в /api/pricing
     try {

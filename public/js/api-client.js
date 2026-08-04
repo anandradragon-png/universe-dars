@@ -126,6 +126,38 @@ const DarAPI = (function() {
   // Telegram WebView, чтобы юзер не сидел перед вечным спиннером.
   const REQUEST_TIMEOUT_MS = 90000;
 
+  // Открыт ли клиент внутри Telegram Mini App (а не в обычном браузере).
+  // В Telegram identity приходит из подписанного initData, веб-виджет не нужен,
+  // а 401 лечится перезагрузкой/версией — поэтому для Telegram авто-редирект на
+  // страницу входа НЕ делаем.
+  function isTelegramWebApp() {
+    const w = window.Telegram && window.Telegram.WebApp;
+    return !!(w && (w.initData || (w.initDataUnsafe && w.initDataUnsafe.user && w.initDataUnsafe.user.id)));
+  }
+
+  // Само-починка авторизации в БРАУЗЕРЕ. Сервер вернул 401 → веб-сессия
+  // отсутствует или протухла. Мёртвый _web_session в localStorage приводит к
+  // «вечному» 401 (см. getHeaders: при наличии токена гостевой fallback не
+  // подставляется), приложение показывает старый кэш и всё «под замком».
+  // Лечим единообразно: чистим протухший токен и уводим на /login.html, где
+  // есть реальный вход (Telegram/Google), с возвратом туда, где юзер был.
+  // Это делает вход работающим НЕЗАВИСИМО от того, как открыто приложение.
+  // sessionStorage-флаг не даёт зациклиться, если новый токен тоже отвергнут.
+  function maybeHandleAuthFailure() {
+    try {
+      if (isTelegramWebApp()) return;                       // в Telegram не трогаем
+      if (/\/login\.html$/i.test(location.pathname)) return; // уже на входе
+      let already = false;
+      try { already = sessionStorage.getItem('_auth_redirected') === '1'; } catch (e) {}
+      if (already) return;                                   // уже пробовали — не зацикливаемся
+      try { sessionStorage.setItem('_auth_redirected', '1'); } catch (e) {}
+      try { localStorage.removeItem('_web_session'); } catch (e) {}
+      try { localStorage.removeItem('_tg_init_cache'); } catch (e) {}
+      const ret = encodeURIComponent(location.pathname + location.search);
+      location.replace('/login.html?return=' + ret);
+    } catch (e) {}
+  }
+
   async function request(path, method = 'GET', body = null) {
     const opts = { method, headers: getHeaders() };
     if (body && method !== 'GET') opts.body = JSON.stringify(body);
@@ -164,12 +196,17 @@ const DarAPI = (function() {
     if (!resp.ok) {
       console.warn('[DarAPI] http error', path, 'status', resp.status, 'body:', data);
       logApiError('http', path, { status: resp.status, body: data });
+      // 401 в браузере → уводим на страницу входа (само-починка авторизации).
+      if (resp.status === 401) maybeHandleAuthFailure();
       const err = new Error(friendlyError('http', { status: resp.status, body: data }));
       err.kind = 'http';
       err.status = resp.status;
       err.body = data; // сырое тело ответа — нужно фронту для рендера paywall (403)
       throw err;
     }
+    // Успешный ответ → авторизация рабочая: снимаем флаг анти-зацикливания,
+    // чтобы будущее истечение сессии снова могло само-починиться.
+    try { sessionStorage.removeItem('_auth_redirected'); } catch (e) {}
     return data;
   }
 

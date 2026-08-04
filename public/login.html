@@ -94,6 +94,19 @@
     var BOT_ID = '8662208423'; // публичный id @YupDarBot (не токен)
     var GOOGLE_CLIENT_ID = '92870739232-rv2av7o1gnjg26tl4q4ed5a6tghilvsp.apps.googleusercontent.com';
 
+    // Куда вернуть после входа. Приложение при 401 присылает ?return=<путь>,
+    // чтобы вернуть юзера ровно туда, где он был. Берём ТОЛЬКО безопасный
+    // относительный путь (начинается с одного «/», без «//» и без «:») — защита
+    // от open-redirect на чужой домен. Иначе — в приложение по умолчанию.
+    function safeReturnUrl() {
+      try {
+        var raw = new URLSearchParams(location.search).get('return') || '';
+        raw = decodeURIComponent(raw);
+        if (/^\/(?!\/)/.test(raw) && raw.indexOf(':') === -1) return raw;
+      } catch (e) {}
+      return '/index.html?app=1';
+    }
+
     // Своя жёлтая кнопка Google: используем OAuth token flow (не официальную
     // кнопку), чтобы вид совпадал с кнопкой Telegram. По клику Google открывает
     // окно входа и возвращает access_token — его проверяет сервер.
@@ -139,7 +152,8 @@
         }
         try { localStorage.setItem('_web_session', j.token); } catch (e) {}
         try { localStorage.removeItem('_web_uid'); } catch (e) {}
-        window.location.href = '/index.html?app=1';
+        try { sessionStorage.removeItem('_auth_redirected'); } catch (e) {}
+        window.location.href = safeReturnUrl();
       } catch (e) {
         err.textContent = 'Ошибка соединения: ' + e.message;
       }
@@ -179,12 +193,13 @@
         }
         try { localStorage.setItem('_web_session', j.token); } catch (e) {}
         try { localStorage.removeItem('_web_uid'); } catch (e) {}
-        window.location.href = '/index.html?app=1';
+        try { sessionStorage.removeItem('_auth_redirected'); } catch (e) {}
+        window.location.href = safeReturnUrl();
       } catch (e) {
         err.textContent = 'Ошибка соединения: ' + e.message;
       }
     }
 
-  </script>
+</script>
 </body>
 </html>

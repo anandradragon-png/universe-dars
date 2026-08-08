@@ -123,6 +123,61 @@ async function updateUser(userId, fields) {
   return data;
 }
 
+// ---- Привязка входов (две двери — один кабинет) ----
+//
+// Telegram и Google не имеют общего ключа (Telegram не отдаёт почту), поэтому
+// автоматически понять, что это один человек, нельзя. Пользователь связывает
+// входы вручную из кабинета. Связь хранится в account_links: пара
+// (provider, external_id) → user_id основного аккаунта. Вход по этому provider
+// сперва смотрит сюда: если пара найдена — отдаёт основной аккаунт, а не
+// заводит отдельный. Так обе двери ведут в одну строку users.
+
+// Найти пользователя по привязанному входу. provider: 'google' и т.п.,
+// external_id: почта (google) в нижнем регистре. Возвращает строку users или null.
+async function findUserByLink(provider, externalId) {
+  const db = getSupabase();
+  const { data: link } = await db
+    .from('account_links')
+    .select('user_id')
+    .eq('provider', provider)
+    .eq('external_id', String(externalId || '').trim().toLowerCase())
+    .single();
+  if (!link || !link.user_id) return null;
+  const { data: user } = await db
+    .from('users')
+    .select('*')
+    .eq('id', link.user_id)
+    .single();
+  return user || null;
+}
+
+// Привязать вход (provider, external_id) к аккаунту userId.
+// Возвращает { ok } либо { error, conflict } если пара уже привязана к ДРУГОМУ
+// аккаунту (тогда вызывающий решает, что показать пользователю).
+async function linkIdentity(userId, provider, externalId) {
+  const db = getSupabase();
+  const ext = String(externalId || '').trim().toLowerCase();
+  if (!userId || !provider || !ext) return { error: 'bad_args' };
+
+  const { data: existing } = await db
+    .from('account_links')
+    .select('user_id')
+    .eq('provider', provider)
+    .eq('external_id', ext)
+    .single();
+
+  if (existing) {
+    if (existing.user_id === userId) return { ok: true, already: true };
+    return { error: 'linked_to_other', conflict: true };
+  }
+
+  const { error } = await db
+    .from('account_links')
+    .insert({ user_id: userId, provider, external_id: ext });
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
 // ---- Сокровищница (открытые дары) ----
 
 async function getUserDars(userId) {
@@ -352,6 +407,7 @@ async function getAllHeroJourneys(userId) {
 module.exports = {
   getSupabase,
   getOrCreateUser, getOrCreateUserByEmail, emailToSyntheticTgId, updateUser,
+  findUserByLink, linkIdentity,
   getUserDars, unlockDar, unlockSection,
   addCrystals,
   createReferral, getReferralCount,

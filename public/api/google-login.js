@@ -21,7 +21,7 @@
  */
 
 const { issueSession } = require('./_lib/websession');
-const { getOrCreateUserByEmail } = require('./_lib/db');
+const { getOrCreateUserByEmail, findUserByLink } = require('./_lib/db');
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
   || '92870739232-rv2av7o1gnjg26tl4q4ed5a6tghilvsp.apps.googleusercontent.com';
@@ -79,7 +79,12 @@ module.exports = async (req, res) => {
     }
 
     // 3-4. Аккаунт + сессия.
-    const dbUser = await getOrCreateUserByEmail(String(email).trim().toLowerCase());
+    // Сначала: не привязана ли эта почта к существующему аккаунту (например, к
+    // Telegram-аккаунту)? Если да — входим в него, а не в отдельный веб-аккаунт.
+    // Так «две двери ведут в один кабинет».
+    const clean = String(email).trim().toLowerCase();
+    const linked = await findUserByLink('google', clean);
+    const dbUser = linked || await getOrCreateUserByEmail(clean);
     const token = issueSession(dbUser.telegram_id, botToken);
 
     return res.status(200).json({

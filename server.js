@@ -84,6 +84,7 @@ app.all('/api/payment',      require('./public/api/payment'));
 app.all('/api/pricing',      require('./public/api/pricing'));
 app.all('/api/tg-web-login', require('./public/api/tg-web-login'));
 app.all('/api/google-login', require('./public/api/google-login'));
+app.all('/api/link-account', require('./public/api/link-account'));
 app.all('/api/webhooks',     require('./public/api/webhooks'));
 
 app.all('/api/admin/analytics',    require('./public/api/admin/analytics'));

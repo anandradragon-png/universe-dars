@@ -404,6 +404,12 @@ const DarAPI = (function() {
     getAllJourneys: () =>
       request('/api/hero-journey', 'POST', { action: 'get_all' }),
 
+    // ---- Привязка второго входа («две двери — один кабинет») ----
+    // Отправляет access_token Google с текущими заголовками входа (x-web-session
+    // или x-telegram-init-data), чтобы сервер привязал Google к ТЕКУЩЕМУ аккаунту.
+    linkGoogle: (access_token) =>
+      request('/api/link-account', 'POST', { provider: 'google', access_token }),
+
     // ---- AI-описание (существующий) ----
     getMessage: (giftCode) =>
       request('/api/message', 'POST', { giftCode }),

@@ -595,7 +595,12 @@
               : Math.round(originalPrice * 0.5 * 100) / 100)
           : originalPrice;
         const isFeatured = period.is_default; // годовая = подсвечена
-        const isCurrentTier = DATA.user && DATA.user.effective_tier === card.tier;
+        // Кнопка гаснет ТОЛЬКО когда тариф реально КУПЛЕН. Во время 7-дневного
+        // триала effective_tier=premium (доступ открыт всем), но покупки не было
+        // (subscription_plan='trial_7d') — кнопки покупки обязаны оставаться
+        // активными, чтобы можно было оформить подписку до конца триала.
+        const isCurrentTier = DATA.user && DATA.user.effective_tier === card.tier
+          && DATA.user.subscription_plan !== 'trial_7d';
 
         const ctaLabel = isCurrentTier ? i18n.t('tariffs.current_tier') : i18n.t('tariffs.open_tier', { tier: card.name });
         const ctaClass = isCurrentTier ? 'disabled' : (groupKey === 'master' ? '' : 'outlined');

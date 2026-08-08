@@ -226,9 +226,12 @@ function requireUser(req, res, strict = false) {
   // неподписанный положительный id (защита админки/повышения прав/денег).
   const result = getUser(req, { softInitData: !strict, strictId: strict });
   if (result && result.id) {
-    // strict-гейт: гостевой веб-вход (отрицательный id) НЕ является Telegram-
-    // подписью, поэтому в строгом режиме (админка/деньги) его не пускаем.
-    if (strict && result.id < 0) {
+    // strict-гейт: гостевой веб-вход (отрицательный id БЕЗ подписи) НЕ является
+    // подтверждённой identity, поэтому в строгом режиме (админка/деньги) его не
+    // пускаем. ИСКЛЮЧЕНИЕ: подписанная веб-сессия (result.web_session) с
+    // отрицательным синтетическим id — это легальный аккаунт через Google/email,
+    // HMAC подтверждён сервером → identity подлинная, оплату разрешаем.
+    if (strict && result.id < 0 && !result.web_session) {
       console.warn('[auth] requireUser STRICT: rejecting guest negative id', result.id, 'path:', req.url);
       res.status(401).json({
         error: 'Нужна подпись Telegram. Открой приложение внутри Telegram.',

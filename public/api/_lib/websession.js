@@ -106,7 +106,11 @@ function verifySession(token, botToken) {
     const json = Buffer.from(payloadB64.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
     const payload = JSON.parse(json);
     const id = parseInt(payload.id, 10);
-    if (!Number.isFinite(id) || id <= 0) return null;
+    // id может быть ОТРИЦАТЕЛЬНЫМ: это синтетический telegram_id для веб-аккаунтов
+    // через Google/email (db.js emailToSyntheticTgId). Подпись уже проверена выше —
+    // значит токен выпустил наш сервер, отрицательный id не подделка. Отвергаем
+    // только 0/NaN (пустой или битый payload).
+    if (!Number.isFinite(id) || id === 0) return null;
     const iat = parseInt(payload.iat || '0', 10);
     if (!iat || (Date.now() / 1000 - iat) > SESSION_TTL_SEC) return null;
 

@@ -179,6 +179,11 @@ const DarAPI = (function() {
           + '&p=' + encodeURIComponent((info && info.path) || '')
           + '&tok=' + (webSession ? webSession.length : 0);
       } catch (e) {}
+      // Диагностика (временная): сохраняем сам токен во временный ключ, чтобы
+      // страница входа могла выполнить ЖИВОЙ запрос к /api/user этим же токеном
+      // и показать код ответа. Так отличим «токен не долетает» от «токен
+      // отвергнут сервером». Токен в URL не кладём — это учётные данные.
+      try { if (webSession) localStorage.setItem('_diag_tok', webSession); } catch (e) {}
       try { localStorage.removeItem('_web_session'); } catch (e) {}
       try { localStorage.removeItem('_tg_init_cache'); } catch (e) {}
       const ret = encodeURIComponent(location.pathname + location.search);

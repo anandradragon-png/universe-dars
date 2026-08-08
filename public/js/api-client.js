@@ -137,7 +137,7 @@ const DarAPI = (function() {
   // есть реальный вход (Telegram/Google), с возвратом туда, где юзер был.
   // Это делает вход работающим НЕЗАВИСИМО от того, как открыто приложение.
   // sessionStorage-флаг не даёт зациклиться, если новый токен тоже отвергнут.
-  function maybeHandleAuthFailure() {
+  function maybeHandleAuthFailure(info) {
     try {
       if (isTelegramWebApp()) return;                       // в Telegram не трогаем
       if (/\/login\.html$/i.test(location.pathname)) return; // уже на входе
@@ -167,10 +167,22 @@ const DarAPI = (function() {
       try { already = sessionStorage.getItem('_auth_redirected') === '1'; } catch (e) {}
       if (already) return;                                   // уже пробовали — не зацикливаемся
       try { sessionStorage.setItem('_auth_redirected', '1'); } catch (e) {}
+      // Диагностика (временная): почему сервер отверг вход. Токен БЫЛ (webSession
+      // непустой), но после жёсткой перезагрузки со свежим кодом сервер всё
+      // равно вернул 401 → значит токен реально не принимается ИЛИ не долетает.
+      // Прокидываем на страницу входа: причину от сервера, ручку и длину токена.
+      var diag = '';
+      try {
+        diag = '&diag=1'
+          + '&why=' + encodeURIComponent((info && info.reason) || 'no_reason')
+          + '&st=' + encodeURIComponent((info && info.status) || '')
+          + '&p=' + encodeURIComponent((info && info.path) || '')
+          + '&tok=' + (webSession ? webSession.length : 0);
+      } catch (e) {}
       try { localStorage.removeItem('_web_session'); } catch (e) {}
       try { localStorage.removeItem('_tg_init_cache'); } catch (e) {}
       const ret = encodeURIComponent(location.pathname + location.search);
-      location.replace('/login.html?return=' + ret);
+      location.replace('/login.html?return=' + ret + diag);
     } catch (e) {}
   }
 
@@ -213,7 +225,13 @@ const DarAPI = (function() {
       console.warn('[DarAPI] http error', path, 'status', resp.status, 'body:', data);
       logApiError('http', path, { status: resp.status, body: data });
       // 401 в браузере → уводим на страницу входа (само-починка авторизации).
-      if (resp.status === 401) maybeHandleAuthFailure();
+      if (resp.status === 401) {
+        maybeHandleAuthFailure({
+          path: path,
+          status: resp.status,
+          reason: (data && (data.reason || data.error)) || 'no_reason'
+        });
+      }
       const err = new Error(friendlyError('http', { status: resp.status, body: data }));
       err.kind = 'http';
       err.status = resp.status;

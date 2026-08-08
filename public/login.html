@@ -94,6 +94,7 @@
     </button>
 
     <div class="err" id="err"></div>
+    <div id="diag" style="display:none; font-size:11px; color:#c9a24a; margin-top:10px; word-break:break-all; text-align:left; background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:8px;"></div>
     <div class="note">Вход не требует пароля. Email не запрашиваем и рассылок не шлём.</div>
   </div>
 
@@ -114,6 +115,23 @@
       } catch (e) {}
       return '/index.html?app=1';
     }
+
+    // Диагностика (временная): если api-client увёл сюда после 401 несмотря на
+    // наличие токена — показываем причину от сервера, чтобы понять, почему вход
+    // не «долетает». Света просто присылает скриншот этой строки.
+    (function showDiag() {
+      try {
+        var q = new URLSearchParams(location.search);
+        if (q.get('diag') !== '1') return;
+        var el = document.getElementById('diag');
+        if (!el) return;
+        el.style.display = 'block';
+        el.textContent = 'Диагностика входа: ручка ' + (q.get('p') || '?')
+          + ' · код ' + (q.get('st') || '?')
+          + ' · причина «' + (q.get('why') || '?') + '»'
+          + ' · длина токена ' + (q.get('tok') || '0');
+      } catch (e) {}
+    })();
 
     // Общая обработка успешно выданного токена веб-сессии.
     function applySession(token) {

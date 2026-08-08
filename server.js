@@ -82,6 +82,7 @@ app.all('/api/hero-journey', require('./public/api/hero-journey'));
 app.all('/api/leaderboard',  require('./public/api/leaderboard'));
 app.all('/api/payment',      require('./public/api/payment'));
 app.all('/api/pricing',      require('./public/api/pricing'));
+app.all('/api/echo-auth',    require('./public/api/echo-auth'));
 app.all('/api/tg-web-login', require('./public/api/tg-web-login'));
 app.all('/api/google-login', require('./public/api/google-login'));
 app.all('/api/webhooks',     require('./public/api/webhooks'));

@@ -136,14 +136,15 @@
         var diagTok = '';
         try { diagTok = localStorage.getItem('_diag_tok') || ''; } catch (e) {}
         if (diagTok) {
-          fetch('/api/user', { headers: { 'x-web-session': diagTok, 'Content-Type': 'application/json' } })
-            .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { s: r.status, j: j }; }); })
-            .then(function (res) {
-              el.textContent += '  ||  ПЕРЕПРОВЕРКА: код ' + res.s
-                + ' · ' + (res.j && (res.j.reason || res.j.error) ? '«' + (res.j.reason || res.j.error) + '»' : (res.s === 200 ? 'токен принят' : '?'));
+          // Проверка №1: дошёл ли заголовок x-web-session до сервера вообще.
+          fetch('/api/echo-auth', { headers: { 'x-web-session': diagTok, 'Content-Type': 'application/json' } })
+            .then(function (r) { return r.json().catch(function () { return {}; }); })
+            .then(function (j) {
+              el.textContent += '  ||  ЗАГОЛОВОК ДОШЁЛ: '
+                + (j && j.has_web_session ? 'ДА (длина ' + j.web_session_len + ')' : 'НЕТ — вырезан по дороге');
             })
             .catch(function (e) {
-              el.textContent += '  ||  ПЕРЕПРОВЕРКА: ошибка сети ' + (e && e.message ? e.message : '');
+              el.textContent += '  ||  ЭХО: ошибка сети ' + (e && e.message ? e.message : '');
             })
             .then(function () { try { localStorage.removeItem('_diag_tok'); } catch (e) {} });
         }

@@ -47,22 +47,13 @@ const DarAPI = (function() {
     if (!signed && !devId && tgUid) {
       headers['x-telegram-id'] = String(tgUid);
     }
-    // Гостевой веб-вход (возвращён 08.08.2026): приложение ОБЯЗАНО открываться
-    // в браузере в любом случае — это критично для модерации ЮKassa (их
-    // проверяющие не логинятся) и чтобы юзер никогда не упирался в стену входа.
-    // Срабатывает ТОЛЬКО когда нет Telegram-контекста, dev-id и веб-сессии:
-    // создаём стабильный анонимный аккаунт с отрицательным id (не пересечётся с
-    // реальными положительными Telegram-id). Хранится в localStorage — гость
-    // возвращается в свой аккаунт. Реальный вход (Telegram/Google) остаётся
-    // опцией на /login.html, но НЕ барьером.
-    if (!signed && !devId && !tgUid && !webSession) {
-      let webId = localStorage.getItem('_web_uid');
-      if (!webId) {
-        webId = String(-(Math.floor(Math.random() * 900000000000) + 100000000000));
-        localStorage.setItem('_web_uid', webId);
-      }
-      headers['x-telegram-id'] = webId;
-    }
+    // ЕДИНЫЙ КАНАЛ ВХОДА (04.08.2026, по решению автора): отдельного гостевого
+    // веб-аккаунта больше нет. Если Telegram-контекста и веб-сессии нет — не
+    // подставляем никакой identity: сервер вернёт 401, и maybeHandleAuthFailure
+    // уведёт на /login.html (вход через Telegram/Google). Так у браузерного
+    // юзера один вход, а не отдельный анонимный аккаунт, чьи данные потом
+    // невозможно связать с реальным. Старый _web_uid чистим, чтобы не мешал.
+    try { localStorage.removeItem('_web_uid'); } catch (e) {}
     // Язык приложения — для AI-генерации (Oracle, message, compatibility)
     // и для бэкенда чтобы знать какой язык вернуть в /api/pricing
     try {
@@ -138,27 +129,26 @@ const DarAPI = (function() {
     return !!(w && (w.initData || (w.initDataUnsafe && w.initDataUnsafe.user && w.initDataUnsafe.user.id)));
   }
 
-  // Само-починка авторизации в БРАУЗЕРЕ. Сервер вернул 401 → значит в
-  // localStorage лежит ПРОТУХШАЯ веб-сессия (при её наличии гостевой fallback
-  // в getHeaders не подставляется, и юзер получает «вечный» 401 со старым
-  // кэшем и всё «под замком»). Лечим так: чистим мёртвый токен и ОДИН раз
-  // перезагружаем страницу — следующий запрос уйдёт как гость, и приложение
-  // ОТКРОЕТСЯ. Стену логина не показываем: приложение обязано открываться в
-  // любом случае (важно для ЮKassa), а реальный вход остаётся опцией.
-  // sessionStorage-флаг не даёт зациклиться.
+  // Само-починка авторизации в БРАУЗЕРЕ. Сервер вернул 401 → веб-сессия
+  // отсутствует или протухла. Мёртвый _web_session в localStorage приводит к
+  // «вечному» 401 (см. getHeaders: при наличии токена гостевой fallback не
+  // подставляется), приложение показывает старый кэш и всё «под замком».
+  // Лечим единообразно: чистим протухший токен и уводим на /login.html, где
+  // есть реальный вход (Telegram/Google), с возвратом туда, где юзер был.
+  // Это делает вход работающим НЕЗАВИСИМО от того, как открыто приложение.
+  // sessionStorage-флаг не даёт зациклиться, если новый токен тоже отвергнут.
   function maybeHandleAuthFailure() {
     try {
-      if (isTelegramWebApp()) return;                        // в Telegram не трогаем
-      let hadSession = false;
-      try { hadSession = !!localStorage.getItem('_web_session'); } catch (e) {}
-      if (!hadSession) return;                               // сессии не было — уже работает гостевой fallback
+      if (isTelegramWebApp()) return;                       // в Telegram не трогаем
+      if (/\/login\.html$/i.test(location.pathname)) return; // уже на входе
       let already = false;
       try { already = sessionStorage.getItem('_auth_redirected') === '1'; } catch (e) {}
       if (already) return;                                   // уже пробовали — не зацикливаемся
       try { sessionStorage.setItem('_auth_redirected', '1'); } catch (e) {}
       try { localStorage.removeItem('_web_session'); } catch (e) {}
       try { localStorage.removeItem('_tg_init_cache'); } catch (e) {}
-      location.reload();                                     // перезагрузка → гостевой вход → приложение открывается
+      const ret = encodeURIComponent(location.pathname + location.search);
+      location.replace('/login.html?return=' + ret);
     } catch (e) {}
   }
 

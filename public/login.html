@@ -28,9 +28,15 @@
       text-align: center;
     }
     .orb { font-size: 40px; margin-bottom: 10px; }
-    h1 { font-size: 22px; color: #D4AF37; margin: 0 0 22px; letter-spacing: 0.5px; }
+    h1 { font-size: 22px; color: #D4AF37; margin: 0 0 8px; letter-spacing: 0.5px; }
+    p.lead { font-size: 13.5px; color: #bbb; line-height: 1.6; margin: 0 0 22px; }
 
-    /* Единый вид всех кнопок меню */
+    /* Обёртка официального виджета Telegram (он рисует свою кнопку) */
+    .tg-btn-wrap { display: flex; justify-content: center; margin-bottom: 12px; min-height: 46px; }
+
+    .divider { color: #555; font-size: 12px; margin: 6px 0 12px; }
+
+    /* Жёлтая кнопка Google в общем стиле */
     .btn {
       display: flex;
       align-items: center;
@@ -38,7 +44,6 @@
       gap: 8px;
       width: 100%;
       padding: 14px;
-      margin-bottom: 12px;
       border-radius: 12px;
       font-size: 15px;
       font-family: inherit;
@@ -50,30 +55,35 @@
       transition: background 0.15s;
     }
     .btn:hover { background: rgba(212,175,55,0.12); }
-    .btn.primary {
-      background: #D4AF37;
-      color: #1a1a14;
-      border-color: #D4AF37;
-      font-weight: 600;
-    }
-    .btn.primary:hover { background: #e4bf47; }
     .ico { font-size: 18px; line-height: 1; flex: 0 0 auto; }
 
-    .err { color: #e06a6a; font-size: 13px; margin-top: 10px; min-height: 16px; }
+    .err { color: #e06a6a; font-size: 13px; margin-top: 12px; min-height: 16px; }
+    .note { font-size: 11px; color: #666; margin-top: 16px; line-height: 1.5; }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="orb">&#128302;</div>
     <h1>Вход в ЮпДар</h1>
+    <p class="lead">Войди через Telegram или Google — твой Дар, тариф и прогресс будут одни и те же в боте и на сайте. После входа 7 дней доступно всё приложение.</p>
 
-    <!-- Telegram: своя кнопка в общем стиле, открывает окно входа Telegram -->
-    <button class="btn primary" id="tg-login" onclick="loginTelegram()">
-      <span class="ico">&#9993;</span> Войти через Telegram
-    </button>
+    <!-- Официальный Telegram Login Widget: сам рисует кнопку и надёжно
+         проводит вход во всех браузерах (проверенный способ Telegram).
+         data-onauth вызывает глобальную onTelegramAuth(user). -->
+    <div class="tg-btn-wrap" id="tg-btn-wrap">
+      <script async
+        src="https://telegram.org/js/telegram-widget.js?22"
+        data-telegram-login="YupDarBot"
+        data-size="large"
+        data-radius="10"
+        data-onauth="onTelegramAuth(user)"
+        data-request-access="write"></script>
+    </div>
 
-    <!-- Google: своя жёлтая кнопка в общем стиле, открывает окно входа Google -->
-    <button class="btn primary" id="google-login" onclick="loginGoogle()">
+    <div class="divider">— или —</div>
+
+    <!-- Google: жёлтая кнопка в общем стиле, OAuth token flow -->
+    <button class="btn" id="google-login" onclick="loginGoogle()">
       <svg class="ico" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
         <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -84,14 +94,12 @@
     </button>
 
     <div class="err" id="err"></div>
+    <div class="note">Вход не требует пароля. Email не запрашиваем и рассылок не шлём.</div>
   </div>
 
-  <!-- Библиотека виджета Telegram: даёт window.Telegram.Login.auth -->
-  <script async src="https://telegram.org/js/telegram-widget.js?22"></script>
-  <!-- Библиотека Google Identity Services: рисует кнопку и отдаёт id_token -->
+  <!-- Библиотека Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
-    var BOT_ID = '8662208423'; // публичный id @YupDarBot (не токен)
     var GOOGLE_CLIENT_ID = '92870739232-rv2av7o1gnjg26tl4q4ed5a6tghilvsp.apps.googleusercontent.com';
 
     // Куда вернуть после входа. Приложение при 401 присылает ?return=<путь>,
@@ -107,11 +115,39 @@
       return '/index.html?app=1';
     }
 
-    // Своя жёлтая кнопка Google: используем OAuth token flow (не официальную
-    // кнопку), чтобы вид совпадал с кнопкой Telegram. По клику Google открывает
-    // окно входа и возвращает access_token — его проверяет сервер.
+    // Общая обработка успешно выданного токена веб-сессии.
+    function applySession(token) {
+      try { localStorage.setItem('_web_session', token); } catch (e) {}
+      try { localStorage.removeItem('_web_uid'); } catch (e) {}
+      try { sessionStorage.removeItem('_auth_redirected'); } catch (e) {}
+      window.location.href = safeReturnUrl();
+    }
+
+    // ---- Telegram Login Widget (официальный, data-onauth) ----
+    async function onTelegramAuth(user) {
+      var err = document.getElementById('err');
+      err.textContent = '';
+      if (!user) { err.textContent = 'Вход через Telegram отменён.'; return; }
+      try {
+        var r = await fetch('/api/tg-web-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(user)
+        });
+        var j = await r.json();
+        if (!r.ok || !j.token) {
+          err.textContent = 'Не удалось войти: ' + (j.error || r.status);
+          return;
+        }
+        applySession(j.token);
+      } catch (e) {
+        err.textContent = 'Ошибка соединения: ' + e.message;
+      }
+    }
+
+    // ---- Google (OAuth token flow, своя жёлтая кнопка) ----
     // Реальный вход работает только на домене yupdar.com (он прописан в
-    // Authorized JavaScript origins). В превью кнопка видна, но окно не откроется.
+    // Authorized JavaScript origins). В превью окно не откроется.
     var googleTokenClient = null;
     function initGoogle() {
       try {
@@ -150,56 +186,11 @@
           err.textContent = j.error || ('Не удалось войти: ' + r.status);
           return;
         }
-        try { localStorage.setItem('_web_session', j.token); } catch (e) {}
-        try { localStorage.removeItem('_web_uid'); } catch (e) {}
-        try { sessionStorage.removeItem('_auth_redirected'); } catch (e) {}
-        window.location.href = safeReturnUrl();
+        applySession(j.token);
       } catch (e) {
         err.textContent = 'Ошибка соединения: ' + e.message;
       }
     }
-
-    // Открывает официальное окно входа Telegram (popup). После подтверждения
-    // Telegram возвращает подписанные данные — их проверяет сервер.
-    function loginTelegram() {
-      var err = document.getElementById('err');
-      err.textContent = '';
-      if (!(window.Telegram && window.Telegram.Login && window.Telegram.Login.auth)) {
-        err.textContent = 'Виджет Telegram ещё грузится, попробуй ещё раз через секунду.';
-        return;
-      }
-      window.Telegram.Login.auth(
-        { bot_id: BOT_ID, request_access: 'write' },
-        function (user) {
-          if (!user) { err.textContent = 'Вход через Telegram отменён.'; return; }
-          onTelegramAuth(user);
-        }
-      );
-    }
-
-    async function onTelegramAuth(user) {
-      var err = document.getElementById('err');
-      err.textContent = '';
-      try {
-        var r = await fetch('/api/tg-web-login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(user)
-        });
-        var j = await r.json();
-        if (!r.ok || !j.token) {
-          err.textContent = 'Не удалось войти: ' + (j.error || r.status);
-          return;
-        }
-        try { localStorage.setItem('_web_session', j.token); } catch (e) {}
-        try { localStorage.removeItem('_web_uid'); } catch (e) {}
-        try { sessionStorage.removeItem('_auth_redirected'); } catch (e) {}
-        window.location.href = safeReturnUrl();
-      } catch (e) {
-        err.textContent = 'Ошибка соединения: ' + e.message;
-      }
-    }
-
-</script>
+  </script>
 </body>
 </html>

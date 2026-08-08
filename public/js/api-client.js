@@ -141,6 +141,28 @@ const DarAPI = (function() {
     try {
       if (isTelegramWebApp()) return;                       // в Telegram не трогаем
       if (/\/login\.html$/i.test(location.pathname)) return; // уже на входе
+
+      // Есть свежий токен веб-сессии, но сервер вернул 401. Самая частая
+      // причина НЕ протухший токен, а СТАРЫЙ кэш index.html/api-client.js в
+      // браузере: код не шлёт заголовок x-web-session → 401 → раньше мы сразу
+      // стирали годный токен и уводили на вход → вход открывал приложение и
+      // оно тут же отскакивало назад (цикл, о котором сообщила Света).
+      // Поэтому при наличии токена СНАЧАЛА один раз жёстко перезагружаем
+      // страницу с cache-buster, НЕ трогая токен: свежий код подхватит токен и
+      // 401 исчезнет. Флаг _auth_hardreload не даёт зациклиться на перезагрузке.
+      let webSession = '';
+      try { webSession = localStorage.getItem('_web_session') || ''; } catch (e) {}
+      if (webSession) {
+        let reloaded = false;
+        try { reloaded = sessionStorage.getItem('_auth_hardreload') === '1'; } catch (e) {}
+        if (!reloaded) {
+          try { sessionStorage.setItem('_auth_hardreload', '1'); } catch (e) {}
+          const sep = location.search.indexOf('?') === -1 ? '?' : '&';
+          location.replace(location.pathname + location.search + sep + '_v=' + Date.now() + (location.hash || ''));
+          return;
+        }
+      }
+
       let already = false;
       try { already = sessionStorage.getItem('_auth_redirected') === '1'; } catch (e) {}
       if (already) return;                                   // уже пробовали — не зацикливаемся
@@ -198,9 +220,11 @@ const DarAPI = (function() {
       err.body = data; // сырое тело ответа — нужно фронту для рендера paywall (403)
       throw err;
     }
-    // Успешный ответ → авторизация рабочая: снимаем флаг анти-зацикливания,
-    // чтобы будущее истечение сессии снова могло само-починиться.
+    // Успешный ответ → авторизация рабочая: снимаем оба флага анти-зацикливания
+    // (и жёсткую перезагрузку, и редирект на вход), чтобы будущее истечение
+    // сессии снова могло само-починиться.
     try { sessionStorage.removeItem('_auth_redirected'); } catch (e) {}
+    try { sessionStorage.removeItem('_auth_hardreload'); } catch (e) {}
     return data;
   }
 

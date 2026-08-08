@@ -120,7 +120,14 @@
       try { localStorage.setItem('_web_session', token); } catch (e) {}
       try { localStorage.removeItem('_web_uid'); } catch (e) {}
       try { sessionStorage.removeItem('_auth_redirected'); } catch (e) {}
-      window.location.href = safeReturnUrl();
+      try { sessionStorage.removeItem('_auth_hardreload'); } catch (e) {}
+      // Возвращаемся в приложение с cache-buster: браузер мог держать СТАРЫЙ
+      // кэш index.html/api-client, который не шлёт x-web-session → 401 → цикл
+      // назад на вход. Уникальный _v заставляет взять свежий код, и токен
+      // долетит до запроса.
+      var dest = safeReturnUrl();
+      var sep = dest.indexOf('?') === -1 ? '?' : '&';
+      window.location.href = dest + sep + '_v=' + Date.now();
     }
 
     // ---- Telegram Login Widget (официальный, data-onauth) ----
